@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.11 2004/08/30 15:26:53 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.12 2004/08/31 13:56:24 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,7 +29,6 @@
 #include <winsock2.h>
 #define close(s) closesocket(s)
 typedef int ssize_t;
-typedef int socklen_t;
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -187,48 +186,6 @@ int hsocket_listen(hsocket_t sock, int n)
 	}
 	return HSOCKET_OK;
 }
-
-
-/*--------------------------------------------------
-FUNCTION: hsocket_listen
-----------------------------------------------------*/
-int hsocket_accept(hsocket_t sock, hsocket_t *dest)
-{
-	socklen_t asize;
-	hsocket_t sockfd;
-	struct sockaddr_in addr;
-
-	asize = sizeof(struct sockaddr_in);
-#ifdef WIN32
-	while(1)
-	{
-		sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
-		if (sockfd ==  INVALID_SOCKET) 
-		{ 
-			if(WSAGetLastError()!=WSAEWOULDBLOCK)
-			{
-				return HSOCKET_CAN_NOT_ACCEPT;		    
-			}
-		}
-		else
-		{
-			break;
-		}
-	}
-#else
-	sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
-	if (sockfd == -1) { 
-		//httpd_log("httpd_run(): '%s'\n", strerror(errno));
-		return HSOCKET_CAN_NOT_ACCEPT;
-	}
-#endif
-	log_verbose3("accept new socket (%d) from '%s'", sockfd,
-		SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
-
-	*dest = sockfd;
-	return HSOCKET_OK;  
-}
-
 
 /*--------------------------------------------------
 FUNCTION: hsocket_close
