@@ -3,7 +3,7 @@ dnl Initialization macros.
 dnl --------------------------------
 
 AC_INIT(libcsoap/csoap.h)
-AC_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h)
 
 dnl -----------------------------------------------
 dnl Package name and version number (user defined)
