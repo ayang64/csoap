@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.6 2004/05/14 09:31:48 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.7 2004/05/18 16:37:21 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -58,7 +58,7 @@ static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
-
+static int _httpd_terminate_signal = SIGTERM;
 
 /* ----------------------------------------------------- 
  FUNCTION: httpd_init
@@ -76,6 +76,8 @@ int httpd_init(int argc, char *argv[])
   for (i=0;i<argc;i++) {
     if (!strcmp(argv[i], NHTTPD_ARG_PORT) && i < argc-1) {
       _httpd_port = atoi(argv[i+1]);
+    } else if (!strcmp(argv[i], NHTTPD_ARG_TERMSIG) && i < argc-1) {
+	_httpd_terminate_signal = atoi(argv[i+1]);
     }
   }
 
@@ -328,7 +330,7 @@ static void* httpd_session_main(void *data)
 ----------------------------------------------------- */
 void httpd_term(int sig)
 {
-  if (sig == SIGTERM)
+  if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
 }
 
@@ -363,8 +365,8 @@ int httpd_run()
     return err;
   }
 
-  log_verbose1("registering sigterm handler");
-  signal(SIGTERM,httpd_term);
+  log_verbose2("registering termination signal handler (SIGNAL:%d)", _httpd_terminate_signal);
+  signal(_httpd_terminate_signal, httpd_term);
 
   log_verbose2("listening to port '%d'", _httpd_port);
   
