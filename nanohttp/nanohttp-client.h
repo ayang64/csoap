@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.1 2003/12/11 14:51:04 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.2 2003/12/18 11:14:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -54,19 +54,22 @@ typedef void (*httpc_response_start_callback)(httpc_conn_t*, void*, hpair_t*,
 httpc_conn_t* httpc_new();
 void httpc_free(httpc_conn_t* conn);
 
-void httpc_add_header(httpc_conn_t *conn, const char* key, const char* value);
 int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value);
 
 hresponse_t *httpc_get(httpc_conn_t *conn, const char *url);
-hresponse_t *httpc_post(httpc_conn_t *conn, const char *url, const char *content);
+hresponse_t *httpc_post(httpc_conn_t *conn, const char *url, 
+			int conten_size, const char *content);
 
 int httpc_get_cb(httpc_conn_t *conn, const char *url, 
 		 httpc_response_start_callback start_cb,
 		 httpc_response_callback cb, void *userdata);
 		 
+
 int httpc_post_cb(httpc_conn_t *conn, const char *url, 
 		  httpc_response_start_callback start_cb,
-		  httpc_response_callback cb, void *userdata);
+		  httpc_response_callback cb, int content_size, 
+		  char *content,  void *userdata);
+
 		 
 
 #endif

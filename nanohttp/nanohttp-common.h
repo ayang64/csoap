@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.3 2003/12/17 12:55:02 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.4 2003/12/18 11:14:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -54,12 +54,15 @@ struct hpair
 hpair_t *hpairnode_new(const char* key, const char* value, hpair_t* next);
 void hpairnode_free(hpair_t *pair);
 char *hpairnode_get(hpair_t *pair, const char* key);
-
+hpair_t* hpairnode_copy(const hpair_t *src);
+hpair_t* hpairnode_copy_deep(const hpair_t *src);
+void hpairnode_dump_deep(hpair_t *pair);
+void hpairnode_dump(hpair_t *pair);
 
 typedef enum hreq_method 
 {
-  HTTP_REQUESET_POST,
-  HTTP_REQUESET_GET
+  HTTP_REQUEST_POST,
+  HTTP_REQUEST_GET
 }hreq_method ;
 
 
@@ -84,19 +87,22 @@ typedef struct hresponse
   int errcode;
   char *desc;
   hpair_t *header;
-  char *body;
+  unsigned char *body;
+  long bodysize;
 }hresponse_t;
 
 /*
   PARAMS
   buffer: The hole received data from socket.
  */
-hresponse_t *hresponse_new(const char* buffer);
+hresponse_t *hresponse_new_from_buffer(const char* buffer);
+hresponse_t *hresponse_new();
 void hresponse_free(hresponse_t *res); 
 
 /* logging stuff*/
 typedef enum log_level
 {
+  HLOG_VERBOSE,
   HLOG_DEBUG,
   HLOG_INFO,
   HLOG_WARN,
@@ -104,8 +110,16 @@ typedef enum log_level
   HLOG_FATAL
 }log_level_t;
 
+
+
 log_level_t log_set_level(log_level_t level);
 log_level_t log_get_level();
+
+#define log_verbose1(a1) log_verbose(__FUNCTION__, a1)
+#define log_verbose2(a1,a2) log_verbose(__FUNCTION__, a1,a2)
+#define log_verbose3(a1,a2,a3) log_verbose(__FUNCTION__, a1,a2,a3)
+#define log_verbose4(a1,a2,a3,a4) log_verbose(__FUNCTION__, a1,a2,a3,a4)
+#define log_verbose5(a1,a2,a3,a4,a5) log_verbose(__FUNCTION__, a1,a2,a3,a4,a5)
 
 #define log_debug1(a1) log_debug(__FUNCTION__, a1)
 #define log_debug2(a1,a2) log_debug(__FUNCTION__, a1,a2)
@@ -131,10 +145,14 @@ log_level_t log_get_level();
 #define log_error4(a1,a2,a3,a4) log_error(__FUNCTION__, a1,a2,a3,a4)
 #define log_error5(a1,a2,a3,a4,a5) log_error(__FUNCTION__, a1,a2,a3,a4,a5)
 
+void log_verbose(const char* FUNC, const char *format, ...);
 void log_debug(const char* FUNC, const char *format, ...);
 void log_info(const char* FUNC, const char *format, ...);
 void log_warn(const char* FUNC, const char *format, ...);
 void log_error(const char* FUNC, const char *format, ...);
+
+
+
 
 #endif
 

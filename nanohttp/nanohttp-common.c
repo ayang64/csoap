@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.3 2003/12/17 13:48:37 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.4 2003/12/18 11:14:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -60,6 +60,15 @@ void log_write(log_level_t level, const char *prefix,
   fflush(stdout); 
 }
 
+void log_verbose(const char* FUNC, const char *format, ...)
+{
+  va_list ap;
+  
+  va_start(ap, format);
+  log_write(HLOG_VERBOSE, "VERBOSE", FUNC, format, ap);
+  va_end(ap);
+}
+
 void log_debug(const char* FUNC, const char *format, ...)
 {
   va_list ap;
@@ -101,13 +110,24 @@ hpair_t *hpairnode_new(const char* key, const char* value, hpair_t *next)
 {
   hpair_t *pair;
 
+  log_verbose3("new pair ('%s','%s')", SAVE_STR(key), SAVE_STR(value));
   pair = (hpair_t*)malloc(sizeof(hpair_t));
-  pair->key = (char*)malloc(strlen(key)+1);
-  pair->value = (char*)malloc(strlen(value)+1);
-  pair->next = next;
 
-  strcpy(pair->key, key);
-  strcpy(pair->value, value);
+  if (key != NULL) {
+    pair->key = (char*)malloc(strlen(key)+1);
+    strcpy(pair->key, key);
+  } else {
+    pair->key = NULL;
+  }
+
+  if (value != NULL) {
+    pair->value = (char*)malloc(strlen(value)+1);
+    strcpy(pair->value, value);
+  } else {
+    pair->value = NULL;
+  }
+
+  pair->next = next;
 
   return pair;
 }
@@ -138,6 +158,68 @@ hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t *next)
 
   return pair;
 }
+
+
+hpair_t* hpairnode_copy(const hpair_t *src)
+{
+  hpair_t *pair;
+
+  if (src == NULL) return NULL;
+
+  pair = hpairnode_new(src->key, src->value, NULL);
+  return pair;
+}
+
+
+hpair_t* hpairnode_copy_deep(const hpair_t *src)
+{
+  hpair_t *pair, *result, *next;
+
+  if (src == NULL) return NULL;
+
+  result = hpairnode_copy(src);
+
+  next = src->next;
+  pair = result;
+
+  while (next != NULL) {
+    pair->next = hpairnode_copy(next); 
+    pair = pair->next;
+    next = next->next;
+  }
+  
+  return result;
+}
+
+
+void hpairnode_dump(hpair_t *pair)
+{
+  if (pair == NULL) {
+    log_verbose1("(NULL)[]");
+    return;
+  }
+
+  log_verbose5("(%p)['%s','%s','%p']", pair, 
+	  SAVE_STR(pair->key), SAVE_STR(pair->value), 
+	  pair->next);
+}
+
+
+void hpairnode_dump_deep(hpair_t *pair)
+{
+  hpair_t *p;
+  p = pair;
+
+  log_verbose1("-- BEGIN dump hpairnode_t --");
+
+  while (p != NULL) {
+    hpairnode_dump(p);
+    p = p->next;
+  }
+
+  log_verbose1("-- END dump hpairnode_t --\n");
+}
+
 
 void hpairnode_free(hpair_t *pair)
 {
@@ -172,17 +254,16 @@ char *hpairnode_get(hpair_t *pair, const char* key)
 static
 void hurl_dump(const hurl_t *url)
 {
-  const char *FUNC = "hurl_dump";
 
   if (url == NULL) {
-    printf("(null)\n");
+    log_error1("url is NULL!");
     return ;
   }
 
-  log_debug(FUNC, "PROTOCOL : %s", url->protocol?url->protocol:"(null)");
-  log_debug(FUNC, "    HOST : %s", url->host?url->host:"(null)");
-  log_debug(FUNC, "    PORT : %d", url->port);
-  log_debug(FUNC, " CONTEXT : %s", url->context?url->context:"(null)");
+  log_verbose2("PROTOCOL : %s", SAVE_STR(url->protocol));
+  log_verbose2("    HOST : %s", SAVE_STR(url->host));
+  log_verbose2("    PORT : %d", url->port);
+  log_verbose2(" CONTEXT : %s", SAVE_STR(url->context));
 }
 
 
@@ -195,7 +276,6 @@ hurl_t* hurl_new(const char* urlstr)
   int size;
   hurl_t *url;
   char tmp[8];
-  const char *FUNC = "hurl_create";
   
   iprotocol = 0;
   len = strlen(urlstr);
@@ -207,12 +287,12 @@ hurl_t* hurl_new(const char* urlstr)
   }
 
   if (iprotocol == 0) {
-    log_error(FUNC, "no protocol");
+    log_error1("no protocol");
     return NULL;
   }
 
   if (iprotocol + 3 >= len) {
-    log_error(FUNC, "no host");
+    log_error1("no host");
     return NULL;
   }
 
@@ -220,7 +300,7 @@ hurl_t* hurl_new(const char* urlstr)
     && urlstr[iprotocol+1] != '/' 
     && urlstr[iprotocol+2] != '/')
   {
-    log_error(FUNC, "no protocol");
+    log_error1("no protocol");
     return NULL;
   }
 
@@ -234,7 +314,7 @@ hurl_t* hurl_new(const char* urlstr)
   }
 
   if (ihost == iprotocol + 1) {
-    log_error(FUNC, "no host");
+    log_error1("no host");
     return NULL;
   }
 
@@ -299,22 +379,38 @@ void hurl_free(hurl_t *url)
 
 /* response stuff */
 
+
 /* -------------------------------------------
    FUNCTION: hresponse_new
  ---------------------------------------------*/
-hresponse_t *hresponse_new(const char* buffer)
+hresponse_t *hresponse_new()
+{
+  hresponse_t *res;
+
+  /* create response object */
+  res = (hresponse_t*)malloc(sizeof(hresponse_t));
+  res->spec[0] = '\0';
+  res->errcode = -1;
+  res->desc = NULL;
+  res->header = NULL;
+  res->body = NULL;
+  res->bodysize = 0;
+
+  return res;
+}
+
+
+/* -------------------------------------------
+   FUNCTION: hresponse_new_from_buffer
+ ---------------------------------------------*/
+hresponse_t *hresponse_new_from_buffer(const char* buffer)
 {
   hresponse_t *res;
   char *s1, *s2, *str;
   hpair_t *pair;
 
-  const char *FUNC = "hresponse_new";
-
   /* create response object */
-  res = (hresponse_t*)malloc(sizeof(hresponse_t));
-  res->desc = "";
-  res->header = NULL;
-  res->body = "";
+  res = hresponse_new();
 
   /* *** parse spec *** */
   /* [HTTP/1.1 | 1.2] [CODE] [DESC] */
@@ -322,21 +418,21 @@ hresponse_t *hresponse_new(const char* buffer)
   /* stage 1: HTTP spec */
   str = (char*)strtok_r(buffer, " ", &s2);
   s1 = s2;
-  if (str == NULL) { log_error(FUNC, "Parse error"); return NULL; }
+  if (str == NULL) { log_error1("Parse error"); return NULL; }
   
   strncpy(res->spec, str, 10);
 
   /* stage 2: http code */
   str = (char*)strtok_r(s1, " ", &s2);
   s1 = s2;
-  if (str == NULL) { log_error(FUNC, "Parse error"); return NULL; }
+  if (str == NULL) { log_error1("Parse error"); return NULL; }
   
   res->errcode = atoi(str);
 
   /* stage 3: description text */
   str = (char*)strtok_r(s1, "\r\n", &s2);
   s1 = s2;
-  if (str == NULL) { log_error(FUNC, "Parse error"); return NULL; }
+  if (str == NULL) { log_error1("Parse error"); return NULL; }
 
   res->desc = (char*)malloc(strlen(str)+1);
   strcpy(res->desc, str);
@@ -374,5 +470,11 @@ void hresponse_free(hresponse_t *res)
 {
   /* not implemented yet!*/
 }
+
+
+
+
+
+
 
 

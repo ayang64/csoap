@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.4 2003/12/17 12:55:02 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.5 2003/12/18 11:14:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,25 +28,15 @@
 #endif
 
 #include <time.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
 
 /*--------------------------------------------------
-  STRUCTURES
-----------------------------------------------------*/
-typedef struct httpc_cb_userdata
-{
-  httpc_conn_t *conn;
-  void *userdata;
-  httpc_response_callback callback;
-  int counter;
-}httpc_cb_userdata_t;
-
-
-/*--------------------------------------------------
   FUNCTION: httpc_new
+  DESC: Creates a new http client connection object
+  You need to create at least 1 http client connection
+  to communicate via http.
 ----------------------------------------------------*/
 httpc_conn_t* httpc_new()
 {
@@ -62,16 +52,14 @@ httpc_conn_t* httpc_new()
 
 /*--------------------------------------------------
   FUNCTION: httpc_free
+  DESC: Free the given http client object.
 ----------------------------------------------------*/
 void httpc_free(httpc_conn_t* conn)
 {
-  const char *FUNC = "httpc_free";
   hpair_t *tmp;
 
   if (conn != NULL) {
     hsocket_free(conn->sock);
-    
-
     
     while (conn->header != NULL) {    
       tmp = conn->header;
@@ -85,31 +73,17 @@ void httpc_free(httpc_conn_t* conn)
 
 
 /*--------------------------------------------------
-  FUNCTION: httpc_add_header
-----------------------------------------------------*/
-void httpc_add_header(httpc_conn_t *conn, const char* key, const char* value)
-{
-  const char *FUNC = "httpc_add_header";
-
-  if (conn == NULL) {
-    log_warn(FUNC, "Connection object is NULL");
-    return;
-  }
-
-  conn->header = hpairnode_new(key, value, conn->header);
-}
-
-
-/*--------------------------------------------------
   FUNCTION: httpc_set_header
+  DESC: Adds a new (key, value) pair to the header
+  or modifies the old pair if this function will 
+  finds another pair with the same 'key' value.
 ----------------------------------------------------*/
 int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value)
 {
-  const char *FUNC = "httpc_set_header";
   hpair_t *p;
 
   if (conn == NULL) {
-    log_warn(FUNC, "Connection object is NULL");
+    log_warn1("Connection object is NULL");
     return 0;
   }
 
@@ -131,12 +105,12 @@ int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value)
 }
 
 
-
 /*--------------------------------------------------
-  FUNCTION: httpc_build_header
+  FUNCTION: httpc_header_add_date
+  DESC: Adds the current date to the header. 
 ----------------------------------------------------*/
 static 
-void httpc_build_header(httpc_conn_t *conn)
+void httpc_header_add_date(httpc_conn_t *conn)
 {
   char buffer[255];
   time_t nw;
@@ -150,99 +124,11 @@ void httpc_build_header(httpc_conn_t *conn)
 
 }
 
-/*--------------------------------------------------
-  FUNCTION: httpc_get
-----------------------------------------------------*/
-hresponse_t *httpc_get(httpc_conn_t *conn, const char* urlstr)
-{
-  const char *FUNC = "httpc_get";
-
-  hurl_t *url;
-  char buffer[255];
-  int status;
-  char *response;
-  int rsize;
-  hresponse_t *res;
-  char *rest;
-  int restsize;
-
-  if (conn == NULL) {
-    log_error(FUNC, "Connection object is NULL");
-    return NULL;
-  }
-
-  /* set response to 0 to allocate 
-     it in hsocket_recv */
-  response = 0;
-
-  /* Build request header  */
-  httpc_build_header(conn);
-
-  /* Create url */
-  url = hurl_new(urlstr);
-  if (url == NULL) {
-    log_error(FUNC, "Can not parse URL '%s'", SAVE_STR(urlstr));
-    return NULL;
-  }
-
-  /* Set hostname  */
-  httpc_set_header(conn, HEADER_HOST, url->host);
-
-  /* Open connection */
-  status = hsocket_open(&conn->sock, url->host, url->port);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not open connection to '%s' (status:%d)", 
-	      SAVE_STR(url->host), status);
-    return NULL;
-  }
-
-  /* Send GET  */
-  sprintf(buffer, "GET %s HTTP/1.1\r\n", 
-	  (url->context)?url->context:("/"));
-  status = hsocket_send(conn->sock, buffer);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not send GET (status:%d)", status);
-    hsocket_close(conn->sock);
-    return NULL;
-  }
-
-  /* Send Header */
-  status = httpc_send_header(conn);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not send header (status:%d)", status);
-    hsocket_close(conn->sock);
-    return NULL;
-  }
-  
-  /* Receive Response */
-  status = hsocket_recv(conn->sock, &response, &rsize);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not receive response (status:%d)", status);
-    return NULL;
-  } 
-   
-
-  /*status = hsocket_recv_limit(conn->sock, &response, 
-			      "\r\n\r\n", &rest, &rsize, &restsize);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not receive response (status:%d)", status);
-    return NULL;
-  }
-  */
-  res = hresponse_new(response);
-
-  if (res == NULL) {
-    free(response);
-    return NULL;
-  }
-
-  /*res->body = rest;*/
-  return res;
-}
-
 
 /*--------------------------------------------------
   FUNCTION: httpc_send_header
+  DESC: Sends the current header information stored
+  in conn through conn->sock.
 ----------------------------------------------------*/
 int httpc_send_header(httpc_conn_t *conn)
 {
@@ -265,121 +151,57 @@ int httpc_send_header(httpc_conn_t *conn)
   return status;
 }
 
-/*--------------------------------------------------
-  FUNCTION: httpc_post
-----------------------------------------------------*/
-hresponse_t *httpc_post(httpc_conn_t *conn, const char *urlstr, const char *content)
-{
-  const char *FUNC = "httpc_post";
-  int content_length;
-  hurl_t *url;
-  char buffer[255];
-  int status;
-  char *response;
-  hresponse_t *res;
-  int rsize;
-
-  if (conn == NULL) {
-    log_error(FUNC, "Connection object is NULL");
-    return NULL;
-  }
-
-  if (content == NULL) {
-    log_error(FUNC, "Content is NULL");
-    return NULL;
-  }
-
-  /* set response to 0 to allocate 
-     it in hsocket_recv */
-  response = 0;
-
-  /* Build request header  */
-  httpc_build_header(conn);
-
-  /* Create url */
-  url = hurl_new(urlstr);
-  if (url == NULL) {
-    log_error(FUNC, "Can not parse URL '%s'", SAVE_STR(urlstr));
-    return NULL;
-  }
-
-  /* Set content length */
-  content_length = strlen(content);
-  sprintf(buffer, "%d", content_length);
-  httpc_set_header(conn, HEADER_CONTENT_LENGTH, buffer);
-
-  /* Set hostname  */
-  httpc_set_header(conn, HEADER_HOST, url->host);
-
-  /* Open connection */
-  status = hsocket_open(&conn->sock, url->host, url->port);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not open connection to '%s' (status:%d)", 
-	      SAVE_STR(url->host), status);
-    return NULL;
-  }
-
-  /* Send POST  */
-  sprintf(buffer, "POST %s HTTP/1.1\r\n", 
-	  (url->context)?url->context:("/"));
-  status = hsocket_send(conn->sock, buffer);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not send POST (status:%d)", status);
-    hsocket_close(conn->sock);
-    return NULL;
-  }
-
-  /* Send Header */
-  status = httpc_send_header(conn);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not send header (status:%d)", status);
-    hsocket_close(conn->sock);
-    return NULL;
-  }
-  
-  /* Send Content */
-  status = hsocket_send(conn->sock, content);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not send content (status:%d)", status);
-    return NULL;
-  }
-
-  /* Receive Response */
-  status = hsocket_recv(conn->sock, &response, &rsize);
-  if (status != HSOCKET_OK) {
-    log_error(FUNC, "Can not receive response (status:%d)", status);
-    return NULL;
-  }
-
-  res = hresponse_new(response);
-  if (res == NULL) {
-    free(response);
-    return NULL;
-  }
-
-  return res;
-}
-
 
 /*--------------------------------------------------
-  FUNCTION: httpc_recv_cb_callback
-----------------------------------------------------*/
-int httpc_recv_cb_callback(hsocket_t sock, char *buffer, 
-			   int size, void *userdata)
-{
-  httpc_cb_userdata_t *cbdata = (httpc_cb_userdata_t*)userdata;
+  FUNCTION: httpc_talk_to_server
+  DESC: This function is the heart of the httpc 
+  module. It will send the request and process the
+  response. 
 
-  cbdata->callback(cbdata->counter++, cbdata->conn, 
-		   cbdata->userdata, size, buffer);
-  return 1;
-}
+  Here the parameters:
 
-/*--------------------------------------------------
-  FUNCTION: httpc_get_cb
+  method:
+   the request method. This can be HTTP_REQUEST_POST and 
+   HTTP_REQUEST_GET.
+
+  conn: 
+   the connection object (created with httpc_new())
+   
+  urlstr:
+   the complete url in string format.
+   http://<host>:<port>/<context>
+   where <port> is not mendatory.
+
+  start_cb:
+   a callback function, which will be called when
+   the response header is completely arrives.
+
+  cb:
+   a callback function, which will be called everytime
+   when data arrives.
+
+  content_size:
+   size of content to send. 
+   (only if method is HTTP_REQUEST_POST)
+
+  content:
+   the content data to send. 
+   (only if method is HTTP_REQUEST_POST)
+
+  userdata:
+   a user define data, which will be passed to the
+   start_cb and cb callbacks as a parameter. This
+   can also be NULL.
+
+   
+  If success, this function will return 0. 
+  >0 otherwise.
 ----------------------------------------------------*/
-int httpc_get_cb(httpc_conn_t *conn, const char *urlstr, 
-		 httpc_response_start_callback start_cb,
-		 httpc_response_callback cb, void *userdata)
+static
+int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *urlstr, 
+			 httpc_response_start_callback start_cb,
+			 httpc_response_callback cb, int content_size, 
+			 char* content, void *userdata)
 {
   hurl_t *url;
   char buffer[4096];
@@ -389,7 +211,6 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   hresponse_t *res;
   char *rest;
   int restsize;
-  httpc_cb_userdata_t cbdata;
   int i, done;
 
   /* content-length */
@@ -403,12 +224,10 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   /* chunked encoding */
   char *transfer_encoding;
   char *chunk_buffer;
-  int chunk_size, cs;
+  int chunk_size;
   hbufsocket_t bufsock;
-  char tmpch;
   char chunk_size_str[25];
   int chunk_size_cur;
-  char chunk_ch[2];
 
   /* connection closed */
   char *connection_status;
@@ -424,7 +243,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   response = 0;
 
   /* Build request header  */
-  httpc_build_header(conn);
+  httpc_header_add_date(conn);
 
   /* Create url */
   url = hurl_new(urlstr);
@@ -444,12 +263,27 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
     return 3;
   }
 
-  /* Send GET  */
-  sprintf(buffer, "GET %s HTTP/1.1\r\n", 
-	  (url->context)?url->context:("/"));
+  /* check method */
+  if (method == HTTP_REQUEST_GET) {
+
+    /* Set GET Header  */
+    sprintf(buffer, "GET %s HTTP/1.1\r\n", 
+	    (url->context)?url->context:("/"));
+
+  } else if (method == HTTP_REQUEST_POST) {
+
+    /* Set POST Header  */
+    sprintf(buffer, "POST %s HTTP/1.1\r\n", 
+	    (url->context)?url->context:("/"));
+  } else {
+    
+    log_error1("Unknown method type!");
+    return 15;
+  }
+
   status = hsocket_send(conn->sock, buffer);
   if (status != HSOCKET_OK) {
-    log_error2("Can not send GET (status:%d)", status);
+    log_error2("Can not send request (status:%d)", status);
     hsocket_close(conn->sock);
     return 4;
   }
@@ -525,7 +359,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
     return 13;
   }
   
-  res = hresponse_new(response);
+  res = hresponse_new_from_buffer(response);
   if (res == NULL) {
     log_error2("Can't create response (url:'%s')", urlstr);
     return 7;
@@ -698,15 +532,156 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 	
 	 
 /*--------------------------------------------------
-  FUNCTION: httpc_post_cb
+  FUNCTION: httpc_get_cb
+  DESC: Wraps the httpc_talk_to_server() function
+  to communicate with GET method. 
+
+  See the documentation of httpc_talk_to_server()
+  for more information.
 ----------------------------------------------------*/
-int httpc_post_cb(httpc_conn_t *conn, const char *url, 
-		  httpc_response_start_callback start_cb,
-		  httpc_response_callback cb, void *userdata)
+int httpc_get_cb(httpc_conn_t *conn, const char *urlstr, 
+		 httpc_response_start_callback start_cb,
+		 httpc_response_callback cb, void *userdata)
 {
-  return 1;
+  int status;
+
+  status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr,
+				start_cb, cb, 0, NULL, userdata);
+  return status;
+}
+
+
+
+/*--------------------------------------------------
+  FUNCTION: httpc_post_cb
+  DESC: Wraps the httpc_talk_to_server() function
+  to communicate with POST method. 
+
+  See the documentation of httpc_talk_to_server()
+  for more information.
+----------------------------------------------------*/
+int httpc_post_cb(httpc_conn_t *conn, const char *urlstr, 
+		  httpc_response_start_callback start_cb,
+		  httpc_response_callback cb, int content_size, 
+		  char *content,  void *userdata)
+{
+  int status;
+
+  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, urlstr,
+				start_cb, cb, content_size, content, 
+				userdata);
+  return status;
 }
 		 
+
+/*======================================================
+  The following  functions are used internally to wrap 
+  the httpc_x_cb (x = get|post)  functions. 
+  ======================================================*/
+static
+void httpc_custom_res_callback(int counter, httpc_conn_t* conn,
+			       void *userdata, int size, char *buffer)
+{
+  hresponse_t *res;
+
+  /* get response object */
+  res = (hresponse_t*)userdata;
+
+  /* allocate buffersize */
+
+  res->bodysize += size;
+  res->body = (unsigned char*)realloc(res->body, res->bodysize + 1);
+
+  memcpy(&(res->body[res->bodysize-size]), buffer, size);
+
+}
+
+
+static 
+void httpc_custom_start_callback(httpc_conn_t *conn, void *userdata, 
+				 hpair_t *header, const char *spec,
+				 int errcode, const char *desc)
+{
+  hresponse_t *res;
+
+  /* get response object */
+  res = (hresponse_t*)userdata;
+
+  /* set spec */
+  if (spec != NULL) {
+    strcpy(res->spec, spec);
+  }
+
+  /* set errcode */
+  res->errcode = errcode;
+
+  /* set desc */
+  if (desc != NULL) {
+    res->desc = (char*)malloc(strlen(desc)+1);
+    strcpy(res->desc, desc);
+  }
+
+  /* set header */
+  if (header == NULL) {
+    log_warn1("header is NULL!");
+  }
+
+  res->header = hpairnode_copy_deep(header);
+}
+     
+
+/*--------------------------------------------------
+  FUNCTION: httpc_get
+----------------------------------------------------*/
+hresponse_t *httpc_get(httpc_conn_t *conn, const char *url)
+{
+  int status;
+  hresponse_t *res;
+
+  res = hresponse_new();
+  status = httpc_get_cb(conn, url, httpc_custom_start_callback,
+			httpc_custom_res_callback, res);
+
+  if (status != 0) {
+    hresponse_free(res);
+    return NULL;
+  }
+
+  return res;
+} 
+
+
+/*--------------------------------------------------
+  FUNCTION: httpc_post
+----------------------------------------------------*/
+hresponse_t *httpc_post(httpc_conn_t *conn, const char *url, 
+			int content_size, const char *content)
+{ 
+  int status;
+  hresponse_t *res;
+
+  res = hresponse_new();
+  status = httpc_post_cb(conn, url, httpc_custom_start_callback,
+			 httpc_custom_res_callback, content_size,
+			 content, res);
+
+  if (status != 0) {
+    hresponse_free(res);
+    return NULL;
+  }
+
+  return res;
+} 
+
+
+
+
+
+
+
+
+
+
 
 
 
