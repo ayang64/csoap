@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: wsdl2c.c,v 1.6 2004/06/03 13:13:47 snowdrop Exp $
+ *  $Id: wsdl2c.c,v 1.7 2004/06/08 12:55:04 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -69,6 +69,7 @@ void Writer_EndElement(const char* element_name, void* userData)
 /* ------------------------------------------------------------- */
 
 struct CallList* callList = NULL;
+char soap_prefix[50];
 
 xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 {
@@ -453,20 +454,22 @@ void wsdlParse(xmlDocPtr doc)
   xmlChar *name, *binding;
   xmlNodeSetPtr nodeset; 
   xmlXPathObjectPtr xpathObj;
+  char query[255];
 
-
+  sprintf(query, "//wsdl:definitions/wsdl:service/wsdl:port[%s:address]", soap_prefix);
+  
   /* Find Soap Service */
-  xpathObj = xpath_eval(doc, "//wsdl:definitions/wsdl:service/wsdl:port[soap:address]");
+  xpathObj = xpath_eval(doc, query);
   
   if (xpathObj == NULL) {
-    fprintf(stderr, "No Soap Service (soap:address) found!\n");
+    fprintf(stderr, "No Soap Service  found!\n");
     return;
   }
 
   /* Check if found nodes */
   nodeset = xpathObj->nodesetval;
   if (nodeset == NULL) {
-    fprintf(stderr, "No Soap Service (soap:address) found! nodeset empty!\n");
+    fprintf(stderr, "No Soap Service  found! nodeset empty!\n");
     return;
   }
 
@@ -505,6 +508,7 @@ int main(int argc, char *argv[])
   xmlNodePtr node;
   xmlNodePtr xsdRoot;
   xmlNsPtr default_ns;
+  xmlNsPtr soap_ns;
   int i;
   char outDir[1054];
   char fname[255];
@@ -553,6 +557,25 @@ int main(int argc, char *argv[])
     xmlFreeDoc(doc);
     return 1;
   }
+
+  /* Search for wsdl soap namespace 
+    http://schemas.xmlsoap.org/wsdl/soap/
+  */
+  soap_ns = xmlSearchNsByHref(doc, node, "http://schemas.xmlsoap.org/wsdl/soap/");
+  if (soap_ns == NULL) {
+    soap_ns = xmlSearchNsByHref(doc, node, "http://schemas.xmlsoap.org/wsdl/soap");
+  }
+
+  if (soap_ns != NULL && soap_ns->prefix != NULL) {
+      fprintf(stdout, "Wsdl Soap prefix: '%s'\n", soap_ns->prefix);
+      strcpy(soap_prefix, soap_ns->prefix);
+  } else { 
+    fprintf(stderr,"Namespace 'http://schemas.xmlsoap.org/wsdl/soap/' expected\n");
+    xmlFreeDoc(doc);
+    return 1;
+  }
+
+  
 
   /* search default namespace */
   default_ns = xmlSearchNs(doc, node, NULL);
