@@ -1,3 +1,3 @@
-Windows Port and Installer by Michael Rans
+Windows Port by Michael Rans
 
 EMail: rans@email.com
