@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.c,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+ *  $Id: xsd2c.c,v 1.2 2004/06/02 14:57:23 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,101 +27,16 @@
 
 
 #include <stdio.h>
+#include <string.h>
 #include "obj.h"
 #include "tr.h"
 #include "formatter.h"
+#include "xsd2c.h"
 
+#include <sys/stat.h>
 
 #define NODE_NAME_EQUALS(xmlnode, text) \
   (!xmlStrcmp(xmlnode->name, (const xmlChar *)text))
-
-
-#define   XSD_ALL_STR   "all"
-#define   XSD_ANNOTATION_STR		"annotation"
-#define   XSD_ANY_STR		""
-#define   XSD_ANY_ATTRIBUTE_STR		"any"
-#define   XSD_APPINFO_STR		"appInfo"
-#define   XSD_ATTRIBUTE_STR		"attribute"
-#define   XSD_ATTRIBUTE_GROUP_STR		"attributeGroup"
-#define   XSD_CHOICE_STR		"choice"
-#define   XSD_COMPLEX_TYPE_STR		"complexType"
-#define   XSD_COMPLEX_CONTENT_STR		"complexContent"
-#define   XSD_DOCUMENTATION_STR		"documentation"
-#define   XSD_ELEMENT_STR		"element"
-#define   XSD_EXTENSION_STR		"extension"
-#define   XSD_FIELD_STR		"field"
-#define   XSD_GROUP_STR		"group"
-#define   XSD_IMPORT_STR		"import"
-#define   XSD_INCLUDE_STR		"include"
-#define   XSD_KEY_STR		"key"
-#define   XSD_KEYREF_STR		"keyref"
-#define   XSD_LIST_STR		"list"
-#define   XSD_NOTATION_STR		"notation"
-#define   XSD_REDEFINE_STR		"redefine"
-#define   XSD_RESTRICTION_STR		"restriction"
-#define   XSD_SCHEMA_STR		"schema"
-#define   XSD_SELECTOR_STR		"selector"
-#define   XSD_SEQUENCE_STR		"sequence"
-#define   XSD_SIMPLE_CONTENT_STR		"simpleContent"
-#define   XSD_SIMPLE_TYPE_STR		"simpleType"
-#define   XSD_UNION_STR		"union"
-#define   XSD_UNIQUE_STR		"unique"
-
-#define   ATTR_TYPE_STR "type"
-#define   ATTR_NAME_STR "name"
-#define   ATTR_BASE_STR "base"
-#define   ATTR_MIN_OCCURS_STR "minOccurs"
-#define   ATTR_MAX_OCCURS_STR "maxOccurs"
-
-#define   ATTR_VALUE_UNBOUNDED "unbounded"
-
-enum _xsdAttr
-{
-  ATTR_UNKNOWN,
-  ATTR_TYPE,
-  ATTR_NAME,
-  ATTR_BASE,
-  ATTR_MIN_OCCURS,
-  ATTR_MAX_OCCURS
-};
-
-enum _xsdKeyword 
-{
-  XSD_UNKNOWN,
-  XSD_ALL,
-  XSD_ANNOTATION, 
-  XSD_ANY, 
-  XSD_ANY_ATTRIBUTE, 
-  XSD_APPINFO, 
-  XSD_ATTRIBUTE, 
-  XSD_ATTRIBUTE_GROUP, 
-  XSD_CHOICE, 
-  XSD_COMPLEX_TYPE, 
-  XSD_COMPLEX_CONTENT, 
-  XSD_DOCUMENTATION, 
-  XSD_ELEMENT, 
-  XSD_EXTENSION, 
-  XSD_FIELD, 
-  XSD_GROUP, 
-  XSD_IMPORT, 
-  XSD_INCLUDE, 
-  XSD_KEY, 
-  XSD_KEYREF, 
-  XSD_LIST, 
-  XSD_NOTATION, 
-  XSD_REDEFINE, 
-  XSD_RESTRICTION, 
-  XSD_SCHEMA, 
-  XSD_SELECTOR, 
-  XSD_SEQUENCE, 
-  XSD_SIMPLE_CONTENT, 
-  XSD_SIMPLE_TYPE, 
-  XSD_UNION, 
-  XSD_UNIQUE
-};
-
-typedef enum _xsdKeyword xsdKeyword; 
-typedef enum _xsdAttr xsdAttr; 
 
 static xmlNodePtr _xmlGetChild(xmlNodePtr node);
 static xmlNodePtr _xmlGetNext(xmlNodePtr node);
@@ -171,9 +86,6 @@ static char outDir[1054];
 
 
 
-static 
-void usage();
-
 
 static 
 xmlNodePtr xmlFindSubElement(xmlNodePtr root, const char* element_name)
@@ -198,7 +110,6 @@ xmlNodePtr xmlFindSubElement(xmlNodePtr root, const char* element_name)
   return NULL;
 }
 
-static
 xmlNodePtr xsdLoadFile(const char* filename)
 {
   xmlDocPtr doc;
@@ -213,7 +124,6 @@ xmlNodePtr xsdLoadFile(const char* filename)
 }
 
 
-static
 xmlNodePtr wsdlLoadFile(const char* filename)
 {
   xmlDocPtr doc;
@@ -246,6 +156,8 @@ xmlNodePtr wsdlLoadFile(const char* filename)
     case XSD_SIMPLE_TYPE:
     case XSD_SCHEMA:
       return sub;
+    default:
+      fprintf(stderr, "Unexpected node: '%s'\n", cur->name);
   }
 
   return NULL;
@@ -286,9 +198,9 @@ static
 void xsdProcAttribute(HCOMPLEXTYPE parent, xmlNodePtr node)
 {
   char *name, *type;
-  xmlNodePtr cur;
+/*  xmlNodePtr cur;
   char buffer[1054];
-  
+  */
   name = xmlGetProp(node, ATTR_NAME_STR);
   type = xmlGetProp(node, ATTR_TYPE_STR);
 
@@ -374,6 +286,9 @@ void xsdProcElement(HCOMPLEXTYPE parent, xmlNodePtr node)
             objAddElement(parent, name, buffer,0, mino, maxo);
           }
           break;
+          
+        default:
+          fprintf(stderr, "Unexpected node: '%s'\n", cur->name);
       }
 
     } while ((cur = _xmlGetNext(cur)) != NULL);
@@ -557,7 +472,7 @@ HCOMPLEXTYPE xsdProcComplexType(xmlNodePtr node, const char* type)
 
   if (!name)
   {
-    fprintf(stderr, "\nWARNING: complexType has no typename!\n", name);
+    fprintf(stderr, "\nWARNING: complexType has no typename!\n");
     return NULL;
   }
   
@@ -767,67 +682,28 @@ int xsdInitObjModule(xmlNodePtr xsdNode)
 }
 
 
-int main(int argc, char *argv[])
+int xsdEngineRun(xmlNodePtr xsdNode, const char* destDir)
 {
-  int i;
-  xmlNodePtr xsdNode = NULL;
-  char fname[255];
-  int wsdl = 0;
-
-  if (argc < 2) {
-    usage(argv[0]);
-    return 1;
-  }
- 
-  
- strcpy(outDir, ".");
-
-  for (i=1;i<argc;i++) 
-  {
-    if (!strcmp(argv[i], "-d"))
-      if (i==argc-1) usage(argv[0]);
-      else strcpy(outDir, argv[++i]);
-    else if (!strcmp(argv[i], "-S"))
-      formatter_generate_sax_serializer = 1;
-    else if (!strcmp(argv[i], "-wsdl"))
-      wsdl = 1;
-    else strcpy(fname, argv[i]);
-  }
-  
-  mkdir(outDir, 000);
-
-  if (wsdl)
-    xsdNode = wsdlLoadFile(fname);
-  else
-    xsdNode = xsdLoadFile(fname);
-
-  if (xsdNode == NULL) {
-    fprintf(stderr, "can not load xsd file!\n");
-    return 1;
-  }
 
   if (!xsdInitTrModule(xsdNode))
     return 1;
 
   if (!xsdInitObjModule(xsdNode))
     return 1;
-
+	strcpy(outDir, destDir);
+	
+  mkdir(destDir, 	S_IRUSR|S_IWUSR|S_IXUSR | 
+  						S_IRGRP|S_IWGRP|S_IXGRP | 
+  						S_IROTH|S_IXOTH  );
+ 						
   runGenerator(xsdNode);
   objRegistryEnumComplexType(declareStructs);
   objRegistryEnumComplexType(writeSource);
 
-  xmlFreeDoc(xsdNode->doc);
   trFreeModule();
   objFreeModule();
-
+  
   return 0;
-}
-
-
-
-void usage(const char* execName) 
-{
-  printf("usage: %s [-d <destdir> -S -D] <xsd filename>\n", execName);
 }
 
 

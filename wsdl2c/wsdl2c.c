@@ -1,29 +1,8 @@
 #include <libxml/xpath.h>
+#include <xsd2c/xsd2c.h>
+#include <xsd2c/util.h> /* parseNS */
 
 
-int parseNS(const char* fullname, char *ns, char *name)
-{
-  int len, i, found;
-
-  if (fullname == NULL || ns == NULL || name == NULL) return 0;
-  
-  len = strlen(fullname);
-
-  found = 0;
-  for (i = len - 1; i > 0; i--) 
-  {
-    if (fullname[i] == ':') { found = 1; break; }
-  }
-
-  if (found) strncpy(ns, fullname, i);
-  else ns[0] = '\0';
-
-  strcpy(name, 
-      (fullname[i] == ':')?
-      (&fullname[i+1]):(&fullname[i]));
-
-  return 1;
-}
 
 xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 {
