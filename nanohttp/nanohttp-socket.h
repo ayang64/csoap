@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.8 2004/08/31 16:34:08 rans Exp $
+ *  $Id: nanohttp-socket.h,v 1.9 2004/09/01 07:58:08 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -104,7 +104,7 @@ typedef struct tag_conndata
 	HANDLE tid;
 #else
 	pthread_t tid;
-	pthread_attr_t attr;
+  	pthread_attr_t attr;
 #endif
 	time_t atime;
 }conndata_t;

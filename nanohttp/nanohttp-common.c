@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.10 2004/08/30 13:28:58 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.11 2004/09/01 07:58:08 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -18,7 +18,7 @@
 * License along with this library; if not, write to the
 * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * Boston, MA  02111-1307, USA.
-* 
+*
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
 
@@ -30,26 +30,26 @@
 
 #ifdef WIN32
 #include <string.h>
-static char *strtok_r (char *s, const char *delim, char **save_ptr)
+static char    *
+strtok_r(char *s, const char *delim, char **save_ptr)
 {
-	char *token;
+	char           *token;
 
 	if (s == NULL)
 		s = *save_ptr;
 
 	/* Scan leading delimiters.  */
-	s += strspn (s, delim);
+	s += strspn(s, delim);
 	if (*s == '\0')
 		return NULL;
 
 	/* Find the end of the token.  */
 	token = s;
-	s = strpbrk (token, delim);
+	s = strpbrk(token, delim);
 	if (s == NULL)
 		/* This token finishes the string.  */
-		*save_ptr = strchr (token, '\0');
-	else
-	{
+		*save_ptr = strchr(token, '\0');
+	else {
 		/* Terminate the token and make *SAVE_PTR point past it.  */
 		*s = '\0';
 		*save_ptr = s + 1;
@@ -60,73 +60,82 @@ static char *strtok_r (char *s, const char *delim, char **save_ptr)
 
 static log_level_t loglevel = HLOG_DEBUG;
 
-log_level_t log_set_level(log_level_t level)
+log_level_t 
+log_set_level(log_level_t level)
 {
-	log_level_t old = loglevel;
+	log_level_t     old = loglevel;
 	loglevel = level;
 	return old;
 }
 
 
-log_level_t log_get_level()
+log_level_t 
+log_get_level()
 {
 	return loglevel;
 }
 
 static
-void log_write(log_level_t level, const char *prefix,
-			   const char* func, const char *format, va_list ap)
+void 
+log_write(log_level_t level, const char *prefix,
+	  const char *func, const char *format, va_list ap)
 {
-	char buffer[1054];
-	char buffer2[1054];
+	char            buffer[1054];
+	char            buffer2[1054];
 
-	if (level < loglevel) return;
+	if (level < loglevel)
+		return;
 
-	sprintf(buffer, "*%s*: [%s] %s\n", prefix,  func, format);
+	sprintf(buffer, "*%s*: [%s] %s\n", prefix, func, format);
 	vsprintf(buffer2, buffer, ap);
 	printf(buffer2);
-	fflush(stdout); 
+	fflush(stdout);
 }
 
-void log_verbose(const char* FUNC, const char *format, ...)
+void 
+log_verbose(const char *FUNC, const char *format,...)
 {
-	va_list ap;
+	va_list         ap;
 
 	va_start(ap, format);
 	log_write(HLOG_VERBOSE, "VERBOSE", FUNC, format, ap);
 	va_end(ap);
 }
 
-void log_debug(const char* FUNC, const char *format, ...)
+void 
+log_debug(const char *FUNC, const char *format,...)
 {
-	va_list ap;
+	va_list         ap;
 
 	va_start(ap, format);
 	log_write(HLOG_DEBUG, "DEBUG", FUNC, format, ap);
 	va_end(ap);
 }
 
-void log_info(const char* FUNC, const char *format, ...)
+void 
+log_info(const char *FUNC, const char *format,...)
 {
-	va_list ap;
+	va_list         ap;
 
 	va_start(ap, format);
 	log_write(HLOG_INFO, "INFO", FUNC, format, ap);
 	va_end(ap);
 }
 
-void log_warn(const char* FUNC, const char *format, ...)
+void 
+log_warn(const char *FUNC, const char *format,...)
 {
-	va_list ap;
+	va_list         ap;
 
 	va_start(ap, format);
 	log_write(HLOG_WARN, "WARN", FUNC, format, ap);
 	va_end(ap);
 }
 
-void log_error(const char* FUNC, const char *format, ...)
+void 
+log_error(const char *FUNC, const char *format,...)
 {
-	va_list ap;
+	va_list         ap;
 
 	va_start(ap, format);
 	log_write(HLOG_ERROR, "ERROR", FUNC, format, ap);
@@ -134,22 +143,27 @@ void log_error(const char* FUNC, const char *format, ...)
 }
 
 
-/* -----------------------------------------
-FUNCTION: strcmpigcase
------------------------------------------- */
-int strcmpigcase(const char *s1, const char *s2)
+/*
+ * ----------------------------------------- FUNCTION: strcmpigcase
+ * ------------------------------------------
+ */
+int 
+strcmpigcase(const char *s1, const char *s2)
 {
-	int l1, l2, i;
+	int             l1, l2, i;
 
-	if (s1 == NULL && s2 == NULL) return 1;
-	if (s1 == NULL || s2 == NULL) return 0;
+	if (s1 == NULL && s2 == NULL)
+		return 1;
+	if (s1 == NULL || s2 == NULL)
+		return 0;
 
 	l1 = strlen(s1);
 	l2 = strlen(s2);
 
-	if (l1 != l2) return 0;
+	if (l1 != l2)
+		return 0;
 
-	for (i=0;i<l1;i++) 
+	for (i = 0; i < l1; i++)
 		if (toupper(s1[i]) != toupper(s2[i]))
 			return 0;
 
@@ -157,22 +171,23 @@ int strcmpigcase(const char *s1, const char *s2)
 }
 
 
-hpair_t *hpairnode_new(const char* key, const char* value, hpair_t *next)
+hpair_t        *
+hpairnode_new(const char *key, const char *value, hpair_t * next)
 {
-	hpair_t *pair;
+	hpair_t        *pair;
 
 	log_verbose3("new pair ('%s','%s')", SAVE_STR(key), SAVE_STR(value));
-	pair = (hpair_t*)malloc(sizeof(hpair_t));
+	pair = (hpair_t *) malloc(sizeof(hpair_t));
 
 	if (key != NULL) {
-		pair->key = (char*)malloc(strlen(key)+1);
+		pair->key = (char *) malloc(strlen(key) + 1);
 		strcpy(pair->key, key);
 	} else {
 		pair->key = NULL;
 	}
 
 	if (value != NULL) {
-		pair->value = (char*)malloc(strlen(value)+1);
+		pair->value = (char *) malloc(strlen(value) + 1);
 		strcpy(pair->value, value);
 	} else {
 		pair->value = NULL;
@@ -183,50 +198,53 @@ hpair_t *hpairnode_new(const char* key, const char* value, hpair_t *next)
 	return pair;
 }
 
-hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t *next)
+hpair_t        *
+hpairnode_parse(const char *str, const char *delim, hpair_t * next)
 {
-	hpair_t *pair;
-	char *key, *value;
-	int c;
+	hpair_t        *pair;
+	char           *key, *value;
+	int             c;
 
-	pair = (hpair_t*)malloc(sizeof(hpair_t));
+	pair = (hpair_t *) malloc(sizeof(hpair_t));
 	pair->key = "";
 	pair->value = "";
 	pair->next = next;
 
-	key = strtok_r((char *)str, delim, &value);
+	key = strtok_r((char *) str, delim, &value);
 
-	if (key != NULL) {   
-		pair->key = (char*)malloc(strlen(key)+1);
+	if (key != NULL) {
+		pair->key = (char *) malloc(strlen(key) + 1);
 		strcpy(pair->key, key);
 	}
-
 	if (value != NULL) {
-		for (c=0;value[c]==' ';c++); /* skip white space */
-		pair->value = (char*)malloc(strlen(&value[c])+1);
+		for (c = 0; value[c] == ' '; c++);	/* skip white space */
+		pair->value = (char *) malloc(strlen(&value[c]) + 1);
 		strcpy(pair->value, &value[c]);
 	}
-
 	return pair;
 }
 
 
-hpair_t* hpairnode_copy(const hpair_t *src)
+hpair_t        *
+hpairnode_copy(const hpair_t * src)
 {
-	hpair_t *pair;
+	hpair_t        *pair;
 
-	if (src == NULL) return NULL;
+	if (src == NULL)
+		return NULL;
 
 	pair = hpairnode_new(src->key, src->value, NULL);
 	return pair;
 }
 
 
-hpair_t* hpairnode_copy_deep(const hpair_t *src)
+hpair_t        *
+hpairnode_copy_deep(const hpair_t * src)
 {
-	hpair_t *pair, *result, *next;
+	hpair_t        *pair, *result, *next;
 
-	if (src == NULL) return NULL;
+	if (src == NULL)
+		return NULL;
 
 	result = hpairnode_copy(src);
 
@@ -234,7 +252,7 @@ hpair_t* hpairnode_copy_deep(const hpair_t *src)
 	pair = result;
 
 	while (next != NULL) {
-		pair->next = hpairnode_copy(next); 
+		pair->next = hpairnode_copy(next);
 		pair = pair->next;
 		next = next->next;
 	}
@@ -243,22 +261,23 @@ hpair_t* hpairnode_copy_deep(const hpair_t *src)
 }
 
 
-void hpairnode_dump(hpair_t *pair)
+void 
+hpairnode_dump(hpair_t * pair)
 {
 	if (pair == NULL) {
 		log_verbose1("(NULL)[]");
 		return;
 	}
-
-	log_verbose5("(%p)['%s','%s','%p']", pair, 
-		SAVE_STR(pair->key), SAVE_STR(pair->value), 
-		pair->next);
+	log_verbose5("(%p)['%s','%s','%p']", pair,
+		     SAVE_STR(pair->key), SAVE_STR(pair->value),
+		     pair->next);
 }
 
 
-void hpairnode_dump_deep(hpair_t *pair)
+void 
+hpairnode_dump_deep(hpair_t * pair)
 {
-	hpair_t *p;
+	hpair_t        *p;
 	p = pair;
 
 	log_verbose1("-- BEGIN dump hpairnode_t --");
@@ -272,9 +291,11 @@ void hpairnode_dump_deep(hpair_t *pair)
 }
 
 
-void hpairnode_free(hpair_t *pair)
+void 
+hpairnode_free(hpair_t * pair)
 {
-	if (pair == NULL) return;
+	if (pair == NULL)
+		return;
 
 	free(pair->key);
 	free(pair->value);
@@ -283,24 +304,25 @@ void hpairnode_free(hpair_t *pair)
 }
 
 
-void hpairnode_free_deep(hpair_t *pair)
+void 
+hpairnode_free_deep(hpair_t * pair)
 {
-	hpair_t *tmp;
+	hpair_t        *tmp;
 
 	while (pair != NULL) {
 		tmp = pair->next;
 		hpairnode_free(pair);
-		pair=tmp;
+		pair = tmp;
 	}
 }
 
-char *hpairnode_get_ignore_case(hpair_t *pair, const char* key)
+char           *
+hpairnode_get_ignore_case(hpair_t * pair, const char *key)
 {
 	if (key == NULL) {
 		log_error1("key is NULL");
 		return NULL;
 	}
-
 	while (pair != NULL) {
 		if (pair->key != NULL) {
 			if (strcmpigcase(pair->key, key)) {
@@ -313,13 +335,13 @@ char *hpairnode_get_ignore_case(hpair_t *pair, const char* key)
 	return NULL;
 }
 
-char *hpairnode_get(hpair_t *pair, const char* key)
+char           *
+hpairnode_get(hpair_t * pair, const char *key)
 {
 	if (key == NULL) {
 		log_error1("key is NULL");
 		return NULL;
 	}
-
 	while (pair != NULL) {
 		if (pair->key != NULL) {
 			if (!strcmp(pair->key, key)) {
@@ -333,14 +355,14 @@ char *hpairnode_get(hpair_t *pair, const char* key)
 }
 
 static
-void hurl_dump(const hurl_t *url)
+void 
+hurl_dump(const hurl_t * url)
 {
 
 	if (url == NULL) {
 		log_error1("url is NULL!");
-		return ;
+		return;
 	}
-
 	log_verbose2("PROTOCOL : %s", SAVE_STR(url->protocol));
 	log_verbose2("    HOST : %s", SAVE_STR(url->host));
 	log_verbose2("    PORT : %d", url->port);
@@ -348,22 +370,22 @@ void hurl_dump(const hurl_t *url)
 }
 
 
-hurl_t* hurl_new(const char* urlstr)
+hurl_t         *
+hurl_new(const char *urlstr)
 {
-	int iprotocol;
-	int ihost;
-	int iport;
-	int len;
-	int size;
-	hurl_t *url;
-	char tmp[8];
+	int             iprotocol;
+	int             ihost;
+	int             iport;
+	int             len;
+	int             size;
+	hurl_t         *url;
+	char            tmp[8];
 
 	iprotocol = 0;
 	len = strlen(urlstr);
 
 	/* find protocol */
-	while (urlstr[iprotocol] != ':' && urlstr[iprotocol] != '\0')
-	{
+	while (urlstr[iprotocol] != ':' && urlstr[iprotocol] != '\0') {
 		iprotocol++;
 	}
 
@@ -371,26 +393,21 @@ hurl_t* hurl_new(const char* urlstr)
 		log_error1("no protocol");
 		return NULL;
 	}
-
 	if (iprotocol + 3 >= len) {
 		log_error1("no host");
 		return NULL;
 	}
-
-	if ( urlstr[iprotocol] != ':' 
-		&& urlstr[iprotocol+1] != '/' 
-		&& urlstr[iprotocol+2] != '/')
-	{
+	if (urlstr[iprotocol] != ':'
+	    && urlstr[iprotocol + 1] != '/'
+	    && urlstr[iprotocol + 2] != '/') {
 		log_error1("no protocol");
 		return NULL;
 	}
-
 	/* find host */
 	ihost = iprotocol + 3;
 	while (urlstr[ihost] != ':'
-		&& urlstr[ihost] != '/'
-		&& urlstr[ihost] != '\0')
-	{
+	       && urlstr[ihost] != '/'
+	       && urlstr[ihost] != '\0') {
 		ihost++;
 	}
 
@@ -398,44 +415,40 @@ hurl_t* hurl_new(const char* urlstr)
 		log_error1("no host");
 		return NULL;
 	}
-
 	/* find port */
 	iport = ihost;
 	if (ihost + 1 < len) {
 		if (urlstr[ihost] == ':') {
-			while (urlstr[iport] != '/' && urlstr[iport] != '\0')  {
+			while (urlstr[iport] != '/' && urlstr[iport] != '\0') {
 				iport++;
 			}
 		}
 	}
+	url = (hurl_t *) malloc(sizeof(hurl_t));
 
-	url = (hurl_t*)malloc(sizeof(hurl_t));
-
-	url->protocol = (char*)malloc(sizeof(char)*iprotocol+1);
+	url->protocol = (char *) malloc(sizeof(char) * iprotocol + 1);
 	strncpy(url->protocol, urlstr, iprotocol);
 	url->protocol[iprotocol] = '\0';
 
 	size = ihost - iprotocol - 3;
-	url->host = (char*)malloc(sizeof(char)*size + 1);
-	strncpy(url->host, &urlstr[iprotocol+3], size);
+	url->host = (char *) malloc(sizeof(char) * size + 1);
+	strncpy(url->host, &urlstr[iprotocol + 3], size);
 	url->host[size] = '\0';
 
-	if (iport > ihost)
-	{
+	if (iport > ihost) {
 		size = iport - ihost;
-		strncpy(tmp, &urlstr[ihost+1], size);
+		strncpy(tmp, &urlstr[ihost + 1], size);
 		url->port = atoi(tmp);
 	} else {
 		url->port = 80;
 	}
 
 	len = strlen(urlstr);
-	if (len > iport )
-	{
+	if (len > iport) {
 		size = len - iport;
-		url->context = (char*)malloc(sizeof(char)*size+1);
+		url->context = (char *) malloc(sizeof(char) * size + 1);
 		strncpy(url->context, &urlstr[iport], size);
-		url->context[size]='\0';
+		url->context[size] = '\0';
 	} else {
 		url->context = NULL;
 	}
@@ -446,9 +459,11 @@ hurl_t* hurl_new(const char* urlstr)
 }
 
 
-void hurl_free(hurl_t *url)
+void 
+hurl_free(hurl_t * url)
 {
-	if (url == NULL) return;
+	if (url == NULL)
+		return;
 
 	free(url->protocol);
 	free(url->host);
@@ -460,27 +475,30 @@ void hurl_free(hurl_t *url)
 
 /* request stuff */
 
-/* ----------------------------------------------------- 
-FUNCTION: hrequest_new_from_buffer
------------------------------------------------------ */
-hrequest_t *hrequest_new_from_buffer(char *data)
+/*
+ * ----------------------------------------------------- FUNCTION:
+ * hrequest_new_from_buffer
+ * -----------------------------------------------------
+ */
+hrequest_t     *
+hrequest_new_from_buffer(char *data)
 {
-	hrequest_t *req;
-	hpair_t *hpair = NULL, *qpair = NULL, *tmppair = NULL;
+	hrequest_t     *req;
+	hpair_t        *hpair = NULL, *qpair = NULL, *tmppair = NULL;
 
-	char *tmp;
-	char *tmp2;
-	char *saveptr;
-	char *saveptr2;
-	char *saveptr3;
-	char *result;
-	char *key;
-	char *value;
-	char *opt_key;
-	char *opt_value;
-	int firstline = 1;
+	char           *tmp;
+	char           *tmp2;
+	char           *saveptr;
+	char           *saveptr2;
+	char           *saveptr3;
+	char           *result;
+	char           *key;
+	char           *value;
+	char           *opt_key;
+	char           *opt_value;
+	int             firstline = 1;
 
-	req =  (hrequest_t*)malloc(sizeof(hrequest_t));
+	req = (hrequest_t *) malloc(sizeof(hrequest_t));
 
 	req->method = NULL;
 	req->spec = NULL;
@@ -491,58 +509,57 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 	tmp = data;
 
 	for (;;) {
-		result = (char*)strtok_r(tmp, "\n", &saveptr);
-		tmp=saveptr;
+		result = (char *) strtok_r(tmp, "\n", &saveptr);
+		tmp = saveptr;
 
-		if (result == NULL) 
+		if (result == NULL)
 			break;
 
 		if (firstline) {
-			firstline=0;
+			firstline = 0;
 			tmp2 = result;
 
 			/* parse [GET|POST] [PATH] [SPEC] */
-			key = (char*)strtok_r(tmp2," ", &saveptr2);
+			key = (char *) strtok_r(tmp2, " ", &saveptr2);
 
 			/* save method (get or post) */
 			tmp2 = saveptr2;
 			if (key != NULL) {
-				req->method = (char*)malloc(strlen(key)+1);
+				req->method = (char *) malloc(strlen(key) + 1);
 				strcpy(req->method, key);
 			}
-
 			/* below is key the path and tmp2 the spec */
-			key = (char*)strtok_r(tmp2," ", &saveptr2);
+			key = (char *) strtok_r(tmp2, " ", &saveptr2);
 
 			/* save spec */
 			tmp2 = saveptr2;
 			if (tmp2 != NULL) {
-				req->spec = (char*)malloc(strlen(tmp2)+1);
+				req->spec = (char *) malloc(strlen(tmp2) + 1);
 				strcpy(req->spec, tmp2);
 			}
-
-			/* parse and save path+query 
-			parse: /path/of/target?key1=value1&key2=value2...
-			*/
+			/*
+			 * parse and save path+query parse:
+			 * /path/of/target?key1=value1&key2=value2...
+			 */
 
 			if (key != NULL) {
 				tmp2 = key;
-				key = (char*)strtok_r(tmp2,"?", &saveptr2);
+				key = (char *) strtok_r(tmp2, "?", &saveptr2);
 				tmp2 = saveptr2;
 
 				/* save path */
-				req->path = (char*)malloc(strlen(key)+1);
+				req->path = (char *) malloc(strlen(key) + 1);
 				strcpy(req->path, key);
 
 				/* parse options */
 				for (;;) {
-					key = (char*)strtok_r(tmp2,"&",&saveptr2);
+					key = (char *) strtok_r(tmp2, "&", &saveptr2);
 					tmp2 = saveptr2;
 
 					if (key == NULL)
 						break;
 
-					opt_key = (char*)strtok_r(key,"=", &saveptr3);
+					opt_key = (char *) strtok_r(key, "=", &saveptr3);
 					opt_value = saveptr3;
 
 					if (opt_value == NULL)
@@ -550,7 +567,7 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 
 					/* create option pair */
 					if (opt_key != NULL) {
-						tmppair = (hpair_t*)malloc(sizeof(hpair_t));
+						tmppair = (hpair_t *) malloc(sizeof(hpair_t));
 
 						if (req->query == NULL) {
 							req->query = qpair = tmppair;
@@ -561,8 +578,8 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 
 						/* fill hpairnode_t struct */
 						qpair->next = NULL;
-						qpair->key = (char*)malloc(strlen(opt_key)+1);
-						qpair->value = (char*)malloc(strlen(opt_value)+1);
+						qpair->key = (char *) malloc(strlen(opt_key) + 1);
+						qpair->value = (char *) malloc(strlen(opt_value) + 1);
 
 						strcpy(qpair->key, opt_key);
 						strcpy(qpair->value, opt_value);
@@ -570,16 +587,15 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 					}
 				}
 			}
-
 		} else {
 
 			/* parse "key: value" */
 			tmp2 = result;
-			key = (char*)strtok_r(tmp2, ": ", &saveptr2);
+			key = (char *) strtok_r(tmp2, ": ", &saveptr2);
 			value = saveptr2;
 
 			/* create pair */
-			tmppair = (hpair_t*)malloc(sizeof(hpair_t));
+			tmppair = (hpair_t *) malloc(sizeof(hpair_t));
 
 			if (req->header == NULL) {
 				req->header = hpair = tmppair;
@@ -590,8 +606,8 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 
 			/* fill pairnode_t struct */
 			hpair->next = NULL;
-			hpair->key = (char*)malloc(strlen(key)+1);
-			hpair->value = (char*)malloc(strlen(value)+1);
+			hpair->key = (char *) malloc(strlen(key) + 1);
+			hpair->value = (char *) malloc(strlen(value) + 1);
 
 			strcpy(hpair->key, key);
 			strcpy(hpair->value, value);
@@ -602,9 +618,11 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 }
 
 
-void hrequest_free(hrequest_t *req)
+void 
+hrequest_free(hrequest_t * req)
 {
-	if (req == NULL) return;
+	if (req == NULL)
+		return;
 
 	free(req->method);
 	free(req->path);
@@ -618,15 +636,17 @@ void hrequest_free(hrequest_t *req)
 /* response stuff */
 
 
-/* -------------------------------------------
-FUNCTION: hresponse_new
----------------------------------------------*/
-hresponse_t *hresponse_new()
+/*
+ * ------------------------------------------- FUNCTION: hresponse_new
+ * ---------------------------------------------
+ */
+hresponse_t    *
+hresponse_new()
 {
-	hresponse_t *res;
+	hresponse_t    *res;
 
 	/* create response object */
-	res = (hresponse_t*)malloc(sizeof(hresponse_t));
+	res = (hresponse_t *) malloc(sizeof(hresponse_t));
 	res->spec[0] = '\0';
 	res->errcode = -1;
 	res->desc = NULL;
@@ -638,13 +658,15 @@ hresponse_t *hresponse_new()
 }
 
 
-/* -------------------------------------------
-FUNCTION: hresponse_new_from_buffer
----------------------------------------------*/
-hresponse_t *hresponse_new_from_buffer(const char* buffer)
+/*
+ * ------------------------------------------- FUNCTION:
+ * hresponse_new_from_buffer ---------------------------------------------
+ */
+hresponse_t    *
+hresponse_new_from_buffer(const char *buffer)
 {
-	hresponse_t *res;
-	char *s1, *s2, *str;
+	hresponse_t    *res;
+	char           *s1, *s2, *str;
 
 	/* create response object */
 	res = hresponse_new();
@@ -653,25 +675,31 @@ hresponse_t *hresponse_new_from_buffer(const char* buffer)
 	/* [HTTP/1.1 | 1.2] [CODE] [DESC] */
 
 	/* stage 1: HTTP spec */
-	str = (char*)strtok_r((char *)buffer, " ", &s2);
+	str = (char *) strtok_r((char *) buffer, " ", &s2);
 	s1 = s2;
-	if (str == NULL) { log_error1("Parse error"); return NULL; }
-
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
 	strncpy(res->spec, str, 10);
 
 	/* stage 2: http code */
-	str = (char*)strtok_r(s1, " ", &s2);
+	str = (char *) strtok_r(s1, " ", &s2);
 	s1 = s2;
-	if (str == NULL) { log_error1("Parse error"); return NULL; }
-
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
 	res->errcode = atoi(str);
 
 	/* stage 3: description text */
-	str = (char*)strtok_r(s1, "\r\n", &s2);
+	str = (char *) strtok_r(s1, "\r\n", &s2);
 	s1 = s2;
-	if (str == NULL) { log_error1("Parse error"); return NULL; }
-
-	res->desc = (char*)malloc(strlen(str)+1);
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
+	res->desc = (char *) malloc(strlen(str) + 1);
 	strcpy(res->desc, str);
 	res->desc[strlen(str)] = '\0';
 
@@ -685,13 +713,11 @@ hresponse_t *hresponse_new_from_buffer(const char* buffer)
 		if (str == NULL) {
 			return res;
 		}
-
 		/* check also for end of header */
 		if (!strcmp(str, "\r")) {
 			break;
 		}
-
-		str[strlen(str)-1] = '\0';
+		str[strlen(str) - 1] = '\0';
 		res->header = hpairnode_parse(str, ":", res->header);
 	}
 
@@ -703,7 +729,8 @@ hresponse_t *hresponse_new_from_buffer(const char* buffer)
 }
 
 
-void hresponse_free(hresponse_t *res)
+void 
+hresponse_free(hresponse_t * res)
 {
-	/* not implemented yet!*/
+	/* not implemented yet! */
 }

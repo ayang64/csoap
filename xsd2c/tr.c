@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: tr.c,v 1.2 2004/06/03 20:23:03 snowdrop Exp $
+ *  $Id: tr.c,v 1.3 2004/09/01 07:58:08 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -56,11 +56,12 @@ static char* _trXSD2C(const char* xsdType, struct XSD2C_TypeRegistry* head);
 
 void trInitModule(const char* ns)
 {
+  struct XSD2C_TypeRegistry* cur;
   tr_head = NULL; 
   tr_tail = NULL;
   trl_head = NULL; 
   trl_tail = NULL;
-  struct XSD2C_TypeRegistry* cur;
+
   strcpy(trXSDNS, ns);
 
   #include "types.map"
