@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.2 2003/12/16 13:16:14 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.3 2003/12/16 14:12:58 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -172,6 +172,7 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
 
   do {
     
+    log_debug1("recv()");
     size = recv(sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
 
     if (size == -1) {
@@ -183,10 +184,12 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
       break;
     }
 
+    puts(tmp);
     /* section 1: find delimiter if exist */
     for (i=0;i<size-delimlen;i++) {
       if (!strncmp(&tmp[i],delim,delimlen)) {
 	
+	log_debug1("Found delimiter");
 	/* ** split to buffer and rest ** */
 	
 	/* fill buffer until i */
@@ -234,7 +237,7 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
   return HSOCKET_OK;  
 }
 
-int hsocket_read(hsocket_t sock, char* buffer, int total)
+int hsocket_read(hsocket_t sock, char* buffer, int total, int force)
 {
   int status;
   int totalRead;
@@ -243,6 +246,7 @@ int hsocket_read(hsocket_t sock, char* buffer, int total)
 
   do {
     status = recv(sock, &buffer[totalRead], total - totalRead, 0);
+    if (!force) return status;
     if (status > 0) {
       totalRead += status;
     } else {
@@ -381,6 +385,8 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
       bufsock->bufsize = size;
       bufsock->cur = size;
       strncpy(&buffer[tmpsize], bufsock->buffer, size);
+    } else {
+      return status;
     }
 
     return HSOCKET_OK;

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.2 2003/12/16 13:16:11 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.3 2003/12/16 14:12:57 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -382,7 +382,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 		 httpc_response_callback cb, void *userdata)
 {
   hurl_t *url;
-  char buffer[255];
+  char buffer[4096];
   int status;
   char *response;
   int rsize;
@@ -390,6 +390,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   char *rest;
   int restsize;
   httpc_cb_userdata_t cbdata;
+  int i;
 
   /* content-length */
   char *content_length_str;
@@ -458,13 +459,43 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   }
   
   /* Receive Response incl. header */
+  rsize = restsize = 0;
+  response = rest = NULL;
 
-  status = hsocket_recv_limit(conn->sock, &response, 
-			      "\r\n\r\n", &rest, &rsize, &restsize); 
-  if (status != HSOCKET_OK) { 
+  status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE*1, 0);
+  if (status <= 0) {
     log_error2("Can not receive response (status:%d)", status); 
     return 6;
   } 
+
+  for (i=0;i<status-3;i++) {
+
+    if (buffer[i] == '\n') {
+      if (buffer[i+1] == '\n') {
+	rsize = i;
+	response = buffer;
+	response[rsize] = '\0';
+
+	restsize = status - rsize - 2;
+	rest = &buffer[i+2];
+	rest[restsize] = '\0';
+      } else if (buffer[i+1] == '\r' &&  buffer[i+2] == '\n') {
+      
+	rsize = i;
+	response = buffer;
+	response[rsize] = '\0';
+
+	restsize = status - rsize - 3;
+	rest = &buffer[i+3];
+	rest[restsize] = '\0'; /* REST WILL BE FREED IN BUFFEREDSOCKET !!!! */
+      }
+    }
+  }
+
+  if (response == NULL) {
+    log_error1("Header too long!");
+    return 13;
+  }
   
   res = hresponse_new(response);
   if (res == NULL) {
@@ -504,7 +535,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 	recvSize = remain_length;
       }
 
-      if (hsocket_read(conn->sock, readBuf, recvSize)) {
+      if (hsocket_read(conn->sock, readBuf, recvSize,1)) {
 	log_error1("Can not read from socket!");
 	return 9;
       } else {
@@ -516,8 +547,6 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
     } /* while */
 
     /* rest and response are no longer required */
-    free(rest);
-    free(response);
 
     return 0;
 
@@ -535,38 +564,6 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
       !strcmp(transfer_encoding, "chunked")) { 
 
     log_debug1("Server communicates with chunked encoding !");
-
-    /* read chunk size */
-    /*
-    strncpy(chunk_size_str, rest, 15);
-    chunk_size_cur = 0;
-    cs = 0;
-    while (1) {
-      
-      chunk_size_str[chunk_size_cur] = rest[cs++];
-
-      if (chunk_size_str[chunk_size_cur] == '\n') {
-	chunk_size_str[chunk_size_cur] = '\0';
-	break;
-      }
-
-      if (chunk_size_str[chunk_size_cur] != '\r'
-	  && chunk_size_str[chunk_size_cur] != ';') {
-	chunk_size_cur++;
-      }
-
-      if (chunk_size_cur > 15) {
-	log_error1("Can not parse chunk size!");
-	return 10;
-      }
-
-    } 
-
-    chunk_size = strtol(chunk_size_str,(char**)NULL, 16); 
-
-    log_debug3("chunk_size: '%s' as dec: '%d'", 
-		 chunk_size_str, chunk_size);
-    */
 
     /* initialize buffered socket */
     bufsock.sock = conn->sock;
@@ -612,11 +609,9 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
       cb(counter++, conn, userdata, chunk_size, chunk_buffer);
       free(chunk_buffer);
 
-    } /* while (chunk_size > 0)
+    } /* while (chunk_size > 0) */
     
     /* rest and response are no longer required */
-    free(rest);
-    free(response);
     
     return 0;
 
