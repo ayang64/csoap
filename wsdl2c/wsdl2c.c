@@ -1,3 +1,26 @@
+/******************************************************************
+ *  $Id: wsdl2c.c,v 1.5 2004/06/03 08:53:34 snowdrop Exp $
+ *
+ * CSOAP Project:  A SOAP client/server library in C
+ * Copyright (C) 2003  Ferhat Ayaz
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA  02111-1307, USA.
+ * 
+ * Email: ayaz@jprogrammer.net
+ */
 #include <libxml/xpath.h>
 #include <xsd2c/xsd2c.h>
 #include <xsd2c/util.h> /* parseNS */
@@ -176,7 +199,7 @@ void handleInputParameters(xmlDocPtr doc, const char *name)
   xmlNodePtr node;
   xmlNodePtr cur;
 
-  xmlChar *var_name, *var_type, *var_element;
+  xmlChar *var_name, *var_type;
 
   parseNS(name, ns, message_name); /* check why to pase ns? */
 
@@ -208,24 +231,20 @@ void handleInputParameters(xmlDocPtr doc, const char *name)
     }
 
     var_type = xmlGetProp(cur, "type");  
-    if (var_type != NULL) {
-      fprintf(stdout, "\t\t(type:%s,%s)\n", (const char*)var_type, (const char*)var_name);
-      xmlFree(var_name);
-      xmlFree(var_type);
-      cur = cur->next;
-      continue;
+    if (var_type == NULL) {
+      var_type = xmlGetProp(cur, "element");  
     } 
 
-    var_element = xmlGetProp(cur, "element");  
-    if (var_element == NULL) {
+    if (var_type == NULL) {
       fprintf(stderr, "ERROR: Found <part> without attrbute 'type' or 'element'! (message:'%s')\n", 
         message_name);
       xmlFree(var_name);
       cur = cur->next;
       continue;
-    }
+    } 
 
-    fprintf(stdout, "\t\t(element:%s,%s)\n", (const char*)var_element, (const char*)var_name);
+
+    fprintf(stdout, "\t\t(%s,%s)\n", trXSD2C((const char*)var_type), (const char*)var_name);
 
     xmlFree(var_name);
     xmlFree(var_type);
@@ -491,7 +510,14 @@ int main(int argc, char *argv[])
     xmlNewDocProp(doc,  "xmlns", "http://schemas.xmlsoap.org/wsdl/");
   } 
 
+  if (!xsdInitTrModule(xsdRoot))
+    return 1;
 
+  if (!xsdInitObjModule(xsdRoot))
+    return 1;
+
+  
+	
   if (xsdEngineRun(xsdRoot, outDir)) {
    fprintf(stderr, "xsd2c engine error\n");
   	return 1;
@@ -513,3 +539,4 @@ void usage(const char* execname)
 {
 	fprintf(stderr, "usage: %s -d dest <wsdl file>\n", execname);	
 }
+

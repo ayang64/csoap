@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.c,v 1.3 2004/06/02 15:35:07 snowdrop Exp $
+ *  $Id: xsd2c.c,v 1.4 2004/06/03 08:53:34 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammet.net
+ * Email: ayaz@jprogrammer.net
  ******************************************************************/
 
 #include <libxml/xmlmemory.h>
@@ -685,20 +685,20 @@ int xsdInitObjModule(xmlNodePtr xsdNode)
   return 1;
 }
 
+void xsdSetDestDir(const char* destDir)
+{
+	strcpy(outDir, destDir);
+
+  mkdir(destDir, 	S_IRUSR|S_IWUSR|S_IXUSR | 
+  						S_IRGRP|S_IWGRP|S_IXGRP | 
+  						S_IROTH|S_IXOTH  );
+}
 
 int xsdEngineRun(xmlNodePtr xsdNode, const char* destDir)
 {
 
-  if (!xsdInitTrModule(xsdNode))
-    return 1;
 
-  if (!xsdInitObjModule(xsdNode))
-    return 1;
-	strcpy(outDir, destDir);
-	
-  mkdir(destDir, 	S_IRUSR|S_IWUSR|S_IXUSR | 
-  						S_IRGRP|S_IWGRP|S_IXGRP | 
-  						S_IROTH|S_IXOTH  );
+	xsdSetDestDir(destDir);
 
 	if (xsdNode != NULL) {
 	  runGenerator(xsdNode);
