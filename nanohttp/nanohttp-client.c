@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.10 2004/01/13 12:31:57 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.11 2004/05/14 09:30:42 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -273,7 +273,8 @@ int httpc_receive_with_connection_closed(httpc_conn_t *conn,
       
       status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
 
-      if (status == 0) { /* connection closed */
+      if (status == 0) { /* close connection */
+        close(conn->sock);
 	return 0; 
       }
     
