@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.2 2004/02/10 09:51:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,18 @@
 #include <libcsoap/soap-env.h>
 
 
+/**
+   Establish connection to the soap server and send 
+   the given envelope. 
+
+   @param env envelope to send
+   @param url url to the soap server
+   @soap_action value for "SoapAction:" in the 
+    HTTP request header.
+
+    @returns the result envelope. In case of failure,
+     this function return an envelope with a fault object.
+ */
 SoapEnv* soap_client_invoke(SoapEnv *env, 
 			    const char *url,
 			    const char *soap_action);

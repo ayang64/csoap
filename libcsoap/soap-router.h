@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-router.h,v 1.2 2004/02/10 09:51:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,10 @@
 
 #include <libcsoap/soap-service.h>
 
+/**
+   The router object. A router can store a set of 
+   services. A service is a C function. 
+ */
 typedef struct _SoapRouter
 {
   SoapServiceNode *service_head;
@@ -34,18 +38,53 @@ typedef struct _SoapRouter
 }SoapRouter;
 
 
+/**
+   Creates a new router object. Create a router if
+   you are implementing a soap server. Then register
+   the services to this router. 
+   <P>A router points also to http url context.
+
+   @returns Soap router 
+   @see soap_router_free
+ */
 SoapRouter *soap_router_new();
 
+
+/**
+   Registers a SOAP service (in this case a C function)
+   to the router.
+   
+   @param router The router object
+   @param func Function to register as a soap service
+   @param method Method name to call the function from 
+    the client side.
+   @param urn The urn for this service
+ */
 void soap_router_register_service(SoapRouter *router,
 				  SoapServiceFunc func,
 				  const char* method,
 				  const char* urn);
 
 
+/**
+   Searches for a registered soap service.
+
+   @param router The router object
+   @param urn URN of the service
+   @param method The name under which the service was registered.
+
+   @return The service if found, NULL otherwise.
+ */
 SoapService* soap_router_find_service(SoapRouter *router, 
 				      const char* urn,
 				      const char* method);
 
+
+/**
+   Frees the router object.
+
+   @param router The router object to free
+ */
 void soap_router_free(SoapRouter *router);
 
 #endif

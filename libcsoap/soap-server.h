@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.2 2004/02/10 09:51:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,9 +28,49 @@
 #include <libcsoap/soap-router.h>
 
 
+/**
+   Initializes the soap server with commandline arguments.
+
+   <TABLE border=1>
+   <TR><TH>Argument</TH><TH>Description</TH></TR>
+   <TR><TD>-NHTTPport [port]</TD><TD>Port to listen (default: 10000)</TD></TR>
+   </TABLE>
+
+   @param argc commandline arg count
+   @param argv commandline arg vector
+
+   @returns 1 if success, 0 otherwise
+ */
 int soap_server_init_args(int argc, char *argv[]);
+
+
+/**
+   Register a router to the soap server. 
+
+   <P>http://<I>host</I>:<I>port</I>/<B>[context]</B>
+
+
+   @param router The router to register
+   @param context the url context 
+   @returns 1 if success, 0 otherwise
+   
+   @see soap_router_new
+   @see soap_router_register_service
+
+ */
 int soap_server_register_router(SoapRouter *router, const char* context);
+
+
+/**
+   Enters the server loop and starts to listen to 
+   http requests.
+ */
 int soap_server_run();
+
+
+/**
+   Frees the soap server.
+ */
 void soap_server_destroy();
 
 
