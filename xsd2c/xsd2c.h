@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.h,v 1.2 2004/06/03 08:53:34 snowdrop Exp $
+ *  $Id: xsd2c.h,v 1.3 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -40,6 +40,7 @@
 #define   XSD_COMPLEX_CONTENT_STR		"complexContent"
 #define   XSD_DOCUMENTATION_STR		"documentation"
 #define   XSD_ELEMENT_STR		"element"
+#define   XSD_ENUMERATION_STR		"enumeration"
 #define   XSD_EXTENSION_STR		"extension"
 #define   XSD_FIELD_STR		"field"
 #define   XSD_GROUP_STR		"group"
@@ -58,10 +59,15 @@
 #define   XSD_SIMPLE_TYPE_STR		"simpleType"
 #define   XSD_UNION_STR		"union"
 #define   XSD_UNIQUE_STR		"unique"
+#define   XSD_MIN_INCLUSIVE_STR "minInclusive"
+#define   XSD_MAX_INCLUSIVE_STR "maxInclusive"
+#define   XSD_MIN_EXCLUSIVE_STR "minExclusive"
+#define   XSD_MAX_EXCLUSIVE_STR "maxExclusive"
 
 #define   ATTR_TYPE_STR "type"
 #define   ATTR_NAME_STR "name"
 #define   ATTR_BASE_STR "base"
+#define   ATTR_VALUE_STR "value"
 #define   ATTR_MIN_OCCURS_STR "minOccurs"
 #define   ATTR_MAX_OCCURS_STR "maxOccurs"
 
@@ -92,6 +98,7 @@ enum _xsdKeyword
   XSD_COMPLEX_CONTENT, 
   XSD_DOCUMENTATION, 
   XSD_ELEMENT, 
+  XSD_ENUMERATION,
   XSD_EXTENSION, 
   XSD_FIELD, 
   XSD_GROUP, 
@@ -109,7 +116,11 @@ enum _xsdKeyword
   XSD_SIMPLE_CONTENT, 
   XSD_SIMPLE_TYPE, 
   XSD_UNION, 
-  XSD_UNIQUE
+  XSD_UNIQUE,
+  XSD_MIN_INCLUSIVE,
+  XSD_MAX_INCLUSIVE,
+  XSD_MIN_EXCLUSIVE,
+  XSD_MAX_EXCLUSIVE,
 };
 
 typedef enum _xsdKeyword xsdKeyword; 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: obj.c,v 1.3 2004/06/03 20:23:03 snowdrop Exp $
+ *  $Id: obj.c,v 1.4 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -42,18 +42,21 @@ static void objFreeComplexType(HCOMPLEXTYPE obj);
 static void objRegistryAddComplexType(HCOMPLEXTYPE obj);
 
 static char *targetNS = NULL;
+static int _objInitialized = 0;
 
 /* ------------------------------------------------------------------ */
 
 void objInitModule(const char* tns)
 {
-  objRegistry.head = NULL;
-  objRegistry.tail = NULL;
-
   if (tns != NULL) {
     targetNS = (char*)malloc(strlen(tns)+1);
     strcpy(targetNS, tns);
   } 
+  if (_objInitialized) return;
+
+  objRegistry.head = NULL;
+  objRegistry.tail = NULL;
+  _objInitialized = 1;
 }
 
 void objFreeModule()
@@ -82,11 +85,14 @@ HCOMPLEXTYPE objCreateComplexType(const char* typename)
   ct->head = ct->tail = NULL;
   ct->next = NULL;
   ct->base_type = NULL;
-
+  ct->restriction = NULL;
+  ct->isSimpleContent = 0;
+  strcpy(ct->targetNS, targetNS);
+  sprintf(ct->fullName, "%s:%s", targetNS, typename);
   objRegistryAddComplexType(ct);
   
   sprintf(buf, "struct %s*", typename);
-  trRegisterTypeNS(targetNS, typename, buf);
+  trRegisterTypeNS(targetNS, typename, buf, 0);
   sprintf(buf, "struct %s_List*", typename);
   trRegisterListTypeNS(targetNS, typename, buf);
   return ct;
@@ -127,6 +133,15 @@ void objSetBaseType(HCOMPLEXTYPE obj, const char* typename)
 
 HCOMPLEXTYPE objRegistryGetComplexType(const char* typename)
 {
+  HCOMPLEXTYPE cur;
+
+  cur = objRegistry.head;
+  while (cur != NULL)
+  {
+    if (!strcmp(cur->fullName, typename))
+      return cur;
+    cur = cur->next;
+  }
   return NULL;
 }
 
@@ -187,6 +202,7 @@ void fieldFree(HFIELD field)
 static 
 void objAddField(HCOMPLEXTYPE obj, HFIELD field)
 {
+  printf("ADD FIELD %s %s\n", obj->type, field->type);
   if (obj->tail)
   {
     obj->tail->next = field;
@@ -229,3 +245,24 @@ static void objRegistryAddComplexType(HCOMPLEXTYPE obj)
 
   objRegistry.tail = obj;
 }
+
+
+
+HRESTRICTION resCreate(const char *type)
+{
+  HRESTRICTION res = (HRESTRICTION)malloc(sizeof(struct RESTRICTION));
+  res->mode = RES_MODE_EMPTY;
+  res->type = (char*)malloc(strlen(type)+1);
+  strcpy(res->type, type);
+
+  res->minInclusiveSet = 0;
+  res->maxInclusiveSet = 0;
+  res->minExclusiveSet = 0;
+  res->maxExclusiveSet = 0;
+
+  res->enumeration = Enumeration_Create();
+
+  return res;
+}
+
+

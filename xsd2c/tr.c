@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: tr.c,v 1.3 2004/09/01 07:58:08 snowdrop Exp $
+ *  $Id: tr.c,v 1.4 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -25,11 +25,11 @@
 #include "tr.h"
 #include <stdio.h>
 
-#define XSD2C_MAP(xsdtype, ctype) \
-  trRegisterType(xsdtype, ctype);
+#define XSD2C_MAP(xsdtype, ctype, builtin) \
+  trRegisterType(xsdtype, ctype, builtin);
  
-#define XSD2C_MAPNS(xsdtype, ctype) \
-  trRegisterTypeNS(trXSDNS, xsdtype, ctype);
+#define XSD2C_MAPNS(xsdtype, ctype, builtin) \
+  trRegisterTypeNS(trXSDNS, xsdtype, ctype, builtin);
  
 #define XSD2C_MAPNS_LIST(xsdtype, ctype) \
   trRegisterListTypeNS(trXSDNS, xsdtype, ctype);
@@ -49,19 +49,22 @@ static struct XSD2C_TypeRegistry* trl_tail;
 
 
 static char trXSDNS[15];
-
+static int _trInitialized = 0;
 static char* _trC2XSD(const char* cType, struct XSD2C_TypeRegistry* head);
 static char* _trXSD2C(const char* xsdType, struct XSD2C_TypeRegistry* head);
 
 
-void trInitModule(const char* ns)
+/*void trInitModule(const char* ns)*/
+void trInitModule()
 {
-  struct XSD2C_TypeRegistry* cur;
+  if (_trInitialized)
+   return;
+/*  struct XSD2C_TypeRegistry* cur;*/
   tr_head = NULL; 
   tr_tail = NULL;
   trl_head = NULL; 
   trl_tail = NULL;
-
+/*
   strcpy(trXSDNS, ns);
 
   #include "types.map"
@@ -73,6 +76,8 @@ void trInitModule(const char* ns)
     cur->isbuildin = 1;
     cur = cur->next;
   }
+*/
+  _trInitialized  = 1;
 };
 
 
@@ -141,12 +146,12 @@ char* trXSD2CList(const char* xsdType)
   return _trXSD2C(xsdType, trl_head);
 }
 
-void trRegisterType(const char* xsdType, const char* cType)
+void trRegisterType(const char* xsdType, const char* cType, int builtin)
 {
-  trRegisterTypeNS(NULL, xsdType, cType);
+  trRegisterTypeNS(NULL, xsdType, cType, builtin);
 }
 
-void trRegisterTypeNS(const char* ns, const char* xsdType, const char* cType)
+void trRegisterTypeNS(const char* ns, const char* xsdType, const char* cType, int builtin)
 {
   struct XSD2C_TypeRegistry* reg;
   if (xsdType == NULL || cType == NULL)
@@ -159,14 +164,15 @@ void trRegisterTypeNS(const char* ns, const char* xsdType, const char* cType)
   reg->xsd_type = (char*)malloc((ns?strlen(ns):0)+strlen(xsdType)+2);
   reg->c_type = (char*)malloc(strlen(cType)+1);
   reg->next = NULL;
-  reg->isbuildin = 0;
+  reg->isbuildin = builtin;
 
-  if (ns)
+  if (ns) 
     sprintf(reg->xsd_type, "%s:%s",ns,xsdType);
   else
     strcpy(reg->xsd_type, xsdType);
  
   strcpy(reg->c_type, cType);
+  printf("[TYPE] Registered '%s'->'%s'\n", reg->xsd_type, reg->c_type);
 
   if (tr_tail)
   {
@@ -181,7 +187,7 @@ void trRegisterTypeNS(const char* ns, const char* xsdType, const char* cType)
   tr_tail = reg;
 }
 
-char* trXSDParseNs(const char* xsdType)
+char* trXSDParseNs(char* xsdType)
 {
 	int c = 0;
 	while (xsdType[c] != '\0' ) {
@@ -237,17 +243,20 @@ char* _trC2XSD(const char* cType, struct XSD2C_TypeRegistry* head)
 {
   struct XSD2C_TypeRegistry* cur;
 
+  printf("[TYPE] Search: '%s'   ", cType?cType:"null");
   cur = head;
 
   while (cur != NULL)
   {
     if (!strcmp(cur->c_type, cType))
     {
+      printf("FOUND\n");
       return cur->xsd_type;
     }
     cur = cur->next;
   }
 
+      printf("NOT FOUND\n");
   return NULL;
 }
 

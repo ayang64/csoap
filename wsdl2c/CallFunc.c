@@ -99,7 +99,7 @@ struct CallFunc* CallFunc_Deserialize(xmlNodePtr xmlRoot)
 		if ((!xmlStrcmp(cur->name, (const xmlChar *)"name"))){
 			key = xmlNodeListGetString(cur->doc, cur->xmlChildrenNode, 1);
 			CallFunc_Set_name(obj, (const char*)key);
-			xmlFree(key);
+			/*xmlFree(key);*/
 		}
 		if ((!xmlStrcmp(cur->name, (const xmlChar *)"in"))){
 			CallFunc_Add_in( obj, CallVar_Deserialize(cur) );

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: formatter.c,v 1.4 2004/06/04 09:09:40 snowdrop Exp $
+ *  $Id: formatter.c,v 1.5 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -42,6 +42,7 @@ static int genFunctionNameCreate(HCOMPLEXTYPE obj, char *buffer);
 static int genFunctionNameFree(HCOMPLEXTYPE obj, char *buffer);
 static int genFunctionNameSaxSerialize(HCOMPLEXTYPE obj, char *buffer);
 static int genFunctionNameDeserialize(HCOMPLEXTYPE obj, char *buffer);
+static int genFunctionNameSimpleMinMaxSetter(HCOMPLEXTYPE obj, char *buffer);
 
 /* ------------------------------------------------------------- */
 
@@ -68,6 +69,8 @@ static void writeCodeGetter(FILE* f, HFIELD field);
 static void writeCodeSetter(FILE* f, HFIELD field);
 static void writeCodeAdder(FILE* f, HFIELD field);
 
+/* ------------------------------------------------------------- */
+static void writeSimpleMinMaxSetter(FILE* f, HCOMPLEXTYPE obj);
 /* ------------------------------------------------------------- */
 
 void writeComplexTypeHeaderFile(FILE* f, HCOMPLEXTYPE obj)
@@ -110,7 +113,8 @@ void writeComplexTypeHeaderFile(FILE* f, HCOMPLEXTYPE obj)
   
   /* write upcasting define macro */
   toUpperCase(obj->type, buffer);
-  fprintf(f, "\n#define TO_%s(derived) (derived->__base) \n\n", buffer);
+  if (!obj->isSimpleContent && !obj->restriction)
+   fprintf(f, "\n#define TO_%s(derived) (derived->__base) \n\n", buffer);
 
   /* write extern "C" for __cplusplus linking */
   fprintf(f, "\n#ifdef __cplusplus\nextern \"C\" {\n#endif \n\n", buffer);
@@ -142,14 +146,28 @@ void writeComplexTypeHeaderFile(FILE* f, HCOMPLEXTYPE obj)
     fprintf(f, "#endif\n\n");
   }
 
-  /* write setter functions */
-  enumFields(f, obj, writeFieldSetter);
-
-  /* write adder functions */
-  enumFields(f, obj, writeListAdder);
-
-  /* write getter functions */
-  enumFields(f, obj, writeFieldGetter);
+  if (obj->isSimpleContent && obj->restriction)
+  {
+    switch (obj->restriction->mode)
+    {
+      case RES_MODE_MINMAX:
+        /* do nothing yet */
+        break;
+      case RES_MODE_ENUMERATION:
+      break;
+    }
+  }
+  else
+  {
+    /* write setter functions */
+    enumFields(f, obj, writeFieldSetter);
+  
+    /* write adder functions */
+    enumFields(f, obj, writeListAdder);
+  
+    /* write getter functions */
+    enumFields(f, obj, writeFieldGetter);
+  }
 
   /* write extern "C" for __cplusplus linking */
   fprintf(f, "\n\n#ifdef __cplusplus\n};\n#endif /*__cplusplus*/\n\n", buffer);
@@ -157,48 +175,88 @@ void writeComplexTypeHeaderFile(FILE* f, HCOMPLEXTYPE obj)
   fprintf(f, "\n\n#endif\n");
 }
 
+
+
 /* ------------------------------------------------------------- */
 
 static
 void writeComplexTypeDeclare(FILE* f, HCOMPLEXTYPE obj)
 {
   HFIELD field;
+  struct Enumeration_value_List *enumList;
   char *type;
+  char buffer[250];
+  char buffer2[250];
   if (obj == NULL)
   {
     fprintf(stderr, "Can not declare a null object!\n");
     return;
   }
-  
-  /* === */
-  fprintf(f, "\n/**\n *\tOBJECT: %s\n */\n", obj->type);
-  fprintf(f, "struct %s\n{\n", obj->type);
-  
-  /* === */
-  if (obj->base_type != NULL) 
+
+  if (obj->isSimpleContent)
   {
-    type = trXSD2C(obj->base_type);
-    if (type != NULL) 
+    if (obj->restriction) {
+        if (obj->restriction->mode == RES_MODE_ENUMERATION) {
+          fprintf(f, "\ntypedef enum _enum_%s {\n", obj->type);
+          enumList = Enumeration_Get_value(obj->restriction->enumeration);
+          while(enumList) {
+           toUpperCase(enumList->value, buffer);
+           toUpperCase(obj->type, buffer2);
+           fprintf(f, "\t%s_%s, /* Constant for \"%s\" */\n", buffer2, buffer, enumList->value);
+           enumList = enumList->next;
+          }
+
+          fprintf(f, "}%s;\n", obj->type);
+
+        }
+        else {
+          fprintf(f, "\n/** type definition for simple content element '%s' */\n", obj->type);
+              fprintf(f, "typedef %s %s;\n\n", trXSD2C(obj->restriction->type), obj->type);
+
+        }
+
+        /* === Else List ======== */
+        fprintf(f, "\n/**\n *\tLIST: %s_List\n */\n", obj->type);
+        fprintf(f, "%s_List\n{\n", obj->type);
+        fprintf(f, "\t%s value;\n", obj->type);
+        fprintf(f, "\tstruct %s_List* next;\n", obj->type);
+        fprintf(f, "};\n\n\n");
+    } /* restriction */
+  } /* isSimpleContent */
+  else
+  {  
+    /* === */
+    fprintf(f, "\n/**\n *\tOBJECT: %s\n */\n", obj->type);
+    fprintf(f, "struct %s\n{\n", obj->type);
+    
+    /* === */
+    if (obj->base_type != NULL) 
     {
-      fprintf(f, "\t%s __base;\n", type);
+      type = trXSD2C(obj->base_type);
+      if (type != NULL) 
+      {
+        fprintf(f, "\t%s __base;\n", type);
+      }
     }
-  }
+  
+    /* === */
+    field = obj->head;
+    while (field != NULL)
+    {
+      printf("%s::writeFieldDeclare(%s)\n", obj->type, field->type);
+      writeFieldDeclare(f, field);
+      field = field->next;
+    }
+    fprintf(f, "};\n");
 
-  /* === */
-  field = obj->head;
-  while (field != NULL)
-  {
-    writeFieldDeclare(f, field);
-    field = field->next;
-  }
-  fprintf(f, "};\n");
+    /* === */
+    fprintf(f, "\n/**\n *\tLIST: %s_List\n */\n", obj->type);
+    fprintf(f, "struct %s_List\n{\n", obj->type);
+    fprintf(f, "\tstruct %s* value;\n", obj->type);
+    fprintf(f, "\tstruct %s_List* next;\n", obj->type);
+    fprintf(f, "};\n\n\n");
+  } /* else of isSimpleContent */
 
-  /* === */
-  fprintf(f, "\n/**\n *\tLIST: %s_List\n */\n", obj->type);
-  fprintf(f, "struct %s_List\n{\n", obj->type);
-  fprintf(f, "\tstruct %s* value;\n", obj->type);
-  fprintf(f, "\tstruct %s_List* next;\n", obj->type);
-  fprintf(f, "};\n\n\n");
   
 }
 
@@ -215,6 +273,7 @@ void writeFieldDeclare(FILE* f, HFIELD field)
   
   if (field->maxOccurs > 1 || field->maxOccurs == -1)
   {
+    printf("OBJ:%s FIELD: %s\n", field->parentObj->type, buffer);
     fprintf(f, "\t%s %s_head;\n", buffer, field->name);
     fprintf(f, "\t%s %s_tail;\n", buffer, field->name);
   }
@@ -230,6 +289,7 @@ static
 int genFunctionNameCreate(HCOMPLEXTYPE obj, char *buffer)
 {
   const char *funcname = "struct %s* %s_Create()";
+  if (obj->isSimpleContent && obj->restriction) return 0;
   sprintf(buffer, funcname, obj->type, obj->type);
   return 1;
 }
@@ -240,6 +300,7 @@ static
 int genFunctionNameFree(HCOMPLEXTYPE obj, char *buffer)
 {
   const char *funcname = "void %s_Free(struct %s* obj)";
+  if (obj->isSimpleContent && obj->restriction) return 0;
   sprintf(buffer, funcname, obj->type, obj->type);
   return 1;
 }
@@ -329,11 +390,15 @@ static int genFunctionNameAdder(HFIELD field, char *buffer)
 static int genFunctionNameSaxSerialize(HCOMPLEXTYPE obj, char *buffer)
 {
   const char *funcname = "void %s_Sax_Serialize(struct %s* obj,\n\t\t const char *root_element_name,\n\t\t %s,\n\t\t %s,\n\t\t %s,\n\t\t void* userData)";
+  const char *funcnameSimple = "void %s_Sax_Serialize(%s obj,\n\t\t const char *root_element_name,\n\t\t %s,\n\t\t %s,\n\t\t %s,\n\t\t void* userData)";
   const char *start = "void (*OnStartElement)(const char* element_name, int attr_count, char **keys, char **values, void* userData)";
   const char *chars = "void (*OnCharacters)(const char* element_name, const char* chars, void* userData)";
   const char *end = "void (*OnEndElement)(const char* element_name, void* userData)";
 
-  sprintf(buffer, funcname, obj->type,  obj->type, start, chars, end);
+  if (obj->isSimpleContent && obj->restriction) 
+    sprintf(buffer, funcnameSimple, obj->type,  obj->type, start, chars, end);
+  else
+    sprintf(buffer, funcname, obj->type,  obj->type, start, chars, end);
   return 1;
 }
 
@@ -342,8 +407,12 @@ static int genFunctionNameSaxSerialize(HCOMPLEXTYPE obj, char *buffer)
 static int genFunctionNameDeserialize(HCOMPLEXTYPE obj, char *buffer)
 {
   const char *funcname = "struct %s* %s_Deserialize(xmlNodePtr xmlRoot)";
+  const char *funcnameSimple = "%s %s_Deserialize(xmlNodePtr xmlRoot)";
 
-  sprintf(buffer, funcname, obj->type,  obj->type);
+  if (obj->isSimpleContent && obj->restriction) 
+    sprintf(buffer, funcnameSimple, obj->type,  obj->type);
+  else
+    sprintf(buffer, funcname, obj->type,  obj->type);
   return 1;
 }
 
@@ -1151,7 +1220,7 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
         fprintf(stderr, "WARNING: Type '%s' not found as attribute\n", type);
       }
 
-      fprintf(f, "\t\txmlFree(key);\n");
+      fprintf(f, "\t\t/*xmlFree(key);*/\n");
       fprintf(f, "\t}\n");
     }
 
@@ -1193,7 +1262,7 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
         } else {
           fprintf(f, "\t\t\t%s_Set_%s(obj, (const char*)key);\n", field->parentObj->type, field->name);
         }
-        fprintf(f, "\t\t\txmlFree(key);\n");
+        fprintf(f, "\t\t\t/*xmlFree(key);*/\n");
       }
       else if (!strcmp(type, "int") || !strcmp(type, "integer"))
       {
@@ -1203,7 +1272,7 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
         } else {
           fprintf(f, "\t\t\t%s_Set_%s(obj, atoi((const char*)key));\n", field->parentObj->type, field->name);
         }
-        fprintf(f, "\t\t\txmlFree(key);\n");
+        fprintf(f, "\t\t\t/*xmlFree(key);*/\n");
       }
       else if (!strcmp(type, "float") || !strcmp(type, "double"))
       {
@@ -1213,7 +1282,7 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
         } else {
           fprintf(f, "\t\t\t%s_Set_%s(obj, atof((const char*)key));\n", field->parentObj->type, field->name);
         }
-        fprintf(f, "\t\t\txmlFree(key);\n");
+        fprintf(f, "\t\t\t/*xmlFree(key);*/\n");
       }
     }
     else

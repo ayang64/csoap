@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: wsdl2c.c,v 1.7 2004/06/08 12:55:04 snowdrop Exp $
+ *  $Id: wsdl2c.c,v 1.8 2004/10/15 13:34:47 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -70,6 +70,9 @@ void Writer_EndElement(const char* element_name, void* userData)
 
 struct CallList* callList = NULL;
 char soap_prefix[50];
+char wsdl_prefix[50];
+char target_ns[150];
+char target_prefix[50];
 
 xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 {
@@ -101,11 +104,12 @@ xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
   default_ns = xmlSearchNs(doc, node, NULL);
   if (default_ns != NULL && default_ns->href != NULL) {
     fprintf(stdout, "Register default namespace '%s'\n", (const char*)default_ns->href);
-    xmlXPathRegisterNs(context, "wsdl", default_ns->href ); /* default_ns : "http://schemas.xmlsoap.org/wsdl/" */
+    /* default_ns : "http://schemas.xmlsoap.org/wsdl/" */
+    xmlXPathRegisterNs(context, "wsdl", default_ns->href );
   } 
   
 
-
+  printf("XPath: '%s'\n", xpath);
   result = xmlXPathEvalExpression((xmlChar*)xpath, context);  
   if (result == NULL) {
     fprintf(stderr, "ERROR: XPath error!\n");
@@ -114,6 +118,7 @@ xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 
   if(xmlXPathNodeSetIsEmpty(result->nodesetval)){
     /* no result */
+    printf("XPath result is empty\n");
     return NULL;
   }
 
@@ -154,11 +159,11 @@ xmlNodePtr findPortType(xmlDocPtr doc, const char *name)
     }
 
     if (!xmlStrcmp(attr_name, (const xmlChar*)name)) {
-      xmlFree(attr_name);
+      /*xmlFree(attr_name);*/
       return cur;
     }
     
-    xmlFree(attr_name);
+    /*xmlFree(attr_name);*/
     cur = cur->next;
   }
 
@@ -199,11 +204,11 @@ xmlNodePtr findMessage(xmlDocPtr doc, const char *name)
     }
 
     if (!xmlStrcmp(attr_name, (const xmlChar*)name)) {
-      xmlFree(attr_name);
+      /*xmlFree(attr_name);*/
       return cur;
     }
     
-    xmlFree(attr_name);
+    /*xmlFree(attr_name);*/
     cur = cur->next;
   }
 
@@ -281,7 +286,7 @@ void handleInputParameters(xmlDocPtr doc, const char *name, struct CallFunc *fun
     if (var_type == NULL) {
       fprintf(stderr, "ERROR: Found <part> without attrbute 'type' or 'element'! (message:'%s')\n", 
         message_name);
-      xmlFree(var_name);
+      /*xmlFree(var_name);*/
       cur = cur->next;
       continue;
     } 
@@ -293,10 +298,78 @@ void handleInputParameters(xmlDocPtr doc, const char *name, struct CallFunc *fun
 
     fprintf(stdout, "\t\t(%s,%s)\n", trXSD2C((const char*)var_type), (const char*)var_name);
 
-    xmlFree(var_name);
-    xmlFree(var_type);
+    /*xmlFree(var_name);
+    xmlFree(var_type);*/
 
     cur = cur->next;
+  }
+
+}
+
+void handleOutputParameters(xmlDocPtr doc, const char *name, struct CallFunc *func)
+{
+  char ns[10];
+  char message_name[255];
+  xmlNodePtr node;
+  xmlNodePtr cur;
+  struct CallVar *var;
+  xmlChar *var_name, *var_type;
+
+  parseNS(name, ns, message_name); /* check why to pase ns? */
+
+  node = findMessage(doc, message_name);
+  if (node == NULL) {
+    fprintf(stderr, "ERROR: Can not find message '%s'\n", message_name);
+    return;
+  }
+
+  cur = node->xmlChildrenNode;
+  while (cur != NULL) {
+    
+    if (cur->type != XML_ELEMENT_NODE) {
+      cur = cur->next;
+      continue;
+    }
+
+    if (xmlStrcmp(cur->name, (const xmlChar*)"part")) {
+      cur = cur->next;
+      continue;
+    }
+
+    var_name = xmlGetProp(cur, "name");  
+    if (var_name == NULL) {
+      fprintf(stderr, "ERROR: Found <part> without attrbute 'name'! (message:'%s')\n", 
+        message_name);
+      cur = cur->next;
+      continue;
+    }
+
+    var_type = xmlGetProp(cur, "type");  
+    if (var_type == NULL) {
+      var_type = xmlGetProp(cur, "element");  
+    } 
+
+    if (var_type == NULL) {
+      fprintf(stderr, "ERROR: Found <part> without attrbute 'type' or 'element'! (message:'%s')\n", 
+        message_name);
+      /*xmlFree(var_name);*/
+      cur = cur->next;
+      continue;
+    } 
+
+    var = CallVar_Create();
+    CallVar_Set_name(var, (const char*)var_name);
+    CallVar_Set_type(var, (const char*)var_type);
+    CallFunc_Set_out(func, var);
+
+    fprintf(stdout, "\t\t(%s,%s)\n", trXSD2C((const char*)var_type), (const char*)var_name);
+
+    /*xmlFree(var_name);
+    xmlFree(var_type);*/
+    
+    cur = cur->next;
+
+    break; /* only one return parameter */
   }
 
 }
@@ -338,7 +411,7 @@ void handlePortType(xmlDocPtr doc, const char *name)
     }
 
     strcpy(opname, (const char*)attr_name);
-    xmlFree(attr_name);
+    /*xmlFree(attr_name);*/
     
     func = CallFunc_Create();
     CallList_Add_operation(callList, func);
@@ -356,7 +429,7 @@ void handlePortType(xmlDocPtr doc, const char *name)
 
     message = xmlGetProp(input, "message");  
     if (message == NULL) {
-      fprintf(stderr, "ERROR: No message attribute for input operation '%'\n", opname);
+      fprintf(stderr, "ERROR: No message attribute for input operation '%s'\n", opname);
       cur = cur->next;
       continue;
     }
@@ -365,7 +438,7 @@ void handlePortType(xmlDocPtr doc, const char *name)
     
     handleInputParameters(doc, (const char*)message, func);
 
-    xmlFree(message);
+    /*xmlFree(message);*/
   
     /* handle output */
     output = findSubNode(cur, "output");
@@ -376,14 +449,15 @@ void handlePortType(xmlDocPtr doc, const char *name)
 
     message = xmlGetProp(output, "message");  
     if (message == NULL) {
-      fprintf(stderr, "ERROR: No message attribute for output operation '%'\n", opname);
+      fprintf(stderr, "ERROR: No message attribute for output operation '%s'\n", opname);
       cur = cur->next;
       continue;
     }
     
     fprintf(stdout, "\toutput = '%s'\n", (const char*)message);
-    xmlFree(message);
+    /*xmlFree(message);*/
   
+    handleOutputParameters(doc, (const char*)message, func);
     cur = cur->next;
   }
 
@@ -404,7 +478,10 @@ void handleBinding(xmlDocPtr doc, const char *type)
   parseNS(type, binding_ns, binding_type);
 
   /* Set xpath  query */
-  sprintf(query, "//wsdl:definitions/wsdl:binding[@name=\"%s\"]", binding_type);
+  if (wsdl_prefix[0]) 
+    sprintf(query, "//%s:definitions/%s:binding[@name=\"%s\"]", wsdl_prefix, wsdl_prefix, binding_type);
+  else
+    sprintf(query, "//definitions/binding[@name=\"%s\"]", binding_type);
 
   /* Find Bindings */
   xpathObj = xpath_eval(doc, query);
@@ -442,8 +519,8 @@ void handleBinding(xmlDocPtr doc, const char *type)
       handlePortType(doc, port_name);
     }
 
-    if (name != NULL) xmlFree(name);
-    if (btype != NULL) xmlFree(btype);  
+/*    if (name != NULL) xmlFree(name);
+    if (btype != NULL) xmlFree(btype);  */
   }
   
 }
@@ -456,7 +533,11 @@ void wsdlParse(xmlDocPtr doc)
   xmlXPathObjectPtr xpathObj;
   char query[255];
 
-  sprintf(query, "//wsdl:definitions/wsdl:service/wsdl:port[%s:address]", soap_prefix);
+  if (wsdl_prefix[0]) 
+    sprintf(query, "//%s:definitions/%s:service/%s:port[%s:address]",  wsdl_prefix, wsdl_prefix, wsdl_prefix, soap_prefix);
+  else
+    sprintf(query, "//definitions/service/port[%s:address]", soap_prefix);
+
   
   /* Find Soap Service */
   xpathObj = xpath_eval(doc, query);
@@ -490,8 +571,8 @@ void wsdlParse(xmlDocPtr doc)
 
     handleBinding(doc, binding);
 
-    if (name != NULL) xmlFree(name);
-    if (binding != NULL) xmlFree(binding);
+/*    if (name != NULL) xmlFree(name);
+    if (binding != NULL) xmlFree(binding);*/
   }
   
 
@@ -509,6 +590,10 @@ int main(int argc, char *argv[])
   xmlNodePtr xsdRoot;
   xmlNsPtr default_ns;
   xmlNsPtr soap_ns;
+  xmlNsPtr wsdl_ns;
+  xmlNsPtr tar_ns;
+  xmlChar *tar_ns_str;
+  
   int i;
   char outDir[1054];
   char fname[255];
@@ -567,7 +652,7 @@ int main(int argc, char *argv[])
   }
 
   if (soap_ns != NULL && soap_ns->prefix != NULL) {
-      fprintf(stdout, "Wsdl Soap prefix: '%s'\n", soap_ns->prefix);
+      fprintf(stdout, "Wsdl SOAP prefix: '%s'\n", soap_ns->prefix);
       strcpy(soap_prefix, soap_ns->prefix);
   } else { 
     fprintf(stderr,"Namespace 'http://schemas.xmlsoap.org/wsdl/soap/' expected\n");
@@ -576,34 +661,84 @@ int main(int argc, char *argv[])
   }
 
   
-
-  /* search default namespace */
-  default_ns = xmlSearchNs(doc, node, NULL);
-  if (default_ns == NULL || ( default_ns != NULL && default_ns->href == NULL)) {
-    fprintf(stdout, "Adding default namespace 'http://schemas.xmlsoap.org/wsdl/'\n");
-    xmlNewDocProp(doc,  "xmlns", "http://schemas.xmlsoap.org/wsdl/");
-  } 
-
-  if (!xsdInitTrModule(xsdRoot))
-    return 1;
-
-  if (!xsdInitObjModule(xsdRoot))
-    return 1;
- 
-  
-	
-  if (xsdEngineRun(xsdRoot, outDir)) {
-   fprintf(stderr, "xsd2c engine error\n");
-  	return 1;
+  /* Search for wsdl namespace 
+    http://schemas.xmlsoap.org/wsdl/
+  */
+  wsdl_ns = xmlSearchNsByHref(doc, node, "http://schemas.xmlsoap.org/wsdl/");
+  if (wsdl_ns == NULL) {
+    wsdl_ns = xmlSearchNsByHref(doc, node, "http://schemas.xmlsoap.org/wsdl");
   }
 
+
+  if (wsdl_ns != NULL && wsdl_ns->prefix != NULL) {
+      fprintf(stdout, "Wsdl prefix: '%s'\n", wsdl_ns->prefix);
+      strcpy(wsdl_prefix, wsdl_ns->prefix);
+  } else { 
+    /* search default namespace */
+    default_ns = xmlSearchNs(doc, node, NULL);
+    if (default_ns == NULL || ( default_ns != NULL && default_ns->href == NULL)) {
+      fprintf(stdout, "Adding default namespace 'http://schemas.xmlsoap.org/wsdl/'\n");
+      xmlNewDocProp(doc,  "xmlns", "http://schemas.xmlsoap.org/wsdl/");
+    } 
+    
+    /*strcpy(wsdl_prefix, "wsdl");*/
+    wsdl_prefix[0] = '\0';
+  }
+
+
+
+  /* search targetNamespace */
+  tar_ns_str = xmlGetProp(node, "targetNamespace");
+  if (tar_ns_str) {
+    strcpy(target_ns, tar_ns_str);
+    /* Search for target namespace 
+    */
+    tar_ns = xmlSearchNsByHref(doc, node, target_ns);
+    if (tar_ns && tar_ns->prefix) {
+      strcpy(target_prefix, tar_ns->prefix);
+      printf("Target namespace: %s\nTarget NS Prefix: %s\n", 
+        target_ns, target_prefix);
+    } else {
+      target_prefix[0] = '\0';
+    }
+    /*xmlFree*/
+  } else {
+    target_ns[0] = '\0';
+    target_prefix[0] = '\0';
+  }
+
+ 
+  xsdRoot = xsdRoot?xsdRoot:node;
+	while (xsdRoot) {
+
+	  if (xsdRoot->type != XML_ELEMENT_NODE) {
+	     xsdRoot  = xsdRoot->next;
+	     continue;
+	  }
+
+    if (!xsdInitTrModule(xsdRoot))
+      return 1;
+  
+    if (!xsdInitObjModule(xsdRoot))
+      return 1;
+
+
+	  printf("Calling xsd engine\n");
+    if (xsdEngineRun(xsdRoot, outDir)) {
+     fprintf(stderr, "xsd2c engine error\n");
+    	return 1;
+    }
+    xsdRoot  = xsdRoot->next;
+  }
   callList = CallList_Create();
   wsdlParse(doc);
 
-  CallList_Sax_Serialize(callList, "CallList", 
+/*  CallList_Sax_Serialize(callList, "CallList", 
     Writer_StartElement, 
     Writer_Characters,
     Writer_EndElement, 0); 
+*/
+  codeWriteStubHeader(callList, "test_stub.h");
 
   CallList_Free(callList); 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: obj.h,v 1.2 2004/06/02 14:57:23 snowdrop Exp $
+ *  $Id: obj.h,v 1.3 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,9 +24,11 @@
 #ifndef XSD2C_OBJ_H
 #define XSD2C_OBJ_H
 
+#include "Enumeration.h"
 
 typedef struct FIELD* HFIELD;
 typedef struct COMPLEXTYPE* HCOMPLEXTYPE;
+typedef struct RESTRICTION* HRESTRICTION;
 typedef int (*CT_ENUM)(HCOMPLEXTYPE);
 
 struct FIELD
@@ -48,8 +50,74 @@ struct COMPLEXTYPE
   HFIELD head;
   HFIELD tail;
   HCOMPLEXTYPE next;
+  int isSimpleContent;
+  HRESTRICTION restriction;
+  char targetNS[150];
+  char fullName[250];
 };
 
+#define RES_MODE_EMPTY 0
+#define RES_MODE_MINMAX 1
+#define RES_MODE_ENUMERATION 2
+
+struct RESTRICTION
+{
+  int mode;
+
+  char *type;
+
+  /* Defines a list of acceptable values*/
+  struct Enumeration *enumeration;
+
+  /* Specifies the maximum number of decimal places allowed. 
+      Must be equal to or greater than zero */
+  int fractionDigits; 	
+
+  /* Specifies the exact number of characters or list items allowed. 
+  Must be equal to or greater than zero*/
+  int length; 	
+
+  /* Specifies the upper bounds for numeric 
+   values (the value must be less than this value) */
+  int maxExclusive;
+  int maxExclusiveSet;
+
+  /* Specifies the upper bounds for numeric values 
+    (the value must be less than or equal to this value) */
+  int maxInclusive; 	
+  int maxInclusiveSet; 	
+
+  /* Specifies the lower bounds for numeric values 
+    (the value must be greater than this value) */
+  int minExclusive; 	
+  int minExclusiveSet; 	
+
+  /* Specifies the lower bounds for numeric values 
+    (the value must be greater than or equal to this value) */
+  int minInclusive; 	
+  int minInclusiveSet; 	
+
+  /* Specifies the maximum number of characters or list items allowed. 
+    Must be equal to or greater than zero */
+  int maxLength; 	
+
+
+  /* Specifies the minimum number of characters or list items allowed. 
+    Must be equal to or greater than zero */
+  int minLength; 	
+
+  /* Defines the exact sequence of 
+    characters that are acceptable */
+  char pattern[150]; 	
+
+  /* Specifies the exact number of digits allowed. 
+    Must be greater than zero */
+  int totalDigits; 	
+
+  /* Specifies how white space (line feeds, tabs, 
+    spaces, and carriage returns) is handled  */
+  char whiteSpace[50]; 	
+};
 
 void objInitModule();
 void objFreeModule();
@@ -61,5 +129,9 @@ HFIELD objAddAttribute(HCOMPLEXTYPE obj, const char* name, const char* type, int
 
 HCOMPLEXTYPE objRegistryGetComplexType(const char* typename);
 void objRegistryEnumComplexType(CT_ENUM callback);
+
+
+
+HRESTRICTION resCreate(const char* type);
 
 #endif

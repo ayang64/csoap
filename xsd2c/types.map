@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: types.map,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+ *  $Id: types.map,v 1.2 2004/10/15 13:35:39 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -35,4 +35,5 @@ XSD2C_MAPNS("string", "char*")
 XSD2C_MAPNS("integer", "int")
 XSD2C_MAPNS("int", "int")
 XSD2C_MAPNS("double", "double")
+XSD2C_MAPNS("float", "float")
 XSD2C_MAPNS("boolean", "int")

@@ -86,12 +86,12 @@ struct CallVar* CallVar_Deserialize(xmlNodePtr xmlRoot)
 		if ((!xmlStrcmp(cur->name, (const xmlChar *)"name"))){
 			key = xmlNodeListGetString(cur->doc, cur->xmlChildrenNode, 1);
 			CallVar_Set_name(obj, (const char*)key);
-			xmlFree(key);
+			/*xmlFree(key);*/
 		}
 		if ((!xmlStrcmp(cur->name, (const xmlChar *)"type"))){
 			key = xmlNodeListGetString(cur->doc, cur->xmlChildrenNode, 1);
 			CallVar_Set_type(obj, (const char*)key);
-			xmlFree(key);
+			/*xmlFree(key);*/
 		}
 	// TODO: 
 		cur = cur->next;
