@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.4 2004/08/26 17:06:18 rans Exp $
+*  $Id: soap-xml.c,v 1.5 2004/09/02 11:48:28 rans Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -66,7 +66,7 @@ soap_xpath_eval(xmlDocPtr doc, const char *xpath)
 	xmlXPathObjectPtr result;
 
 	context = xmlXPathNewContext(doc);
-	result = xmlXPathEvalExpression((xmlChar*)xpath, context);
+	result = xmlXPathEvalExpression(BAD_CAST xpath, context);
 	if(xmlXPathNodeSetIsEmpty(result->nodesetval)){
 		/* no result */
 		return NULL;

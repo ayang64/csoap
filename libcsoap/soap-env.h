@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.5 2004/06/08 12:54:09 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.6 2004/09/02 11:48:28 rans Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -163,10 +163,10 @@ SoapEnv *soap_env_new_from_buffer(const char* buffer);
 /* --------------------------------------------------- */
 
 typedef void (*XmlSerializerCallback)
-    (void* /*obj*/, const char * /*root_element_name*/,
-     void (*OnStartElement)(const char* element_name, int attr_count, char **keys, char **values, void* userData),
-		 void (*OnCharacters)(const char* element_name, const char* chars, void* userData),
-		 void (*OnEndElement)(const char* element_name, void* userData),
+    (void* /*obj*/, const xmlChar * /*root_element_name*/,
+     void (*OnStartElement)(const xmlChar* element_name, int attr_count, xmlChar **keys, xmlChar **values, void* userData),
+		 void (*OnCharacters)(const xmlChar* element_name, const xmlChar* chars, void* userData),
+		 void (*OnEndElement)(const xmlChar* element_name, void* userData),
 		 void* /* userdata*/);
 
 

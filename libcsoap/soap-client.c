@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.5 2004/08/30 15:26:53 snowdrop Exp $
+*  $Id: soap-client.c,v 1.6 2004/09/02 11:48:28 rans Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,9 +29,13 @@
 static SoapEnv *_soap_client_build_result(hresponse_t *res);
 /*--------------------------------- */
 
+
 int soap_client_init_args(int argc, char *argv[])
+
 {
+
 	return !httpc_init(argc, argv);
+
 }
 
 SoapEnv*
@@ -62,7 +66,7 @@ soap_client_invoke(SoapEnv *call, const char *url, const char *soap_action)
 	if (soap_action != NULL) {
 		httpc_set_header(conn, "SoapAction", soap_action);
 	}
-	res = httpc_post(conn, url, strlen(content), content);
+	res = httpc_post(conn, url, (int)strlen(content), content);
 
 	/* Free buffer */
 	xmlBufferFree(buffer);
@@ -93,7 +97,7 @@ SoapEnv* _soap_client_build_result(hresponse_t *res)
 
 
 
-	doc = xmlParseDoc((xmlChar *)res->body);
+	doc = xmlParseDoc(BAD_CAST res->body);
 	if (doc == NULL) {
 		return soap_env_new_with_fault(Fault_Client, 
 			"Response is not in XML format!","","");

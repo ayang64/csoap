@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.3 2004/02/03 08:59:22 snowdrop Exp $
+ *  $Id: soap-xml.h,v 1.4 2004/09/02 11:48:28 rans Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,7 @@
 #define cSOAP_XML_H
 
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #include <nanohttp/nanohttp-common.h>
 

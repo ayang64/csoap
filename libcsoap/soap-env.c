@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.4 2004/08/26 17:06:18 rans Exp $
+*  $Id: soap-env.c,v 1.5 2004/09/02 11:48:28 rans Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,7 @@
 #include <libcsoap/soap-env.h>
 #include <stdarg.h>
 #include <string.h>
+#include <libxml/xmlstring.h>
 
 static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
@@ -57,15 +58,15 @@ Parameters:
 struct XmlNodeHolder { xmlNodePtr node; };
 
 static
-void xmlbuilder_start_element(const char* element_name, int attr_count, 
-							  char **keys, char **values, void* userData);
+void xmlbuilder_start_element(const xmlChar* element_name, int attr_count, 
+							  xmlChar **keys, xmlChar **values, void* userData);
 
 static
-void xmlbuilder_characters(const char* element_name, 
-						   const char* chars, void* userData);
+void xmlbuilder_characters(const xmlChar* element_name, 
+						   const xmlChar* chars, void* userData);
 
 static
-void xmlbuilder_end_element(const char* element_name, void* userData);
+void xmlbuilder_end_element(const xmlChar* element_name, void* userData);
 
 /* ---------------------------------------------------------------------------- */
 
@@ -118,17 +119,17 @@ SoapEnv *soap_env_new_with_method(const char *urn, const char *method)
 {
 	xmlDocPtr env;
 	SoapEnv *call;
-	char buffer[1054];
+	xmlChar buffer[1054];
 
 
 	log_verbose2("URN = '%s'", urn);
 	log_verbose2("Method = '%s'",method);
 
-	sprintf(buffer, _SOAP_MSG_TEMPLATE_, 
+	xmlStrPrintf(buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_, 
 		soap_env_ns, soap_env_enc, soap_xsi_ns, 
-		soap_xsd_ns, method, urn, method);
+		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
 
-	env = xmlParseDoc((xmlChar *)buffer);
+	env = xmlParseDoc(buffer);
 	call = soap_env_new_from_doc(env);
 
 	return call;
@@ -143,7 +144,7 @@ soap_env_add_item(SoapEnv *call, const char *type,
 
 	xmlNodePtr newnode;
 
-	newnode = xmlNewTextChild(call->cur, NULL, (const xmlChar *)name, (const xmlChar *)value);
+	newnode = xmlNewTextChild(call->cur, NULL, BAD_CAST name, BAD_CAST value);
 
 	if (newnode == NULL) {
 		log_error1("Can not create new xml node");
@@ -151,7 +152,7 @@ soap_env_add_item(SoapEnv *call, const char *type,
 	}
 
 	if (type) {
-		if (!xmlNewProp(newnode, (const xmlChar *)"xsi:type", (const xmlChar *)type)) {
+		if (!xmlNewProp(newnode, BAD_CAST "xsi:type", BAD_CAST type)) {
 			log_error1("Can not create new xml attribute");
 			return NULL;
 		}
@@ -186,7 +187,7 @@ soap_env_add_custom(SoapEnv *call, void *obj, XmlSerializerCallback cb,
 
 	holder.node = soap_env_get_method(call);
 
-	cb(obj, name, 
+	cb(obj, BAD_CAST name, 
 		xmlbuilder_start_element,
 		xmlbuilder_characters,
 		xmlbuilder_end_element, &holder);
@@ -269,7 +270,7 @@ SoapEnv *soap_env_new_from_buffer(const char* buffer)
 
 	if (buffer == NULL) return NULL;
 
-	doc = xmlParseDoc((xmlChar*)buffer);
+	doc = xmlParseDoc(BAD_CAST buffer);
 	if (doc == NULL) return NULL;
 
 	env = soap_env_new_from_doc(doc);
@@ -300,7 +301,7 @@ soap_env_get_body(SoapEnv* env)
 	node = soap_xml_get_children(env->root);
 
 	while (node != NULL) {
-		if (!strcmp((const char*)node->name, "Body"))
+		if (!xmlStrcmp(node->name, BAD_CAST "Body"))
 			return node;
 		node = soap_xml_get_next(node);
 	}
@@ -365,13 +366,11 @@ _soap_env_get_body(SoapEnv* env)
 
 	if (nodeset->nodeNr < 1) {
 		log_error1("No Body (nodeNr)!");
-		xmlXPathFreeNodeSet	(nodeset);
 		xmlXPathFreeObject(xpathobj);
 		return NULL;
 	}
 
 	body = nodeset->nodeTab[0]; /* body is <Body> */
-	xmlXPathFreeNodeSet	(nodeset);
 	xmlXPathFreeObject(xpathobj);
 	return body;
 
@@ -401,7 +400,7 @@ int soap_env_find_urn(SoapEnv *env, char *urn)
 		ns = xmlSearchNs(body->doc, node, node->ns->prefix);
 		if (ns != NULL) {
 			strcpy(urn, (char*)ns->href);
-			return 1; /* namesapce found! */
+			return 1; /* namespace found! */
 		}
 	}
 
@@ -443,7 +442,7 @@ int soap_env_find_methodname(SoapEnv *env, char *method)
 
 
 static
-void xmlbuilder_start_element(const char* element_name, int attr_count, char **keys, char **values, void* userData)
+void xmlbuilder_start_element(const xmlChar* element_name, int attr_count, xmlChar **keys, xmlChar **values, void* userData)
 {
 	struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;
 	xmlNodePtr parent = NULL;
@@ -452,12 +451,12 @@ void xmlbuilder_start_element(const char* element_name, int attr_count, char **k
 	parent = holder->node;
 	if (parent == NULL) return;
 
-	holder->node = xmlNewChild(parent, NULL, (const xmlChar *)element_name, NULL);
+	holder->node = xmlNewChild(parent, NULL, element_name, NULL);
 
 }
 
 static
-void xmlbuilder_characters(const char* element_name, const char* chars, void* userData)
+void xmlbuilder_characters(const xmlChar* element_name, const xmlChar* chars, void* userData)
 {
 	struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;
 	xmlNodePtr parent = NULL;
@@ -466,11 +465,11 @@ void xmlbuilder_characters(const char* element_name, const char* chars, void* us
 	parent = holder->node;
 	if (parent == NULL) return;
 
-	xmlNewTextChild(parent, NULL, (const xmlChar *)element_name, (const xmlChar *)chars);
+	xmlNewTextChild(parent, NULL, element_name, chars);
 }
 
 static
-void xmlbuilder_end_element(const char* element_name, void* userData)
+void xmlbuilder_end_element(const xmlChar * element_name, void* userData)
 {
 
 	struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;

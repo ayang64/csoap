@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.5 2004/08/30 15:26:49 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.6 2004/09/02 11:48:58 rans Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -41,7 +41,7 @@ void add_name(xmlNodePtr node, SoapEnv *env)
   soap_env_add_itemf(env,"xsd:string", "echo", 
 		     "Hello '%s'", name);
 
-  xmlFree((xmlChar*)name);
+  xmlFree(BAD_CAST name);
 
 }
 
