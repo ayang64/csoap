@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.23 2004/09/14 15:50:54 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.24 2004/09/14 17:34:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -508,33 +508,6 @@ void _httpd_start_thread(conndata_t* conn)
 }  
 
 
-/*
- * -----------------------------------------------------
- * FUNCTION: _httpd_select
- * Returns 0 if success != otherwise
- * -----------------------------------------------------
- */
-static
-int _httpd_select(fd_set *pfds)
-{
-  int err;
-  struct timeval timeout;
-
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
-
-#ifndef WIN32
-  select (1, pfds, NULL, NULL, &timeout);
-#else
-  if (select (1, pfds, NULL, NULL, &timeout) == SOCKET_ERROR)
-  {
-    err = WSAGetLastError ();
-    log_error1 ("select error");
-    return 1;
-  }
-#endif
-  return 0;
-}
 
 /*
  * -----------------------------------------------------
@@ -548,8 +521,12 @@ httpd_run ()
   int err;
   conndata_t *conn;
   fd_set fds;
+  struct timeval timeout;
 
   log_verbose1 ("starting run routine");
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
 
   /* listen to port */
   err = hsocket_listen (_httpd_socket, 15);
@@ -571,9 +548,6 @@ httpd_run ()
     return err;
   }
   
-  /* zero file descriptior */
-  FD_ZERO (&fds);
-  FD_SET (_httpd_socket, &fds);
 
   while (_httpd_run)
   {
@@ -581,19 +555,36 @@ httpd_run ()
     conn = _httpd_wait_for_empty_conn();	
     if (!_httpd_run) break;
     
-    /* Select file descriptor */
-    if (_httpd_select(&fds))
-    {
-      log_error1("Can not select!");
-      return -1; 
-    }  
-      
+
     /* Wait for a socket to accept */
-    while (_httpd_run && (!FD_ISSET (_httpd_socket, &fds)));
+    while (_httpd_run) 
+	 {
+		/* zero and set file descriptior */
+		FD_ZERO (&fds);
+		FD_SET (_httpd_socket, &fds);
+		
+		/* select socket descriptor */
+		switch (select(_httpd_socket+1, &fds, NULL, NULL, &timeout))
+		{
+			case 0:
+				/* descriptor is not ready */
+				continue;
+			case -1:
+				/* got a signal? */
+				continue;
+			default:
+				/* no nothing */
+					break;
+		}
+		if (FD_ISSET (_httpd_socket, &fds)) {
+			break;
+		}
+    }
     
-    if (!_httpd_run)    
-        break;
-  
+    /* check signal status*/
+    if (!_httpd_run)
+    	break;
+    	
     /* Accept a socket */
     err = hsocket_accept(_httpd_socket, &(conn->sock));
     if (err != HSOCKET_OK)
