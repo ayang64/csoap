@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: formatter.c,v 1.3 2004/06/03 20:23:02 snowdrop Exp $
+ *  $Id: formatter.c,v 1.4 2004/06/04 09:09:40 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -1167,7 +1167,7 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
   fprintf(f, "\t\t}\n");
 
   /* Just debug you can delete this */
-  fprintf(f, "\t\tprintf(\"%s->%%s\\n\", cur->name);\n", obj->type); 
+/*  fprintf(f, "\t\tprintf(\"%s->%%s\\n\", cur->name);\n", obj->type); */
 
   field = obj->head;
   while (field != NULL)
