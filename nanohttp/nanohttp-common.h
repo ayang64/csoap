@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.14 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.15 2004/10/29 09:27:05 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -43,6 +43,7 @@
 #define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
 #define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
 #define NHTTP_ARG_LOGFILE "-NHTTPlog"
+#define NHTTP_ARG_TMPDIR "-NHTTPtmpdir"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
@@ -417,6 +418,7 @@ typedef struct _part
   char transfer_encoding[128];
   char filename[250];
   struct _part *next;
+  int deleteOnExit; /* default is 0 */
 }part_t;
 
 
@@ -449,6 +451,11 @@ void attachments_free(attachments_t *message);
 void attachments_add_part(attachments_t *attachments, part_t *part);
 
 
+/* tmp directory for multipart/related stuff */
+#define HOPTION_TMP_DIR 2
+void hoption_init_args(int argc, char* argv[]);
+void hoption_set(int opt, const char* value);
+char *hoption_get(int opt);
 
 
 /* logging stuff */
@@ -472,7 +479,8 @@ char *log_get_file();
 
 #ifdef WIN32
   #ifndef __MINGW32__ 
-    #define __FUNCTION__  "***"
+	char *VisualC_funcname(const char* file, int line); /* not thread safe!*/
+    #define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
   #endif
 #endif
 

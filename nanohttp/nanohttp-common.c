@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.15 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.16 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -35,6 +35,72 @@
 #endif
 
 
+#define MAX_OPTION_SIZE 50
+#define MAX_OPTION_VALUE_SIZE 150
+
+static  char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
+
+/* option stuff */
+void hoption_set(int opt, const char* value)
+{
+	if (opt >= MAX_OPTION_SIZE) {
+		log_warn3("Option to high (%d >= %d)", opt, MAX_OPTION_SIZE);
+		return;
+	}
+
+	strncpy(_hoption_table[opt], value, MAX_OPTION_VALUE_SIZE);
+}
+
+
+char *hoption_get(int opt)
+{
+	if (opt >= MAX_OPTION_SIZE) {
+		log_warn3("Option to high (%d >= %d)", opt, MAX_OPTION_SIZE);
+		return "";
+	}
+
+	return _hoption_table[opt];
+}
+
+
+void hoption_init_args(int argc, char* argv[])
+{
+  int i;
+
+	hoption_set(HOPTION_TMP_DIR, "."); /* default value */
+
+  /* initialize from arguments */
+  for (i = 0; i < argc; i++)
+  {
+    if (!strcmp (argv[i], NHTTP_ARG_TMPDIR) && i < argc - 1)
+    {
+		hoption_set(HOPTION_TMP_DIR, argv[i+1]);
+    }
+    else if (!strcmp (argv[i], NHTTP_ARG_LOGFILE) && i < argc - 1)
+    {
+       log_set_file(argv[i+1]);
+    }
+  }
+
+
+}
+
+
+#ifdef WIN32
+#ifndef __MINGW32__ 
+
+/* not thread safe!*/
+char *VisualC_funcname(const char* file, int line)
+{
+	static char buffer[256];
+	int i = strlen(file)-1;
+	while (i>0 && file[i]!='\\')i--;
+	sprintf(buffer, "%s:%d", (file[i]!='\\')?file:(file+i+1), line);
+	return buffer;
+} 
+
+#endif
+#endif
 
 typedef struct _herror_impl_t
 {
@@ -635,6 +701,7 @@ part_t *part_new(const char *id, const char* filename,
   part_t *part = (part_t*)malloc(sizeof(part_t));
   part->header = NULL;
   part->next = next;
+  part->deleteOnExit = 0;
   strcpy(part->id, id);
   strcpy(part->filename, filename);
   if (content_type)
@@ -661,6 +728,10 @@ void part_free(part_t *part)
 {
   if (part == NULL)
     return;
+
+  if (part->deleteOnExit) {
+	  remove(part->filename);
+  }
 
   hpairnode_free_deep(part->header);
 
@@ -708,8 +779,10 @@ void attachments_free(attachments_t *message)
     part= tmp;
   }
 
+  if (message->root_part)
+	  part_free(message->root_part);
 /* TODO (#1#): HERE IS A BUG!!!! */
-/*  free(message);*/ 
+  free(message);
 }
 
 

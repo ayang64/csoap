@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-response.c,v 1.3 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -187,7 +187,14 @@ read_header: /* for errorcode: 100 (continue) */
     else
     {
       res->attachments = mimeMessage;
+	  http_input_stream_free(res->in);
       res->in = http_input_stream_new_from_file(mimeMessage->root_part->filename);
+	  if (!res->in) {
+       /* TODO (#1#): Handle error */
+
+	  } else {
+		  /*res->in->deleteOnExit = 1;*/
+	  }
     }
   }
    *out = res;
@@ -211,6 +218,8 @@ hresponse_free(hresponse_t * res)
   if (res->content_type)
     content_type_free(res->content_type);
 
+  if (res->attachments)
+	  attachments_free(res->attachments);
   free(res);
 }
 

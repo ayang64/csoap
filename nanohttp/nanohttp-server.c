@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.28 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.29 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -99,7 +99,10 @@ httpd_init (int argc, char *argv[])
 {
   int i;
   herror_t status;
-  status = hsocket_module_init ();
+
+  hoption_init_args(argc, argv);
+
+	status = hsocket_module_init ();
   if (status != H_OK)
     return status;
 

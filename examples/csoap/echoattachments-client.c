@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.4 2004/10/28 10:30:41 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.5 2004/10/29 09:27:02 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -27,7 +27,7 @@
 
 
 static const char *urn = "urn:examples";
-static const char *url = "http://localhost:10000/echoattachment";
+static const char *url = "http://localhost:10000/echoattachments";
 static const char *method = "echo";
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.3 2004/10/28 10:30:47 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.4 2004/10/29 09:27:05 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -94,7 +94,11 @@ typedef struct http_input_stream
   int content_length;
   int chunk_size;
   byte_t connection_closed;
+
+  /* file handling */
   FILE *fd;
+  char filename[255];
+  int deleteOnExit; /* default is 0 */
 }http_input_stream_t;
 
 

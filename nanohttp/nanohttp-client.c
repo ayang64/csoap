@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.23 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.24 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -51,18 +51,8 @@ NOTE: This will be called from soap_client_init_args()
 herror_t 
 httpc_init(int argc, char *argv[])
 {
-	int i;
-
+	hoption_init_args(argc, argv);
 	hsocket_module_init();
-
-  /* initialize from arguments */
-  for (i = 0; i < argc; i++)
-  {
-    if (!strcmp (argv[i], NHTTP_ARG_LOGFILE) && i < argc - 1)
-    {
-       log_set_file(argv[i+1]);
-    }
-  }
   return H_OK;
 }
 

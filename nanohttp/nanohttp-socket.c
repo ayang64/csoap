@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.30 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.31 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -68,6 +68,14 @@
 #include <utils/alloc.h>
 #endif
 
+
+#ifdef WIN32
+#undef errno
+#define errno WSAGetLastError()
+#endif
+
+
+
 /*--------------------------------------------------
 FUNCTION: hsocket_module_init
 NOTE: This will be called from httpd_init()
@@ -133,12 +141,12 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 
   sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock <= 0)
-    return herror_new("hsocket_open", HSOCKET_ERROR_CREATE, strerror (errno));
+    return herror_new("hsocket_open", HSOCKET_ERROR_CREATE, "Socket error: %d", errno);
 
   /* Get host data */
   host = gethostbyname (hostname);
   if (host == NULL)
-    return herror_new("hsocket_open", HSOCKET_ERROR_GET_HOSTNAME, strerror (errno));
+    return herror_new("hsocket_open", HSOCKET_ERROR_GET_HOSTNAME, "Socket error: %d", errno);
 
   ip = inet_ntoa (*(struct in_addr *) *host->h_addr_list);
   address.sin_addr.s_addr = inet_addr (ip);
@@ -149,7 +157,8 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 
   /* connect to the server */
   if (connect (sock, (struct sockaddr *) &address, sizeof (address)) != 0)
-    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT, "Connect to '%s:%d' failed", hostname, port);
+/*    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT, "Connect to '%s:%d' failed", hostname, port);*/
+    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT, "Socket error: %d", errno);
 
   *dsock = sock;
   return H_OK;
@@ -168,8 +177,8 @@ hsocket_bind (hsocket_t * dsock, int port)
   sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock == -1)
   {
-    log_error2 ("Can not create socket: '%s'", strerror (errno));
-    return herror_new("hsocket_bind", HSOCKET_ERROR_CREATE, strerror (errno));
+    log_error3 ("Can not create socket: '%s'", "Socket error: %d", errno);
+    return herror_new("hsocket_bind", HSOCKET_ERROR_CREATE, "Socket error: %d", errno);
   }
   /* bind socket */
   addr.sin_family = AF_INET;
@@ -180,8 +189,8 @@ hsocket_bind (hsocket_t * dsock, int port)
 
   if (bind (sock, (struct sockaddr *) &addr, sizeof (struct sockaddr)) == -1)
   {
-    log_error2 ("Can not bind: '%s'", strerror (errno));
-    return herror_new("hsocket_bind", HSOCKET_ERROR_BIND, strerror (errno));
+    log_error3 ("Can not bind: '%s'", "Socket error: %d", errno);
+    return herror_new("hsocket_bind", HSOCKET_ERROR_BIND, "Socket error: %d", errno);
   }
   *dsock = sock;
   return H_OK;
@@ -208,7 +217,7 @@ hsocket_accept (hsocket_t sock, hsocket_t * dest)
     sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
     if (sockfd == INVALID_SOCKET)   {
       if (WSAGetLastError () != WSAEWOULDBLOCK)
-		return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, strerror (errno));
+		return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Socket error: %d", errno);
     } else  {
       break;
     }
@@ -217,7 +226,7 @@ hsocket_accept (hsocket_t sock, hsocket_t * dest)
 /* TODO (#1#): why not a loop like in win32? */
   sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
   if (sockfd == -1) {
-		return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, strerror (errno));
+		return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Socket error: %d", errno);
   }
 #endif 
 /* TODO (#1#): Write to access.log file */
@@ -241,8 +250,8 @@ hsocket_listen (hsocket_t sock)
 
   if (listen (sock, 15) == -1)
   {
-    log_error2 ("Can not listen: '%s'", strerror (errno));
-	return herror_new("hsocket_listen", HSOCKET_ERROR_LISTEN, strerror (errno));
+    log_error3 ("Can not listen: '%s'", "Socket error: %d", errno);
+	return herror_new("hsocket_listen", HSOCKET_ERROR_LISTEN, "Socket error: %d", errno);
   }
 
   return H_OK;
@@ -353,10 +362,10 @@ hsocket_nsend (hsocket_t sock, const byte_t *bytes, int n)
         if (WSAGetLastError () == WSAEWOULDBLOCK)
           continue;
         else       
-		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, strerror (errno));
+		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "Socket error: %d", errno);
 #else
     if (size == -1)
-		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, strerror (errno));
+		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "Socket error: %d", errno);
 #endif
     n -= size;
 	total += size;
@@ -403,7 +412,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
              continue;
           default:
              log_error2("WSAGetLastError()=%d", wsa_error);
-			return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, strerror (errno));
+			return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "Socket error: %d", errno);
         }
     }
 
@@ -417,7 +426,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
    }
 */
     if (status == -1)
-		return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, strerror (errno));
+		return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "Socket error: %d", errno);
 #endif
     
     if (!force) {
@@ -462,7 +471,7 @@ hsocket_block(hsocket_t sock, int block)
   if (ioctlsocket (sock, FIONBIO, (u_long FAR *) & iMode) == INVALID_SOCKET)
   {
     log_error1 ("ioctlsocket error");
-		return herror_new("hsocket_block", HSOCKET_ERROR_IOCTL, strerror (errno));
+		return herror_new("hsocket_block", HSOCKET_ERROR_IOCTL, "Socket error: %d", errno);
   }
 #else /* fcntl(sock, F_SETFL, O_NONBLOCK); */
 /* TODO (#1#): check for *nix the non blocking sockets */

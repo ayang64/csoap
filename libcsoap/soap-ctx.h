@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: soap-ctx.h,v 1.3 2004/10/29 09:27:05 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -41,6 +41,10 @@ SoapCtx* soap_ctx_new(SoapEnv *env); /* should only be used internally */
 
 /* Size of destination dest_href should be MAX_HREF_SIZE */
 herror_t soap_ctx_add_file(SoapCtx* ctx, const char* filename, const char* content_type, char *dest_href);
+/* 
+Used internally. Will switch the deleteOnExit flag from the 
+given one to the added part.
+*/
 void soap_ctx_add_files(SoapCtx* ctx, attachments_t *attachments);
 void soap_ctx_free(SoapCtx* ctx);
 

@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.3 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.4 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -583,6 +583,8 @@ void _mime_part_begin(void *data)
     cbdata, cbdata->part_id++);
 #endif
 
+/*  log_info2("Creating FILE ('%s') deleteOnExit=1", buffer);*/
+  part->deleteOnExit = 1;
   cbdata->current_fd = fopen(buffer, "wb");
   if (cbdata->current_fd)
     strcpy(cbdata->current_part->filename, buffer);
@@ -898,10 +900,7 @@ herror_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, at
 		"'start' not set for multipart/related");
   }
 
-  /* TODO (#1#): Set this not to working directory
-                 This must be configured */
-  
-  mimeMessage = mime_message_parse(in, root_id, boundary, ".");
+  mimeMessage = mime_message_parse(in, root_id, boundary, hoption_get(HOPTION_TMP_DIR));
   if (mimeMessage == NULL)
   {
       /* TODO (#1#): Handle Error in http form */

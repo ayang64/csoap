@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.4 2004/10/28 10:30:47 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.5 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -132,7 +132,8 @@ http_input_stream_t *http_input_stream_new_from_file(const char* filename)
   result = (http_input_stream_t*)malloc(sizeof(http_input_stream_t));
   result->type = HTTP_TRANSFER_FILE;
   result->fd = fd;
-
+  result->deleteOnExit = 0;
+  strcpy(result->filename, filename);
   return result;
 }
 
@@ -141,8 +142,12 @@ http_input_stream_t *http_input_stream_new_from_file(const char* filename)
 */
 void http_input_stream_free(http_input_stream_t *stream)
 {
-  if (stream->type == HTTP_TRANSFER_FILE && stream->fd)
-   fclose(stream->fd);
+	if (stream->type == HTTP_TRANSFER_FILE && stream->fd) {
+		fclose(stream->fd);
+		if (stream->deleteOnExit)
+			log_info2("Removing '%s'", stream->filename);
+			/*remove(stream->filename);*/
+	}
 
   free(stream);
 }

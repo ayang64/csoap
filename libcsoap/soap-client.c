@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.10 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: soap-client.c,v 1.11 2004/10/29 09:27:05 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -90,6 +90,9 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
 	part_t *part;
 	int file_count=0;
 
+	/* for copy attachments */
+  char href[MAX_HREF_SIZE];
+  
 	/* Create buffer */
 	buffer = xmlBufferCreate();
 	xmlNodeDump(buffer, call->env->root->doc,call->env->root, 1 ,0);
@@ -189,13 +192,33 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
 
 	/* Build result */
 	status = _soap_client_build_result(res, &res_env); 
-	if (status != H_OK)
+	if (status != H_OK) {
+		hresponse_free(res);
+		httpc_free(conn);
 		return status;
+	}
 
 	/* Create Context */
 	*response = soap_ctx_new(res_env);
-	soap_ctx_add_files(*response, res->attachments);
+/*	soap_ctx_add_files(*response, res->attachments);*/
 
+	if (res->attachments!=NULL) {
+		part = res->attachments->parts;
+		while (part) {
+			soap_ctx_add_file(*response, part->filename, part->content_type, href);
+			part->deleteOnExit = 0;
+			part = part->next;
+		}
+		part = (*response)->attachments->parts;
+		while (part) {
+			part->deleteOnExit = 1;
+			part = part->next;
+		}
+	}
+
+
+	hresponse_free(res);
+	httpc_free(conn);
 	return H_OK;
 }
 
