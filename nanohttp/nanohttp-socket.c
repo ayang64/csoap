@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.15 2004/09/07 18:40:38 rans Exp $
+*  $Id: nanohttp-socket.c,v 1.16 2004/09/13 06:39:53 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -265,11 +265,11 @@ hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
 	  err =
 	    pthread_create (&(conns[i].tid), &(conns[i].attr), func,
 			    &conns[i]);
-#endif
 	  if (err)
 	    {
 	      log_error2 ("Error creating thread: ('%d')", err);
 	    }
+#endif
 	}
     }
   return 0;
