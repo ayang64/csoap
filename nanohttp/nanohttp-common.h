@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.7 2004/08/26 17:07:47 rans Exp $
+ *  $Id: nanohttp-common.h,v 1.8 2004/08/30 07:55:41 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -137,6 +137,11 @@ typedef enum log_level
 
 log_level_t log_set_level(log_level_t level);
 log_level_t log_get_level();
+
+
+#ifdef WIN32
+  #define __FUNCTION__  "***"
+#endif
 
 #define log_verbose1(a1) log_verbose(__FUNCTION__, a1)
 #define log_verbose2(a1,a2) log_verbose(__FUNCTION__, a1,a2)

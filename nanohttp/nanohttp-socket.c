@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.9 2004/08/26 17:07:47 rans Exp $
+*  $Id: nanohttp-socket.c,v 1.10 2004/08/30 07:55:42 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -82,14 +82,15 @@ FUNCTION: hsocket_init
 ----------------------------------------------------*/
 int hsocket_init(hsocket_t *sock)
 {
-	/* nothing to init for unix sockets */
-	/* just set the descriptor to -1 */
-	*sock = -1;
 #ifdef WIN32
 	//  WSACleanup();
 	struct WSAData info;
 	WSAStartup(MAKEWORD(2,2), &info);
+#else
+	/* nothing to init for unix sockets */
 #endif
+	/* just set the descriptor to -1 */
+	*sock = -1;
 	return 0;
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.8 2004/08/26 17:07:47 rans Exp $
+*  $Id: nanohttp-server.c,v 1.9 2004/08/30 07:55:42 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -356,7 +356,15 @@ int httpd_run()
 	fd_set fds;
 	struct timeval timeout;
 
-	pthread_attr_init(&attr);
+
+#ifndef WIN32
+#if HSOCKET_BLOCKMODE!=0
+#endif
+#else
+	unsigned long iMode=HSOCKET_BLOCKMODE;
+#endif
+
+pthread_attr_init(&attr);
 #ifdef PTHREAD_CREATE_DETACHED
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 #endif
@@ -383,7 +391,6 @@ int httpd_run()
 		fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);
 #endif
 #else
-	unsigned long iMode=HSOCKET_BLOCKMODE;
 	if(ioctlsocket(_httpd_socket, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
 	{
 		log_error1("ioctlsocket error");

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.2 2004/05/12 22:19:13 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.3 2004/08/30 07:55:41 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz

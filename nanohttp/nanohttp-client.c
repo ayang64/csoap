@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.13 2004/08/26 17:07:47 rans Exp $
+*  $Id: nanohttp-client.c,v 1.14 2004/08/30 07:55:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -36,11 +36,15 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+
 #ifdef WIN32
+
 #include <string.h>
+
 static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
 {
-	static tm* tmp;
+	static struct tm* tmp;
 	tmp = localtime(timep);
 	if (tmp) {
 		memcpy(p_tm, tmp, sizeof(struct tm));
@@ -48,6 +52,7 @@ static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
 	}    
 	return tmp;
 }
+
 #endif
 /*--------------------------------------------------
 FUNCTION: httpc_new
@@ -572,6 +577,14 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 	char buffer[4096];
 	int status;
 
+#ifndef WIN32
+  #if HSOCKET_BLOCKMODE!=0
+		fcntl(conn->sock, F_SETFL, O_NONBLOCK);
+  #endif
+#else
+	unsigned long iMode = HSOCKET_BLOCKMODE;
+#endif
+
 
 	if (conn == NULL) {
 		log_error1("Connection object is NULL");
@@ -604,7 +617,6 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 		fcntl(conn->sock, F_SETFL, O_NONBLOCK);
 #endif
 #else
-	unsigned long iMode = HSOCKET_BLOCKMODE;
 	if(ioctlsocket(conn->sock, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
 	{
 		log_error1("ioctlsocket error");
