@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.8 2004/01/05 10:42:15 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.9 2004/01/06 08:05:43 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -691,7 +691,7 @@ void httpc_custom_res_callback(int counter, httpc_conn_t* conn,
   res->body = (unsigned char*)realloc(res->body, res->bodysize + 1);
 
   memcpy(&(res->body[res->bodysize-size]), buffer, size);
-
+  res->body[res->bodysize]='\0';
 }
 
 
