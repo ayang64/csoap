@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.21 2004/10/15 15:10:37 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.22 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -51,7 +51,18 @@ NOTE: This will be called from soap_client_init_args()
 int 
 httpc_init(int argc, char *argv[])
 {
+	int i;
+
 	hsocket_module_init();
+
+  /* initialize from arguments */
+  for (i = 0; i < argc; i++)
+  {
+    if (!strcmp (argv[i], NHTTP_ARG_LOGFILE) && i < argc - 1)
+    {
+       log_set_file(argv[i+1]);
+    }
+  }
 	return 0;
 }
 
@@ -74,6 +85,7 @@ httpc_new()
 	res->_dime_package_nr = 0;
 	res->_dime_sent_bytes = 0;
 	res->id = counter++;
+	res->block = 0;
 	return res;
 }
 
@@ -156,7 +168,7 @@ void _httpc_set_error(httpc_conn_t *conn, int errcode,
   conn->errcode = errcode;
 
 	va_start(ap, format);
-	vsnprintf(conn->errmsg, 149, format, ap);
+	vsprintf(conn->errmsg,  format, ap);
 	va_end(ap);
 }
 
@@ -287,7 +299,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 			   SAVE_STR(url.host), status);
 		return 3;
 	}
-	status = hsocket_block(conn->sock, 0);
+	status = hsocket_block(conn->sock, conn->block);
 	if (status != H_OK) {
 		log_error1("Cannot make socket non-blocking");
 		return status;
@@ -498,10 +510,10 @@ int httpc_dime_next(httpc_conn_t* conn, long content_length,
   header[6] = tmp >> 8;
   header[7] = tmp;
 
-  header[8] = content_length >> 24;
-  header[9] = content_length >> 16;
-  header[10] = content_length >> 8;
-  header[11] = content_length;
+  header[8] = (byte_t)content_length >> 24;
+  header[9] = (byte_t)content_length >> 16;
+  header[10] = (byte_t)content_length >> 8;
+  header[11] = (byte_t)content_length;
 
 
   _print_binary_ascii32(header[0], header[1], header[2], header[3]);
@@ -581,7 +593,13 @@ int httpc_mime_begin(httpc_conn_t *conn, const char *url,
 		  
 	*/
 	sprintf(buffer, "multipart/related;");
-	
+	/*
+	  using sprintf instead of snprintf because visual c does not support snprintf
+	*/
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
+
   if (related_type) {
     snprintf(temp, 75, " type=\"%s\";", related_type); 
     strcat(buffer, temp);

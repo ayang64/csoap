@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.1 2004/10/15 13:30:42 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -45,6 +45,7 @@ hrequest_t *hrequest_new()
 	req->attachments = NULL;
 	req->content_type = NULL;
 
+	return req;
 }
 
 static
@@ -61,7 +62,6 @@ _hrequest_parse_header(char *data)
 	char           *saveptr3;
 	char           *result;
 	char           *key;
-	char           *value;
 	char           *opt_key;
 	char           *opt_value;
 	int             firstline = 1;

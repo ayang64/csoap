@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.5 2004/10/15 13:33:13 snowdrop Exp $
+*  $Id: soap-server.c,v 1.6 2004/10/20 14:17:36 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -107,11 +107,9 @@ void soap_server_destroy()
 void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 {
 	hpair_t *header = NULL;
-	char *postdata;
 	char buffer[1054];
 	char urn[150];
 	char method[150];
-	long received;
 	SoapCtx *ctx, *ctxres;
 	SoapRouter *router;
 	SoapService *service;

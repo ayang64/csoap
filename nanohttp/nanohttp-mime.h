@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.1 2004/10/15 13:30:42 snowdrop Exp $
+*  $Id: nanohttp-mime.h,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,10 +29,10 @@
 #ifndef NANO_HTTP_MIME_PARSER_H
 #define NANO_HTTP_MIME_PARSER_H
 
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-stream.h>
 #include <stdlib.h>
 
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-common.h>
 
 /* ------------------------------------------------------------------
   "multipart/related"  MIME Message Builder

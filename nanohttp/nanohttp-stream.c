@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.2 2004/10/15 14:26:15 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.3 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -75,7 +75,6 @@ http_input_stream_t *http_input_stream_new(hsocket_t sock, hpair_t *header)
 {
   http_input_stream_t *result;
   char                *content_length;
-  char                *chunked;
 
   /* Paranoya check */
   /*if (header == NULL)
@@ -446,7 +445,6 @@ http_output_stream_t *http_output_stream_new(hsocket_t sock, hpair_t *header)
 {
   http_output_stream_t *result;
   char                *content_length;
-  char                *chunked;
 
   /* Paranoya check */
 /*  if (header == NULL)

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.6 2004/10/15 13:29:37 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.7 2004/10/20 14:17:41 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -30,9 +30,6 @@
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-stream.h>
 
-#define NHTTPD_ARG_PORT "-NHTTPport"
-#define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
-#define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
 
 
 typedef struct httpd_conn

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.8 2004/10/15 13:33:13 snowdrop Exp $
+*  $Id: soap-client.c,v 1.9 2004/10/20 14:17:36 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,8 +26,20 @@
 #include <string.h>
 
 /*--------------------------------- */
+static int _block_socket = 0;
 static SoapEnv *_soap_client_build_result(hresponse_t *res);
 /*--------------------------------- */
+
+void soap_client_block_socket(int block)
+{
+	_block_socket = block;
+}
+
+int soap_client_get_blockmode()
+{
+	return _block_socket;
+}
+
 
 
 int soap_client_init_args(int argc, char *argv[])
@@ -79,8 +91,6 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
 	static int counter=1;
 	part_t *part;
 	int file_count=0;
-	long total_size;
-	long file_size;
 
 	/* Create buffer */
 	buffer = xmlBufferCreate();
@@ -89,6 +99,7 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
 
 	/* Transport via HTTP */
 	conn = httpc_new();
+	conn->block = soap_client_get_blockmode();
 
 	/* Set soap action */
 	if (soap_action != NULL) {
@@ -224,9 +235,7 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
 static 
 SoapEnv* _soap_client_build_result(hresponse_t *res)
 {
-	xmlDocPtr doc;
 	SoapEnv *env;
-	char *buffer;
 
 	log_verbose2("Building result (%p)", res);
 
@@ -252,7 +261,7 @@ SoapEnv* _soap_client_build_result(hresponse_t *res)
   env = soap_env_new_from_stream(res->in);
 
 	if (env == NULL) {
-		xmlFreeDoc(doc);
+/*		xmlFreeDoc(doc);*/
 		return soap_env_new_with_fault(Fault_Client, 
 			"Can not create envelope","","");
 	}

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.28 2004/10/18 11:43:06 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.29 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -145,7 +145,7 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 
   /* set server addresss */
   address.sin_family = host->h_addrtype;
-  address.sin_port = htons (port);
+  address.sin_port = htons((unsigned short)port);
 
   /* connect to the server */
   if (connect (sock, (struct sockaddr *) &address, sizeof (address)) != 0)
@@ -173,7 +173,7 @@ hsocket_bind (hsocket_t * dsock, int port)
   }
   /* bind socket */
   addr.sin_family = AF_INET;
-  addr.sin_port = htons (port); /* short, network byte order */
+  addr.sin_port = htons ((unsigned short)port); /* short, network byte order */
   addr.sin_addr.s_addr = INADDR_ANY;
   memset (&(addr.sin_zero), '\0', 8);   /* zero the rest of the
                                          * struct */
@@ -291,10 +291,11 @@ void
 hsocket_close (hsocket_t sock)
 {
   char junk[10];
-  struct linger _linger;
 /*  _hsocket_wait_until_receive(sock);*/
   log_verbose1 ("closing socket ...");
-/*  hsocket_block(sock,1);
+/*  
+  struct linger _linger;
+	hsocket_block(sock,1);
   _linger.l_onoff =1;
   _linger.l_linger = 30000;
   setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
@@ -401,14 +402,12 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force)
 #endif
     
     if (!force) {
-        _log_str("socket.recv", buffer, status);
         return status;
     }
     
     totalRead += status;
 
     if (totalRead == total) {
-       _log_str("socket.recv", buffer, totalRead);
       return totalRead;
     }
   }
@@ -430,6 +429,7 @@ hsocket_block(hsocket_t sock, int block)
 /*#define HSOCKET_BLOCKMODE 0
 #define HSOCKET_NONBLOCKMODE 1
 */
+
   iMode = (block==0)?1:0; /* Non block mode */
   if (ioctlsocket (sock, FIONBIO, (u_long FAR *) & iMode) == INVALID_SOCKET)
   {

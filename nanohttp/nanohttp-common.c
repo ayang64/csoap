@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.13 2004/10/15 13:29:36 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.14 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -35,6 +35,7 @@
 #endif
 
 static log_level_t loglevel = HLOG_DEBUG;
+static char logfile[75] = {'\0'};
 
 log_level_t 
 log_set_level(log_level_t level)
@@ -45,10 +46,25 @@ log_set_level(log_level_t level)
 }
 
 
-log_level_t 
+log_level_t  
 log_get_level()
 {
 	return loglevel;
+}
+
+
+void  log_set_file(const char *filename)
+{
+	if (filename)
+	strncpy(logfile, filename, 75);
+	else
+	logfile[0] = '\0';
+}
+
+char *log_get_file()
+{
+	if (logfile[0] == '\0') return NULL;
+	return logfile;
 }
 
 static
@@ -58,6 +74,7 @@ log_write(log_level_t level, const char *prefix,
 {
 	char            buffer[1054];
 	char            buffer2[1054];
+	FILE *f;
 
 	if (level < loglevel)
 		return;
@@ -66,6 +83,16 @@ log_write(log_level_t level, const char *prefix,
 	vsprintf(buffer2, buffer, ap);
 	printf(buffer2);
 	fflush(stdout);
+
+	if (log_get_file()) {
+		f = fopen(log_get_file(), "a");
+		if (!f) f = fopen(log_get_file(), "w");
+		if (f) {
+			fprintf(f, buffer2);
+			fflush(f);
+			fclose(f);
+		}
+	}
 }
 
 void 
@@ -574,6 +601,15 @@ part_t *part_new(const char *id, const char* filename,
   return part;
 }
 
+void part_free(part_t *part)
+{
+  if (part == NULL)
+    return;
+
+  hpairnode_free_deep(part->header);
+
+  free(part);
+}
 
 attachments_t *attachments_new() /* should be used internally */
 {
@@ -612,7 +648,7 @@ void attachments_free(attachments_t *message)
   part = message->parts;
   while (part) {
     tmp = part->next;
-    mime_part_free(part);
+    part_free(part);
     part= tmp;
   }
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.10 2004/10/15 15:10:37 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.11 2004/10/20 14:17:41 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -47,6 +47,7 @@ typedef struct httpc_conn
   char errmsg[150];
   http_output_stream_t *out;
   int id; /* uniq id */
+  int block;
 }httpc_conn_t;
 
 
@@ -140,8 +141,8 @@ hresponse_t *httpc_mime_end(httpc_conn_t *conn);
   Send boundary and part header and continue 
   with next part
 */
-int
-httpc_mime_send_file (httpc_conn_t * conn,
+
+int httpc_mime_send_file (httpc_conn_t * conn,
                       const char *content_id,
                       const char *content_type,
                       const char *transfer_encoding, 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.26 2004/10/15 13:29:36 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.27 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -32,6 +32,7 @@
 #endif
 
 #ifndef WIN32
+
 /* According to POSIX 1003.1-2001 */
 #include <sys/select.h>
 
@@ -39,6 +40,10 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#else
+
+#include <process.h>  
 
 #endif
 
@@ -370,10 +375,8 @@ httpd_session_main (void *data)
   conndata_t *conn = (conndata_t *) data;
   const char *msg = "SESSION 1.0\n";
   int len = strlen (msg);
-  char ch[2];
   char buffer[256];             /* temp buffer for recv() */
   char header[4064];            /* received header */
-  int total;                    /* result from recv() */
   int headerreached = 0;        /* whether reach header * "\n\n" */
   hrequest_t *req = NULL;       /* only for test */
   httpd_conn_t *rconn;
@@ -808,11 +811,9 @@ httpd_mime_send_header (httpd_conn_t * conn,
                         const char *related_start_info,
                         const char *related_type, int code, const char *text)
 {
-  int status;
   char buffer[300];
   char temp[250];
   char boundary[250];
-  hpair_t *header;
 
   /* 
      Set Content-type 
@@ -820,6 +821,12 @@ httpd_mime_send_header (httpd_conn_t * conn,
      type=..; start=.. ; start-info= ..; boundary=...
 
    */
+	/*
+	  using sprintf instead of snprintf because visual c does not support snprintf
+	*/
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
   sprintf (buffer, "multipart/related;");
 
   if (related_type)

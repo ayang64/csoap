@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.1 2004/10/15 13:30:42 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -49,7 +49,7 @@ typedef void (*MIME_part_end)       (void*);
 typedef void (*MIME_parse_begin)    (void*);
 typedef void (*MIME_parse_end)      (void*);
 typedef void (*MIME_ERROR_bytes)  (void*, 
-  const unsigned char*, size_t);
+  const unsigned char*, int);
 
 typedef enum _MIME_parser_status 
 {
@@ -127,10 +127,10 @@ void MIME_reader_init(MIME_reader *reader,
   Read data from a reader source. 
 */
 MIME_read_status MIME_reader_read(MIME_reader *reader, 
- unsigned char *buffer, size_t size)
+ unsigned char *buffer, int size)
 {
   MIME_read_status status;
-  size_t readed_size;
+  int readed_size;
   unsigned char tempBuffer[MIME_READER_MAX_BUFFER_SIZE];
   int rest_size;
 
@@ -241,7 +241,7 @@ int MIME_buffer_is_empty(MIME_buffer *buffer)
   return buffer->size == 0;
 }
 
-int MIME_buffer_clear(MIME_buffer *buffer)
+void MIME_buffer_clear(MIME_buffer *buffer)
 {
   buffer->size = 0;
 }
@@ -651,7 +651,7 @@ hpair_t *_mime_process_header(char *buffer)
 
 
 static
-void _mime_received_bytes(void *data, const unsigned char* bytes, size_t size)
+void _mime_received_bytes(void *data, const unsigned char* bytes, int size)
 {
   int i=0;
   char *id;
@@ -851,21 +851,6 @@ mime_message_parse_from_file(FILE *in, const char* root_id,
     return NULL;
   }
 }
-
-/*
-  Free a mime part
-*/
-void
-mime_part_free(part_t *part)
-{
-  if (part == NULL)
-    return;
-
-  hpairnode_free_deep(part->header);
-
-  free(part);
-}
-
 
 
 

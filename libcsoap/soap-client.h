@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.4 2004/10/15 13:33:13 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.5 2004/10/20 14:17:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -51,6 +51,17 @@ SoapCtx* soap_client_invoke(SoapCtx *ctx,
 
 
 SoapCtx *soap_client_ctx_new(const char *urn, const char *method);
+
+/**
+	Sets the underlaying socket to use while connecting
+	into block mode or not block mode.
+	The default mode is always non-blocking mode.
+
+  @param block 1 to creat blocked sockets, 0 to create non 
+	blocking sockets.
+*/
+void soap_client_block_socket(int block);
+int soap_client_get_blockmode();
 
 #endif
 

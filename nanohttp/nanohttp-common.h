@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.12 2004/10/15 13:29:36 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.13 2004/10/20 14:17:41 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -37,6 +37,12 @@
 #define HEADER_HOST "Host"
 #define HEADER_DATE "Date"
 #define HEADER_ACCEPT "Accept"
+
+
+#define NHTTPD_ARG_PORT "-NHTTPport"
+#define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
+#define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
+#define NHTTP_ARG_LOGFILE "-NHTTPlog"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
@@ -133,6 +139,7 @@ typedef unsigned char byte_t;
 typedef int hstatus_t;
 
 
+
 /**
   Indicates the version of the 
   used HTTP protocol.
@@ -186,7 +193,7 @@ struct hpair
   @returns A newly crated hpair_t object. Use hpair_free() 
     or hpair_free_deep() to free the pair.
 */
-hpair_t *hpairnode_new(const char* key, const char* value, hpair_t* next);
+hpair_t  *hpairnode_new(const char* key, const char* value, hpair_t* next);
 
 
 /**
@@ -398,6 +405,9 @@ typedef struct _part
 
 part_t *part_new(const char *id, const char* filename, 
   const char* content_type, const char* transfer_encoding, part_t *next);
+void part_free(part_t *part);
+
+
 
 
 /*
@@ -419,6 +429,7 @@ attachments_t *attachments_new(); /* should be used internally */
   @see mime_get_attachments
 */
 void attachments_free(attachments_t *message);
+void attachments_add_part(attachments_t *attachments, part_t *part);
 
 
 
@@ -439,6 +450,8 @@ typedef enum log_level
 log_level_t log_set_level(log_level_t level);
 log_level_t log_get_level();
 
+void log_set_file(const char *filename);
+char *log_get_file();
 
 #ifdef WIN32
   #ifndef __MINGW32__ 
