@@ -39,6 +39,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "httppost", "examples\nanoht
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "libsoap_win32setup_1.0.2", "libsoap_win32setup_1.0.2\libsoap_win32setup_1.0.2.vdproj", "{CC792F97-2B42-4F24-A7EA-BE2AD1A7BDAA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -85,6 +89,8 @@ Global
 		{3D4C3C19-2166-4017-9103-D30AB5DD2AB2}.Debug.Build.0 = Debug|Win32
 		{3D4C3C19-2166-4017-9103-D30AB5DD2AB2}.Release.ActiveCfg = Release|Win32
 		{3D4C3C19-2166-4017-9103-D30AB5DD2AB2}.Release.Build.0 = Release|Win32
+		{CC792F97-2B42-4F24-A7EA-BE2AD1A7BDAA}.Debug.ActiveCfg = Debug
+		{CC792F97-2B42-4F24-A7EA-BE2AD1A7BDAA}.Release.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
