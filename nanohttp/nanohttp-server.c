@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.2 2004/01/29 15:52:04 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.3 2004/01/30 16:37:50 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -239,6 +239,7 @@ static void* httpd_session_main(void *data)
   conndata_t *conn = (conndata_t*)data;
   const char *msg = "SESSION 1.0\n";
   int len = strlen(msg);
+  char ch[2];
   char buffer[256]; /* temp buffer for recv() */
   char header[4064]; /* received header */
   int total; /* result from recv() */
@@ -247,6 +248,8 @@ static void* httpd_session_main(void *data)
   hrequest_t* req = NULL; /* only for test */
   httpd_conn_t *rconn;
   hservice_t* service = NULL;
+  char *content_length_str;
+  long content_length = 0;
 
   header[0] = '\0';
   len = 0;
@@ -254,38 +257,26 @@ static void* httpd_session_main(void *data)
 
   log_debug1("starting httpd_session_main()\n");
 
-  /*send(conn->sock, msg, len, 0);*/
-
-  while (!headerreached) {
+  while (len < 4064) {
     /*printf("receiving ...\n");*/
-    total = recv(conn->sock, buffer, 255, 0);
+    total = recv(conn->sock, ch, 1, 0);
     if (total==0) break;
-    buffer[total]='\0';
-    /*printf("'%s'\n", buffer);*/
-
-    /* search end of header */
-    
-    for (hindex=0;hindex<total-3;hindex++) {
-      if (!strncmp(&buffer[hindex],"\r\n\r\n",4)) {
+    header[len] = ch[0];
+    len++;
+    if (len > 3) {
+      if (!strncmp(&header[len-4], "\r\n\r\n", 4)) {
+	header[len] = '\0';
 	break;
       }
     }
-
-    if (hindex==total-3) {
-      hindex = total;
-    } else {
-      headerreached = 1;
-    }
-
-    len += hindex;
-    strncat(header, buffer, hindex);
-    header[len]='\0';
   }
 
   printf("=== HEADER ===\n%s\n============\n", header);
   /* call the service */
   req = hrequest_new_from_buffer(header);
   httpd_request_print(req);
+
+
   rconn = (httpd_conn_t*)malloc(sizeof(httpd_conn_t));
   rconn->sock = conn->sock;
   rconn->content_type[0] = '\0';
@@ -378,3 +369,52 @@ int httpd_run()
 }
 
 
+
+
+char *httpd_get_postdata(httpd_conn_t *conn, hrequest_t *req, long *received, long max)
+{
+  char *content_length_str;
+  long content_length = 0;
+  long total = 0;
+  char *postdata = NULL;
+
+  if (!strcmp(req->method, "POST")) {
+
+    content_length_str = 
+      hpairnode_get_ignore_case(req->header, HEADER_CONTENT_LENGTH);
+    
+    if (content_length_str != NULL)
+      content_length = atol(content_length_str);
+
+  } else {
+    log_warn1("Not a POST method");
+    return NULL;
+  }      
+
+  if (content_length > max && max != -1) 
+    return NULL;
+
+  if (content_length == 0) {
+    *received = 0;
+    postdata = (char*)malloc(1);
+    postdata[0] = '\0';
+    return postdata;
+  }
+
+  postdata = (char*)malloc(content_length+1);
+  if (postdata == NULL) {
+    log_error1("Not enough memory");
+    return NULL;
+  }
+
+
+  if (hsocket_read(conn->sock, postdata, 
+		   (int)content_length, 1) == HSOCKET_OK) {
+    *received = content_length;
+    return postdata;
+  }
+
+  free (postdata);
+  return NULL;
+  
+}

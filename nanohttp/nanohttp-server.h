@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.1 2004/01/21 12:15:30 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.2 2004/01/30 16:37:50 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -71,6 +71,8 @@ int httpd_send_header(httpd_conn_t *res,
 		      hpair_t *pair);
 
 
+char *httpd_get_postdata(httpd_conn_t *conn, 
+			 hrequest_t *req, long *received, long max);
 
 #endif
 
