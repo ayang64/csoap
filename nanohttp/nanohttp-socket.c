@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.16 2004/09/13 06:39:53 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.17 2004/09/13 15:33:32 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -191,11 +191,11 @@ hsocket_bind (hsocket_t * dsock, int port)
 #ifdef WIN32
 int
 hsocket_accept (hsocket_t sock, unsigned (__stdcall * func) (void *),
-		conndata_t * conns, int max_conn)
+		conndata_t * conns, int max_conn, int *termsig)
 #else
 int
 hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
-		int max_conn)
+		int max_conn, int *termsig)
 #endif
 {
   int i;
@@ -227,6 +227,8 @@ hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
       if (conns[i].sock == -1)
 	{
 	  conns[i].sock = 0;
+  	  if(*termsig==0)
+		return 0;
 	  continue;
 	}
 #else
@@ -242,6 +244,8 @@ hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
 	  else
 	    {
 	      conns[i].sock = 0;
+		  if(*termsig==0)
+			  return 0;
    	      Sleep(10);
 	      continue;
 	    }
@@ -320,12 +324,7 @@ FUNCTION: hsocket_send
 int
 hsocket_send (hsocket_t sock, const char *buffer)
 {
-  int size;
-  size = send ((int) sock, buffer, strlen (buffer), 0);
-  if (size == -1)
-    return HSOCKET_CAN_NOT_SEND;
-
-  return HSOCKET_OK;
+	return hsocket_nsend(sock, buffer, strlen(buffer));
 }
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.19 2004/09/13 07:12:36 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.20 2004/09/13 15:33:32 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -43,7 +43,7 @@
 #endif
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * nano httpd
  * internally globals
  * -----------------------------------------------------
@@ -55,7 +55,11 @@ static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
+#ifdef WIN32
+static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
+#else
 static int _httpd_terminate_signal = SIGTERM;
+#endif
 static conndata_t *_httpd_connection;
 
 #ifdef WIN32
@@ -63,7 +67,7 @@ static conndata_t *_httpd_connection;
 #endif
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_init
  * NOTE: This will be called from soap_server_init_args()
  * -----------------------------------------------------
@@ -101,9 +105,9 @@ httpd_init (int argc, char *argv[])
   log_verbose2 ("socket bind to port '%d'", _httpd_port);
 
   /* init built-in services */
- 
+
   /* httpd_register("/httpd/list", service_list);*/
- 
+
   _httpd_connection = calloc (_httpd_max_connections, sizeof (conndata_t));
   for (i = 0; i < _httpd_max_connections; i++)
   {
@@ -126,7 +130,7 @@ httpd_init (int argc, char *argv[])
 }
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_register
  * -----------------------------------------------------
  */
@@ -157,7 +161,7 @@ httpd_register (const char *ctx, httpd_service func)
 
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_services
  * -----------------------------------------------------
  */
@@ -169,7 +173,7 @@ httpd_services ()
 
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_find_service
  * -----------------------------------------------------
  */
@@ -192,7 +196,7 @@ httpd_find_service (const char *ctx)
 
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_response_set_content_type
  * -----------------------------------------------------
  */
@@ -204,7 +208,7 @@ httpd_response_set_content_type (httpd_conn_t * res, const char *content_type)
 
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_response_send_header
  * -----------------------------------------------------
  */
@@ -230,7 +234,7 @@ httpd_send_header (httpd_conn_t * res,
   strcat (header, "\r\n");
 
   /* set content-type */
-  /* 
+  /*
    * if (res->content_type[0] == '\0') { strcat(header, "Content-Type:
    * text/html\r\n"); } else { sprintf(buffer, "Content-Type: %s\r\n",
    * res->content_type); strcat(header, buffer); }
@@ -274,7 +278,7 @@ httpd_send_internal_error (httpd_conn_t * conn, const char *errmsg)
 }
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_request_print
  * -----------------------------------------------------
  */
@@ -300,7 +304,7 @@ httpd_request_print (hrequest_t * req)
 }
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_session_main
  * -----------------------------------------------------
  */
@@ -401,19 +405,26 @@ httpd_session_main (void *data)
 
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_term
  * -----------------------------------------------------
  */
+#ifdef WIN32
+BOOL WINAPI httpd_term(DWORD sig) {
+#else
 void
-httpd_term (int sig)
-{
+httpd_term (int sig) {
+#endif
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
+
+#ifdef WIN32
+  return TRUE;
+#endif
 }
 
 /*
- * ----------------------------------------------------- 
+ * -----------------------------------------------------
  * FUNCTION: httpd_run
  * -----------------------------------------------------
  */
@@ -439,7 +450,14 @@ httpd_run ()
   }
   log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
                 _httpd_terminate_signal);
+#ifdef WIN32
+  if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)httpd_term, TRUE) ==  FALSE){
+	  log_error1 ("Unable to install console event handler!");
+  }
+
+#else
   signal (_httpd_terminate_signal, httpd_term);
+#endif
   log_verbose2 ("listening to port '%d'", _httpd_port);
 
 
@@ -475,7 +493,7 @@ httpd_run ()
 
     if (hsocket_accept
         (_httpd_socket, httpd_session_main, _httpd_connection,
-         _httpd_max_connections) != 0)
+         _httpd_max_connections, &_httpd_run) != 0)
     {
       continue;
     }

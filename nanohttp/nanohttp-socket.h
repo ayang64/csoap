@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.9 2004/09/01 07:58:08 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.10 2004/09/13 15:33:32 rans Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -111,9 +111,10 @@ typedef struct tag_conndata
 
 #ifdef WIN32
 int hsocket_accept(hsocket_t sock, unsigned ( __stdcall *func )( void * ), conndata_t *conns, 
-				   int max_conn);
+				   int max_conn, int *termsig);
 #else
-int hsocket_accept(hsocket_t sock, void(*func) (void *), conndata_t *conns, int max_conn);
+int hsocket_accept(hsocket_t sock, void(*func) (void *), conndata_t *conns, 
+				   int max_conn, int *termsig);
 #endif
 
 
