@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.c,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-server.c,v 1.2 2004/05/12 22:23:30 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -92,6 +92,7 @@ void soap_server_destroy()
 
   while (node != NULL) {
     tmp = node->next;
+    log_verbose2("soap_router_free(%p)", node->router);
     soap_router_free(node->router);
     free(node->context);
     free(node);

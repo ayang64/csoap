@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.c,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-router.c,v 1.2 2004/05/12 22:23:30 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -87,15 +87,17 @@ SoapService* soap_router_find_service(SoapRouter *router,
 void soap_router_free(SoapRouter *router)
 {
   SoapServiceNode *node;
-
+  log_verbose2("enter: router=%p", router);
   if (router == NULL) return;
 
   while (router->service_head) {
     node = router->service_head->next;
+/*   log_verbose2("soap_service_free(%p)\n", router->service_head->service);*/
     soap_service_free(router->service_head->service);
     free(router->service_head);
     router->service_head = node;
   }
 
   free(router);
+  log_verbose1("leave with success");
 }

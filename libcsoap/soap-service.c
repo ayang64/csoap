@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-service.c,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-service.c,v 1.2 2004/05/12 22:23:30 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -73,7 +73,8 @@ SoapService *soap_service_new(const char* urn,
 
 void soap_service_free(SoapService *service)
 {
-
+  log_verbose2("enter: service=%p", service);
+  
   if (service == NULL) return;
 
   if (strcmp(service->urn, ""))
@@ -83,4 +84,6 @@ void soap_service_free(SoapService *service)
     free(service->method);
 
   free(service);
+  log_verbose1("leave with success");
 }
+
