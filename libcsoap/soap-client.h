@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.6 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.7 2004/11/01 15:16:26 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -50,10 +50,6 @@ herror_t soap_client_invoke(SoapCtx *ctx, SoapCtx** response,
 			    const char *soap_action);
 
 
-/**
-	Creates a new soap context object.
-*/
-herror_t soap_client_ctx_new(const char *urn, const char *method, SoapCtx **out);
 
 /**
 	Sets the underlaying socket to use while connecting

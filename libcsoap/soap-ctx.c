@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.3 2004/11/01 15:16:26 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -75,6 +75,39 @@ herror_t soap_ctx_add_file(SoapCtx* ctx, const char* filename, const char* conte
   return H_OK;
 }
 
+part_t *soap_ctx_get_file(SoapCtx* ctx, xmlNodePtr node)
+{
+	xmlChar *prop;
+	char href[MAX_HREF_SIZE];
+	char buffer[MAX_HREF_SIZE];
+	part_t *part;
+
+	if (!ctx->attachments) return NULL;
+
+	prop = xmlGetProp(node, "href");
+
+	if (!prop) NULL;
+	
+	strcpy(href, (const char*)prop);
+	if (!strncmp(href, "cid:", 4)) {
+		for (part = ctx->attachments->parts; part; part=part->next) 
+		{
+			sprintf(buffer, "<%s>", href+4);
+			if (!strcmp(part->id, buffer)) 
+				return part;
+
+		}
+	} else {
+		for (part = ctx->attachments->parts; part; part=part->next) 
+		{
+			if (!strcmp(part->location, href)) 
+				return part;
+
+		}
+	}
+
+	return NULL;	
+}
 
 void soap_ctx_free(SoapCtx* ctx)
 {
@@ -88,4 +121,15 @@ void soap_ctx_free(SoapCtx* ctx)
   free(ctx);
 }
 
+
+herror_t soap_ctx_new_with_method(const char *urn, const char *method, SoapCtx **out)
+{
+	SoapEnv *env;
+	herror_t err;
+	err = soap_env_new_with_method(urn, method, &env);
+	if (err != H_OK) return err;
+    *out = soap_ctx_new(env);
+
+  return H_OK;
+}
 

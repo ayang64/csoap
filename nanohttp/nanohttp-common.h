@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.15 2004/10/29 09:27:05 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.16 2004/11/01 15:16:26 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -30,6 +30,7 @@
 #define HEADER_CONTENT_LENGTH "Content-Length"
 #define HEADER_CONTENT_TYPE "Content-Type"
 #define HEADER_CONTENT_ID "Content-Id"
+#define HEADER_CONTENT_LOCATION "Content-Location"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define HEADER_TRANSFER_ENCODING "Transfer-Encoding"
 #define HEADER_CONNECTION "Connection"
@@ -413,6 +414,7 @@ void content_type_free(content_type_t *ct);
 typedef struct _part
 {
   char id[250];
+  char location[250];
   hpair_t *header;
   char content_type[128];
   char transfer_encoding[128];

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.6 2004/10/28 10:30:42 snowdrop Exp $
+ * $Id: simpleclient.c,v 1.7 2004/11/01 15:16:22 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	return 1;
   }
 
-  err = soap_client_ctx_new(urn, method, &ctx);
+  err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK) {
 	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
 	herror_release(err);

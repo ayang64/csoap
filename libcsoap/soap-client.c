@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.11 2004/10/29 09:27:05 snowdrop Exp $
+*  $Id: soap-client.c,v 1.12 2004/11/01 15:16:26 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -250,15 +250,4 @@ herror_t
 	return H_OK;
 }
 
-
-herror_t soap_client_ctx_new(const char *urn, const char *method, SoapCtx **out)
-{
-	SoapEnv *env;
-	herror_t err;
-	err = soap_env_new_with_method(urn, method, &env);
-	if (err != H_OK) return err;
-    *out = soap_ctx_new(env);
-
-  return H_OK;
-}
 

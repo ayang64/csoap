@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.3 2004/10/28 10:30:42 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.4 2004/11/01 15:16:22 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,37 +29,7 @@ static const char *urn = "urn:examples";
 static const char *method = "echo";
 
 
-/*
-SoapCtx* echo_attachments(SoapCtx *req)
-{
-  herror_t err;
-  SoapEnv *env;
-  SoapCtx*  ctx;
-  part_t *part;
-  char href[MAX_HREF_SIZE];
 
-  err = soap_env_new_with_response(req->env, &env);
-  if (err != H_OK) {
-	  herror_release(err);
-	  return NULL;
-  }
-
-  ctx = soap_ctx_new(env);
-
-  if (req->attachments) {
-    part = req->attachments->parts;
-    while (part) {
-      log_verbose2("Adding part '%s'", part->filename);
-      soap_ctx_add_file(ctx, part->filename, "text/plain", href);
-      soap_env_add_attachment(ctx->env, "echoFile", href);
-      part = part->next;
-    }
-  }
-    
-  return ctx;
-}
-
-*/
 
 herror_t echo_attachments(SoapCtx *req, SoapCtx* res)
 {

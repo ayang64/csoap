@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.4 2004/10/29 09:27:05 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.5 2004/11/01 15:16:26 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -664,7 +664,7 @@ static
 void _mime_received_bytes(void *data, const unsigned char* bytes, int size)
 {
   int i=0;
-  char *id, *type;
+  char *id, *type, *location;
   mime_callback_data_t *cbdata = (mime_callback_data_t*)data;
 
   if (!cbdata ) {
@@ -736,6 +736,11 @@ void _mime_received_bytes(void *data, const unsigned char* bytes, int size)
             strcpy(cbdata->current_part->id, id);
             if (!strcmp(id, cbdata->root_id))
               cbdata->message->root_part = cbdata->current_part;
+          }
+          location = hpairnode_get(cbdata->current_part->header, HEADER_CONTENT_LOCATION);
+          if (location != NULL)
+          {
+            strcpy(cbdata->current_part->location, location);
           }
           type = hpairnode_get(cbdata->current_part->header, HEADER_CONTENT_TYPE);
           if (type != NULL)

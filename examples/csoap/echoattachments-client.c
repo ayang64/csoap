@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.5 2004/10/29 09:27:02 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.6 2004/11/01 15:16:22 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
   char href[MAX_HREF_SIZE];
   xmlNodePtr fault;
   herror_t err;
+ 
+
 
   if (argc < 2) {
     fprintf(stderr, "usage: %s <filename> [url]\n", argv[0]);
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
 	return 1;
   }
 
-  err = soap_client_ctx_new(urn, method, &ctx);
+  err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK) {
 	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
 	herror_release(err);
@@ -121,6 +123,7 @@ int main(int argc, char *argv[])
     soap_ctx_free(ctx);
     exit(1);
   }
+
   soap_env_add_attachment(ctx->env,"source", href);
 
   printf("sending request ...\n");  
