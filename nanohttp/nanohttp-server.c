@@ -1,0 +1,380 @@
+/******************************************************************
+ *  $Id: nanohttp-server.c,v 1.1 2004/01/21 12:15:30 snowdrop Exp $
+ *
+ * CSOAP Project:  A http client/server library in C
+ * Copyright (C) 2003  Ferhat Ayaz
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA  02111-1307, USA.
+ * 
+ * Email: ayaz@jprogrammer.net
+ ******************************************************************/
+#include <nanohttp/nanohttp-server.h>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+typedef struct tag_conndata
+{
+  hsocket_t sock;
+}conndata_t;
+
+/* ----------------------------------------------------- 
+ nano httpd internally globals
+----------------------------------------------------- */
+static int _httpd_port = 10000;
+static hsocket_t _httpd_socket;
+static hservice_t *_httpd_services_head = NULL;
+static hservice_t *_httpd_services_tail = NULL;
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_init
+----------------------------------------------------- */
+int httpd_init(int argc, char *argv[])
+{
+  int i, status;
+
+  /* write argument information */
+  log_verbose1("Arguments:");  
+  for (i=0;i<argc;i++)
+    log_verbose3("argv[%i] = '%s'\n", i, SAVE_STR(argv[i]));
+
+  /* initialize from arguments */
+  for (i=0;i<argc;i++) {
+    if (!strcmp(argv[i], NHTTPD_ARG_PORT) && i < argc-1) {
+      _httpd_port = atoi(argv[i+1]);
+    }
+  }
+
+  log_debug2("socket bind to port '%d'\n", _httpd_port);
+
+  /* init built-in services */
+  /*
+    httpd_register("/httpd/list", service_list);
+  */
+
+  /* create socket */
+  hsocket_init(&_httpd_socket);
+  status = hsocket_bind(&_httpd_socket, _httpd_port);
+
+  return status;
+}
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_register
+----------------------------------------------------- */
+
+int httpd_register(const char* ctx,  httpd_service func)
+{
+  hservice_t* service;
+  log_debug3("register service:t(%p):%s", service, SAVE_STR(ctx));
+
+  service = (hservice_t*)malloc(sizeof(hservice_t));
+  service->next = NULL;
+  service->func = func;
+  strcpy(service->ctx, ctx);
+  
+  if (_httpd_services_head == NULL) {
+    _httpd_services_head = _httpd_services_tail = service;
+  } else {
+    _httpd_services_tail->next = service;
+    _httpd_services_tail = service;
+  }
+
+  return 1;
+}
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_services
+----------------------------------------------------- */
+hservice_t *httpd_services()
+{
+  return _httpd_services_head;
+}
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_find_service
+----------------------------------------------------- */
+static hservice_t *httpd_find_service(const char* ctx) 
+{
+  hservice_t *cur = _httpd_services_head;
+
+  while (cur != NULL) {
+    if (!strcmp(cur->ctx, ctx)) {
+      return cur;
+    }
+    cur = cur->next;
+  }
+
+  return NULL;
+}
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_response_set_content_type
+----------------------------------------------------- */
+void httpd_response_set_content_type(httpd_conn_t *res, 
+				     const char* content_type)
+{
+  strncpy(res->content_type, content_type, 25);
+}
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_response_send_header
+----------------------------------------------------- */
+int httpd_send_header(httpd_conn_t *res, 
+		      int code, const char* text, 
+		      hpair_t *pair)
+{
+  struct tm stm;
+  time_t nw;
+  char buffer[255];
+  char header[1024];
+  hpair_t *cur;
+  int status;
+
+  /* set status code */
+  sprintf(header, "HTTP/1.1 %d %s\r\n", code, text);
+
+  /* set date */
+  nw = time(NULL);
+  localtime_r(&nw, &stm);
+  strftime(buffer, 255, "Date: %a, %d %b %y %T GMT", &stm);
+  strcat(header, buffer);
+  strcat(header, "\r\n");
+  
+  /* set content-type */
+  if (res->content_type[0] == '\0') {
+    strcat(header, "Content-Type: text/html\r\n");
+  } else {
+    sprintf(buffer, "Content-Type: %s\r\n", res->content_type);
+    strcat(header, buffer);
+  }
+
+  /* set server name */
+  strcat(header, "Server: Nano HTTPD library\r\n");
+
+  /* set connection status */
+  strcat(header, "Connection: close\r\n");
+
+  /* add pairs */
+  cur = pair;
+  while (cur != NULL) {
+    sprintf(buffer, "%s: %s\r\n", cur->key, cur->value);
+    strcat(header, buffer);
+    cur = cur->next;
+  }
+
+  /* set end of header */
+  strcat(header, "\r\n");
+
+  /* send header */
+  status = hsocket_nsend(res->sock, header, strlen(header));
+  
+  return status;
+}
+
+
+int httpd_send_internal_error(httpd_conn_t *conn, const char* errmsg)
+{
+  const char *template =
+    "<html><body><h3>Error!</h3><hr> Message: '%s' </body></html>\r\n";
+
+  char buffer[4064];
+  sprintf(buffer, template, errmsg);
+  httpd_send_header(conn, 500, "INTERNAL", NULL);
+  return send(conn->sock, buffer, strlen(buffer), 0);
+}
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_request_print
+----------------------------------------------------- */
+static void httpd_request_print(hrequest_t *req) 
+{
+  hpair_t *pair;
+
+  printf("++++++ Request +++++++++\n");
+  printf(" Method : '%s'\n", req->method);
+  printf(" Path   : '%s'\n", req->path);
+  printf(" Spec   : '%s'\n", req->spec);
+  printf(" Parsed query string :\n");
+
+  pair = req->query;
+  while (pair != NULL) {
+    printf(" %s = '%s'\n", pair->key, pair->value);
+    pair = pair->next;
+  }
+  printf("++++++++++++++++++++++++\n");
+  
+}
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_session_main
+----------------------------------------------------- */
+static void* httpd_session_main(void *data)
+{
+  conndata_t *conn = (conndata_t*)data;
+  const char *msg = "SESSION 1.0\n";
+  int len = strlen(msg);
+  char buffer[256]; /* temp buffer for recv() */
+  char header[4064]; /* received header */
+  int total; /* result from recv() */
+  int hindex; /* searching end of header */
+  int headerreached =0; /* whether reach header "\n\n" */
+  hrequest_t* req = NULL; /* only for test */
+  httpd_conn_t *rconn;
+  hservice_t* service = NULL;
+
+  header[0] = '\0';
+  len = 0;
+
+
+  log_debug1("starting httpd_session_main()\n");
+
+  /*send(conn->sock, msg, len, 0);*/
+
+  while (!headerreached) {
+    /*printf("receiving ...\n");*/
+    total = recv(conn->sock, buffer, 255, 0);
+    if (total==0) break;
+    buffer[total]='\0';
+    /*printf("'%s'\n", buffer);*/
+
+    /* search end of header */
+    
+    for (hindex=0;hindex<total-3;hindex++) {
+      if (!strncmp(&buffer[hindex],"\r\n\r\n",4)) {
+	break;
+      }
+    }
+
+    if (hindex==total-3) {
+      hindex = total;
+    } else {
+      headerreached = 1;
+    }
+
+    len += hindex;
+    strncat(header, buffer, hindex);
+    header[len]='\0';
+  }
+
+  printf("=== HEADER ===\n%s\n============\n", header);
+  /* call the service */
+  req = hrequest_new_from_buffer(header);
+  httpd_request_print(req);
+  rconn = (httpd_conn_t*)malloc(sizeof(httpd_conn_t));
+  rconn->sock = conn->sock;
+  rconn->content_type[0] = '\0';
+
+  service = httpd_find_service(req->path);
+  if (service != NULL) {
+    log_verbose2("service '%s' found\n", req->path);
+    if (service->func != NULL) {
+      service->func(rconn, req);
+    } else {
+      sprintf(buffer, 
+	      "service '%s' not registered properly (func == NULL)", 
+	      req->path);
+      log_verbose1(buffer);
+      httpd_send_internal_error(rconn, buffer);
+    }
+  } else {
+    sprintf(buffer, "service '%s' not found", req->path);
+      log_verbose1(buffer);
+      httpd_send_internal_error(rconn, buffer);
+  }
+
+  close(conn->sock);
+
+  /*  httpd_response_free(res);*/
+  hrequest_free(req);
+  
+  pthread_exit(NULL);
+} 
+
+
+/* ----------------------------------------------------- 
+ FUNCTION: httpd_run
+----------------------------------------------------- */
+
+int httpd_run()
+{
+  conndata_t *conn;
+  pthread_t tid;
+  hsocket_t sockfd;
+  int err;
+  fd_set fds;
+  struct timeval timeout;
+  
+  log_debug1("starting run routine\n");
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+
+  /* listen to port */
+  err = hsocket_listen(_httpd_socket,15);
+  if (err  != HSOCKET_OK) {
+    log_error2("httpd_run(): '%d'\n", err);
+    return err;
+  }
+
+
+  log_debug2("listening to port '%d'\n", _httpd_port);
+  
+
+  /*  fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);*/
+
+  while (1) {
+    
+    /*FD_ZERO(&fds);
+    FD_SET(_httpd_socket, &fds);
+
+    select(1, &fds, NULL, NULL, &timeout);
+
+    while ( (FD_ISSET(_httpd_socket, &fds)))
+      select(1, &fds, NULL, NULL, &timeout);
+    */   
+    
+  
+    if (hsocket_accept(_httpd_socket, &sockfd) != HSOCKET_OK) {
+      continue;
+    }
+
+
+     conn = (conndata_t*)malloc(sizeof(conndata_t));
+     conn->sock = sockfd;
+
+     err = pthread_create(&tid, NULL, httpd_session_main, conn); 
+     if (err) {
+       printf("Error creating thread: ('%d')\n", err);
+     }
+  }
+
+  return 0;
+}
+
+
