@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.4 2004/08/30 15:26:48 snowdrop Exp $
+ * $Id: simpleclient.c,v 1.5 2004/10/15 13:42:57 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,12 +27,35 @@
 /*
 static const char *url = "http://csoap.sourceforge.net/cgi-bin/csoapserver";
 */
-static const char *url = "http://localhost:10000/csoapserver";
+static const char *url = "http://localhost:3031/csoapserver";
 static const char *urn = "urn:examples";
 static const char *method = "sayHello";
 
 
 int main(int argc, char *argv[])
+{
+  SoapCtx *ctx, *ctx2;
+
+  log_set_level(HLOG_VERBOSE);
+  if (!soap_client_init_args(argc, argv)) {
+	  return 1;
+  }
+
+  ctx = soap_client_ctx_new(urn, method);
+  soap_env_add_item(ctx->env, "xsd:string", "name", "Jonny B. Good");
+  
+  if (argc > 1)
+    ctx2 = soap_client_invoke(ctx, argv[1], "");
+  else
+    ctx2 = soap_client_invoke(ctx, url, "");
+
+  soap_xml_doc_print(ctx2->env->root->doc);
+  soap_ctx_free(ctx2);
+  soap_ctx_free(ctx);
+}
+
+/*
+int main2(int argc, char *argv[])
 {
   SoapEnv *env, *res;
 
@@ -55,7 +78,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-
+*/
 
 
 

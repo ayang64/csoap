@@ -1,8 +1,8 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.10 2004/10/15 13:42:57 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.1 2004/10/15 13:42:57 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
- * Copyright (C) 2003  Ferhat Ayaz
+ * Copyright (C) 2003-2004  Ferhat Ayaz
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,52 +18,39 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
  *
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 
 #include <libcsoap/soap-server.h>
 
 
-static const char *url = "/csoapserver";
-static const char *urn = "urn:examples";
-static const char *method = "sayHello";
+static const char *url = "/axis/services/urn:EchoAttachmentsService";
+static const char *urn = "";
+static const char *method = "echo";
 
 
-void add_name(xmlNodePtr node, SoapEnv *env)
-{
-  char *name;
-  name = (char*)xmlNodeListGetString(node->doc, 
-				     node->xmlChildrenNode, 1);
 
-
-  if (!name) return;
-
-  soap_env_add_itemf(env,"xsd:string", "echo", 
-		     "Hello '%s'", name);
-
-  /*xmlFree(BAD_CAST name);*/
-
-}
-
-
-SoapCtx* say_hello(SoapCtx *request)
+SoapCtx* echo_attachments(SoapCtx *req)
 {
 
   SoapEnv *env;
   SoapCtx*  ctx;
-  xmlNodePtr method, node;
+  part_t *part;
+  char href[MAX_HREF_SIZE];
 
-  env = soap_env_new_with_response(request->env);
-
-  method = soap_env_get_method(request->env);
-  node = soap_xml_get_children(method);
-
-  while (node) {
-    add_name(node, env);
-    node = soap_xml_get_next(node);
-  }
-
+  env = soap_env_new_with_response(req->env);
   ctx = soap_ctx_new(env);
+
+  if (req->attachments) {
+    part = req->attachments->parts;
+    while (part) {
+      log_verbose2("Adding part '%s'", part->filename);
+      soap_ctx_add_file(ctx, part->filename, "text/plain", href);
+      soap_env_add_attachment(ctx->env, "echoFile", href);
+      part = part->next;
+    }
+  }
+    
   return ctx;
 }
 
@@ -80,7 +67,7 @@ int main(int argc, char *argv[])
   }
   
   router = soap_router_new();
-  soap_router_register_service(router, say_hello, method, urn);
+  soap_router_register_service(router, echo_attachments, method, urn);
   soap_server_register_router(router, url);
 
   log_info1("send SIGTERM to shutdown");
