@@ -1,3 +1,7 @@
+2004/06/02
+	xsd2c is now a part of the csoap projects "libsoap/xsd2c/"
+	Examples are under "libsoap/examples/xsd2c"
+	Ferhat Ayaz
 2004/05/18
 	Added command line argument support for "-NHTTPtsig <signal>".
 	This defines  the termination signal handler value.
@@ -17,19 +21,5 @@
 2004/03/26
 	gracefully terminate HTTP server, added SIGTERM signal handler, thanks
 	Menzo Windhouwer
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	
