@@ -197,4 +197,8 @@ AC_SUBST(LDFLAGS)
 
 
 #AC_CONFIG_FILES([])
-AC_OUTPUT(Makefile libcsoap/Makefile libcsoap-1.0.pc)
+AC_OUTPUT(Makefile 
+libcsoap/Makefile 
+examples/Makefile
+examples/ex1/Makefile
+libcsoap-1.0.pc)
