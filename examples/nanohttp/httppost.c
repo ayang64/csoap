@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: httppost.c,v 1.1 2004/01/05 12:24:44 snowdrop Exp $
+ *  $Id: httppost.c,v 1.2 2004/01/06 08:04:32 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C (example)
  * Copyright (C) 2003  Ferhat Ayaz
@@ -43,8 +43,11 @@ int main(int argc, char *argv[])
   log_set_level(HLOG_VERBOSE);
 
   printf("\nEnter post data (max 1054): ");
-  scanf("%s", postdata);
+  gets(postdata);
   printf("\nSending data to '%s'. Please wait ...\n ", argv[1]);
+
+  log_debug2("you entered: '%s'", postdata);
+  log_debug2("content-length: %d", strlen(postdata));
 
   conn = httpc_new();
   res = httpc_post(conn, argv[1], strlen(postdata), postdata);
@@ -60,7 +63,6 @@ int main(int argc, char *argv[])
 	log_debug3("%s: %s", pair->key, pair->value);
 	pair = pair->next;
       }
-
       puts(res->body);
     }
     else
