@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.1 2004/10/15 13:42:57 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.2 2004/10/15 15:10:15 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #include <libcsoap/soap-server.h>
 
 
-static const char *url = "/axis/services/urn:EchoAttachmentsService";
+static const char *url = "/echoattachment";
 static const char *urn = "";
 static const char *method = "echo";
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.9 2004/10/15 13:29:36 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.10 2004/10/15 15:10:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,6 +28,7 @@
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-response.h>
+#include <nanohttp/nanohttp-stream.h>
 
 typedef struct httpc_conn
 {

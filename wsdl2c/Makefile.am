@@ -9,8 +9,9 @@ xsd2c_objs=../xsd2c/util.o \
 ../xsd2c/formatter.o \
 ../xsd2c/obj.o \
 ../xsd2c/xsd2c.o \
-../xsd2c/tr.o
+../xsd2c/tr.o \
+../xsd2c/Enumeration.o
 
-wsdl2c_SOURCES=CallVar.c CallFunc.c CallList.c wsdl2c.c 
+wsdl2c_SOURCES=CallVar.c CallFunc.c CallList.c codewriter.c wsdl2c.c 
 wsdl2c_LDFLAGS=$(LDFLAGS) $(xsd2c_objs)
 
