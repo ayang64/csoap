@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.5 2004/03/26 13:37:57 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.6 2004/05/14 09:31:48 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -376,10 +376,11 @@ int httpd_run()
     FD_ZERO(&fds);
     FD_SET(_httpd_socket, &fds);
 
-    select(1, &fds, NULL, NULL, &timeout);
-
-    while (_httpd_run && (FD_ISSET(_httpd_socket, &fds)))
+    {
+      timeout.tv_sec = 1;
+      timeout.tv_usec = 0;
       select(1, &fds, NULL, NULL, &timeout);
+    } while (_httpd_run && (FD_ISSET(_httpd_socket, &fds)))
 
     if (!_httpd_run)
 	break;
