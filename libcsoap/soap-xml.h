@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.1 2004/01/30 16:39:35 snowdrop Exp $
+ *  $Id: soap-xml.h,v 1.2 2004/02/03 08:07:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -32,6 +32,7 @@ typedef int (*soap_xmlnode_callback)(xmlNodePtr);
 
 
 xmlNodePtr soap_xml_get_children(xmlNodePtr param);
+xmlNodePtr soap_xml_get_next(xmlNodePtr param);
 
 xmlXPathObjectPtr 
 soap_xpath_eval(xmlDocPtr doc, const char *xpath);
@@ -41,5 +42,6 @@ soap_xpath_foreach(xmlDocPtr doc, const char *xpath,
 		   soap_xmlnode_callback cb);
 
 
+void soap_xml_doc_print(xmlDocPtr doc);
 
 #endif

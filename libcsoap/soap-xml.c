@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.c,v 1.1 2004/01/30 16:39:35 snowdrop Exp $
+ *  $Id: soap-xml.c,v 1.2 2004/02/03 08:07:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,6 @@
 xmlNodePtr soap_xml_get_children(xmlNodePtr param)
 {
   xmlNodePtr children;
-  const char* FUNC = "soap_xml_get_children";
 
   if (param == NULL) {
     log_error1("Invalid parameter 'param' (null)");
@@ -42,6 +41,20 @@ xmlNodePtr soap_xml_get_children(xmlNodePtr param)
   }
   
   return children;
+}
+
+xmlNodePtr soap_xml_get_next(xmlNodePtr param)
+{
+
+  xmlNodePtr node = param->next;
+
+  while (node != NULL) {
+    if (node->type != XML_ELEMENT_NODE)
+      node = node->next;
+    else break;
+  }
+
+  return node;
 }
 
 
@@ -106,7 +119,7 @@ void soap_xml_doc_print(xmlDocPtr doc)
   
 
   buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, doc, root, 1 ,2);
+  xmlNodeDump(buffer, doc, root, 1 ,1);
   puts( (const char*)xmlBufferContent(buffer));
   xmlBufferFree(buffer);  
 

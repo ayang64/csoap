@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-fault.c,v 1.1 2004/01/30 16:39:34 snowdrop Exp $
+ *  $Id: soap-fault.c,v 1.2 2004/02/03 08:07:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -70,9 +70,11 @@ xmlDocPtr soap_fault_build(fault_code_t fcode,
 
   /* variables */
   char *faultcode;
-  int bufferlen = 200;
+  int bufferlen = 2000;
   char *buffer;
   xmlDocPtr fault; /* result */
+
+  log_verbose1("Build fault");
 
   switch (fcode) {
   case Fault_VersionMismatch:
@@ -96,6 +98,7 @@ xmlDocPtr soap_fault_build(fault_code_t fcode,
   if (faultactor) bufferlen += strlen(faultactor);
   if (detail) bufferlen += strlen(detail);
 
+  log_verbose2("Creating buffer with %d bytes", bufferlen);
   buffer = (char*)malloc(bufferlen);
 
   sprintf(buffer,  _SOAP_FAULT_TEMPLATE_,
@@ -115,6 +118,7 @@ xmlDocPtr soap_fault_build(fault_code_t fcode,
 			    "soap_fault_build()", NULL);
   } 
 
+  log_verbose2("Returning fault (%p)", fault);
   return fault;
    
 } 

@@ -3,11 +3,19 @@
 
 h_sources = soap-xml.h\
 soap-fault.h\
-soap-call.h
+soap-env.h\
+soap-service.h\
+soap-router.h\
+soap-client.h\
+soap-server.h
 
 cc_sources = soap-xml.c\
 soap-fault.c\
-soap-call.c
+soap-env.c\
+soap-service.c\
+soap-router.c\
+soap-client.c\
+soap-server.c
 
 library_includedir=$(includedir)/$(GENERIC_LIBRARY_NAME)-$(GENERIC_API_VERSION)/$(GENERIC_LIBRARY_NAME)
 library_include_HEADERS = $(h_sources)
