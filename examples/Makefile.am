@@ -1,1 +1,1 @@
-SUBDIRS=ex1 nanohttp
+SUBDIRS=csoap nanohttp
