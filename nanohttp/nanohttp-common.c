@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.2 2003/12/16 13:16:13 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.3 2003/12/17 13:48:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -255,7 +255,7 @@ hurl_t* hurl_new(const char* urlstr)
   url->protocol[iprotocol] = '\0';
 
   size = ihost - iprotocol - 3;
-  url->host = (char*)malloc(sizeof(char)*size);
+  url->host = (char*)malloc(sizeof(char)*size + 1);
   strncpy(url->host, &urlstr[iprotocol+3], size);
   url->host[size] = '\0';
 
