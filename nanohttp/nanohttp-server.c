@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.12 2004/08/31 11:13:55 rans Exp $
+*  $Id: nanohttp-server.c,v 1.13 2004/08/31 13:57:27 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,25 +23,35 @@
 ******************************************************************/
 #include <nanohttp/nanohttp-server.h>
 
-#ifdef WIN32
-#include "wsockcompat.h"
-#include <winsock2.h>
-#include <process.h>
-#define close(s) closesocket(s)
-#define localtime_r( _clock, _result ) \
-        ( *(_result) = *localtime( (_clock) ), \
-          (_result) )
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+
+#ifdef WIN32
+#include "wsockcompat.h"
+#include <winsock2.h>
+#include <process.h>
+#define close(s) closesocket(s)
+
+static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
+{
+	static struct tm* tmp;
+	tmp = localtime(timep);
+	if (tmp) {
+		memcpy(p_tm, tmp, sizeof(struct tm));
+		tmp = p_tm;
+	}    
+	return tmp;
+}
+
+typedef int socklen_t;
+#endif
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifndef WIN32
 #include <pthread.h>
@@ -59,17 +69,25 @@
 typedef struct tag_conndata
 {
 	hsocket_t sock;
+#ifdef WIN32
+	HANDLE tid;
+#else
+	pthread_t tid;
+	pthread_attr_t attr;
+#endif
 }conndata_t;
 
 /* ----------------------------------------------------- 
 nano httpd internally globals
 ----------------------------------------------------- */
 static int _httpd_port = 10000;
+static int _httpd_max_connections = 20;
 static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
 static int _httpd_terminate_signal = SIGTERM;
+static conndata_t *_httpd_connection;
 
 /* ----------------------------------------------------- 
 FUNCTION: httpd_init
@@ -78,7 +96,8 @@ NOTE: This will be called from soap_server_init_args()
 int httpd_init(int argc, char *argv[])
 {
 	int i, status;
-
+	_httpd_connection=calloc(_httpd_max_connections, sizeof(conndata_t));	for(i=0; i<_httpd_max_connections; i++)	{		_httpd_connection[i].sock=0;
+	}
 	status = hsocket_module_init();
 	if (status != 0)
 		return status;
@@ -212,7 +231,7 @@ int httpd_send_header(httpd_conn_t *res,
 	/* set server name */
 	strcat(header, "Server: Nano HTTPD library\r\n");
 
-	/* set connection status */
+	/* set _httpd_connection status */
 	strcat(header, "Connection: close\r\n");
 
 	/* add pairs */
@@ -270,7 +289,7 @@ static void httpd_request_print(hrequest_t *req)
 FUNCTION: httpd_session_main
 ----------------------------------------------------- */
 #ifdef WIN32
-unsigned _stdcall httpd_session_main(void *data)
+static unsigned _stdcall httpd_session_main(void *data)
 #else
 static void* httpd_session_main(void *data)
 #endif
@@ -360,20 +379,71 @@ void httpd_term(int sig)
 		_httpd_run = 0;
 }
 
+static int httpd_accept(hsocket_t sock)
+{
+	int i;
+	int err;
+	socklen_t asize;
+	struct sockaddr_in addr;
+
+	asize = sizeof(struct sockaddr_in);
+	while(1)
+	{
+		for (i=0;;i++) {
+			if (i>=_httpd_max_connections) {
+				Sleep(1000);
+				i=0;
+				continue;
+			}
+			if (_httpd_connection[i].sock==0) break;
+		}
+		_httpd_connection[i].sock = accept(sock, (struct sockaddr *)&addr, &asize);
+#ifndef WIN32
+		if (_httpd_connection[i].sock == -1) { 
+			_httpd_connection[i].sock=0;
+			continue;
+		}
+#else
+		if (_httpd_connection[i].sock ==  INVALID_SOCKET) 
+		{ 
+			if(WSAGetLastError()!=WSAEWOULDBLOCK)
+			{
+				log_error1("accept() died...  restarting...");
+				closesocket(sock);
+				WSACleanup();
+				return INVALID_SOCKET;
+			}
+			else
+			{
+				_httpd_connection[i].sock=0;
+				continue;
+			}
+		}
+#endif
+		else
+		{
+			log_verbose3("accept new socket (%d) from '%s'", _httpd_connection[i].sock,
+				SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
+
+#ifdef WIN32
+			_httpd_connection[i].tid=(HANDLE)_beginthreadex(NULL, 65535, httpd_session_main, &_httpd_connection[i], 0, &err);
+#else
+			err = pthread_create(&(_httpd_connection[i].tid), &(_httpd_connection[i].attr), httpd_session_main, &_httpd_connection[i]); 
+#endif
+			if (err) {
+				log_error2("Error creating thread: ('%d')", err);
+			}
+		}
+	}
+	return 0;
+}
+
 /* ----------------------------------------------------- 
 FUNCTION: httpd_run
 ----------------------------------------------------- */
 
 int httpd_run()
 {
-	conndata_t *conn;
-#ifdef WIN32
-	HANDLE tid;
-#else
-	pthread_t tid;
-	pthread_attr_t attr;
-#endif
-	hsocket_t sockfd;
 	int err;
 	fd_set fds;
 	struct timeval timeout;
@@ -442,24 +512,12 @@ pthread_attr_init(&attr);
 			if (!_httpd_run)
 				break;
 
-		if (hsocket_accept(_httpd_socket, &sockfd) != HSOCKET_OK) {
+		if (httpd_accept(_httpd_socket) != 0)
+		{
 			continue;
 		}
-
-
-		conn = (conndata_t*)malloc(sizeof(conndata_t));
-		conn->sock = sockfd;
-
-#ifdef WIN32
-		tid=(HANDLE)_beginthreadex(NULL, 65535, httpd_session_main, conn, 0, &err);
-#else
-		err = pthread_create(&tid, &attr, httpd_session_main, conn); 
-#endif
-		if (err) {
-			log_error2("Error creating thread: ('%d')", err);
-		}
 	}
-
+	free(_httpd_connection);
 	return 0;
 }
 
