@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.c,v 1.2 2004/02/03 08:59:22 snowdrop Exp $
+ *  $Id: soap-env.c,v 1.3 2004/06/08 12:54:09 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,7 +23,7 @@
  ******************************************************************/
 #include <libcsoap/soap-env.h>
 #include <stdarg.h>
-
+#include <string.h>
 
 static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
@@ -51,6 +51,23 @@ static char *soap_xsd_ns = "http://www.w3.org/1999/XMLSchema";
   "</SOAP-ENV:Envelope>"
 
 
+/* ---------------------------------------------------------------------------- */
+/*     XML Serializers (implemented at the and of this document)              */
+/* ---------------------------------------------------------------------------- */
+struct XmlNodeHolder { xmlNodePtr node; };
+
+static
+void xmlbuilder_start_element(const char* element_name, int attr_count, 
+  char **keys, char **values, void* userData);
+
+static
+void xmlbuilder_characters(const char* element_name, 
+  const char* chars, void* userData);
+
+static
+void xmlbuilder_end_element(const char* element_name, void* userData);
+
+/* ---------------------------------------------------------------------------- */
 
 SoapEnv *soap_env_new_with_fault(fault_code_t faultcode, 
 				 const char *faultstring,
@@ -99,8 +116,7 @@ SoapEnv *soap_env_new_with_response(SoapEnv* request)
 
 SoapEnv *soap_env_new_with_method(const char *urn, const char *method)
 {
-  xmlNodePtr env;
-  xmlNodePtr node;
+  xmlDocPtr env;
   SoapEnv *call;
   char buffer[1054];
 
@@ -152,7 +168,6 @@ soap_env_add_itemf(SoapEnv *call, const char *type,
 
   va_list ap;
   char buffer[1054];
-  xmlNodePtr newnode;
   
 
   va_start(ap, format);
@@ -160,6 +175,22 @@ soap_env_add_itemf(SoapEnv *call, const char *type,
   va_end(ap);
 
   return soap_env_add_item(call, type, name, buffer);
+}
+
+
+void
+soap_env_add_custom(SoapEnv *call, void *obj, XmlSerializerCallback cb, 
+    const char *type, const char *name)
+{
+  struct XmlNodeHolder holder;
+
+  holder.node = soap_env_get_method(call);
+
+  cb(obj, name, 
+    xmlbuilder_start_element,
+    xmlbuilder_characters,
+    xmlbuilder_end_element, &holder);
+
 }
 
 
@@ -238,7 +269,7 @@ SoapEnv *soap_env_new_from_buffer(const char* buffer)
 
   if (buffer == NULL) return NULL;
 
-  doc = xmlParseDoc(buffer);
+  doc = xmlParseDoc((xmlChar*)buffer);
   if (doc == NULL) return NULL;
 
   env = soap_env_new_from_doc(doc);
@@ -300,11 +331,9 @@ soap_env_get_method(SoapEnv* env)
 xmlNodePtr
 _soap_env_get_body(SoapEnv* env)
 {
-  xmlNodePtr node, body;
+  xmlNodePtr  body;
   xmlNodeSetPtr nodeset; 
   xmlXPathObjectPtr xpathobj;
-  char *urn;
-  char methodname[150];
 
   if (env == NULL) {
     log_error1("env object is NULL");
@@ -330,17 +359,20 @@ _soap_env_get_body(SoapEnv* env)
   nodeset = xpathobj->nodesetval;
   if (!nodeset) {
     log_error1("No Body (nodeset)!");
+    xmlXPathFreeObject(xpathobj);
     return NULL;
   }
 
   if (nodeset->nodeNr < 1) {
     log_error1("No Body (nodeNr)!");
-    xmlXPathFreeObject(nodeset);
+    xmlXPathFreeNodeSet	(nodeset);
+    xmlXPathFreeObject(xpathobj);
     return NULL;
   }
 
   body = nodeset->nodeTab[0]; /* body is <Body> */
-  xmlXPathFreeObject(nodeset);
+  xmlXPathFreeNodeSet	(nodeset);
+  xmlXPathFreeObject(xpathobj);
   return body;
 
 }
@@ -402,3 +434,52 @@ int soap_env_find_methodname(SoapEnv *env, char *method)
   
   return 1;
 }
+
+
+
+/* ------------------------------------------------------------------ */
+/*        XML serializers                                            */
+/* ------------------------------------------------------------------ */
+
+
+static
+void xmlbuilder_start_element(const char* element_name, int attr_count, char **keys, char **values, void* userData)
+{
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;
+  xmlNodePtr parent = NULL;
+  
+  if (holder == NULL) return;
+  parent = holder->node;
+  if (parent == NULL) return;
+
+  holder->node = xmlNewChild(parent, NULL, element_name, NULL);
+
+}
+
+static
+void xmlbuilder_characters(const char* element_name, const char* chars, void* userData)
+{
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;
+  xmlNodePtr parent = NULL;
+  
+  if (holder == NULL) return;
+  parent = holder->node;
+  if (parent == NULL) return;
+
+  xmlNewTextChild(parent, NULL, element_name, chars);
+}
+
+static
+void xmlbuilder_end_element(const char* element_name, void* userData)
+{
+
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder*)userData;
+  xmlNodePtr parent = NULL;
+  
+  if (holder == NULL) return;
+  parent = holder->node;
+  if (parent == NULL) return;
+
+  holder->node = parent->parent;
+}
+

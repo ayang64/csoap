@@ -26,7 +26,7 @@ INCLUDES = -I$(top_srcdir)  $(LIBXML_CFLAGS)
 lib_LTLIBRARIES= libcsoap-1.0.la
 libcsoap_1_0_la_SOURCES= $(h_sources) $(cc_sources)
 #libexamplelib_1_0_la_LIBADD= sub/libsub.la
-libcsoap_1_0_la_LDFLAGS= -version-info $(GENERIC_LIBRARY_VERSION) -release $(GENERIC_RELEASE) -L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION)
+libcsoap_1_0_la_LDFLAGS= -version-info $(GENERIC_LIBRARY_VERSION) -release $(GENERIC_RELEASE) -L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) $(LIBXML_LIBS)
 #libcsoap_1_0_la_CFLAGS= @LIBXML_CCFLAGS@
 
 

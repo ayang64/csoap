@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.4 2004/05/14 09:27:52 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.5 2004/06/08 12:54:09 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -158,6 +158,17 @@ SoapEnv *soap_env_new_from_doc(xmlDocPtr doc);
 SoapEnv *soap_env_new_from_buffer(const char* buffer);
 
 
+/* --------------------------------------------------- */
+/*      XML Serializer functions  and typedefs         */
+/* --------------------------------------------------- */
+
+typedef void (*XmlSerializerCallback)
+    (void* /*obj*/, const char * /*root_element_name*/,
+     void (*OnStartElement)(const char* element_name, int attr_count, char **keys, char **values, void* userData),
+		 void (*OnCharacters)(const char* element_name, const char* chars, void* userData),
+		 void (*OnEndElement)(const char* element_name, void* userData),
+		 void* /* userdata*/);
+
 
 /* ------------------------------------------------------ */
 /*     XML build and stack function                       */
@@ -185,6 +196,17 @@ xmlNodePtr
 soap_env_add_item(SoapEnv* env, const char *type, 
 		  const char *name, const char *value);
 
+
+/**
+   Serialize and adds obj to the envelope.
+   TODO: Document this function !
+   <br>
+   <b>Important: </b> 
+
+ */
+void
+soap_env_add_custom(SoapEnv* env, void *obj, XmlSerializerCallback cb, 
+      const char *type,  const char *name);
 
 /**
    Same as soap_env_add_item() with c style arguments
@@ -281,6 +303,9 @@ soap_env_get_header(SoapEnv* env);
 
 int soap_env_find_urn(SoapEnv *env, char *urn);
 int soap_env_find_methodname(SoapEnv *env, char *methodname);
+
+
+
 
 
 
