@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapurl.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoapurl.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -60,13 +60,16 @@ HSOAPURL CreateUrlFromIndex(const char* urlstr, int iprotocol, int ihost, int ip
   if (len > iport )
   {
     size = len - iport;
-    url->m_context = (char*)malloc(sizeof(char)*size);
+    url->m_context = (char*)malloc(sizeof(char)*size+1);
     strncpy(url->m_context, &urlstr[iport], size);
+    url->m_context[size]='\0';
   } else {
     url->m_context = NULL;
   }
 
-  SoapTraceEnter(FUNC, "Leaving url = %p", url);
+  SoapUrlDump(url);
+
+  SoapTraceLeave(FUNC, "Leaving url(%p)", url);
   return url;
 };
 
@@ -88,7 +91,7 @@ HSOAPURL SoapUrlCreate(const char* urlstr)
   
   iprotocol = 0;
   len = strlen(urlstr);
-  printf("len = %d\n", len);
+  
   /* find protocol */
   while (urlstr[iprotocol] != ':' && urlstr[iprotocol] != '\0')
   {
@@ -172,14 +175,16 @@ void SoapUrlFree(HSOAPURL url)
 
 void SoapUrlDump(HSOAPURL url)
 {
+  const char *FUNC = "SoapUrlDump";
+
   if (url == NULL) {
     printf("(null)\n");
     return ;
   }
 
-  printf("PROTOCOL : %s\n", url->m_protocol?url->m_protocol:"(null)");
-  printf("    HOST : %s\n", url->m_host?url->m_host:"(null)");
-  printf("    PORT : %d\n", url->m_port);
-  printf(" CONTEXT : %s\n", url->m_context?url->m_context:"(null)");
+  SoapLog(LOG_DEBUG, FUNC, "PROTOCOL : %s\n", url->m_protocol?url->m_protocol:"(null)");
+  SoapLog(LOG_DEBUG, FUNC, "    HOST : %s\n", url->m_host?url->m_host:"(null)");
+  SoapLog(LOG_DEBUG, FUNC, "    PORT : %d\n", url->m_port);
+  SoapLog(LOG_DEBUG, FUNC, " CONTEXT : %s\n", url->m_context?url->m_context:"(null)");
 
 }

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapparam.h,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoapparam.h,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammet.net
+ * Email: ayaz@jprogrammer.net
  ******************************************************************/
 #ifndef CSOAP_PARAM_H
 #define CSOAP_PARAM_H
@@ -107,6 +107,20 @@ int SoapParamGetString(HSOAPPARAM param, char *buffer);
 
 
 /**
+ * Convert the value of a soap parameter
+ * to string. Note that this is the same
+ * as SoapParamGetString except that you
+ * must free the result manually.
+ *
+ * @param param the soap parameter object
+ * 
+ * @return the parameter in string format.
+ *  Must be free manually!.
+ */
+char* SoapParamToString(HSOAPPARAM param);
+
+
+/**
  * Get the value of a soap parameter
  *  in integer format
  * 
@@ -185,3 +199,17 @@ HSOAPPARAM SoapParamCreate(HSOAPPARAM parent, const char *type,
 			    const char *format,   ...);
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+

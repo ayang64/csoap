@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoap.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoap.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,11 +27,36 @@
 
 
 /*-----------------------------------------------------------------
+  FUNCTION: SoapInit
+/-----------------------------------------------------------------*/
+int SoapInit(int argc, char *argv[])
+{
+  return CSOAP_OK;
+}
+
+
+/*-----------------------------------------------------------------
   FUNCTION: SoapFreeStr
 /-----------------------------------------------------------------*/
-
 void SoapFreeStr(char* str)
 {
   if (str)  xmlFree(str);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

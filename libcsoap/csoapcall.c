@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapcall.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoapcall.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -185,15 +185,17 @@ HSOAPRES SoapCallInvoke(HSOAPCALL call)
 	  (xmlNodePtr)call->m_env, 1 ,2);
   printf("\n%s\n", (const char*)xmlBufferContent(buffer));
   xmlBufferFree(buffer);
-*/
+
 
   printf("Sending ...\n");
+*/
   status = SoapHttpSend(call->m_url, call->m_env, &env);
   if (status != CSOAP_OK) {
     printf("can not send. code = %d\n", status);
   }
-  printf("Sending finished\n");
   /*
+  printf("Sending finished\n");
+  
     printf("Length: %d\nResponse: \n%s\n\n\r", strlen(buf), buf?buf:"null");
   */
   SoapEnvDump(env); 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoaphttp.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoaphttp.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -74,7 +74,7 @@ HSOAPENV SoapHttpCreateEnv(char* httpResponse)
 
   /*  SoapLog(LOG_DEBUG, FUNC, "xml = %s\n",tmp?tmp:"null"); 
    */
-  SoapLog(LOG_DEBUG, FUNC, "Starting parsing\n");
+  SoapLog(LOG_DEBUG, FUNC, "Starting parsing \n");
   env = xmlParseMemory((const char*)tmp, len);
   if (env == NULL) {
     SoapLog(LOG_ERROR, FUNC,
@@ -128,11 +128,13 @@ CSOAP_STATUS SoapHttpSend(HSOAPURL url, HSOAPENV env, HSOAPENV* res)
   if (status != CSOAP_OK) return status;
 
   /*SoapSocketGetResponse(http);*/
-  sprintf(tmp2, "POST %s HTTP/1.0\n", url->m_context?url->m_context:"/");
+  sprintf(tmp2, "POST %s HTTP/1.1\n", url->m_context?url->m_context:"/");
   sprintf(tmp2, "%sContent-Type: text/xml\n", tmp2);
-  sprintf(tmp2, "%sContent-Length: %d\n\n", tmp2, len);
+  sprintf(tmp2, "%sContent-Length: %d\n", tmp2, len);
+  sprintf(tmp2, "%sHost: %s\n\n", tmp2, url->m_host);
 
   sprintf(tmp, "%s%s", tmp2, (const char*)xmlBufferContent(buffer));
+  /*printf((const char*)xmlBufferContent(buffer));*/
 
   SoapLog(LOG_DEBUG, FUNC, "sending request\n");
   status = SoapSocketSend(http, tmp, &size);
@@ -140,6 +142,7 @@ CSOAP_STATUS SoapHttpSend(HSOAPURL url, HSOAPENV env, HSOAPENV* res)
 
   status = SoapSocketRecv(http, &response, &size);
   SoapLog(LOG_DEBUG, FUNC, "response returned status = %d\n", status);
+  SoapLog(LOG_DEBUG, FUNC, "Response string:'%s'", response);
   if (status != CSOAP_OK) return status;
   
   *res = SoapHttpCreateEnv(response);
@@ -150,4 +153,13 @@ CSOAP_STATUS SoapHttpSend(HSOAPURL url, HSOAPENV env, HSOAPENV* res)
   SoapTraceLeave(FUNC, "");
   return CSOAP_OK;
 }
+
+
+
+
+
+
+
+
+
 

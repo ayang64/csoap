@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapenv.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoapenv.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -161,7 +161,7 @@ void SoapEnvDump(HSOAPENV env)
   xmlNodeDump(buffer, ((xmlNodePtr)env)->doc, (xmlNodePtr)env, 1 ,1);
   str  = (char*)xmlBufferContent(buffer);
 
-  printf("%s\n", str?str:"null");
+  SoapLog(LOG_DEBUG, FUNC, "%s\n", str?str:"null");
 
   xmlBufferFree(buffer);
   SoapTraceLeave(FUNC, "Leaving");

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapparam.c,v 1.1 2003/11/12 13:22:58 snowdrop Exp $
+ *  $Id: csoapparam.c,v 1.2 2003/11/13 10:44:10 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -234,6 +234,33 @@ int SoapParamGetString(HSOAPPARAM param, char *dest)
 
   SoapTraceLeave(FUNC, "Value = '%s'\nLength=%d", dest?dest:"null", len);
   return len;
+}
+
+/*-----------------------------------------------------------------
+  FUNCTION: SoapParamToString
+/-----------------------------------------------------------------*/
+
+char* SoapParamToString(HSOAPPARAM param)
+{
+  char *value;
+  int len;
+  xmlNodePtr xmlNode;
+  const char* FUNC = "SoapParamToString";
+  SoapTraceEnter(FUNC,"");
+
+  if (param == NULL) {
+    SoapTraceLeaveWithError(FUNC,
+	    "Invalid parameter 'param' (null)");
+    return "";
+  }
+
+  xmlNode = (xmlNodePtr)param;
+  value = (char*)xmlNodeListGetString(xmlNode->doc,
+			       xmlNode->xmlChildrenNode,1);
+
+  SoapTraceLeave(FUNC, "Value = '%s'\n", value?value:"null");
+
+  return value;
 }
 
 

@@ -9,13 +9,14 @@ void _SoapLogWrite(SoapLogLevel level,
 		   const char* format,
 		   va_list ap)
 {
+  /*
   char buffer[1054];
   char buffer2[1054];
   sprintf(buffer, "[%s] [%d] %s\n",  function, level, format);
   vsprintf(buffer2, buffer, ap);
-/*     printf(buffer2);
-    fflush(stdout);
-*/
+    printf(buffer2);
+  fflush(stdout);
+  */
 }
 
 
