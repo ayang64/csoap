@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.18 2004/09/14 13:23:10 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.19 2004/09/14 13:25:50 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -196,7 +196,7 @@ FUNCTION: hsocket_accept
 int hsocket_accept(hsocket_t sock, hsocket_t *dest)
 {
 	socklen_t asize;
-	SOCKET sockfd;
+	hsocket_t sockfd;
 	struct sockaddr_in addr;
 
 	asize = sizeof(struct sockaddr_in);
