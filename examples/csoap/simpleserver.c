@@ -1,7 +1,7 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.6 2004/09/02 11:48:58 rans Exp $
+ * $Id: simpleserver.c,v 1.7 2004/09/07 18:43:49 rans Exp $
  *
- * CSOAP Project:  CSOAP examples project 
+ * CSOAP Project:  CSOAP examples project
  * Copyright (C) 2003  Ferhat Ayaz
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,13 +32,13 @@ static const char *method = "sayHello";
 void add_name(xmlNodePtr node, SoapEnv *env)
 {
   char *name;
-  name = (char*)xmlNodeListGetString(node->doc, 
+  name = (char*)xmlNodeListGetString(node->doc,
 				     node->xmlChildrenNode, 1);
 
 
   if (!name) return;
 
-  soap_env_add_itemf(env,"xsd:string", "echo", 
+  soap_env_add_itemf(env,"xsd:string", "echo",
 		     "Hello '%s'", name);
 
   xmlFree(BAD_CAST name);
@@ -68,23 +68,30 @@ SoapEnv* say_hello(SoapEnv *request)
 
 int main(int argc, char *argv[])
 {
-
+  char c;
   SoapRouter *router;
-  
+
   log_set_level(HLOG_VERBOSE);
 
   if (!soap_server_init_args(argc, argv)) {
     return 1;
   }
-  
+
   router = soap_router_new();
   soap_router_register_service(router, say_hello, method, urn);
   soap_server_register_router(router, url);
 
+#ifndef WIN32
   log_info1("send SIGTERM to shutdown");
+#endif
   soap_server_run();
 
-  log_info1("shutting down\n"); 
+#ifdef WIN32
+  log_info1("press ENTER to continue!");
+  gets(&c);
+#endif
+
+  log_info1("shutting down\n");
   soap_server_destroy();
 
   return 0;
