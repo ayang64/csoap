@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.9 2004/08/26 17:07:47 rans Exp $
+*  $Id: nanohttp-common.c,v 1.10 2004/08/30 13:28:58 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -645,7 +645,6 @@ hresponse_t *hresponse_new_from_buffer(const char* buffer)
 {
 	hresponse_t *res;
 	char *s1, *s2, *str;
-	hpair_t *pair;
 
 	/* create response object */
 	res = hresponse_new();

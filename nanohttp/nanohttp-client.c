@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.14 2004/08/30 07:55:41 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.15 2004/08/30 13:28:58 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -521,7 +521,7 @@ int httpc_receive_response(httpc_conn_t *conn,
 	}
 
 	log_error1("Unknown server response retreive type!");
-
+	return -1;
 }
 
 /*--------------------------------------------------

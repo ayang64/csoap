@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.9 2004/08/30 07:55:42 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.10 2004/08/30 13:25:23 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -109,12 +109,13 @@ FUNCTION: httpd_register
 int httpd_register(const char* ctx,  httpd_service func)
 {
 	hservice_t* service;
-	log_verbose3("register service:t(%p):%s", service, SAVE_STR(ctx));
 
 	service = (hservice_t*)malloc(sizeof(hservice_t));
 	service->next = NULL;
 	service->func = func;
 	strcpy(service->ctx, ctx);
+
+	log_verbose3("register service:t(%p):%s", service, SAVE_STR(ctx));
 
 	if (_httpd_services_head == NULL) {
 		_httpd_services_head = _httpd_services_tail = service;
@@ -267,12 +268,10 @@ static void* httpd_session_main(void *data)
 	char buffer[256]; /* temp buffer for recv() */
 	char header[4064]; /* received header */
 	int total; /* result from recv() */
-	int hindex; /* searching end of header */
 	int headerreached =0; /* whether reach header "\n\n" */
 	hrequest_t* req = NULL; /* only for test */
 	httpd_conn_t *rconn;
 	hservice_t* service = NULL;
-	char *content_length_str;
 	long content_length = 0;
 
 	header[0] = '\0';
