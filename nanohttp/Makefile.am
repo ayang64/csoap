@@ -2,12 +2,14 @@
 
 
 h_sources = nanohttp-common.h\
+nanohttp-socket.h\
 nanohttp-client.h\
-nanohttp-socket.h
+nanohttp-server.h
 
 cc_sources = nanohttp-common.c\
+nanohttp-socket.c\
 nanohttp-client.c\
-nanohttp-socket.c
+nanohttp-server.c
 
 library_includedir=$(includedir)/$(NANOHTTP_LIBRARY_NAME)-$(NANOHTTP_API_VERSION)/$(NANOHTTP_LIBRARY_NAME)
 library_include_HEADERS = $(h_sources)

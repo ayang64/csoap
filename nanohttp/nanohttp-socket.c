@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.6 2004/01/13 12:31:57 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.7 2004/01/21 12:28:20 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -49,7 +49,7 @@
 #endif
 
 #include <stdio.h>
-
+#include <errno.h>
 
 /*--------------------------------------------------
   FUNCTION: hsocket_module_init
@@ -100,7 +100,7 @@ int hsocket_open(hsocket_t *dsock, const char* hostname, int port)
   struct hostent* host;
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock <= 0) return HSOCKET_CAN_NOT_CREATE_SOCKET;
+  if (sock <= 0) return HSOCKET_CAN_NOT_CREATE;
 
   /* Get host data */
   host = gethostbyname(hostname);
@@ -118,6 +118,75 @@ int hsocket_open(hsocket_t *dsock, const char* hostname, int port)
 
   *dsock = sock;
   return HSOCKET_OK;
+}
+
+
+/*--------------------------------------------------
+  FUNCTION: hsocket_close
+----------------------------------------------------*/
+int hsocket_bind(hsocket_t *dsock, int port)
+{
+  int sock;
+  struct sockaddr_in addr;
+ 
+  /* create socket */
+  sock = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock == -1) {
+    log_error2("Can not create socket: '%s'\n", strerror(errno));
+    return HSOCKET_CAN_NOT_CREATE;
+  }
+
+  /* bind socket */
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port); /* short, network byte order */
+  addr.sin_addr.s_addr = INADDR_ANY;
+  memset(&(addr.sin_zero), '\0', 8); /* zero the rest of the struct */
+
+  if (bind(sock, (struct sockaddr *)&addr, 
+	   sizeof(struct sockaddr)) == -1) {
+    log_error2("Can not bind: '%s'\n", strerror(errno));
+    return HSOCKET_CAN_NOT_BIND;
+  }
+
+  *dsock = sock;
+  return HSOCKET_OK;
+}
+
+/*--------------------------------------------------
+  FUNCTION: hsocket_listen
+----------------------------------------------------*/
+int hsocket_listen(hsocket_t sock, int n)
+{
+  if (listen(sock, n) == -1) {
+    log_error2("Can not listen: '%s'\n", strerror(errno));
+    return HSOCKET_CAN_NOT_LISTEN;
+  }
+  return HSOCKET_OK;
+}
+
+
+/*--------------------------------------------------
+  FUNCTION: hsocket_listen
+----------------------------------------------------*/
+int hsocket_accept(hsocket_t sock, hsocket_t *dest)
+{
+  socklen_t asize;
+  int sockfd;
+  struct sockaddr_in addr;
+
+  asize = sizeof(struct sockaddr_in);
+  sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
+  
+  if (sockfd == -1) {
+    //httpd_log("httpd_run(): '%s'\n", strerror(errno));
+    return HSOCKET_CAN_NOT_ACCEPT;
+  }
+
+  log_debug3("accept new socket (%d) from '%s'\n", sockfd,
+	     SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
+
+  *dest = sockfd;
+  return HSOCKET_OK;  
 }
 
 

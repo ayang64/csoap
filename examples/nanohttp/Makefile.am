@@ -1,8 +1,8 @@
-bin_PROGRAMS=httpget httpgetcb httppost
+bin_PROGRAMS=httpget httpgetcb httppost httpcpost helloserver
 
 INCLUDES=-I$(top_srcdir)/ 
 LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
-	$(LIBSOCKET) $(LIBNSL)
+	$(LIBSOCKET) $(LIBNSL) -lpthread
 
 httpget_SOURCES=httpget.c
 httpget_LDFLAGS=$(LDFLAGS)
@@ -12,6 +12,12 @@ httpgetcb_LDFLAGS=$(LDFLAGS)
 
 httppost_SOURCES=httppost.c
 httppost_LDFLAGS=$(LDFLAGS)
+
+httpcpost_SOURCES=httpcpost.c
+httpcpost_LDFLAGS=$(LDFLAGS)
+
+helloserver_SOURCES=helloserver.c
+helloserver_LDFLAGS=$(LDFLAGS)
 
 
 

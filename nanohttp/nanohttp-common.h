@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.5 2003/12/18 12:23:44 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.6 2004/01/21 12:28:20 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -87,6 +87,20 @@ typedef struct hurl
 hurl_t* hurl_new(const char* urlstr);
 void hurl_free(hurl_t *url);
 
+/*
+  request object
+ */
+typedef struct hrequest
+{
+  char *method;
+  char *path;
+  char *spec;
+  hpair_t *query;
+  hpair_t *header;
+}hrequest_t;
+
+hrequest_t *hrequest_new_from_buffer(char *data);
+void hrequest_free(hrequest_t *req);
 
 /* response object */
 

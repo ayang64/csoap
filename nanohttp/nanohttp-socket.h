@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.4 2004/01/05 10:42:15 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.5 2004/01/21 12:28:20 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,11 +26,14 @@
 
 
 #define HSOCKET_OK 0
-#define HSOCKET_CAN_NOT_CREATE_SOCKET 1001
+#define HSOCKET_CAN_NOT_CREATE 1001
 #define HSOCKET_CAN_NOT_GET_HOSTNAME 1002
 #define HSOCKET_CAN_NOT_CONNECT 1003
 #define HSOCKET_CAN_NOT_SEND 1004
 #define HSOCKET_CAN_NOT_RECEIVE 1005
+#define HSOCKET_CAN_NOT_BIND 1006
+#define HSOCKET_CAN_NOT_LISTEN 1007
+#define HSOCKET_CAN_NOT_ACCEPT 1008
 
 #define HSOCKET_MAX_BUFSIZE 1024
 
@@ -63,12 +66,26 @@ void hsocket_free(hsocket_t sock);
 
 
 /*
-  hsocket_open
+  hsocket_open: create and connect a socket
   Returns 0 if success
   >0 if fail.
  */
 int hsocket_open(hsocket_t *sock, const char* host, int port);
 void hsocket_close(hsocket_t sock);
+
+/*
+  hsocket_bind: create and bind a socket
+  Returns 0 if success
+  >0 if fail.
+ */
+int hsocket_bind(hsocket_t *sock, int port);
+
+/*
+  Listen to socket. Must be called after bind
+ */
+int hsocket_listen(hsocket_t sock, int n);
+
+int hsocket_accept(hsocket_t sock, hsocket_t *dest);
 
 
 /*
