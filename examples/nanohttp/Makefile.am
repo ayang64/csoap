@@ -1,4 +1,4 @@
-bin_PROGRAMS=httpget httpgetcb httppost httpcpost helloserver postserver
+bin_PROGRAMS=httpget httpgetcb httppost httpcpost postserver
 
 INCLUDES=-I$(top_srcdir)/ 
 LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
@@ -15,9 +15,6 @@ httppost_LDFLAGS=$(LDFLAGS)
 
 httpcpost_SOURCES=httpcpost.c
 httpcpost_LDFLAGS=$(LDFLAGS)
-
-helloserver_SOURCES=helloserver.c
-helloserver_LDFLAGS=$(LDFLAGS)
 
 postserver_SOURCES=postserver.c
 postserver_LDFLAGS=$(LDFLAGS)
