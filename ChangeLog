@@ -1,3 +1,12 @@
+2004/09/13
+	fixed SIGTERM to work for Windows
+	Michael Rans
+2004/09/04
+	made HTTP server multithreaded, so it can handle multiple connections
+	Michael Rans
+2004/08/27
+	made Windows port of libsoap
+	Michael Rans
 2004/06/02
 	xsd2c is now a part of the csoap projects "libsoap/xsd2c/"
 	Examples are under "libsoap/examples/xsd2c"
