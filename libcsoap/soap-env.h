@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.6 2004/09/02 11:48:28 rans Exp $
+ *  $Id: soap-env.h,v 1.7 2004/10/15 13:33:13 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,6 +26,7 @@
 
 #include <libcsoap/soap-xml.h>
 #include <libcsoap/soap-fault.h>
+#include <nanohttp/nanohttp-stream.h>
 
 
 /**
@@ -158,6 +159,11 @@ SoapEnv *soap_env_new_from_doc(xmlDocPtr doc);
 SoapEnv *soap_env_new_from_buffer(const char* buffer);
 
 
+/**
+  Create an envelope from input stream
+*/
+SoapEnv *soap_env_new_from_stream(http_input_stream_t *in);
+
 /* --------------------------------------------------- */
 /*      XML Serializer functions  and typedefs         */
 /* --------------------------------------------------- */
@@ -195,6 +201,26 @@ typedef void (*XmlSerializerCallback)
 xmlNodePtr 
 soap_env_add_item(SoapEnv* env, const char *type, 
 		  const char *name, const char *value);
+
+
+/**
+   Adds attachment href node to the envelope current parent.
+
+   <pre>
+    <m:[name] href=[href]/>
+   </pre>
+
+   @param env The envelope object 
+   @param name Name of the xml node
+   @param href href. A CID string filled by 
+     soap_ctx_add_attachment()
+
+   @returns The added xmlNode pointer.
+   
+   @see soap_ctx_add_file tutorial 
+ */
+xmlNodePtr 
+soap_env_add_attachment(SoapEnv* env, const char *name, const char *href);
 
 
 /**

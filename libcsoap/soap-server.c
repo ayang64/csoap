@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.4 2004/08/30 13:22:04 snowdrop Exp $
+*  $Id: soap-server.c,v 1.5 2004/10/15 13:33:13 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -45,10 +45,13 @@ SoapRouterNode *router_node_new(SoapRouter *router,
 static
 SoapRouter *router_find(const char *context);
 
+static
+void _soap_server_send_ctx(httpd_conn_t* conn, SoapCtx *ctxres);
+
 /*---------------------------------*/
 void soap_server_entry(httpd_conn_t *conn, hrequest_t *req);
 static
-void _soap_server_send_env(hsocket_t sock, SoapEnv* env);
+void _soap_server_send_env(http_output_stream_t *out, SoapEnv* env);
 static
 void _soap_server_send_fault(httpd_conn_t *conn, hpair_t *header, 
 							 const char* errmsg);
@@ -109,34 +112,36 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 	char urn[150];
 	char method[150];
 	long received;
-	SoapEnv *env, *envres;
+	SoapCtx *ctx, *ctxres;
 	SoapRouter *router;
 	SoapService *service;
+	SoapEnv *env;
 
-	if (strcmp(req->method, "POST")) {
+	if (req->method != HTTP_REQUEST_POST) {
 
-		httpd_send_header(conn, 200, "OK", header);
-		hsocket_send(conn->sock, "<html><head></head><body>");
-		hsocket_send(conn->sock, "<h1>Sorry! </h1><hr>");
-		hsocket_send(conn->sock, "I only speak with 'POST' method");
-		hsocket_send(conn->sock, "</body></html>");
+		httpd_send_header(conn, 200, "OK");
+		http_output_stream_write_string(conn->out, "<html><head></head><body>");
+		http_output_stream_write_string(conn->out, "<h1>Sorry! </h1><hr>");
+		http_output_stream_write_string(conn->out, "I only speak with 'POST' method");
+		http_output_stream_write_string(conn->out, "</body></html>");
 		return;
 	}
 
-	postdata = httpd_get_postdata(conn, req, &received, -1);
+/*	postdata = httpd_get_postdata(conn, req, &received, -1);*/
+  env = soap_env_new_from_stream(req->in);
 
 	header = hpairnode_new(HEADER_CONTENT_TYPE, "text/xml", NULL);
 
-
-	if (postdata == NULL) {
+	if (env == NULL) {
 
 		_soap_server_send_fault(conn, header,"Can not receive POST data!");
 
 	} else {
 
-		env = soap_env_new_from_buffer(postdata);
+	  ctx = soap_ctx_new(env);
+	  soap_ctx_add_files(ctx, req->attachments);
 
-		if (env == NULL) {
+		if (ctx->env == NULL) {
 
 			_soap_server_send_fault(conn, header,"Can not parse POST data!");
 
@@ -152,17 +157,19 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 
 			} else {
 
-				if (!soap_env_find_urn(env, urn)) {
+				if (!soap_env_find_urn(ctx->env, urn)) {
 
 					_soap_server_send_fault(conn, header, "No URN found!");
+					soap_ctx_free(ctx);
 					return;
 				} else {
 					log_verbose2("urn: '%s'", urn);
 				}
 
-				if (!soap_env_find_methodname(env, method)) {
+				if (!soap_env_find_methodname(ctx->env, method)) {
 
 					_soap_server_send_fault(conn, header, "No method found!");
+					soap_ctx_free(ctx);
 					return;
 				}else {
 					log_verbose2("method: '%s'", method);
@@ -174,42 +181,90 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 
 					sprintf(buffer, "URN '%s' not found", urn);
 					_soap_server_send_fault(conn, header, buffer);
+					soap_ctx_free(ctx);
 					return;
 				} else {
 
 					log_verbose2("func: %p", service->func);
-					envres = service->func(env);
-					log_verbose2("func returned: (%p)", envres);
-					if (envres == NULL) {
+					/* ===================================== */
+          /*       CALL SERVICE FUNCTION           */
+					/* ===================================== */
+					ctxres = service->func(ctx);
+					log_verbose2("func returned: (%p)", ctxres);
+					if (ctxres == NULL) {
 
 						sprintf(buffer, "Service '%s' returned no envelope", urn);
 						_soap_server_send_fault(conn, header, buffer);
+						soap_ctx_free(ctx);
 						return;
 
 					} else {
 
-						httpd_send_header(conn, 200, "OK", header);
-						_soap_server_send_env(conn->sock, envres);
-						/* free envres */
+/*						httpd_send_header(conn, 200, "OK");
+						_soap_server_send_env(conn->out, ctxres->env);
+*/
+  				 _soap_server_send_ctx(conn, ctxres);
+						/* free envctx */
+						soap_ctx_free(ctxres);
 					}
 
 				}
 
 			}   
 		}
+		soap_ctx_free(ctx);
 	}
 }
 
 
 static
-void _soap_server_send_env(hsocket_t sock, SoapEnv* env)
+void _soap_server_send_ctx(httpd_conn_t* conn, SoapCtx *ctx)
+{
+	xmlBufferPtr buffer;
+	static int counter = 1;
+	char strbuffer[150];
+	part_t *part;
+
+	if (ctx->env == NULL || ctx->env->root == NULL) return;
+
+	buffer = xmlBufferCreate();
+/*	xmlIndentTreeOutput = 1;*/
+	xmlThrDefIndentTreeOutput(1);
+/*  xmlKeepBlanksDefault(0);*/
+	xmlNodeDump(buffer, ctx->env->root->doc, ctx->env->root, 1 ,1);
+
+	if (ctx->attachments)
+	{
+	  sprintf(strbuffer, "000128590350940924234%d", counter++);
+	  httpd_mime_send_header(conn, strbuffer, "", "text/xml", 200, "OK");
+	  httpd_mime_next(conn, strbuffer, "text/xml", "binary");
+		http_output_stream_write_string(conn->out, (const char*)xmlBufferContent(buffer));
+		part = ctx->attachments->parts;
+		while (part)
+		{
+  		httpd_mime_send_file(conn, part->id, part->content_type, part->transfer_encoding, part->filename);
+		  part = part->next;
+		}
+		httpd_mime_end(conn);
+	}
+	else
+	{
+	  httpd_send_header(conn, 200, "OK");
+		http_output_stream_write_string(conn->out, (const char*)xmlBufferContent(buffer));
+	}
+	xmlBufferFree(buffer);  
+
+}
+
+static
+void _soap_server_send_env(http_output_stream_t *out, SoapEnv* env)
 {
 	xmlBufferPtr buffer;
 	if (env == NULL || env->root == NULL) return;
 
 	buffer = xmlBufferCreate();
 	xmlNodeDump(buffer, env->root->doc, env->root, 1 ,1);
-	hsocket_send(sock,  (const char*)xmlBufferContent(buffer));
+	http_output_stream_write_string(out,  (const char*)xmlBufferContent(buffer));
 	xmlBufferFree(buffer);  
 
 }
@@ -219,11 +274,12 @@ void _soap_server_send_fault(httpd_conn_t *conn, hpair_t *header,
 							 const char* errmsg)
 {
 	SoapEnv *envres;
-	httpd_send_header(conn, 500, "FAILED", header);
+	httpd_set_headers(conn, header);
+	httpd_send_header(conn, 500, "FAILED");
 	envres = soap_env_new_with_fault(Fault_Server,
 		errmsg?errmsg:"General error",
 		"cSOAP_Server", NULL);
-	_soap_server_send_env(conn->sock, envres);
+	_soap_server_send_env(conn->out, envres);
 
 }
 
@@ -235,7 +291,7 @@ SoapRouterNode *router_node_new(SoapRouter *router,
 								SoapRouterNode *next)
 {
 	SoapRouterNode *node;
-	const char *noname = "/lost_find";
+	const char *noname = "/lost_found";
 
 	node = (SoapRouterNode*)malloc(sizeof(SoapRouterNode));
 	if (context) {
@@ -267,3 +323,8 @@ SoapRouter *router_find(const char* context)
 
 	return NULL;
 }
+
+
+
+
+

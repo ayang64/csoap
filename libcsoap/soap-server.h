@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.2 2004/02/10 09:51:10 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.3 2004/10/15 13:33:13 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,6 +26,7 @@
 
 #include <libcsoap/soap-env.h>
 #include <libcsoap/soap-router.h>
+#include <libcsoap/soap-ctx.h>
 
 
 /**

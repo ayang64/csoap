@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.6 2004/09/19 07:05:03 snowdrop Exp $
+*  $Id: soap-env.c,v 1.7 2004/10/15 13:33:13 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -48,6 +48,27 @@ Parameters:
 	" <SOAP-ENV:Body>"\
 	"  <m:%s xmlns:m=\"%s\">"\
 	"  </m:%s>" \
+	" </SOAP-ENV:Body>"\
+	"</SOAP-ENV:Envelope>"
+
+
+/*
+Parameters:
+1- soap_env_ns
+2- soap_env_enc
+3- xsi_ns
+4- xsd_ns
+3- method name
+4- uri
+5- method name(again)
+*/
+#define _SOAP_MSG_TEMPLATE_EMPTY_TARGET_ \
+	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encoding=\"%s\"" \
+	" xmlns:xsi=\"%s\"" \
+	" xmlns:xsd=\"%s\">" \
+	" <SOAP-ENV:Body>"\
+	"  <%s xmlns=\"%s\">"\
+	"  </%s>" \
 	" </SOAP-ENV:Body>"\
 	"</SOAP-ENV:Envelope>"
 
@@ -135,16 +156,51 @@ soap_env_new_with_method (const char *urn, const char *method)
   log_verbose2 ("URN = '%s'", urn);
   log_verbose2 ("Method = '%s'", method);
 
-  xmlStrPrintf (buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_,
-		soap_env_ns, soap_env_enc, soap_xsi_ns,
-		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
-
+  if (!strcmp(urn, ""))
+  {
+    xmlStrPrintf (buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_EMPTY_TARGET_,
+  		soap_env_ns, soap_env_enc, soap_xsi_ns,
+  		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
+  }
+  else
+  {
+    xmlStrPrintf (buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_,
+  		soap_env_ns, soap_env_enc, soap_xsi_ns,
+  		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
+  
+  }
   env = xmlParseDoc (buffer);
   call = soap_env_new_from_doc (env);
 
   return call;
 }
 
+static 
+int _soap_env_xml_io_read(void* ctx, char *buffer, int len)
+{
+  http_input_stream_t *in = (http_input_stream_t *)ctx;
+  if(!http_input_stream_is_ready(in))
+    return 0;
+  return http_input_stream_read(in, buffer, len);
+}
+
+static
+int _soap_env_xml_io_close(void *ctx)
+{
+  /* do nothing */
+  return 0;
+}
+
+SoapEnv *
+soap_env_new_from_stream(http_input_stream_t *in)
+{
+  xmlDocPtr doc;
+  
+  doc = xmlReadIO(_soap_env_xml_io_read,
+    _soap_env_xml_io_close,  in, "", NULL, 0);
+
+  return soap_env_new_from_doc (doc);
+}
 
 
 xmlNodePtr
@@ -175,6 +231,7 @@ soap_env_add_item (SoapEnv * call, const char *type,
 }
 
 
+
 xmlNodePtr
 soap_env_add_itemf (SoapEnv * call, const char *type,
 		    const char *name, const char *format, ...)
@@ -191,6 +248,32 @@ soap_env_add_itemf (SoapEnv * call, const char *type,
   return soap_env_add_item (call, type, name, buffer);
 }
 
+
+
+xmlNodePtr 
+soap_env_add_attachment(SoapEnv* call, const char *name, const char *href)
+{
+  xmlNodePtr newnode;
+
+  newnode = xmlNewTextChild (call->cur, NULL, BAD_CAST name, BAD_CAST "");
+
+  if (newnode == NULL)
+  {
+    log_error1 ("Can not create new xml node");
+    return NULL;
+  }
+
+  if (href)
+  {
+    if (!xmlNewProp (newnode, BAD_CAST "href", BAD_CAST href))
+    {
+      log_error1 ("Can not create new xml attribute");
+      return NULL;
+    }
+  }
+
+  return newnode;
+}
 
 void
 soap_env_add_custom (SoapEnv * call, void *obj, XmlSerializerCallback cb,
@@ -337,6 +420,28 @@ soap_env_get_body (SoapEnv * env)
 
 
 xmlNodePtr
+soap_env_get_fault(SoapEnv * env)
+{
+  xmlNodePtr node;
+
+  
+  node = soap_env_get_body(env);
+
+  if (!node) return NULL;
+
+  while (node != NULL)
+  {
+    if (!xmlStrcmp (node->name, BAD_CAST "Fault"))
+      return node;
+    node = soap_xml_get_next (node);
+  }
+
+/*  log_warn1 ("Node Fault tag found!");*/
+  return NULL;
+}
+
+
+xmlNodePtr
 soap_env_get_method (SoapEnv * env)
 {
 
@@ -439,8 +544,13 @@ soap_env_find_urn (SoapEnv * env, char *urn)
       return 1;			/* namespace found! */
     }
   }
+  else
+  { 
+    strcpy(urn,"");
+    log_warn1("No namespace found");
+    return 1;
+  }
 
-  log_error1 ("No namespace found. Returning 0");
   return 0;
 }
 
