@@ -1,8 +1,8 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.1 2004/10/15 13:42:57 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.2 2004/10/15 13:53:36 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
- * Copyright (C) 2003  Ferhat Ayaz
+ * Copyright (C) 2003-2004  Ferhat Ayaz
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
  *
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 
 #include <libcsoap/soap-client.h>
