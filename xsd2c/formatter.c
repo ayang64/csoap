@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: formatter.c,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+ *  $Id: formatter.c,v 1.2 2004/06/03 13:14:35 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -91,14 +91,14 @@ void writeComplexTypeHeaderFile(FILE* f, HCOMPLEXTYPE obj)
   {
     if (trGetBuildInFlag(field->type) == 0) 
     {
-      fprintf(f, "#include \"%s_xsd.h\"\n", field->type);
+      fprintf(f, "#include \"%s.h\"\n", field->type); /* _xsd*/
     }
     field = field->next;
   }
 
   if (obj->base_type != NULL) 
   {
-    fprintf(f, "#include \"%s_xsd.h\"\n", obj->base_type);
+    fprintf(f, "#include \"%s.h\"\n", obj->base_type);/* _xsd*/
   }
   
   /* include libxml library */
@@ -446,7 +446,7 @@ void writeComplexTypeSourceFile(FILE* f, HCOMPLEXTYPE obj)
   fprintf(f, "#include <stdio.h>\n", obj->type);
   fprintf(f, "#include <string.h>\n", obj->type);
   fprintf(f, "#include <stdlib.h>\n", obj->type);
-  fprintf(f, "#include \"%s_xsd.h\"\n\n\n", obj->type);
+  fprintf(f, "#include \"%s.h\"\n\n\n", obj->type); /* _xsd*/
 
 
   if (obj->base_type != NULL)
@@ -890,6 +890,7 @@ static void writeCodeSaxSerialize(FILE* f, HCOMPLEXTYPE obj)
         }
         else
         {
+          fprintf(f, "\tif (%s_cur->value)\n", field->name);
           sprintf(buffer, "%s_Sax_Serialize(%s_cur->value, \"%s\", OnStartElement, OnCharacters, OnEndElement, userData);\n",
             field->type, field->name, field->name);
           fprintf(f, "\t\t%s\n", buffer);
@@ -926,6 +927,7 @@ static void writeCodeSaxSerialize(FILE* f, HCOMPLEXTYPE obj)
         }
         else
         {
+          fprintf(f, "\tif (obj->%s)\n", field->name);
           sprintf(buffer, "%s_Sax_Serialize(obj->%s, \"%s\", OnStartElement, OnCharacters, OnEndElement, userData);",
             field->type, field->name, field->name);
           fprintf(f, "\t%s\n", buffer );
@@ -1038,6 +1040,7 @@ static void writeCodeBaseOnEndElement(FILE* f, HCOMPLEXTYPE obj)
         }
         else
         {
+          fprintf(f, "\tif (%s_cur->value)\n", field->name);
           sprintf(buffer, "%s_Sax_Serialize(%s_cur->value, \"%s\", bsce->OnStartElement, bsce->OnCharacters, bsce->OnEndElement, bsce->userData);\n",
             field->type, field->name, field->name);
           fprintf(f, "\t\t%s\n", buffer);
@@ -1074,6 +1077,7 @@ static void writeCodeBaseOnEndElement(FILE* f, HCOMPLEXTYPE obj)
         }
         else
         {
+          fprintf(f, "\tif (obj->%s)\n", field->name);
           sprintf(buffer, "%s_Sax_Serialize(obj->%s, \"%s\", bsce->OnStartElement, bsce->OnCharacters, bsce->OnEndElement, bsce->userData);",
             field->type, field->name, field->name);
           fprintf(f, "\t%s\n", buffer );
@@ -1212,7 +1216,11 @@ static void writeCodeDeserialize(FILE* f, HCOMPLEXTYPE obj)
     }
     else
     {
-      fprintf(f, "\t\t\tobj->%s = %s_Deserialize(cur);\n", field->name, field->name);
+        if (field->maxOccurs > 1 || field->maxOccurs == -1) {
+          fprintf(f, "\t\t\t%s_Add_%s( obj, %s_Deserialize(cur) );\n", field->parentObj->type, field->name, field->type);
+        } else {
+          fprintf(f, "\t\t\t%s_Set_%s( obj, %s_Deserialize(cur) );\n", field->parentObj->type, field->name, field->type);
+        }
     }
 
     fprintf(f, "\t\t}\n");

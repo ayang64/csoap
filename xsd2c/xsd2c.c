@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.c,v 1.4 2004/06/03 08:53:34 snowdrop Exp $
+ *  $Id: xsd2c.c,v 1.5 2004/06/03 13:14:35 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -590,7 +590,7 @@ int declareStructs(HCOMPLEXTYPE ct)
   char fname[255];
   FILE* f;
 
-  sprintf(fname, "%s/%s_xsd.h", outDir, ct->type);
+  sprintf(fname, "%s/%s.h", outDir, ct->type); /* _xsd*/
   printf("Generating file '%s' ...\n", fname);
   f = fopen(fname, "w");
   if (f == NULL)
@@ -603,14 +603,14 @@ int declareStructs(HCOMPLEXTYPE ct)
   fclose(f);
 
   return 1;
-}
+} 
 
 int writeSource(HCOMPLEXTYPE ct)
 {
   char fname[255];
   FILE* f;
 
-  sprintf(fname, "%s/%s_xsd.c", outDir, ct->type);
+  sprintf(fname, "%s/%s.c", outDir, ct->type); /* _xsd*/
   printf("Generating file '%s' ...\n", fname);
   f = fopen(fname, "w");
   if (f == NULL)
@@ -631,20 +631,31 @@ int xsdInitTrModule(xmlNodePtr xsdNode)
   xmlNsPtr ns = NULL;
 
   if (xsdNode != NULL) {
-	  ns = xmlSearchNsByHref(xsdNode->doc, xsdNode, "http://www.w3.org/2001/XMLSchema");
-	  if (ns == NULL) {
-   	 fprintf(stderr, "XML Schema namespace not found!\n");
-	    return 0;
-	  } 
+	  
+    ns = xmlSearchNsByHref(xsdNode->doc, xsdNode, "http://www.w3.org/2001/XMLSchema");
+	  
+    if (ns != NULL && ns->prefix != NULL) {
+        fprintf(stdout, "XMLSchema namespace prefix: '%s'\n", ns->prefix);
+        trInitModule(ns->prefix);
+    } else { 
+        /* 
+          Search for:
+            <definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                <type>
+                  <schema xmlns="http://www.w3.org/2001/XMLSchema"> 
+                ...
+         */
+        ns = xmlSearchNsByHref(xsdNode->doc, xmlDocGetRootElement(xsdNode->doc), "http://www.w3.org/2001/XMLSchema");
+        if (ns != NULL && ns->prefix != NULL) {
+            fprintf(stdout, "XMLSchema namespace prefix: '%s'\n", ns->prefix);
+            trInitModule(ns->prefix);
+        } else { 
+        	  trInitModule("xs");
+        }
+    }
 
-	  if (ns->prefix == NULL) {
-   	 fprintf(stderr, "XML Schema namespace not found!\n");
-	    return 0;
-	  }
-	  fprintf(stdout, "XMLSchema namespace prefix: '%s'\n", ns->prefix);
-	  trInitModule(ns->prefix);
   } else {
-	  trInitModule("ts");
+	  trInitModule("xs");
   }
 
   return 1;

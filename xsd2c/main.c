@@ -1,5 +1,7 @@
 #include "xsd2c.h"
 #include "formatter.h"
+#include "tr.h"
+#include "obj.h"
 
 #include <string.h>
 
@@ -45,7 +47,15 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-	xsdEngineRun(xsdNode, outDir);
+
+  if (!xsdInitTrModule(xsdNode))
+    return 1;
+
+  if (!xsdInitObjModule(xsdNode))
+    return 1;
+
+
+  xsdEngineRun(xsdNode, outDir);
 	
   xmlFreeDoc(xsdNode->doc);
 
