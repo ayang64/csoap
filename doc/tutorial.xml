@@ -2,7 +2,7 @@
 <article>
 
  <articleinfo>                                                
-  <title>cSOAP Implementation Guide $Revision: 1.1 $</title>
+  <title>cSOAP Implementation Guide $Revision: 1.2 $</title>
   <author><firstname>Ferhat</firstname><surname>Ayaz</surname></author>
   <copyright><year>2004</year><holder>csoap</holder></copyright>
  </articleinfo> 
@@ -285,5 +285,114 @@ simpleserver: $(SERVEROBJECTS)
 </example>
 
 </section>
+
+
+<section>
+<title>Building XML tree using libxml2 API</title>
+
+<para>
+One of the ways building a xml tree into an 
+SOAP envelope is to use directly the libxml2 API.
+You can obtain the xmlNodePtr of an envelope
+with the SoapEnv structure.
+</para>
+
+<synopsis>
+typedef struct _SoapEnv
+{ 
+  xmlNodePtr root; 
+  xmlNodePtr cur;
+}SoapEnv;
+</synopsis>
+
+<para>
+Here is "root" your xml node to &lt;SOAP-ENV:Envelope&gt;.
+</para>
+
+</section>
+
+<section>
+<title>Building XML tree using csoap</title>
+
+<para>
+You can build a xml tree using following functions
+</para>
+
+<synopsis>
+xmlNodePtr 
+soap_env_add_item(SoapEnv* env, const char *type, 
+		  const char *name, const char *value);
+xmlNodePtr 
+soap_env_add_itemf(SoapEnv* env, const char *type, 
+		  const char *name, const char *value, ...);
+xmlNodePtr 
+soap_env_push_item(SoapEnv *env, const char *type,
+		   const char *name);
+void
+soap_env_pop_item(SoapEnv* env);
+</synopsis>
+
+<para>
+soap_env_add_itemf() does the same thing like soap_env_add_item()
+but with a C style argument list. (Max buffer for value is 1054)
+</para>
+
+<example>
+<title>Building xml using csoap stack pattern</title>
+<programlisting>
+<![CDATA[
+SoapEnv *env = soap_env_new_with_method("urn:examples", "CreateUser");
+
+soap_env_push_item(env, "my:user", "User");
+ soap_env_add_item(env, "xsd:string", "id", "09189");
+ soap_env_push_item(env, "my:adress", "Adress");
+  soap_env_add_item(env, "xsd:string", "City", "MyCity");
+  soap_env_add_item(env, "xsd:int", "Zip", "%d", 12456);
+ soap_env_pop_item(env);
+ soap_env_add_item(env, "xsd:string", "name", "snowdrop");
+ soap_env_add_item(env, "xsd:string", "passwd", "passphrase64");
+soap_env_pop_item(env);
+]]>
+</programlisting>
+</example>
+
+<para>
+This will create the following xml structure
+</para>
+
+<example>
+<title>Generated SOAP envelope</title>
+
+<programlisting>
+<![CDATA[
+<SOAP-ENV:Envelope  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+        SOAP-ENV:encoding="http://schemas.xmlsoap.org/soap/encoding/"> 
+  
+  <SOAP-ENV:Body>  
+    <m:CreateUser xmlns:m="urn:examples">  
+      <User type="my:user">
+        <id type="xsd:string">09189</id>
+        <Adress type="my:adress">
+         <City type="my:adress">MyCity</City>
+         <Zip type="xsd:int">12456</Zip>
+        </Adress>
+        <name type="xsd:string">snowdrop</name>
+        <passwd type="xsd:string">passphrase64</passwd>
+      </User>
+    </m:CreateUser> 
+  </SOAP-ENV:Body>
+
+</SOAP-ENV:Envelope>
+
+]]>
+</programlisting>
+
+</example>
+
+
+</section>
+
 
 </article>
