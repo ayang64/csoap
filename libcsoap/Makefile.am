@@ -1,35 +1,13 @@
 ## Source directory
 
 
-h_sources = csoap.h\
-csoapbody.h\
-csoapcall.h\
-csoapenv.h\
-csoaperror.h\
-csoapfault.h\
-csoaphttp.h\
-csoaplog.h\
-csoapmethod.h\
-csoapparam.h\
-csoapres.h\
-csoapsocket.h\
-csoaptypes.h\
-csoapurl.h\
-csoapxml.h
+h_sources = soap-xml.h\
+soap-fault.h\
+soap-call.h
 
-cc_sources = csoap.c\
-csoapbody.c\
-csoapcall.c\
-csoapenv.c\
-csoapfault.c\
-csoaphttp.c\
-csoaplog.c\
-csoapmethod.c\
-csoapparam.c\
-csoapres.c\
-csoapsocket.c\
-csoapurl.c\
-csoapxml.c
+cc_sources = soap-xml.c\
+soap-fault.c\
+soap-call.c
 
 library_includedir=$(includedir)/$(GENERIC_LIBRARY_NAME)-$(GENERIC_API_VERSION)/$(GENERIC_LIBRARY_NAME)
 library_include_HEADERS = $(h_sources)
