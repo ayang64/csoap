@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.1 2004/10/15 13:33:48 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -49,14 +49,16 @@ void soap_ctx_add_files(SoapCtx* ctx, attachments_t *attachments)
 }
 
 
-hstatus_t soap_ctx_add_file(SoapCtx* ctx, const char* filename, const char* content_type, char *dest_href)
+herror_t soap_ctx_add_file(SoapCtx* ctx, const char* filename, const char* content_type, char *dest_href)
 {
   char cid[250];
   char id[250];
   part_t *part;
   static int counter = 1;
   FILE *test = fopen(filename, "r");
-  if (!test) return FILE_ERROR_OPEN;
+  if (!test) 
+	  return herror_new("soap_ctx_add_file", FILE_ERROR_OPEN, 
+	  "Can not open file '%s'", filename);
   
   fclose(test);
   

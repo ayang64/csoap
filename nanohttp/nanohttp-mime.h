@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
+*  $Id: nanohttp-mime.h,v 1.3 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -40,7 +40,7 @@
 
 
 
-hstatus_t mime_get_attachments(content_type_t *ctype, 
+herror_t mime_get_attachments(content_type_t *ctype, 
   http_input_stream_t *in, attachments_t **dest);
 
 

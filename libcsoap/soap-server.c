@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.6 2004/10/20 14:17:36 snowdrop Exp $
+*  $Id: soap-server.c,v 1.7 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -58,9 +58,9 @@ void _soap_server_send_fault(httpd_conn_t *conn, hpair_t *header,
 /*---------------------------------*/
 
 
-int soap_server_init_args(int argc, char *argv[])
+herror_t soap_server_init_args(int argc, char *argv[])
 {
-	return !httpd_init(argc, argv);
+	return httpd_init(argc, argv);
 }
 
 
@@ -82,7 +82,7 @@ int soap_server_register_router(SoapRouter *router, const char* context)
 }
 
 
-int soap_server_run()
+herror_t soap_server_run()
 {
 	return httpd_run();
 }
@@ -114,6 +114,7 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 	SoapRouter *router;
 	SoapService *service;
 	SoapEnv *env;
+	herror_t err;
 
 	if (req->method != HTTP_REQUEST_POST) {
 
@@ -125,10 +126,17 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 		return;
 	}
 
-/*	postdata = httpd_get_postdata(conn, req, &received, -1);*/
-  env = soap_env_new_from_stream(req->in);
 
 	header = hpairnode_new(HEADER_CONTENT_TYPE, "text/xml", NULL);
+
+	err = soap_env_new_from_stream(req->in, &env);
+	if (err != H_OK) 
+	{
+  		_soap_server_send_fault(conn, header, herror_message(err));
+		herror_release(err);
+		return;
+	}
+
 
 	if (env == NULL) {
 
@@ -184,12 +192,21 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 				} else {
 
 					log_verbose2("func: %p", service->func);
+					ctxres = soap_ctx_new(NULL);
 					/* ===================================== */
           /*       CALL SERVICE FUNCTION           */
 					/* ===================================== */
-					ctxres = service->func(ctx);
-					log_verbose2("func returned: (%p)", ctxres);
-					if (ctxres == NULL) {
+					err = service->func(ctx, ctxres);
+					if (err != H_OK) {
+						sprintf(buffer, "Service returned following error message: '%s'",
+							herror_message(err));
+						herror_release(err);
+						_soap_server_send_fault(conn, header, buffer);
+						soap_ctx_free(ctx);
+						return;
+					}
+
+					if (ctxres->env == NULL) {
 
 						sprintf(buffer, "Service '%s' returned no envelope", urn);
 						_soap_server_send_fault(conn, header, buffer);
@@ -272,12 +289,37 @@ void _soap_server_send_fault(httpd_conn_t *conn, hpair_t *header,
 							 const char* errmsg)
 {
 	SoapEnv *envres;
+	herror_t err;
+	char buffer[45];
 	httpd_set_headers(conn, header);
-	httpd_send_header(conn, 500, "FAILED");
-	envres = soap_env_new_with_fault(Fault_Server,
+	err = httpd_send_header(conn, 500, "FAILED");
+	if (err != H_OK) {
+		 /* WARNING: unhandled exception !*/
+		log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+		return;
+	}
+
+	err = soap_env_new_with_fault(Fault_Server,
 		errmsg?errmsg:"General error",
-		"cSOAP_Server", NULL);
+		"cSOAP_Server", NULL, &envres);
+	 if (err != H_OK) {
+		 log_error1(herror_message(err));
+		http_output_stream_write_string(conn->out, "<html><head></head><body>");
+		http_output_stream_write_string(conn->out, "<h1>Error</h1><hr>");
+		http_output_stream_write_string(conn->out, "Error while sending fault object:<br>Message: ");
+		http_output_stream_write_string(conn->out, herror_message(err));
+		http_output_stream_write_string(conn->out, "<br>Function: ");
+		http_output_stream_write_string(conn->out, herror_func(err));
+		http_output_stream_write_string(conn->out, "<br>Error code: ");
+		sprintf(buffer, "%d", herror_code(err));
+		http_output_stream_write_string(conn->out, buffer);
+		http_output_stream_write_string(conn->out, "</body></html>");
+		return;
+
+		 herror_release(err);
+	 } else {
 	_soap_server_send_env(conn->out, envres);
+	 }
 
 }
 

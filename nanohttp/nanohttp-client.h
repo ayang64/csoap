@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.11 2004/10/20 14:17:41 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.12 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -58,7 +58,7 @@ typedef struct httpc_conn
 /**
   initialize the httpc_* module
 */
-hstatus_t httpc_init(int argc, char *argv[]);
+herror_t httpc_init(int argc, char *argv[]);
  
 /**
   Creates a new connection
@@ -78,19 +78,20 @@ int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value);
 /**
   Invoke a "GET" method request and receive the response
 */
-hresponse_t *httpc_get(httpc_conn_t *conn, const char *url);
+herror_t
+httpc_get(httpc_conn_t *conn, hresponse_t** out, const char *urlstr);
 
 /**
   Start a "POST" method request
   Returns: HSOCKET_OK  or error flag
 */
-int httpc_post_begin(httpc_conn_t *conn, const char *url);
+herror_t httpc_post_begin(httpc_conn_t *conn, const char *url);
 
 /**
   End a "POST" method and receive the response.
   You MUST call httpc_post_end() before!
 */
-hresponse_t *httpc_post_end(httpc_conn_t *conn);
+herror_t httpc_post_end(httpc_conn_t *conn, hresponse_t **out);
 
 
 /* --------------------------------------------------------------
@@ -100,12 +101,13 @@ hresponse_t *httpc_post_end(httpc_conn_t *conn);
 /*
   DIME support httpc_dime_* function set
 */
+/*
 int httpc_dime_begin(httpc_conn_t *conn, const char *url);
 int httpc_dime_next(httpc_conn_t* conn, long content_length, 
                     const char *content_type, const char *id,
                     const char *dime_options, int last);
 hresponse_t* httpc_dime_end(httpc_conn_t *conn);
-
+*/
 
 /* --------------------------------------------------------------
  MIME RELATED FUNCTIONS
@@ -118,7 +120,7 @@ hresponse_t* httpc_dime_end(httpc_conn_t *conn);
   Begin MIME multipart/related POST request
   Returns: HSOCKET_OK  or error flag
 */
-int httpc_mime_begin(httpc_conn_t *conn, const char *url,
+herror_t httpc_mime_begin(httpc_conn_t *conn, const char *url,
   const char* related_start, 
   const char* related_start_info, 
   const char* related_type);
@@ -127,7 +129,7 @@ int httpc_mime_begin(httpc_conn_t *conn, const char *url,
   Send boundary and part header and continue 
   with next part
 */
-int httpc_mime_next(httpc_conn_t *conn, 
+herror_t httpc_mime_next(httpc_conn_t *conn, 
   const char* content_id,
   const char* content_type, 
   const char* transfer_encoding);
@@ -135,14 +137,14 @@ int httpc_mime_next(httpc_conn_t *conn,
 /**
   Finish MIME request and get the response
 */
-hresponse_t *httpc_mime_end(httpc_conn_t *conn);
+herror_t httpc_mime_end(httpc_conn_t *conn, hresponse_t** out);
 
 /**
   Send boundary and part header and continue 
   with next part
 */
 
-int httpc_mime_send_file (httpc_conn_t * conn,
+herror_t httpc_mime_send_file (httpc_conn_t * conn,
                       const char *content_id,
                       const char *content_type,
                       const char *transfer_encoding, 

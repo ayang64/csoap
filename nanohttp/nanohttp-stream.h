@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.2 2004/10/15 14:26:15 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.3 2004/10/28 10:30:47 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -88,7 +88,7 @@ typedef enum http_transfer_type
 typedef struct http_input_stream
 {
   hsocket_t sock; 
-  hstatus_t err;
+  herror_t err;
   http_transfer_type_t type; 
   int received;
   int content_length;
@@ -236,7 +236,7 @@ void http_output_stream_free(http_output_stream_t *stream);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-hstatus_t http_output_stream_write(http_output_stream_t *stream, 
+herror_t http_output_stream_write(http_output_stream_t *stream, 
                            const byte_t *bytes, int size);
 
 /**
@@ -249,7 +249,7 @@ hstatus_t http_output_stream_write(http_output_stream_t *stream,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-hstatus_t http_output_stream_write_string(http_output_stream_t *stream, 
+herror_t http_output_stream_write_string(http_output_stream_t *stream, 
                            const char *str);
 
 
@@ -263,7 +263,7 @@ hstatus_t http_output_stream_write_string(http_output_stream_t *stream,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-hstatus_t http_output_stream_flush(http_output_stream_t *stream);
+herror_t http_output_stream_flush(http_output_stream_t *stream);
 
 #endif
 

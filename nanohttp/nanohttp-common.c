@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.14 2004/10/20 14:17:41 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.15 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,6 +33,61 @@
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
+
+
+
+typedef struct _herror_impl_t
+{
+	int errcode;
+	char message[250];
+	char func[100];
+}herror_impl_t;
+
+
+herror_t herror_new(const char* func, int errcode, const char* format, ...)
+{
+	va_list         ap;
+
+	herror_impl_t *impl = (herror_impl_t*)malloc(sizeof(herror_impl_t));
+	impl->errcode = errcode;
+	strcpy(impl->func, func);
+	va_start(ap, format);
+	vsprintf(impl->message, format, ap);
+	va_end(ap);
+
+	return (herror_t)impl;
+
+}
+
+int herror_code(herror_t err)
+{
+	herror_impl_t* impl = (herror_impl_t*)err;
+	if (!err) return H_OK;
+	return impl->errcode;
+}
+
+char* herror_func(herror_t err)
+{
+	herror_impl_t* impl = (herror_impl_t*)err;
+	if (!err) return "";
+	return impl->func;
+}
+
+char* herror_message(herror_t err)
+{
+	herror_impl_t* impl = (herror_impl_t*)err;
+	if (!err) return "";
+	return impl->message;
+}
+
+void herror_release(herror_t err)
+{
+	herror_impl_t* impl = (herror_impl_t*)err;
+	if (!err) return;
+	free(impl);
+}
+
+
 
 static log_level_t loglevel = HLOG_DEBUG;
 static char logfile[75] = {'\0'};
@@ -372,7 +427,7 @@ hurl_dump(const hurl_t * url)
 }
 
 
-int hurl_parse(hurl_t* url, const char *urlstr)
+herror_t hurl_parse(hurl_t* url, const char *urlstr)
 {
 	int             iprotocol;
 	int             ihost;
@@ -392,17 +447,17 @@ int hurl_parse(hurl_t* url, const char *urlstr)
 
 	if (iprotocol == 0) {
 		log_error1("no protocol");
-		return URL_ERROR_NO_PROTOCOL;
+		return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
 	}
 	if (iprotocol + 3 >= len) {
 		log_error1("no host");
-		return URL_ERROR_NO_HOST;
+		return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
 	}
 	if (urlstr[iprotocol] != ':'
 	    && urlstr[iprotocol + 1] != '/'
 	    && urlstr[iprotocol + 2] != '/') {
 		log_error1("no protocol");
-		return URL_ERROR_NO_PROTOCOL;
+		return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
 	}
 	/* find host */
 	ihost = iprotocol + 3;
@@ -414,7 +469,7 @@ int hurl_parse(hurl_t* url, const char *urlstr)
 
 	if (ihost == iprotocol + 1) {
 		log_error1("no host");
-		return URL_ERROR_NO_HOST;
+		return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
 	}
 	/* find port */
 	iport = ihost;
@@ -435,7 +490,8 @@ int hurl_parse(hurl_t* url, const char *urlstr)
 	  url->protocol = PROTOCOL_HTTPS;
 	else if (strcmpigcase(protocol, "ftp"))
 	  url->protocol = PROTOCOL_FTP;
-	else return URL_ERROR_UNKNOWN_PROTOCOL;
+	else 	return herror_new("hurl_parse", 
+		URL_ERROR_UNKNOWN_PROTOCOL, "Unknown protocol '%s'", protocol);
 
 	/* TODO (#1#): add max of size and URL_MAX_HOST_SIZE */
 	size = ihost - iprotocol - 3; 

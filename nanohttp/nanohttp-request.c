@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.3 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -217,10 +217,11 @@ hrequest_free(hrequest_t * req)
 }
 
 
-hrequest_t *
-hrequest_new_from_socket(hsocket_t sock)
+herror_t
+hrequest_new_from_socket(hsocket_t sock, hrequest_t **out)
 {
-  int              i=0, status;
+  int              i=0, readed;
+  herror_t			status;
   hrequest_t      *req;
   char             buffer[MAX_HEADER_SIZE+1];
   attachments_t  *mimeMessage;
@@ -228,11 +229,11 @@ hrequest_new_from_socket(hsocket_t sock)
   /* Read header */
   while (i<MAX_HEADER_SIZE)
   {
-    status = hsocket_read(sock, &(buffer[i]), 1, 1);
-    if (status == -1)
+    status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
+    if (status != H_OK)
     {
         log_error1("Socket read error");
-        return NULL;
+        return status;
     }
 
     buffer[i+1] = '\0'; /* for strmp */
@@ -248,11 +249,7 @@ hrequest_new_from_socket(hsocket_t sock)
 
   /* Create response */
   req = _hrequest_parse_header(buffer);
-  if (req == NULL)
-  {
-    log_error1("Header parse error");
-    return NULL;
-  }
+
 
   /* Create input stream */
   req->in = http_input_stream_new(sock, req->header);
@@ -266,7 +263,7 @@ hrequest_new_from_socket(hsocket_t sock)
     {
       /* TODO (#1#): Handle error */
       hrequest_free(req);
-      return NULL;            
+      return status;            
     }
     else
     {
@@ -275,8 +272,8 @@ hrequest_new_from_socket(hsocket_t sock)
     }
   }
      
-
-  return req;
+  *out = req;
+  return H_OK;
 }
 
 

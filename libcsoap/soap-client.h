@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.5 2004/10/20 14:17:36 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.6 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -30,7 +30,7 @@
 /**
 	Initializes the client side soap engine
 */
-int soap_client_init_args(int argc, char *argv[]);
+herror_t soap_client_init_args(int argc, char *argv[]);
 
 
 /**
@@ -38,19 +38,22 @@ int soap_client_init_args(int argc, char *argv[]);
    the given envelope. 
 
    @param env envelope to send
+   @param response  the result envelope
    @param url url to the soap server
    @soap_action value for "SoapAction:" in the 
     HTTP request header.
 
-    @returns the result envelope. In case of failure,
-     this function return an envelope with a fault object.
+    @returns H_OK if success 
  */
-SoapCtx* soap_client_invoke(SoapCtx *ctx, 
+herror_t soap_client_invoke(SoapCtx *ctx, SoapCtx** response, 
 			    const char *url,
 			    const char *soap_action);
 
 
-SoapCtx *soap_client_ctx_new(const char *urn, const char *method);
+/**
+	Creates a new soap context object.
+*/
+herror_t soap_client_ctx_new(const char *urn, const char *method, SoapCtx **out);
 
 /**
 	Sets the underlaying socket to use while connecting

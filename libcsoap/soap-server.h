@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.3 2004/10/15 13:33:13 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.4 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 #ifndef cSOAP_SERVER_H
 #define cSOAP_SERVER_H
@@ -35,6 +35,8 @@
    <TABLE border=1>
    <TR><TH>Argument</TH><TH>Description</TH></TR>
    <TR><TD>-NHTTPport [port]</TD><TD>Port to listen (default: 10000)</TD></TR>
+   <TR><TD>-NHTTPmaxconn [num]</TD><TD>Maximum thread connections</TD></TR>
+   <TR><TD>-NHTTPlog [logfilename]</TD><TD>logfile</TD></TR>
    </TABLE>
 
    @param argc commandline arg count
@@ -42,7 +44,7 @@
 
    @returns 1 if success, 0 otherwise
  */
-int soap_server_init_args(int argc, char *argv[]);
+herror_t soap_server_init_args(int argc, char *argv[]);
 
 
 /**
@@ -66,7 +68,7 @@ int soap_server_register_router(SoapRouter *router, const char* context);
    Enters the server loop and starts to listen to 
    http requests.
  */
-int soap_server_run();
+herror_t soap_server_run();
 
 
 /**

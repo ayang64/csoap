@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.1 2004/10/15 13:30:42 snowdrop Exp $
+*  $Id: nanohttp-response.c,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -121,10 +121,12 @@ _hresponse_parse_header(const char *buffer)
 	return res;
 }
 
-hresponse_t *
-hresponse_new_from_socket(hsocket_t sock)
+
+herror_t
+hresponse_new_from_socket(hsocket_t sock, hresponse_t **out)
 {
-  int              i=0, status;
+  int              i=0, readed;
+  herror_t		status;
   hresponse_t     *res;
   attachments_t  *mimeMessage;
   char             buffer[MAX_HEADER_SIZE+1];
@@ -133,11 +135,11 @@ read_header: /* for errorcode: 100 (continue) */
   /* Read header */
   while (i<MAX_HEADER_SIZE)
   {
-    status = hsocket_read(sock, &(buffer[i]), 1, 1);
-    if (status == -1)
+    status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
+    if (status != H_OK)
     {
         log_error1("Socket read error");
-        return NULL;
+        return status;
     }
 
     buffer[i+1] = '\0'; /* for strmp */
@@ -156,7 +158,8 @@ read_header: /* for errorcode: 100 (continue) */
   if (res == NULL)
   {
     log_error1("Header parse error");
-    return NULL;
+    return herror_new("hresponse_new_from_socket", 
+		GENERAL_HEADER_PARSE_ERROR, "Can not parse response header");
   }
 
   /* Chec for Errorcode: 100 (continue) */
@@ -179,7 +182,7 @@ read_header: /* for errorcode: 100 (continue) */
     {
       /* TODO (#1#): Handle error */
       hresponse_free(res);
-      return NULL;            
+      return status;            
     }
     else
     {
@@ -187,8 +190,8 @@ read_header: /* for errorcode: 100 (continue) */
       res->in = http_input_stream_new_from_file(mimeMessage->root_part->filename);
     }
   }
-     
-  return res;
+   *out = res;
+  return H_OK;
 }
 
 

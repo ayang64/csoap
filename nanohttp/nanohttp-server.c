@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.27 2004/10/20 14:17:41 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.28 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -94,12 +94,13 @@ static void WSAReaper(void *x);
  * NOTE: This will be called from soap_server_init_args()
  * -----------------------------------------------------
  */
-int
+herror_t
 httpd_init (int argc, char *argv[])
 {
-  int i, status;
+  int i;
+  herror_t status;
   status = hsocket_module_init ();
-  if (status != 0)
+  if (status != H_OK)
     return status;
 
   /* write argument information */
@@ -137,11 +138,14 @@ httpd_init (int argc, char *argv[])
   }
 
 #ifdef WIN32
+  /*
   if (_beginthread (WSAReaper, 0, NULL) == -1)
   {
     log_error1 ("Winsock reaper thread failed to start");
-    return (-1);
+    return herror_new("httpd_init", THREAD_BEGIN_ERROR, 
+		"_beginthread() failed while starting WSAReaper");
   }
+  */
 #endif
 
   /* create socket */
@@ -244,7 +248,7 @@ httpd_response_set_content_type (httpd_conn_t * res, const char *content_type)
  * FUNCTION: httpd_response_send_header
  * -----------------------------------------------------
  */
-int
+herror_t
 httpd_send_header (httpd_conn_t * res, int code, const char *text)
 {
   struct tm stm;
@@ -252,7 +256,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   char buffer[255];
   char header[1024];
   hpair_t *cur;
-  int status;
+  herror_t status;
 
   /* set status code */
   sprintf (header, "HTTP/1.1 %d %s\r\n", code, text);
@@ -291,9 +295,11 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
 
   /* send header */
   status = hsocket_nsend (res->sock, header, strlen (header));
+	if (status != H_OK)
+		return status;
 
   res->out = http_output_stream_new (res->sock, res->header);
-  return status;
+  return H_OK;
 }
 
 
@@ -382,9 +388,11 @@ httpd_session_main (void *data)
   httpd_conn_t *rconn;
   hservice_t *service = NULL;
   long content_length = 0;
+  herror_t status;
 
   header[0] = '\0';
   len = 0;
+
 
 
   log_verbose1 ("starting httpd_session_main()");
@@ -393,10 +401,11 @@ httpd_session_main (void *data)
 /*  req = hrequest_new_from_buffer (header);*/
   rconn = httpd_new(conn->sock);
 
-  req = hrequest_new_from_socket (conn->sock);
-  if (req == NULL)
+  status = hrequest_new_from_socket (conn->sock, &req);
+  if (status != H_OK)
   {
-    httpd_send_internal_error (rconn, "Request parse error!");
+    httpd_send_internal_error (rconn, herror_message(status)/*"Request parse error!"*/);
+	herror_release(status);
   }
   else
   {
@@ -597,10 +606,10 @@ _httpd_start_thread (conndata_t * conn)
  * -----------------------------------------------------
  */
 
-int
+herror_t
 httpd_run ()
 {
-  int err;
+  herror_t err;
   conndata_t *conn;
   fd_set fds;
   struct timeval timeout;
@@ -614,7 +623,7 @@ httpd_run ()
   err = hsocket_listen (_httpd_socket);
   if (err != H_OK)
   {
-    log_error2 ("httpd_run(): '%d'", err);
+    log_error2 ("httpd_run(): '%d'", herror_message(err));
     return err;
   }
   log_verbose2 ("listening to port '%d'", _httpd_port);
@@ -626,7 +635,7 @@ httpd_run ()
   err = hsocket_block (_httpd_socket, 0);
   if (err != H_OK)
   {
-    log_error2 ("httpd_run(): '%d'", err);
+    log_error2 ("httpd_run(): '%s'", herror_message(err));
     return err;
   }
 
@@ -673,8 +682,8 @@ httpd_run ()
     err = hsocket_accept (_httpd_socket, &(conn->sock));
     if (err != H_OK)
     {
-      log_error2 ("Can not accept socket: %d", err);
-      return -1;                /* this is hard core! */
+      log_error2 ("Can not accept socket: %s", herror_message(err));
+      return err;                /* this is hard core! */
     }
 
     /* Now start a thread */
@@ -805,7 +814,7 @@ _httpd_mime_get_boundary (httpd_conn_t * conn, char *dest)
   Begin MIME multipart/related POST 
   Returns: H_OK  or error flag
 */
-int
+herror_t
 httpd_mime_send_header (httpd_conn_t * conn,
                         const char *related_start,
                         const char *related_start_info,
@@ -861,12 +870,12 @@ httpd_mime_send_header (httpd_conn_t * conn,
   Send boundary and part header and continue 
   with next part
 */
-int
+herror_t
 httpd_mime_next (httpd_conn_t * conn,
                  const char *content_id,
                  const char *content_type, const char *transfer_encoding)
 {
-  int status;
+  herror_t status;
   char buffer[512];
   char boundary[75];
 
@@ -901,19 +910,20 @@ httpd_mime_next (httpd_conn_t * conn,
   Send boundary and part header and continue 
   with next part
 */
-int
+herror_t
 httpd_mime_send_file (httpd_conn_t * conn,
                       const char *content_id,
                       const char *content_type,
                       const char *transfer_encoding, const char *filename)
 {
-  int status;
+  herror_t status;
   FILE *fd = fopen (filename, "rb");
   byte_t buffer[MAX_FILE_BUFFER_SIZE];
   size_t size;
 
   if (fd == NULL)
-    return FILE_ERROR_OPEN;
+    return herror_new("httpd_mime_send_file", FILE_ERROR_OPEN,
+	 "Can not open file '%d'", filename);
 
   status =
     httpd_mime_next (conn, content_id, content_type, transfer_encoding);
@@ -929,7 +939,8 @@ httpd_mime_send_file (httpd_conn_t * conn,
     if (size == -1)
     {
       fclose (fd);
-      return FILE_ERROR_READ;
+          return herror_new("httpd_mime_send_file", FILE_ERROR_READ,
+		  "Can not read from file '%d'", filename);
     }
 
     status = http_output_stream_write (conn->out, buffer, size);
@@ -947,10 +958,10 @@ httpd_mime_send_file (httpd_conn_t * conn,
   Finish MIME request 
   Returns: H_OK  or error flag
 */
-int
+herror_t
 httpd_mime_end (httpd_conn_t * conn)
 {
-  int status;
+  herror_t status;
   char buffer[512];
   char boundary[75];
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.9 2004/10/20 14:17:36 snowdrop Exp $
+*  $Id: soap-client.c,v 1.10 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,7 @@
 
 /*--------------------------------- */
 static int _block_socket = 0;
-static SoapEnv *_soap_client_build_result(hresponse_t *res);
+static herror_t _soap_client_build_result(hresponse_t *res, SoapEnv **out);
 /*--------------------------------- */
 
 void soap_client_block_socket(int block)
@@ -42,11 +42,11 @@ int soap_client_get_blockmode()
 
 
 
-int soap_client_init_args(int argc, char *argv[])
+herror_t soap_client_init_args(int argc, char *argv[])
 
 {
 
-	return !httpc_init(argc, argv);
+	return httpc_init(argc, argv);
 
 }
 
@@ -65,17 +65,15 @@ long _file_get_size(const char* filename)
   return size;
 }
 
-SoapCtx*
-soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
+
+herror_t
+soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const char *soap_action)
 {
   /* Status */
-  hstatus_t status;
+  herror_t status;
 
 	/* Result document */
-	SoapEnv* doc;
-
-	/* Result Context */
-	SoapCtx *ctx;
+	SoapEnv* res_env;
 
 	/* Buffer variables*/
 	xmlBufferPtr buffer;
@@ -119,47 +117,26 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
     if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client, 
-          			"Can not begin post envelope","",""));
+		return status;
     }
   
     status = http_output_stream_write_string(conn->out, content);
     if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client,   
-  		         	"Can not post envelope","",""));
+		return status;
     }
   
-  /*	res = httpc_post(conn, url, (int)strlen(content), content);*/
-    res = httpc_post_end(conn);
-    if (res == NULL) {
+    status = httpc_post_end(conn, &res);
+    if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		         soap_env_new_with_fault(Fault_Client, 
-           			conn->errmsg,"",""));
+		return status;
     }
 	} 
 	else
 	{
 	
-	  /* Use content-length transport */
-    /*for (part=call->attachments->parts; part; part=part->next) {
-      file_size = _file_get_size(part->filename);
-      if (file_size == -1) [
-        httpc_free(conn);
-      	xmlBufferFree(buffer);
-    		return soap_ctx_new(
-    		        soap_env_new_with_fault(Fault_Client,   
-    		         	"Can not open file!","",""));
-      }
-      
-      total_size += file_size + BOUDARY_LENGTH;
-    }*/
-
     /* Use chunked transport */
     httpc_set_header(conn, HEADER_TRANSFER_ENCODING, TRANSFER_ENCODING_CHUNKED);
     
@@ -168,27 +145,21 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
     if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client,   
-  		         	"Can not begin MIME transport","",""));
+		return status;
     }
   
     status = httpc_mime_next(conn, start_id, "text/xml", "binary");
     if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client,   
-  		         	"MIME transport error","",""));
+		return status;
     }
 
     status = http_output_stream_write(conn->out, content, strlen(content));
     if (status != H_OK) {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client,   
-  		         	"MIME transport error","",""));
+		return status;
     }
 
     
@@ -200,20 +171,16 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
           log_error2("Send file failed. Status:%d", status);
           httpc_free(conn);
         	xmlBufferFree(buffer);
-      		return soap_ctx_new(
-      		        soap_env_new_with_fault(Fault_Client,   
-      		         	"MIME transport error while sending file","",""));
+			return status;
         }
     }
 
-    res = httpc_mime_end(conn);
-    if (!res)
+    status = httpc_mime_end(conn, &res);
+    if (status != H_OK)
     {
       httpc_free(conn);
     	xmlBufferFree(buffer);
-  		return soap_ctx_new(
-  		        soap_env_new_with_fault(Fault_Client,   
-  		         	"MIME transport error","",""));
+		return status;
     }
 	}
 
@@ -221,59 +188,54 @@ soap_client_invoke(SoapCtx *call, const char *url, const char *soap_action)
 	xmlBufferFree(buffer);
 
 	/* Build result */
-	/* TODO: If res == NULL, find out where and why it is NULL! */
-	doc = _soap_client_build_result(res); 
+	status = _soap_client_build_result(res, &res_env); 
+	if (status != H_OK)
+		return status;
 
 	/* Create Context */
-	ctx = soap_ctx_new(doc);
-	soap_ctx_add_files(ctx, res->attachments);
+	*response = soap_ctx_new(res_env);
+	soap_ctx_add_files(*response, res->attachments);
 
-	return ctx;
+	return H_OK;
 }
 
 
 static 
-SoapEnv* _soap_client_build_result(hresponse_t *res)
+herror_t
+ _soap_client_build_result(hresponse_t *res, SoapEnv** env)
 {
-	SoapEnv *env;
+	herror_t err;
 
 	log_verbose2("Building result (%p)", res);
 
 	if (res == NULL)
-		return soap_env_new_with_fault(Fault_Client, 
-		"Response is NULL","","");
+		return herror_new("_soap_client_build_result", 
+			GENERAL_INVALID_PARAM, "hresponse_t is NULL");
 
 
 	if (res->in == NULL)
-		return soap_env_new_with_fault(Fault_Client, 
-		"Empty response from server!","","");
+		return herror_new("_soap_client_build_result", 
+			GENERAL_INVALID_PARAM, "Empty response from server");
 
 
-/*
-	doc = xmlParseDoc(BAD_CAST res->body);
-	if (doc == NULL) {
-		return soap_env_new_with_fault(Fault_Client, 
-			"Response is not in XML format!","","");
+    err = soap_env_new_from_stream(res->in, env);
+
+	if (err != H_OK) {
+		return err;
 	}
 
-	env = soap_env_new_from_doc(doc);
-*/
-  env = soap_env_new_from_stream(res->in);
-
-	if (env == NULL) {
-/*		xmlFreeDoc(doc);*/
-		return soap_env_new_with_fault(Fault_Client, 
-			"Can not create envelope","","");
-	}
-
-	return env;
+	return H_OK;
 }
 
 
-SoapCtx *soap_client_ctx_new(const char *urn, const char *method)
+herror_t soap_client_ctx_new(const char *urn, const char *method, SoapCtx **out)
 {
-  SoapCtx *ctx = soap_ctx_new(soap_env_new_with_method(urn, method));
+	SoapEnv *env;
+	herror_t err;
+	err = soap_env_new_with_method(urn, method, &env);
+	if (err != H_OK) return err;
+    *out = soap_ctx_new(env);
 
-  return ctx;
+  return H_OK;
 }
 

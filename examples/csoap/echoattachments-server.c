@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.2 2004/10/15 15:10:15 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.3 2004/10/28 10:30:42 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,21 +24,26 @@
 #include <libcsoap/soap-server.h>
 
 
-static const char *url = "/echoattachment";
-static const char *urn = "";
+static const char *url = "/echoattachments";
+static const char *urn = "urn:examples";
 static const char *method = "echo";
 
 
-
+/*
 SoapCtx* echo_attachments(SoapCtx *req)
 {
-
+  herror_t err;
   SoapEnv *env;
   SoapCtx*  ctx;
   part_t *part;
   char href[MAX_HREF_SIZE];
 
-  env = soap_env_new_with_response(req->env);
+  err = soap_env_new_with_response(req->env, &env);
+  if (err != H_OK) {
+	  herror_release(err);
+	  return NULL;
+  }
+
   ctx = soap_ctx_new(env);
 
   if (req->attachments) {
@@ -54,16 +59,45 @@ SoapCtx* echo_attachments(SoapCtx *req)
   return ctx;
 }
 
+*/
+
+herror_t echo_attachments(SoapCtx *req, SoapCtx* res)
+{
+  herror_t err;
+
+  part_t *part;
+  char href[MAX_HREF_SIZE];
+
+  err = soap_env_new_with_response(req->env, &res->env);
+  if (err != H_OK) {
+	  return err;
+  }
+
+  if (req->attachments) 
+  {
+	for (part = req->attachments->parts; part != NULL; part = part->next) 
+	{
+      soap_ctx_add_file(res, part->filename, part->content_type, href);
+      soap_env_add_attachment(res->env, "echoFile", href);
+    }
+  }
+    
+  return H_OK;
+}
+
 
 int main(int argc, char *argv[])
 {
-
+	herror_t err;
   SoapRouter *router;
   
   log_set_level(HLOG_VERBOSE);
 
-  if (!soap_server_init_args(argc, argv)) {
-    return 1;
+  err = soap_server_init_args(argc, argv);
+  if (err != H_OK) {
+	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+	herror_release(err);
+	return 1;
   }
   
   router = soap_router_new();

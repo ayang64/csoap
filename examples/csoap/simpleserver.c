@@ -1,8 +1,8 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.10 2004/10/15 13:42:57 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.11 2004/10/28 10:30:42 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
- * Copyright (C) 2003  Ferhat Ayaz
+ * Copyright (C) 2003-2004  Ferhat Ayaz
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
  *
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 
 #include <libcsoap/soap-server.h>
@@ -29,54 +29,45 @@ static const char *urn = "urn:examples";
 static const char *method = "sayHello";
 
 
-void add_name(xmlNodePtr node, SoapEnv *env)
+herror_t say_hello(SoapCtx *req, SoapCtx* res)
 {
+
+  herror_t err;
   char *name;
-  name = (char*)xmlNodeListGetString(node->doc, 
-				     node->xmlChildrenNode, 1);
 
-
-  if (!name) return;
-
-  soap_env_add_itemf(env,"xsd:string", "echo", 
-		     "Hello '%s'", name);
-
-  /*xmlFree(BAD_CAST name);*/
-
-}
-
-
-SoapCtx* say_hello(SoapCtx *request)
-{
-
-  SoapEnv *env;
-  SoapCtx*  ctx;
   xmlNodePtr method, node;
 
-  env = soap_env_new_with_response(request->env);
+  err = soap_env_new_with_response(req->env, &res->env);
+  if (err != H_OK) {
+	return err;
+  }
 
-  method = soap_env_get_method(request->env);
+  method = soap_env_get_method(req->env);
   node = soap_xml_get_children(method);
 
   while (node) {
-    add_name(node, env);
+	name = (char*)xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
+	soap_env_add_itemf(req->env,"xsd:string", "echo", "Hello '%s'", name);
     node = soap_xml_get_next(node);
   }
 
-  ctx = soap_ctx_new(env);
-  return ctx;
+  return H_OK;
 }
 
 
 int main(int argc, char *argv[])
 {
 
+  herror_t err;
   SoapRouter *router;
   
   log_set_level(HLOG_VERBOSE);
 
-  if (!soap_server_init_args(argc, argv)) {
-    return 1;
+  err = soap_server_init_args(argc, argv);
+  if (err != H_OK) {
+	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+	herror_release(err);
+	return 1;
   }
   
   router = soap_router_new();

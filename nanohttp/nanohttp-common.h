@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.13 2004/10/20 14:17:41 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.14 2004/10/28 10:30:46 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -119,6 +119,16 @@
 #define MIME_ERROR_NOT_MIME_MESSAGE    1305
 
 
+/* General errors */
+#define GENERAL_INVALID_PARAM	1400
+#define GENERAL_HEADER_PARSE_ERROR	1401
+
+/* Thread errors */
+#define THREAD_BEGIN_ERROR 1500
+
+/* XML Errors */
+#define XML_ERROR_EMPTY_DOCUMENT 1600
+#define XML_ERROR_PARSE 1601
 
 /*
 Set Sleep function platform depended
@@ -136,7 +146,7 @@ struct tm *localtime_r(const time_t *const timep, struct tm *p_tm);
 #endif
 
 typedef unsigned char byte_t;
-typedef int hstatus_t;
+typedef void* herror_t;
 
 
 
@@ -159,6 +169,13 @@ typedef enum _hreq_method
   HTTP_REQUEST_GET
 }hreq_method_t ;
 
+
+herror_t herror_new(const char* func, 
+					int errcode, const char* format, ...);
+int herror_code(herror_t err);
+char* herror_func(herror_t err);
+char* herror_message(herror_t err);
+void herror_release(herror_t err);
 
 
 /*
@@ -350,7 +367,7 @@ typedef struct _hurl
     URL_ERROR_NO_PROTOCOL 
     URL_ERROR_NO_HOST 
 */
-hstatus_t hurl_parse(hurl_t *obj, const char* url);
+herror_t hurl_parse(hurl_t *obj, const char* url);
 
 /*
   Object representation of the content-type field 

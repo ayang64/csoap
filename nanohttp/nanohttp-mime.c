@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.2 2004/10/20 14:17:41 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.3 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -510,12 +510,20 @@ MIME_read_status mime_streamreader_function(void* userdata,
     return MIME_READ_EOF;
 
   readed = http_input_stream_read(in, dest, *size);
-  *size = readed;
-  if (*size!=-1) {
-    _log_str("reader.log", dest, *size);
-      return MIME_READ_OK;
+  /*
+  log_info1("http_input_stream_read() returned 0");
+  */
+  if (readed == -1) {
+	log_error4("[%d] %s():%s ", herror_code(in->err), herror_func(in->err), herror_message(in->err));
   }
 
+  *size = readed;
+  if (*size!=-1) {
+	  /*
+    _log_str("reader.log", dest, *size);
+	*/
+      return MIME_READ_OK;
+  } 
   return MIME_READ_ERROR;
 }
 
@@ -654,7 +662,7 @@ static
 void _mime_received_bytes(void *data, const unsigned char* bytes, int size)
 {
   int i=0;
-  char *id;
+  char *id, *type;
   mime_callback_data_t *cbdata = (mime_callback_data_t*)data;
 
   if (!cbdata ) {
@@ -726,6 +734,11 @@ void _mime_received_bytes(void *data, const unsigned char* bytes, int size)
             strcpy(cbdata->current_part->id, id);
             if (!strcmp(id, cbdata->root_id))
               cbdata->message->root_part = cbdata->current_part;
+          }
+          type = hpairnode_get(cbdata->current_part->header, HEADER_CONTENT_TYPE);
+          if (type != NULL)
+          {
+            strcpy(cbdata->current_part->content_type, type);
           }
           i++;
           break;
@@ -854,7 +867,7 @@ mime_message_parse_from_file(FILE *in, const char* root_id,
 
 
 
-hstatus_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, attachments_t **dest)
+herror_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, attachments_t **dest)
 {
   /* MIME variables */
   attachments_t  *mimeMessage;
@@ -864,7 +877,8 @@ hstatus_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, a
   /* Check for MIME message */
   if (!(ctype && 
       !strcmp(ctype->type, "multipart/related")))
-      return MIME_ERROR_NOT_MIME_MESSAGE;
+      return herror_new("mime_get_attachments", MIME_ERROR_NOT_MIME_MESSAGE,
+	    "Not a MIME message '%s'", ctype->type);
 
   boundary = hpairnode_get(ctype->params, "boundary");
   root_id  = hpairnode_get(ctype->params, "start");
@@ -872,14 +886,16 @@ hstatus_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, a
   {
       /* TODO (#1#): Handle Error in http form */
     log_error1("'boundary' not set for multipart/related");
-    return MIME_ERROR_NO_BOUNDARY_PARAM;
+    return herror_new("mime_get_attachments", MIME_ERROR_NO_BOUNDARY_PARAM,
+		"'boundary' not set for multipart/related");
   }
 
   if (root_id == NULL)
   {
       /* TODO (#1#): Handle Error in http form */
     log_error1("'start' not set for multipart/related");
-    return MIME_ERROR_NO_START_PARAM;
+    return herror_new("mime_get_attachments", MIME_ERROR_NO_START_PARAM,
+		"'start' not set for multipart/related");
   }
 
   /* TODO (#1#): Set this not to working directory
@@ -890,14 +906,16 @@ hstatus_t mime_get_attachments(content_type_t *ctype, http_input_stream_t *in, a
   {
       /* TODO (#1#): Handle Error in http form */
     log_error1("MIME Parse Error");
-    return MIME_ERROR_PARSE_ERROR;
+    return herror_new("mime_get_attachments", MIME_ERROR_PARSE_ERROR,
+		"MIME Parse Error");
   }
 
   /* Find root */
   if (!mimeMessage->root_part)
   {
     attachments_free(mimeMessage);
-    return MIME_ERROR_NO_ROOT_PART;
+    return herror_new("mime_get_attachments", MIME_ERROR_NO_ROOT_PART,
+		"No root part found!");
   }
 
   /* delete root_part from list */

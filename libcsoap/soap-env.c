@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.8 2004/10/15 14:33:07 snowdrop Exp $
+*  $Id: soap-env.c,v 1.9 2004/10/28 10:30:46 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -102,21 +102,96 @@ static
 
 /* ---------------------------------------------------------------------------- */
 
-SoapEnv *
-soap_env_new_with_fault (fault_code_t faultcode,
-			 const char *faultstring,
-			 const char *faultactor, const char *detail)
+
+
+herror_t
+soap_env_new_from_doc (xmlDocPtr doc, SoapEnv **out)
 {
-  xmlDocPtr doc;
-  doc = soap_fault_build (faultcode, faultstring, faultactor, detail);
+  xmlNodePtr node;
+  SoapEnv *env;
+
   if (doc == NULL)
-    return NULL;
-  return soap_env_new_from_doc (doc);
+  {
+    log_error1 ("Can not create xml document!");
+    return herror_new("soap_env_new_from_doc", 
+		GENERAL_INVALID_PARAM, "XML Document (xmlDocPtr) is NULL");
+  }
+
+  node = xmlDocGetRootElement (doc);
+  if (node == NULL)
+  {
+    log_error1 ("xml document is empty!");
+    return herror_new("soap_env_new_from_doc", 
+		XML_ERROR_EMPTY_DOCUMENT, "XML Document is empty!");
+  }
+
+  env = (SoapEnv *) malloc (sizeof (SoapEnv));
+
+  /* set root */
+  env->root = node;
+
+  /* set method root
+     set call->cur (current node) to <method>.
+     xpath: //Envelope/Body/
+   */
+  node = soap_xml_get_children (env->root);/* Check for NULL ! */
+  env->cur = soap_xml_get_children (node); /* Check for NULL ! */
+
+  *out = env;
+  return H_OK;
 }
 
 
-SoapEnv *
-soap_env_new_with_response (SoapEnv * request)
+
+
+herror_t
+soap_env_new_from_buffer (const char *buffer, SoapEnv **out)
+{
+  xmlDocPtr doc;
+  herror_t err;
+
+  if (buffer == NULL)
+     return herror_new("soap_env_new_from_buffer", 
+		GENERAL_INVALID_PARAM, "buffer (first param) is NULL");
+
+  doc = xmlParseDoc (BAD_CAST buffer);
+  if (doc == NULL)
+     return herror_new("soap_env_new_from_buffer", 
+		XML_ERROR_PARSE, "Can not parse xml");
+
+  err = soap_env_new_from_doc (doc, out);
+  if (err != H_OK)  {
+    xmlFreeDoc (doc);
+  }
+
+  return err;
+}
+
+
+herror_t
+soap_env_new_with_fault (fault_code_t faultcode,
+			 const char *faultstring,
+			 const char *faultactor, const char *detail, SoapEnv **out)
+{
+  xmlDocPtr doc;
+  herror_t err;
+	
+  doc = soap_fault_build (faultcode, faultstring, faultactor, detail);
+  if (doc == NULL)
+    return herror_new("soap_env_new_with_fault", 
+		XML_ERROR_PARSE, "Can not parse fault xml");
+
+  err = soap_env_new_from_doc (doc, out);
+  if (err != H_OK)  {
+    xmlFreeDoc (doc);
+  }
+
+  return err;
+}
+
+
+herror_t
+soap_env_new_with_response (SoapEnv * request, SoapEnv **out)
 {
   char urn[100];
   char methodname[150];
@@ -124,19 +199,20 @@ soap_env_new_with_response (SoapEnv * request)
 
   if (request == NULL)
   {
-    log_error1 ("request object is NULL");
-    return NULL;
+     return herror_new("soap_env_new_with_response", 
+		GENERAL_INVALID_PARAM, "request (first param) is NULL");
   }
 
   if (request->root == NULL)
   {
-    log_error1 ("request has no xml");
-    return NULL;
-  }
+     return herror_new("soap_env_new_with_response", 
+		GENERAL_INVALID_PARAM, "request (first param) has no xml structure");
+   }
 
   if (!soap_env_find_methodname (request, methodname))
   {
-    return NULL;
+     return herror_new("soap_env_new_with_response", 
+		GENERAL_INVALID_PARAM, "Method name '%s' not found in request", SAVE_STR(methodname));
   }
 
   if (!soap_env_find_urn (request, urn))
@@ -148,15 +224,14 @@ soap_env_new_with_response (SoapEnv * request)
   }
 
   sprintf (methodname2, "%sResponse", methodname);
-  return soap_env_new_with_method (urn, methodname2);
+  return soap_env_new_with_method (urn, methodname2, out);
 }
 
 
-SoapEnv *
-soap_env_new_with_method (const char *urn, const char *method)
+herror_t
+soap_env_new_with_method (const char *urn, const char *method, SoapEnv **out)
 {
   xmlDocPtr env;
-  SoapEnv *call;
   xmlChar buffer[1054];
 
 
@@ -188,19 +263,30 @@ soap_env_new_with_method (const char *urn, const char *method)
 #endif
 
   }
+  
   env = xmlParseDoc (buffer);
-  call = soap_env_new_from_doc (env);
+  if (!env)
+    return herror_new("soap_env_new_with_method", 
+		XML_ERROR_PARSE, "Can not parse xml");
 
-  return call;
+  return soap_env_new_from_doc (env, out);
+
 }
+
+
 
 static 
 int _soap_env_xml_io_read(void* ctx, char *buffer, int len)
 {
-  http_input_stream_t *in = (http_input_stream_t *)ctx;
-  if(!http_input_stream_is_ready(in))
-    return 0;
-  return http_input_stream_read(in, buffer, len);
+	int readed;
+	http_input_stream_t *in = (http_input_stream_t*)ctx;
+	if(!http_input_stream_is_ready(in))
+		return 0;
+  
+	readed = http_input_stream_read(in, buffer, len);
+	if (readed == -1)
+		return 0;
+	return readed;
 }
 
 static
@@ -210,15 +296,21 @@ int _soap_env_xml_io_close(void *ctx)
   return 0;
 }
 
-SoapEnv *
-soap_env_new_from_stream(http_input_stream_t *in)
+
+herror_t
+soap_env_new_from_stream(http_input_stream_t *in, SoapEnv **out)
 {
   xmlDocPtr doc;
-  
+  herror_t err;
+ 
   doc = xmlReadIO(_soap_env_xml_io_read,
     _soap_env_xml_io_close,  in, "", NULL, 0);
 
-  return soap_env_new_from_doc (doc);
+  if (in->err != H_OK) return in->err;
+  if (doc == NULL) return herror_new("soap_env_new_from_stream", 
+	  XML_ERROR_PARSE, "Trying to parse not valid xml");
+  err = soap_env_new_from_doc (doc, out);
+  return err;
 }
 
 
@@ -343,67 +435,6 @@ soap_env_free (SoapEnv * env)
     }
     free (env);
   }
-}
-
-
-SoapEnv *
-soap_env_new_from_doc (xmlDocPtr doc)
-{
-  SoapEnv *env;
-  xmlNodePtr node;
-
-  if (doc == NULL)
-  {
-    log_error1 ("Can not create xml document!");
-    return NULL;
-  }
-
-  node = xmlDocGetRootElement (doc);
-  if (node == NULL)
-  {
-    log_error1 ("xml document is empty!");
-    return NULL;
-  }
-
-  env = (SoapEnv *) malloc (sizeof (SoapEnv));
-
-  /* set root */
-  env->root = node;
-
-  /* set method root
-     set call->cur (current node) to <method>.
-     xpath: //Envelope/Body/
-   */
-  node = soap_xml_get_children (env->root);
-  env->cur = soap_xml_get_children (node);
-
-  return env;
-}
-
-
-
-
-SoapEnv *
-soap_env_new_from_buffer (const char *buffer)
-{
-  xmlDocPtr doc;
-  SoapEnv *env;
-
-  if (buffer == NULL)
-    return NULL;
-
-  doc = xmlParseDoc (BAD_CAST buffer);
-  if (doc == NULL)
-    return NULL;
-
-  env = soap_env_new_from_doc (doc);
-  if (env == NULL)
-  {
-    xmlFreeDoc (doc);
-    return NULL;
-  }
-
-  return env;
 }
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.7 2004/10/15 13:33:13 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.8 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -50,8 +50,8 @@ typedef struct _SoapEnv
    @param faultstring A fault message
    @param faultactor The fault actor (This can be NULL)
    @param detail The detail of the error (This can be NULL)
-
-   @returns A Soap envelope object like follows 
+   @param out the result envelope out parameter like follows
+   @returns H_OK if success
 
    <pre>
    <SOAP-ENV:Envelope xmlns:SOAP-ENV="..." SOAP-ENV:encoding="..."
@@ -72,10 +72,11 @@ typedef struct _SoapEnv
    </pre>
 
  */
-SoapEnv *soap_env_new_with_fault(fault_code_t faultcode, 
+herror_t
+soap_env_new_with_fault(fault_code_t faultcode, 
 				 const char *faultstring,
 				 const char *faultactor,
-				 const char *detail);
+				 const char *detail, SoapEnv **out);
 
 /**
    Creates an envelope with a method to invoke a soap service.
@@ -84,7 +85,8 @@ SoapEnv *soap_env_new_with_fault(fault_code_t faultcode,
    @param urn The urn of the soap service to invoke
    @param method The method name of the soap service
 
-   @returns A Soap envelope object like follows 
+   @param out the result envelope out parameter like follows
+   @returns H_OK if success
 
    <pre>
    <SOAP-ENV:Envelope xmlns:SOAP-ENV="..." SOAP-ENV:encoding="..."
@@ -101,7 +103,8 @@ SoapEnv *soap_env_new_with_fault(fault_code_t faultcode,
    </pre>
 
  */
-SoapEnv *soap_env_new_with_method(const char *urn, const char *method);
+herror_t
+soap_env_new_with_method(const char *urn, const char *method, SoapEnv **out);
 
 
 /**
@@ -115,7 +118,8 @@ SoapEnv *soap_env_new_with_method(const char *urn, const char *method);
    @param req The request object. A response object will be created
     to this request.
 
-   @returns A Soap envelope object like follows 
+   @param out the result envelope out paramter like follows
+   @returns H_OK if success
 
    <pre>
    <SOAP-ENV:Envelope xmlns:SOAP-ENV="..." SOAP-ENV:encoding="..."
@@ -133,7 +137,7 @@ SoapEnv *soap_env_new_with_method(const char *urn, const char *method);
 
 
  */
-SoapEnv *soap_env_new_with_response(SoapEnv *req);
+herror_t soap_env_new_with_response(SoapEnv *req,SoapEnv **out);
 
 
 /**
@@ -141,10 +145,11 @@ SoapEnv *soap_env_new_with_response(SoapEnv *req);
    pointer.
 
    @param doc the xml document pointer
-   @returns A Soap envelop object if success, 
-    NULL otherwise.
+   @param out the output envelope object
+   @returns H_OK if success
+    
  */
-SoapEnv *soap_env_new_from_doc(xmlDocPtr doc);
+herror_t soap_env_new_from_doc(xmlDocPtr doc, SoapEnv **out);
 
 
 /**
@@ -152,17 +157,20 @@ SoapEnv *soap_env_new_from_doc(xmlDocPtr doc);
    The string must be in xml format.
 
    @param buffer The string to parse into a envelope.
-   @returns A soap envelope object if success or
-    NULL if the string can not be parsed or the string
-    does not represent an soap envelope in xml format.
+   @param out the output envelope object
+   @returns H_OK if success
  */
-SoapEnv *soap_env_new_from_buffer(const char* buffer);
+herror_t soap_env_new_from_buffer(const char* buffer,SoapEnv **out);
 
 
 /**
   Create an envelope from input stream
+
+   @param in the input stream object to read from 
+   @param out the output envelope object
+   @returns H_OK if success
 */
-SoapEnv *soap_env_new_from_stream(http_input_stream_t *in);
+herror_t soap_env_new_from_stream(http_input_stream_t *in, SoapEnv **out);
 
 /* --------------------------------------------------- */
 /*      XML Serializer functions  and typedefs         */

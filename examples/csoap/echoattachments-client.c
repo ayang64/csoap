@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.3 2004/10/15 15:10:14 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.4 2004/10/28 10:30:41 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,11 +24,10 @@
 #include <libcsoap/soap-client.h>
 
 
-/*
-static const char *url = "http://csoap.sourceforge.net/cgi-bin/csoapserver";
-*/
+
+
+static const char *urn = "urn:examples";
 static const char *url = "http://localhost:10000/echoattachment";
-static const char *urn = "";
 static const char *method = "echo";
 
 
@@ -96,6 +95,7 @@ int main(int argc, char *argv[])
   SoapCtx *ctx, *ctx2;
   char href[MAX_HREF_SIZE];
   xmlNodePtr fault;
+  herror_t err;
 
   if (argc < 2) {
     fprintf(stderr, "usage: %s <filename> [url]\n", argv[0]);
@@ -103,12 +103,20 @@ int main(int argc, char *argv[])
   }
 
   log_set_level(HLOG_VERBOSE);
-  if (!soap_client_init_args(argc, argv)) {
-	  return 1;
+  err = soap_client_init_args(argc, argv);
+  if (err != H_OK) {
+	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
+	herror_release(err);
+	return 1;
   }
 
-  ctx = soap_client_ctx_new(urn, method);
-  if (soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href) != H_OK) {
+  err = soap_client_ctx_new(urn, method, &ctx);
+  if (err != H_OK) {
+	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
+	herror_release(err);
+	return 1;
+  }
+   if (soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href) != H_OK) {
     fprintf(stderr, "Error while adding '%s'\n", argv[1]);
     soap_ctx_free(ctx);
     exit(1);
@@ -117,9 +125,15 @@ int main(int argc, char *argv[])
 
   printf("sending request ...\n");  
   if (argc > 2)
-    ctx2 = soap_client_invoke(ctx, argv[2], "");
+    err = soap_client_invoke(ctx, &ctx2, argv[2], "");
   else
-    ctx2 = soap_client_invoke(ctx, url, "");
+    err = soap_client_invoke(ctx, &ctx2, url, "");
+
+  if (err != H_OK) {
+	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+	herror_release(err);
+	return 1;
+  }
 
   fault = soap_env_get_fault(ctx2->env);
   if (fault) {
@@ -136,6 +150,7 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
 
 
 

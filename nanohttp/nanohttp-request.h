@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.1 2004/10/15 13:30:42 snowdrop Exp $
+ *  $Id: nanohttp-request.h,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,7 +45,7 @@ typedef struct hrequest
   char root_part_id[150];
 }hrequest_t;
 
-hrequest_t *hrequest_new_from_socket(hsocket_t sock);
+herror_t hrequest_new_from_socket(hsocket_t sock, hrequest_t **out);
 void hrequest_free(hrequest_t *req);
 
 #endif
