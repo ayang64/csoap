@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.12 2004/09/19 07:05:03 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.13 2004/10/15 13:29:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,182 +24,184 @@
 #ifndef NANO_HTTP_SOCKET_H 
 #define NANO_HTTP_SOCKET_H 
 
-#define HSOCKET_OK 0
-#define HSOCKET_CAN_NOT_CREATE 1001
-#define HSOCKET_CAN_NOT_GET_HOSTNAME 1002
-#define HSOCKET_CAN_NOT_CONNECT 1003
-#define HSOCKET_CAN_NOT_SEND 1004
-#define HSOCKET_CAN_NOT_RECEIVE 1005
-#define HSOCKET_CAN_NOT_BIND 1006
-#define HSOCKET_CAN_NOT_LISTEN 1007
-#define HSOCKET_CAN_NOT_ACCEPT 1008
-
-#define HSOCKET_MAX_BUFSIZE 1024
-
-#define HSOCKET_BLOCKMODE 0
-#define HSOCKET_NONBLOCKMODE 1
+#include <nanohttp/nanohttp-common.h>
 
 #include <time.h>
+
 #ifdef WIN32
-#include <winsock2.h>
-#include <process.h>
-#include <string.h>
-typedef SOCKET hsocket_t;
-typedef int socklen_t;
-#define close(s) closesocket(s)
-#else
-#include <pthread.h>
-typedef int hsocket_t;
+  #include <winsock2.h>
 #endif
-/*
-  PROTOTYPE:
-  int my_recv_cb(hsocket_t sock, char *buffer, int size, void *userdata);
-  returns 1 to continue 0 to stop receiving.
- */
-typedef int (*hsocket_recv_callback)(hsocket_t, char *, int, void*);
 
 
-/*
-  hsocket_module_init
-  Returns 0 if success.
-  >0 if fail.
+#ifdef WIN32
+  typedef SOCKET hsocket_t;
+  typedef int socklen_t;
+#else
+  typedef int hsocket_t;
+#endif
+
+
+
+/**
+  Initializes the socket modul. This should be called only 
+  once for an application.
+
+  @returns This function should always return H_OK. 
  */
-int hsocket_module_init();
+hstatus_t hsocket_module_init();
+
+
+/**
+  Destroys the socket modul. This should be called after 
+  finishing an application.
+*/
 void hsocket_module_destroy();
 
 
-/*
-  hsocket_init
-  Returns 0 if success.
-  >0 if fail.
+/**
+  Initializes a given socket object. This function should
+  be called for every socket before using it.
+
+  @param sock the destination socket to initialize.
+
+  @returns This function should always return H_OK. 
  */
-int hsocket_init(hsocket_t *sock);
+hstatus_t hsocket_init(hsocket_t *sock);
+
+
+/**
+  Destroys and releases a given socket.
+
+  @param sock the socket to destroy
+*/
 void hsocket_free(hsocket_t sock);
 
 
-/*
-  hsocket_open: create and connect a socket
-  Returns 0 if success
-  >0 if fail.
+/**
+  Connects to a given host. The hostname can be an IP number 
+  or a humen readable hostname.
+  
+  @param sock the destonation socket object to use
+  @param host hostname 
+  @param port port number to connect to
+
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_CREATE 
+    <BR>HSOCKET_ERROR_GET_HOSTNAME 
+    <BR>HSOCKET_ERROR_CONNECT
  */
-int hsocket_open(hsocket_t *sock, const char* host, int port);
+hstatus_t hsocket_open(hsocket_t *sock, const char* host, int port);
+
+
+/**
+  Close a socket connection.
+
+  @param sock the socket to close
+*/
 void hsocket_close(hsocket_t sock);
 
-/*
-  hsocket_bind: create and bind a socket
-  Returns 0 if success
-  >0 if fail.
+
+/**
+  Binds a socket to a given port number. After bind you
+  can call hsocket_listen() to listen to the port.
+
+  @param sock socket to use.
+  @param port  port number to bind to
+  
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_CREATE
+    <BR>HSOCKET_ERROR_BIND
+
+  @see hsocket_listen
  */
-int hsocket_bind(hsocket_t *sock, int port);
-
-/*
-  Listen to socket. Must be called after bind
- */
-int hsocket_listen(hsocket_t sock, int n);
-
-typedef struct tag_conndata
-{
-	hsocket_t sock;
-#ifdef WIN32
-	HANDLE tid;
-#else
-	pthread_t tid;
-  	pthread_attr_t attr;
-#endif
-	time_t atime;
-}conndata_t;
-
-int hsocket_accept(hsocket_t sock, hsocket_t *dest);
+hstatus_t hsocket_bind(hsocket_t *sock, int port);
 
 
-/*
-  hsocket_nsend
-  sends n bytes of data
-  Returns 0 if success
-  >0 if fail
- */
-int hsocket_nsend(hsocket_t sock, const unsigned char* buffer, int n); 
+/**
+  Set the socket to the listen mode. You must bind 
+  the socket to a port with hsocket_bind() before 
+  you can listen to the port.
 
-/*
-  hsocket_send
-  sends strlen(buffer) bytes of data
-  Returns 0 if success
-  >0 if fail
- */
-int hsocket_send(hsocket_t sock, const char* str); 
+  @param sock the socket to use
+
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_NOT_INITIALIZED
+    <BR>HSOCKET_ERROR_LISTEN
+*/
+hstatus_t hsocket_listen(hsocket_t sock);
 
 
-/*
-  hsocket_recv
-  receives everything quequed on the socket.
-  Sets *buffer to the received buffer.
-  Sets size to the received size.
-  You must free the buffer manually with free().
-  If buffer is non zero, this functions assumes that
-  buffer is valid and just reallocates the given buffer.
-  If buffer is zero (like in the following example),
-  the buffer will be allocated first.
+/**
+  Accepts an incoming socket request. Note that this function
+  will not return until a socket connection is ready.
 
-  Example:
-
-   int size;
-   char *buffer;
-   hsocket_t sock;
-   
-   buffer = 0; 
-   sock = ...
-
-   if (!hsocket_recv(sock, &buffer, &size)) {
-    printf("Received total: %d\n", size);
-    printf("Received: '%s'\n", buffer);
-
-    free(buffer);
-   } else {
-    printf("Error receiving data\n");
-   }
-
-  Returns 0 if success
-  >0 if fail
- */
-int hsocket_recv(hsocket_t sock, unsigned char** buffer, int *size); 
-
-int hsocket_recv_limit(hsocket_t sock, char** buffer, 
-		       const char* delim, char **rest, 
-		       int *totalBuffer, int *totalRest);
-
-/*
-  returns 1 to continue, 0 to break;
- */
-int hsocket_recv_cb(hsocket_t sock, 
-		    hsocket_recv_callback cb, void *userdata);
-
-int hsocket_read(hsocket_t sock, unsigned char* buffer, int total, int force);
+  @param sock the socket which listents to a port
+  @param dest the destination socket which will be created
+  
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_NOT_INITIALIZED
+    <BR>HSOCKET_ERROR_ACCEPT
+*/
+hstatus_t hsocket_accept(hsocket_t sock, hsocket_t *dest);
 
 
-/* ======================================== */
-/*  Buffered socket                         */
-/* ======================================== */
-typedef struct _bufsocket
-{
-  hsocket_t sock;
-  char *buffer;
-  int bufsize;
-  int cur;
-}hbufsocket_t;
+/**
+  Sends data throught the socket.
+
+  @param sock the socket to use to send the data
+  @param bytes bytes to send
+  @param size size of memory to sent pointed by bytes.
+
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_NOT_INITIALIZED
+    <BR>HSOCKET_ERROR_SEND
+*/
+hstatus_t hsocket_nsend(hsocket_t sock, const byte_t* bytes, int size); 
 
 
-int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size);
+/**
+  Sends a string throught the socket
 
-/*--------------------------------------------------
-FUNCTION: hsocket_makenonblock
-----------------------------------------------------*/
-int hsocket_makenonblock(hsocket_t sock);
+  @param sock the socket to use to send the data
+  @param str the null terminated string to sent
 
-#ifdef WIN32
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_NOT_INITIALIZED
+    <BR>HSOCKET_ERROR_SEND
+*/
+hstatus_t hsocket_send(hsocket_t sock, const char* str); 
 
-struct tm *localtime_r(const time_t *const timep, struct tm *p_tm);
 
-#endif
+/**
+  Reads data from the socket.
+
+  @param sock the socket to read data from
+  @param buffer the buffer to use to save the readed bytes
+  @param size the maximum size of bytes to read
+  @param force if force is 1 then hsocket_read() will wait until
+   maximum size of bytes (size parameter) was readed. Otherwise
+   this function will not wait and will return with the bytes
+   quequed on the socket.
+
+   @returns This function will return -1 if an read error was occured.
+     Otherwise the return value is the size of bytes readed from 
+     the socket.
+  
+*/
+int hsocket_read(hsocket_t sock, byte_t* buffer, int size, int force);
+
+/**
+  Sets the goven socket to non-blocking socket mode.
+
+  @param sock the socket to set into the non-blocking mode
+
+  @returns H_OK if success. One of the followings if fails:<P>
+    <BR>HSOCKET_ERROR_NOT_INITIALIZED
+    <BR>HSOCKET_ERROR_IOCTL
+*/
+hstatus_t hsocket_block(hsocket_t sock, int block);
+
+
 #endif
 
 

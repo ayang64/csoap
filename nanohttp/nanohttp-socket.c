@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.22 2004/09/19 07:05:03 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.23 2004/10/15 13:29:37 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,16 +25,16 @@
 #include <nanohttp/nanohttp-common.h>
 
 #ifdef WIN32
-#include "wsockcompat.h"
-#include <winsock2.h>
-#include <process.h>
-
-#ifndef __MINGW32__
-typedef int ssize_t;
-#endif
-
+  #include "wsockcompat.h"
+  #include <winsock2.h>
+  #include <process.h>
+  
+  #ifndef __MINGW32__
+    typedef int ssize_t;
+  #endif
+  
 #else
-#include <fcntl.h>
+  #include <fcntl.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -64,12 +64,16 @@ typedef int ssize_t;
 #include <stdio.h>
 #include <errno.h>
 
+#ifdef MEM_DEBUG
+#include <utils/alloc.h>
+#endif
+
 /*--------------------------------------------------
 FUNCTION: hsocket_module_init
 NOTE: This will be called from httpd_init()
 	for server and from httpc_init() for client
 ----------------------------------------------------*/
-int
+hstatus_t
 hsocket_module_init ()
 {
 #ifdef WIN32
@@ -79,7 +83,7 @@ hsocket_module_init ()
 #else /* */
   /* nothing to init for unix sockets */
 #endif /* */
-  return 0;
+  return H_OK;
 }
 
 /*--------------------------------------------------
@@ -99,12 +103,12 @@ hsocket_module_destroy ()
 /*--------------------------------------------------
 FUNCTION: hsocket_init
 ----------------------------------------------------*/
-int
+hstatus_t
 hsocket_init (hsocket_t * sock)
 {
   /* just set the descriptor to -1 */
   *sock = -1;
-  return 0;
+  return H_OK;
 }
 
 /*--------------------------------------------------
@@ -119,7 +123,7 @@ hsocket_free (hsocket_t sock)
 /*--------------------------------------------------
 FUNCTION: hsocket_open
 ----------------------------------------------------*/
-int
+hstatus_t
 hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 {
   hsocket_t sock;
@@ -129,12 +133,12 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 
   sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock <= 0)
-    return HSOCKET_CAN_NOT_CREATE;
+    return HSOCKET_ERROR_CREATE;
 
   /* Get host data */
   host = gethostbyname (hostname);
   if (host == NULL)
-    return HSOCKET_CAN_NOT_GET_HOSTNAME;
+    return HSOCKET_ERROR_GET_HOSTNAME;
 
   ip = inet_ntoa (*(struct in_addr *) *host->h_addr_list);
   address.sin_addr.s_addr = inet_addr (ip);
@@ -145,16 +149,16 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 
   /* connect to the server */
   if (connect (sock, (struct sockaddr *) &address, sizeof (address)) != 0)
-    return HSOCKET_CAN_NOT_CONNECT;
+    return HSOCKET_ERROR_CONNECT;
 
   *dsock = sock;
-  return HSOCKET_OK;
+  return H_OK;
 }
 
 /*--------------------------------------------------
 FUNCTION: hsocket_bind
 ----------------------------------------------------*/
-int
+hstatus_t
 hsocket_bind (hsocket_t * dsock, int port)
 {
   hsocket_t sock;
@@ -165,7 +169,7 @@ hsocket_bind (hsocket_t * dsock, int port)
   if (sock == -1)
   {
     log_error2 ("Can not create socket: '%s'", strerror (errno));
-    return HSOCKET_CAN_NOT_CREATE;
+    return HSOCKET_ERROR_CREATE;
   }
   /* bind socket */
   addr.sin_family = AF_INET;
@@ -177,63 +181,69 @@ hsocket_bind (hsocket_t * dsock, int port)
   if (bind (sock, (struct sockaddr *) &addr, sizeof (struct sockaddr)) == -1)
   {
     log_error2 ("Can not bind: '%s'", strerror (errno));
-    return HSOCKET_CAN_NOT_BIND;
+    return HSOCKET_ERROR_BIND;
   }
   *dsock = sock;
-  return HSOCKET_OK;
+  return H_OK;
 }
 
 /*----------------------------------------------------------
 FUNCTION: hsocket_accept
 ----------------------------------------------------------*/
-int
+hstatus_t
 hsocket_accept (hsocket_t sock, hsocket_t * dest)
 {
   socklen_t asize;
   hsocket_t sockfd;
   struct sockaddr_in addr;
 
+  if (sock <= 0)
+    return  HSOCKET_ERROR_NOT_INITIALIZED;
+
   asize = sizeof (struct sockaddr_in);
 #ifdef WIN32
   while (1)
   {
     sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
-    if (sockfd == INVALID_SOCKET)
-    {
+    if (sockfd == INVALID_SOCKET)   {
       if (WSAGetLastError () != WSAEWOULDBLOCK)
-        return HSOCKET_CAN_NOT_ACCEPT;
-    }
-    else
-    {
+        return HSOCKET_ERROR_ACCEPT;
+    } else  {
       break;
     }
   }
-#else
+#else 
+/* TODO (#1#): why not a loop like in win32? */
   sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
-  if (sockfd == -1)
-  {
-    return HSOCKET_CAN_NOT_ACCEPT;
+  if (sockfd == -1) {
+    return HSOCKET_ERROR_ACCEPT;
   }
-#endif
+#endif 
+/* TODO (#1#): Write to access.log file */
+
   log_verbose3 ("accept new socket (%d) from '%s'", sockfd,
                 SAVE_STR (((char *) inet_ntoa (addr.sin_addr))));
 
   *dest = sockfd;
-  return HSOCKET_OK;
+  return H_OK;
 }
 
 /*--------------------------------------------------
 FUNCTION: hsocket_listen
 ----------------------------------------------------*/
-int
-hsocket_listen (hsocket_t sock, int n)
+hstatus_t
+hsocket_listen (hsocket_t sock)
 {
-  if (listen (sock, n) == -1)
+  if (sock <= 0)
+    return  HSOCKET_ERROR_NOT_INITIALIZED;
+
+  if (listen (sock, 15) == -1)
   {
     log_error2 ("Can not listen: '%s'", strerror (errno));
-    return HSOCKET_CAN_NOT_LISTEN;
+    return HSOCKET_ERROR_LISTEN;
   }
-  return HSOCKET_OK;
+
+  return H_OK;
 }
 
 /*--------------------------------------------------
@@ -243,7 +253,18 @@ void
 hsocket_close (hsocket_t sock)
 {
 #ifdef WIN32
+  /*shutdown(sock,SD_RECEIVE);*/
+  
+/*  struct linger _linger;
+
+  hsocket_block(sock,1);
+  _linger.l_onoff =1;
+  _linger.l_linger = 30000;
+  setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
+
+  
   closesocket (sock);
+*/
 #else
   close (sock);
 #endif
@@ -252,22 +273,39 @@ hsocket_close (hsocket_t sock)
 /*--------------------------------------------------
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
-int
-hsocket_nsend (hsocket_t sock, const unsigned char *bytes, int n)
+hstatus_t
+hsocket_nsend (hsocket_t sock, const byte_t *bytes, int n)
 {
   int size;
 
-  size = send ((int) sock, bytes, n, 0);
-  if (size == -1)
-    return HSOCKET_CAN_NOT_SEND;
+  if (sock <= 0)
+    return  HSOCKET_ERROR_NOT_INITIALIZED;
 
-  return HSOCKET_OK;
+  /* TODO (#1#): check return value and send again until n bytes sent */
+  
+  while (1)
+  {
+    size = send((int) sock, bytes, n, 0);
+#ifdef WIN32
+    if (size == INVALID_SOCKET)
+        if (WSAGetLastError () == WSAEWOULDBLOCK)
+          continue;
+        else       
+          return HSOCKET_ERROR_SEND;
+#else
+    if (size == -1)
+        return HSOCKET_ERROR_SEND;
+#endif
+    n -= size;
+    if (n<=0) break;
+  }
+  return H_OK;
 }
 
 /*--------------------------------------------------
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
-int
+hstatus_t
 hsocket_send (hsocket_t sock, const char *str)
 {
   return hsocket_nsend (sock, str, strlen (str));
@@ -277,214 +315,87 @@ hsocket_send (hsocket_t sock, const char *str)
   return: -1 is error. read bytes otherwise
 */
 int
-hsocket_read (hsocket_t sock, unsigned char *buffer, int total, int force)
+hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force)
 {
   int status;
   int totalRead;
-
+  int wsa_error;
   totalRead = 0;
 
   do
   {
-    status = recv (sock, &buffer[totalRead], total - totalRead, 0);
+    status = recv(sock, &buffer[totalRead], total - totalRead, 0);
 
 #ifdef WIN32
-    if (status == INVALID_SOCKET)
-        if (WSAGetLastError () == WSAEWOULDBLOCK)
-          continue;
-        else       
-          return -1;
+    if (status == INVALID_SOCKET) 
+    {
+        wsa_error = WSAGetLastError();
+        switch (wsa_error)
+        {
+          case WSAEWOULDBLOCK: 
+          case WSAEALREADY:
+          case WSAEINPROGRESS:        
+             continue;
+          default:
+             log_error2("WSAGetLastError()=%d", wsa_error);
+             return -1;
+        }
+    }
+
 #else
+/*
+ switch (errno) {
+   case EWOULDBLOCK: 
+   case EALREADY:
+   case EINPROGRESS:
+     return true;
+   }
+*/
     if (status == -1)
         return -1;
 #endif
     
-    if (!force)
+    if (!force) {
+        _log_str("socket.recv", buffer, status);
         return status;
+    }
     
     totalRead += status;
 
-    if (totalRead == total)
+    if (totalRead == total) {
+       _log_str("socket.recv", buffer, totalRead);
       return totalRead;
+    }
   }
   while (1);
 }
 
-/*--------------------------------------------------
-FUNCTION: hsocket_recv
-----------------------------------------------------*/
-int
-hsocket_recv (hsocket_t sock, unsigned char **buffer, int *totalSize)
-{
-  ssize_t size;
-  int chunk = 1;
-  char tmp[HSOCKET_MAX_BUFSIZE + 1];
-  int fsize;
-  int bufSize;
 
-  if (*totalSize > 0)
-    bufSize = *totalSize;
-  else
-    bufSize = HSOCKET_MAX_BUFSIZE;
-
-  *totalSize = 0;
-
-  /* calculate first size for realloc */
-  if (*buffer)
-    fsize = strlen (*buffer);
-  else
-    fsize = 0;
-
-  do
-  {
-    size = recv (sock, tmp, bufSize, 0);
-    bufSize = HSOCKET_MAX_BUFSIZE;
-
-    if (size == -1)
-    {
-      log_error1 ("Error reading from socket");
-      return HSOCKET_CAN_NOT_RECEIVE;
-    }
-    
-    if (size == 0)
-    {
-      break;
-    }
-    *totalSize += size;
-    if (*buffer)
-    {
-      log_verbose2 ("reallocation %d bytes", *totalSize + fsize + 1);
-      *buffer = (char *) realloc ((char *) *buffer,
-                                  (*totalSize) + fsize + HSOCKET_MAX_BUFSIZE);
-      strcat (*buffer, tmp);
-    }
-    else
-    {
-      *buffer = (char *) realloc (NULL, *totalSize + 1);
-      strcpy (*buffer, tmp);
-    }
-
-    (*buffer)[*totalSize + fsize] = '\0';
-    chunk++;
-  } while (size > 0);
-
-  return HSOCKET_OK;
-}
-
-/*--------------------------------------------------
-FUNCTION: hsocket_recv
-----------------------------------------------------*/
-int
-hsocket_recv_cb (hsocket_t sock, hsocket_recv_callback cb, void *userdata)
-{
-  ssize_t size;
-  char tmp[HSOCKET_MAX_BUFSIZE + 1];
-
-  do
-  {
-
-    size = recv (sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
-
-    if (size == -1)
-    {
-      log_error1 ("Error reading from socket");
-      return HSOCKET_CAN_NOT_RECEIVE;
-    }
-
-    if (size == 0)
-    {
-      break;
-    }
-    tmp[size] = '\0';
-    if (!cb (sock, tmp, size, userdata))
-    {
-      break;
-    }
-  }
-  while (size > 0);
-
-  return HSOCKET_OK;
-}
-
-/*--------------------------------------------------
-FUNCTION: hbufsocket_read
-----------------------------------------------------*/
-int
-hbufsocket_read (hbufsocket_t * bufsock, char *buffer, int size)
-{
-  int status;
-  int tmpsize;
-
-  if (bufsock->bufsize - bufsock->cur >= size)
-  {
-
-    /* no need to read from socket*/
-    strncpy (buffer, &(bufsock->buffer[bufsock->cur]), size);
-    bufsock->cur += size;
-    return HSOCKET_OK;
-
-  }
-  else
-  {
-
-    tmpsize = bufsock->bufsize - bufsock->cur;
-    log_verbose5 ("tmpsize=%d, bufsock->bufsize=%d, bufsock->cur=%d, size=%d", 
-        tmpsize, bufsock->bufsize, bufsock->cur, size);
-
-    if (tmpsize > 0)
-      strncpy (buffer, &(bufsock->buffer[bufsock->cur]), tmpsize);
-
-    size -= tmpsize;
-
-    free (bufsock->buffer);
-
-    status = hsocket_read (bufsock->sock, &buffer[tmpsize], size, 1);
-    log_verbose3("hsocket_read(): size=%d,status=%d", size, status);
-    if (status == size)
-    {
-      bufsock->buffer = (char *) malloc (size + 1);
-      strncpy (bufsock->buffer, &buffer[tmpsize], size);
-      bufsock->cur = size;
-      bufsock->bufsize = size;
-    }
-    else
-    {
-      return status;
-    }
-
-    return HSOCKET_OK;
-  }
-}
-
-int
-hsocket_makenonblock (hsocket_t sock)
+hstatus_t
+hsocket_block(hsocket_t sock, int block)
 {
 #ifdef WIN32
   unsigned long iMode;
-  iMode = HSOCKET_NONBLOCKMODE;
+#endif
+
+  if (sock <= 0)
+    return  HSOCKET_ERROR_NOT_INITIALIZED;
+
+#ifdef WIN32
+/*#define HSOCKET_BLOCKMODE 0
+#define HSOCKET_NONBLOCKMODE 1
+*/
+  iMode = (block==0)?1:0; /* Non block mode */
   if (ioctlsocket (sock, FIONBIO, (u_long FAR *) & iMode) == INVALID_SOCKET)
   {
     log_error1 ("ioctlsocket error");
-    return -1;
+    return HSOCKET_ERROR_IOCTL;
   }
 #else /* fcntl(sock, F_SETFL, O_NONBLOCK); */
+/* TODO (#1#): check for *nix the non blocking sockets */
+
 #endif
-  return HSOCKET_OK;
+  return H_OK;
 }
 
-#ifdef WIN32
 
-struct tm *
-localtime_r (const time_t * const timep, struct tm *p_tm)
-{
-  static struct tm *tmp;
-  tmp = localtime (timep);
-  if (tmp)
-  {
-    memcpy (p_tm, tmp, sizeof (struct tm));
-    tmp = p_tm;
-  }
-  return tmp;
-}
-
-#endif /* */

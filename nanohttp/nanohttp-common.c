@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.12 2004/09/19 07:05:03 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.13 2004/10/15 13:29:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,40 +23,15 @@
 ******************************************************************/
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-reqres.h>
+
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
-#ifdef WIN32
 #include <string.h>
-static char    *
-strtok_r(char *s, const char *delim, char **save_ptr)
-{
-	char           *token;
 
-	if (s == NULL)
-		s = *save_ptr;
-
-	/* Scan leading delimiters.  */
-	s += strspn(s, delim);
-	if (*s == '\0')
-		return NULL;
-
-	/* Find the end of the token.  */
-	token = s;
-	s = strpbrk(token, delim);
-	if (s == NULL)
-		/* This token finishes the string.  */
-		*save_ptr = strchr(token, '\0');
-	else {
-		/* Terminate the token and make *SAVE_PTR point past it.  */
-		*s = '\0';
-		*save_ptr = s + 1;
-	}
-	return token;
-}
+#ifdef MEM_DEBUG
+#include <utils/alloc.h>
 #endif
 
 static log_level_t loglevel = HLOG_DEBUG;
@@ -144,10 +119,9 @@ log_error(const char *FUNC, const char *format,...)
 }
 
 
-/*
- * ----------------------------------------- FUNCTION: strcmpigcase
- * ------------------------------------------
- */
+/* ----------------------------------------- 
+  FUNCTION: strcmpigcase
+ ------------------------------------------*/
 int 
 strcmpigcase(const char *s1, const char *s2)
 {
@@ -364,23 +338,22 @@ hurl_dump(const hurl_t * url)
 		log_error1("url is NULL!");
 		return;
 	}
-	log_verbose2("PROTOCOL : %s", SAVE_STR(url->protocol));
-	log_verbose2("    HOST : %s", SAVE_STR(url->host));
+	log_verbose2("PROTOCOL : %d", url->protocol);
+	log_verbose2("    HOST : %s", url->host);
 	log_verbose2("    PORT : %d", url->port);
-	log_verbose2(" CONTEXT : %s", SAVE_STR(url->context));
+	log_verbose2(" CONTEXT : %s", url->context);
 }
 
 
-hurl_t         *
-hurl_new(const char *urlstr)
+int hurl_parse(hurl_t* url, const char *urlstr)
 {
 	int             iprotocol;
 	int             ihost;
 	int             iport;
 	int             len;
 	int             size;
-	hurl_t         *url;
 	char            tmp[8];
+	char            protocol[1024];
 
 	iprotocol = 0;
 	len = strlen(urlstr);
@@ -392,17 +365,17 @@ hurl_new(const char *urlstr)
 
 	if (iprotocol == 0) {
 		log_error1("no protocol");
-		return NULL;
+		return URL_ERROR_NO_PROTOCOL;
 	}
 	if (iprotocol + 3 >= len) {
 		log_error1("no host");
-		return NULL;
+		return URL_ERROR_NO_HOST;
 	}
 	if (urlstr[iprotocol] != ':'
 	    && urlstr[iprotocol + 1] != '/'
 	    && urlstr[iprotocol + 2] != '/') {
 		log_error1("no protocol");
-		return NULL;
+		return URL_ERROR_NO_PROTOCOL;
 	}
 	/* find host */
 	ihost = iprotocol + 3;
@@ -414,7 +387,7 @@ hurl_new(const char *urlstr)
 
 	if (ihost == iprotocol + 1) {
 		log_error1("no host");
-		return NULL;
+		return URL_ERROR_NO_HOST;
 	}
 	/* find port */
 	iport = ihost;
@@ -425,14 +398,20 @@ hurl_new(const char *urlstr)
 			}
 		}
 	}
-	url = (hurl_t *) malloc(sizeof(hurl_t));
 
-	url->protocol = (char *) malloc(sizeof(char) * iprotocol + 1);
-	strncpy(url->protocol, urlstr, iprotocol);
-	url->protocol[iprotocol] = '\0';
+	/* find protocol */
+	strncpy(protocol, urlstr, iprotocol);
+	protocol[iprotocol] = '\0';
+	if (strcmpigcase(protocol, "http"))
+	  url->protocol = PROTOCOL_HTTP;
+	else if (strcmpigcase(protocol, "https"))
+	  url->protocol = PROTOCOL_HTTPS;
+	else if (strcmpigcase(protocol, "ftp"))
+	  url->protocol = PROTOCOL_FTP;
+	else return URL_ERROR_UNKNOWN_PROTOCOL;
 
-	size = ihost - iprotocol - 3;
-	url->host = (char *) malloc(sizeof(char) * size + 1);
+	/* TODO (#1#): add max of size and URL_MAX_HOST_SIZE */
+	size = ihost - iprotocol - 3; 
 	strncpy(url->host, &urlstr[iprotocol + 3], size);
 	url->host[size] = '\0';
 
@@ -441,402 +420,250 @@ hurl_new(const char *urlstr)
 		strncpy(tmp, &urlstr[ihost + 1], size);
 		url->port = atoi(tmp);
 	} else {
-		url->port = 80;
+	  switch (url->protocol) {
+	     case PROTOCOL_HTTP:
+	      url->port = URL_DEFAULT_PORT_HTTP;
+	      break;
+	     case PROTOCOL_HTTPS:
+	      url->port = URL_DEFAULT_PORT_HTTPS;
+	      break;
+	     case PROTOCOL_FTP:
+	      url->port = URL_DEFAULT_PORT_FTP;
+	      break;
+	  }
 	}
 
 	len = strlen(urlstr);
 	if (len > iport) {
-		size = len - iport;
-		url->context = (char *) malloc(sizeof(char) * size + 1);
+		/* TODO (#1#): find max of size and URL_MAX_CONTEXT_SIZE */
+		size = len - iport; 
 		strncpy(url->context, &urlstr[iport], size);
 		url->context[size] = '\0';
 	} else {
-		url->context = NULL;
+		url->context[0] = '\0';
 	}
 
 	hurl_dump(url);
 
-	return url;
+	return H_OK;
 }
 
 
-void 
-hurl_free(hurl_t * url)
+/* Content-type stuff */
+
+content_type_t *content_type_new(const char* content_type_str)
 {
-	if (url == NULL)
-		return;
+  hpair_t *pair = NULL, *last = NULL;
+  content_type_t * ct;
+  char ch, key[256], value[256];
+  int inQuote = 0, i=0, c=0, begin=0, len;
+  int mode = 0; 
+  /*  0: searching ';'
+      1: process key
+      2: process value
+   */
+  
 
-	free(url->protocol);
-	free(url->host);
-	free(url->context);
+  /* Create object */
+  ct = (content_type_t*)malloc(sizeof(content_type_t));
+  ct->params = NULL;
 
-	free(url);
-}
-
-
-/* request stuff */
-
-/*
- * ----------------------------------------------------- FUNCTION:
- * hrequest_new_from_buffer
- * -----------------------------------------------------
- */
-hrequest_t     *
-hrequest_new_from_buffer(char *data)
-{
-	hrequest_t     *req;
-	hpair_t        *hpair = NULL, *qpair = NULL, *tmppair = NULL;
-
-	char           *tmp;
-	char           *tmp2;
-	char           *saveptr;
-	char           *saveptr2;
-	char           *saveptr3;
-	char           *result;
-	char           *key;
-	char           *value;
-	char           *opt_key;
-	char           *opt_value;
-	int             firstline = 1;
-
-	req = (hrequest_t *) malloc(sizeof(hrequest_t));
-
-	req->method = NULL;
-	req->spec = NULL;
-	req->path = NULL;
-	req->query = NULL;
-	req->header = NULL;
-
-	tmp = data;
-
-	for (;;) {
-		result = (char *) strtok_r(tmp, "\n", &saveptr);
-		tmp = saveptr;
-
-		if (result == NULL)
-			break;
-
-		if (firstline) {
-			firstline = 0;
-			tmp2 = result;
-
-			/* parse [GET|POST] [PATH] [SPEC] */
-			key = (char *) strtok_r(tmp2, " ", &saveptr2);
-
-			/* save method (get or post) */
-			tmp2 = saveptr2;
-			if (key != NULL) {
-				req->method = (char *) malloc(strlen(key) + 1);
-				strcpy(req->method, key);
-			}
-			/* below is key the path and tmp2 the spec */
-			key = (char *) strtok_r(tmp2, " ", &saveptr2);
-
-			/* save spec */
-			tmp2 = saveptr2;
-			if (tmp2 != NULL) {
-				req->spec = (char *) malloc(strlen(tmp2) + 1);
-				strcpy(req->spec, tmp2);
-			}
-			/*
-			 * parse and save path+query parse:
-			 * /path/of/target?key1=value1&key2=value2...
-			 */
-
-			if (key != NULL) {
-				tmp2 = key;
-				key = (char *) strtok_r(tmp2, "?", &saveptr2);
-				tmp2 = saveptr2;
-
-				/* save path */
-				req->path = (char *) malloc(strlen(key) + 1);
-				strcpy(req->path, key);
-
-				/* parse options */
-				for (;;) {
-					key = (char *) strtok_r(tmp2, "&", &saveptr2);
-					tmp2 = saveptr2;
-
-					if (key == NULL)
-						break;
-
-					opt_key = (char *) strtok_r(key, "=", &saveptr3);
-					opt_value = saveptr3;
-
-					if (opt_value == NULL)
-						opt_value = "";
-
-					/* create option pair */
-					if (opt_key != NULL) {
-						tmppair = (hpair_t *) malloc(sizeof(hpair_t));
-
-						if (req->query == NULL) {
-							req->query = qpair = tmppair;
-						} else {
-							qpair->next = tmppair;
-							qpair = tmppair;
-						}
-
-						/* fill hpairnode_t struct */
-						qpair->next = NULL;
-						qpair->key = (char *) malloc(strlen(opt_key) + 1);
-						qpair->value = (char *) malloc(strlen(opt_value) + 1);
-
-						strcpy(qpair->key, opt_key);
-						strcpy(qpair->value, opt_value);
-
-					}
-				}
-			}
-		} else {
-
-			/* parse "key: value" */
-			tmp2 = result;
-			key = (char *) strtok_r(tmp2, ": ", &saveptr2);
-			value = saveptr2;
-
-			/* create pair */
-			tmppair = (hpair_t *) malloc(sizeof(hpair_t));
-
-			if (req->header == NULL) {
-				req->header = hpair = tmppair;
-			} else {
-				hpair->next = tmppair;
-				hpair = tmppair;
-			}
-
-			/* fill pairnode_t struct */
-			hpair->next = NULL;
-			hpair->key = (char *) malloc(strlen(key) + 1);
-			hpair->value = (char *) malloc(strlen(value) + 1);
-
-			strcpy(hpair->key, key);
-			strcpy(hpair->value, value);
-		}
-	}
-
-	return req;
-}
-
-
-void 
-hrequest_free(hrequest_t * req)
-{
-	if (req == NULL)
-		return;
-
-	free(req->method);
-	free(req->path);
-	free(req->spec);
-
-	hpairnode_free_deep(req->header);
-	hpairnode_free_deep(req->query);
-
-}
-
-/* response stuff */
-
-
-/*
- * ------------------------------------------- FUNCTION: hresponse_new
- * ---------------------------------------------
- */
-hresponse_t    *
-hresponse_new()
-{
-	hresponse_t    *res;
-
-	/* create response object */
-	res = (hresponse_t *) malloc(sizeof(hresponse_t));
-	res->spec[0] = '\0';
-	res->errcode = -1;
-	res->desc = NULL;
-	res->header = NULL;
-	res->body = NULL;
-	res->bodysize = 0;
-
-	return res;
-}
-
-static
-hresponse_t    *
-_hresponse_parse_header(const char *buffer)
-{
-	hresponse_t    *res;
-	char           *s1, *s2, *str;
-
-	/* create response object */
-	res = hresponse_new();
-
-	/* *** parse spec *** */
-	/* [HTTP/1.1 | 1.2] [CODE] [DESC] */
-
-	/* stage 1: HTTP spec */
-	str = (char *) strtok_r((char *) buffer, " ", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	strncpy(res->spec, str, 10);
-
-	/* stage 2: http code */
-	str = (char *) strtok_r(s1, " ", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	res->errcode = atoi(str);
-
-	/* stage 3: description text */
-	str = (char *) strtok_r(s1, "\r\n", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	res->desc = (char *) malloc(strlen(str) + 1);
-	strcpy(res->desc, str);
-	res->desc[strlen(str)] = '\0';
-
-	/* *** parse header *** */
-	/* [key]: [value] */
-	for (;;) {
-		str = strtok_r(s1, "\n", &s2);
-		s1 = s2;
-
-		/* check if header ends without body */
-		if (str == NULL) {
-			return res;
-		}
-		/* check also for end of header */
-		if (!strcmp(str, "\r")) {
-			break;
-		}
-		str[strlen(str) - 1] = '\0';
-		res->header = hpairnode_parse(str, ":", res->header);
-	}
-
-	/* return response object */
-	return res;
-}
-
-hresponse_t *
-hresponse_new_from_socket(hsocket_t sock)
-{
-  int              i=0, status;
-  hresponse_t     *res;
-  char             buffer[MAX_HEADER_SIZE+1];
-
-  /* Read header */
-  while (i<MAX_HEADER_SIZE)
+  len = strlen(content_type_str);
+  while (i <= len)
   {
-    status = hsocket_read(sock, &(buffer[i]), 1, 1);
-    if (status == -1)
+    if (i != len)
+      ch = content_type_str[i++];
+    else 
     {
-        log_error1("Socket read error");
-        return NULL;
+      ch = ' '; i++;
     }
 
-    buffer[i+1] = '\0'; /* for strmp */
-
-    if (i > 3)
+    switch (mode)
     {
-        if (!strcmp(&(buffer[i-1]), "\n\n") ||
-            !strcmp(&(buffer[i-2]), "\n\r\n"))
-            break;
+      case 0:
+
+        if (ch == ';') 
+        {
+          ct->type[c] = '\0';
+          c = 0;
+          mode = 1;
+        }
+        else if (ch != ' ' && ch != '\t' && ch != '\r')
+         ct->type[c++] = ch;
+        break;
+
+      case 1:
+        
+        if (ch == '=') 
+        {
+          key[c] = '\0';
+          c = 0;
+          mode = 2;
+        }
+        else if (ch != ' ' && ch != '\t' && ch != '\r')
+         key[c++] = ch;
+        break;
+
+      case 2:
+        
+        if (ch != ' ') begin = 1;
+
+        if ((ch == ' ' || ch == ';') && !inQuote && begin) 
+        {
+          value[c] = '\0';
+         
+          pair = hpairnode_new(key, value, NULL);
+          if (ct->params == NULL)
+            ct->params = pair;
+          else
+            last->next = pair;
+          last = pair;
+
+          c = 0;
+          begin = 0;
+          mode = 1;
+        }
+        else if (ch == '"')
+          inQuote = !inQuote;
+        else if (begin && ch != '\r')
+         value[c++] = ch;
+
+        break;
+
     }
-    i++;
   }
 
-  /* Create response */
-  res = _hresponse_parse_header(buffer);
-  if (res == NULL)
-  {
-    log_error1("Header parse error");
-    return NULL;
+  return ct;
+}
+
+
+void content_type_free(content_type_t *ct)
+{
+  if (!ct) return;
+
+  hpairnode_free_deep(ct->params); 
+  free(ct);
+}
+
+
+part_t *part_new(const char *id, const char* filename, 
+  const char* content_type, const char* transfer_encoding, part_t *next)
+{
+  part_t *part = (part_t*)malloc(sizeof(part_t));
+  part->header = NULL;
+  part->next = next;
+  strcpy(part->id, id);
+  strcpy(part->filename, filename);
+  if (content_type)
+    strcpy(part->content_type, content_type);
+  else
+    part->content_type[0] = '\0';
+
+  part->header = hpairnode_new(HEADER_CONTENT_ID, id, part->header);
+  /* TODO (#1#): encoding is always binary. implement also others! */
+/*  part->header = hpairnode_new(HEADER_CONTENT_TRANSFER_ENCODING, "binary", part->header);*/
+  
+  strcpy(part->transfer_encoding, transfer_encoding?transfer_encoding:"binary");
+
+  if (content_type) {
+     part->header = hpairnode_new(HEADER_CONTENT_TYPE, content_type, part->header);
+  } else {
+    /* TODO (#1#): get content-type from mime type list */
   }
 
-  /* Create input stream */
-  res->in = http_input_stream_new(sock, res->header);
+  return part;
+}
 
-  return res;
+
+attachments_t *attachments_new() /* should be used internally */
+{
+  attachments_t *attachments= (attachments_t*)malloc(sizeof(attachments_t));
+  attachments->parts = NULL;
+  attachments->last = NULL;
+  attachments->root_part = NULL;
+
+  return attachments;
+}
+
+void attachments_add_part(attachments_t *attachments, part_t *part)
+{
+  /* paranoya check */
+  if (!attachments) 
+    return;
+
+  if (attachments->last) 
+    attachments->last->next = part;
+  else
+    attachments->parts = part;
+  
+  attachments->last = part;
 }
 
 /*
- * ------------------------------------------- FUNCTION:
- * hresponse_new_from_buffer ---------------------------------------------
- */
-hresponse_t    *
-hresponse_new_from_buffer(const char *buffer)
+  Free a mime message 
+*/
+void attachments_free(attachments_t *message)
 {
-	hresponse_t    *res;
-	char           *s1, *s2, *str;
+  part_t *tmp, *part;
 
-	/* create response object */
-	res = hresponse_new();
+  if (message == NULL) 
+    return;
 
-	/* *** parse spec *** */
-	/* [HTTP/1.1 | 1.2] [CODE] [DESC] */
+  part = message->parts;
+  while (part) {
+    tmp = part->next;
+    mime_part_free(part);
+    part= tmp;
+  }
 
-	/* stage 1: HTTP spec */
-	str = (char *) strtok_r((char *) buffer, " ", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	strncpy(res->spec, str, 10);
-
-	/* stage 2: http code */
-	str = (char *) strtok_r(s1, " ", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	res->errcode = atoi(str);
-
-	/* stage 3: description text */
-	str = (char *) strtok_r(s1, "\r\n", &s2);
-	s1 = s2;
-	if (str == NULL) {
-		log_error1("Parse error");
-		return NULL;
-	}
-	res->desc = (char *) malloc(strlen(str) + 1);
-	strcpy(res->desc, str);
-	res->desc[strlen(str)] = '\0';
-
-	/* *** parse header *** */
-	/* [key]: [value] */
-	for (;;) {
-		str = strtok_r(s1, "\n", &s2);
-		s1 = s2;
-
-		/* check if header ends without body */
-		if (str == NULL) {
-			return res;
-		}
-		/* check also for end of header */
-		if (!strcmp(str, "\r")) {
-			break;
-		}
-		str[strlen(str) - 1] = '\0';
-		res->header = hpairnode_parse(str, ":", res->header);
-	}
-
-	/* *** Save body *** */
-	res->body = s1;
-
-	/* return response object */
-	return res;
+/* TODO (#1#): HERE IS A BUG!!!! */
+/*  free(message);*/ 
 }
 
 
-void 
-hresponse_free(hresponse_t * res)
+#ifdef WIN32
+
+/* strtok_r() */
+char *
+strtok_r(char *s, const char *delim, char **save_ptr)
 {
-	/* not implemented yet! */
+	char           *token;
+
+	if (s == NULL)
+		s = *save_ptr;
+
+	/* Scan leading delimiters.  */
+	s += strspn(s, delim);
+	if (*s == '\0')
+		return NULL;
+
+	/* Find the end of the token.  */
+	token = s;
+	s = strpbrk(token, delim);
+	if (s == NULL)
+		/* This token finishes the string.  */
+		*save_ptr = strchr(token, '\0');
+	else {
+		/* Terminate the token and make *SAVE_PTR point past it.  */
+		*s = '\0';
+		*save_ptr = s + 1;
+	}
+	return token;
 }
+
+/* localtime_r() */
+struct tm *
+localtime_r (const time_t * const timep, struct tm *p_tm)
+{
+  static struct tm *tmp;
+  tmp = localtime (timep);
+  if (tmp)
+  {
+    memcpy (p_tm, tmp, sizeof (struct tm));
+    tmp = p_tm;
+  }
+  return tmp;
+}
+
+#endif
+

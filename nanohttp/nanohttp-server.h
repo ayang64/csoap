@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.5 2004/09/19 07:05:03 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.6 2004/10/15 13:29:37 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 #ifndef NANO_HTTP_SERVER_H 
 #define NANO_HTTP_SERVER_H 
@@ -27,16 +27,20 @@
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-reqres.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-stream.h>
 
 #define NHTTPD_ARG_PORT "-NHTTPport"
 #define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
 #define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
 
+
 typedef struct httpd_conn
 {
   hsocket_t sock;
   char content_type[25];
+  http_output_stream_t *out;
+  hpair_t *header;
 }httpd_conn_t;
 
 
@@ -69,12 +73,55 @@ void httpd_destroy();
 hservice_t *httpd_services();
 
 int httpd_send_header(httpd_conn_t *res, 
-		      int code, const char* text, 
-		      hpair_t *pair);
+		      int code, const char* text);
 
+int httpd_set_header(httpd_conn_t *conn, const char *key, const char* value);
+void httpd_set_headers(httpd_conn_t *conn, hpair_t *header);
 
 unsigned char *httpd_get_postdata(httpd_conn_t *conn, 
 			 hrequest_t *req, long *received, long max);
+
+/* --------------------------------------------------------------
+ MIME RELATED FUNCTIONS
+ ---------------------------------------------------------------*/
+/*
+  MIME support httpd_mime_* function set
+*/
+
+/**
+  Begin MIME multipart/related POST 
+  Returns: HSOCKET_OK  or error flag
+*/
+int httpd_mime_send_header(httpd_conn_t *conn,
+  const char* related_start, 
+  const char* related_start_info, 
+  const char* related_type, int code, const char* text);
+
+/**
+  Send boundary and part header and continue 
+  with next part
+*/
+int httpd_mime_next(httpd_conn_t *conn, 
+  const char* content_id,
+  const char* content_type, 
+  const char* transfer_encoding);
+
+/**
+  Send boundary and part header and continue 
+  with next part
+*/
+int httpd_mime_send_file(httpd_conn_t *conn, 
+  const char* content_id,
+  const char* content_type, 
+  const char* transfer_encoding,
+  const char* filename);
+
+/**
+  Finish MIME request 
+  Returns: HSOCKET_OK  or error flag
+*/
+int httpd_mime_end(httpd_conn_t *conn);
+
 
 #endif
 

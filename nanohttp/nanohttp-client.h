@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.8 2004/09/19 07:05:03 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.9 2004/10/15 13:29:36 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 #ifndef NANO_HTTP_CLIENT_H 
 #define NANO_HTTP_CLIENT_H 
@@ -27,13 +27,13 @@
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-reqres.h>
+#include <nanohttp/nanohttp-response.h>
 
 typedef struct httpc_conn
 {
   hsocket_t sock;
   hpair_t *header;
-  hurl_t *url;
+  hurl_t url;
   http_version_t version;
   /*
     -1  : last dime package 
@@ -42,44 +42,58 @@ typedef struct httpc_conn
   */
   int _dime_package_nr;
   long _dime_sent_bytes; 
-  int _is_chunked;
+  int errcode;
+  char errmsg[150];
+  http_output_stream_t *out;
+  int id; /* uniq id */
 }httpc_conn_t;
 
-/*
-  PROTOTYPE:
-  void my_callback(int counter, httpc_conn_t* conn,
-	    	   void *userdata, int size, char *buffer)
- */
-typedef void (*httpc_response_callback)(int, httpc_conn_t*, void*,int,char*); 
 
-/*
-  void my_start_callback(httpc_conn_t *conn, void *userdata, 
-		    hpair_t *header, const char *spec,
-		    int errcode, const char *desc)
- */
-typedef void (*httpc_response_start_callback)(httpc_conn_t*, void*, hpair_t*, 
-					      const char*, int, const char*);
+/* --------------------------------------------------------------
+ HTTP CLIENT MODULE RELATED FUNCTIONS
+ ---------------------------------------------------------------*/
 
-int httpc_init(int argc, char *argv[]);
+/**
+  initialize the httpc_* module
+*/
+hstatus_t httpc_init(int argc, char *argv[]);
+ 
+/**
+  Creates a new connection
+*/
 httpc_conn_t* httpc_new();
+
+/**
+  Release a connections
+*/
 void httpc_free(httpc_conn_t* conn);
 
+/**
+  Set header element (key,value) pair.
+*/
 int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value);
-void  httpc_set_transfer_encoding(httpc_conn_t *conn, const char*  encoding);
 
+/**
+  Invoke a "GET" method request and receive the response
+*/
 hresponse_t *httpc_get(httpc_conn_t *conn, const char *url);
-hresponse_t *httpc_post(httpc_conn_t *conn, const char *url, 
-			int conten_size, const char *content);
 
-int httpc_get_cb(httpc_conn_t *conn, const char *url, 
-		 httpc_response_start_callback start_cb,
-		 httpc_response_callback cb, void *userdata);
-		 
+/**
+  Start a "POST" method request
+  Returns: HSOCKET_OK  or error flag
+*/
+int httpc_post_begin(httpc_conn_t *conn, const char *url);
 
-int httpc_post_cb(httpc_conn_t *conn, const char *url, 
-		  httpc_response_start_callback start_cb,
-		  httpc_response_callback cb, int content_size, 
-		  const char *content,  void *userdata);
+/**
+  End a "POST" method and receive the response.
+  You MUST call httpc_post_end() before!
+*/
+hresponse_t *httpc_post_end(httpc_conn_t *conn);
+
+
+/* --------------------------------------------------------------
+ DIME RELATED FUNCTIONS
+ ---------------------------------------------------------------*/
 
 /*
   DIME support httpc_dime_* function set
@@ -88,47 +102,50 @@ int httpc_dime_begin(httpc_conn_t *conn, const char *url);
 int httpc_dime_next(httpc_conn_t* conn, long content_length, 
                     const char *content_type, const char *id,
                     const char *dime_options, int last);
-int httpc_dime_send_data(httpc_conn_t* conn, int size, unsigned char* data);
-hresponse_t* httpc_dime_get_response(httpc_conn_t *conn);
-int httpc_dime_get_response_cb(httpc_conn_t *conn, 
-  httpc_response_start_callback start_cb,
-  httpc_response_callback cb, void *userdata);
+hresponse_t* httpc_dime_end(httpc_conn_t *conn);
 
+
+/* --------------------------------------------------------------
+ MIME RELATED FUNCTIONS
+ ---------------------------------------------------------------*/
 /*
   MIME support httpc_mime_* function set
 */
 
-int httpc_mime_post_begin(httpc_conn_t *conn, const char *url,
+/**
+  Begin MIME multipart/related POST request
+  Returns: HSOCKET_OK  or error flag
+*/
+int httpc_mime_begin(httpc_conn_t *conn, const char *url,
   const char* related_start, 
   const char* related_start_info, 
   const char* related_type);
 
-int httpc_mime_post_next(httpc_conn_t *conn, 
+/**
+  Send boundary and part header and continue 
+  with next part
+*/
+int httpc_mime_next(httpc_conn_t *conn, 
   const char* content_id,
   const char* content_type, 
   const char* transfer_encoding);
 
-int httpc_mime_post_send(httpc_conn_t *conn, size_t size, const unsigned char* data);
-hresponse_t *httpc_mime_post_end(httpc_conn_t *conn);
-int httpc_mime_post_end_cb(httpc_conn_t *conn, 
-  httpc_response_start_callback start_cb,
-  httpc_response_callback cb, void *userdata);
-
-
-/*
-  Chunked POST Module
- */
-
-/* Returns 0 if success, >0 otherwise */
-/* do not use this
-int httpc_post_open(httpc_conn_t *conn, const char *url);
-
-int httpc_post_send(httpc_conn_t *conn, const char* buffer, int bufsize);
-hresponse_t *httpc_post_finish(httpc_conn_t *conn);
-int httpc_post_finish_cb(httpc_conn_t *conn, 
-			 httpc_response_start_callback start_cb,
-			 httpc_response_callback cb, void *userdata);
+/**
+  Finish MIME request and get the response
 */
+hresponse_t *httpc_mime_end(httpc_conn_t *conn);
+
+/**
+  Send boundary and part header and continue 
+  with next part
+*/
+int
+httpc_mime_send_file (httpc_conn_t * conn,
+                      const char *content_id,
+                      const char *content_type,
+                      const char *transfer_encoding, 
+                      const char *filename);
 
 #endif
+
 
