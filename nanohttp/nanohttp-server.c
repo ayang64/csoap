@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.3 2004/01/30 16:37:50 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.4 2004/02/03 08:59:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -57,7 +57,7 @@ int httpd_init(int argc, char *argv[])
   /* write argument information */
   log_verbose1("Arguments:");  
   for (i=0;i<argc;i++)
-    log_verbose3("argv[%i] = '%s'\n", i, SAVE_STR(argv[i]));
+    log_verbose3("argv[%i] = '%s'", i, SAVE_STR(argv[i]));
 
   /* initialize from arguments */
   for (i=0;i<argc;i++) {
@@ -66,7 +66,7 @@ int httpd_init(int argc, char *argv[])
     }
   }
 
-  log_debug2("socket bind to port '%d'\n", _httpd_port);
+  log_verbose2("socket bind to port '%d'", _httpd_port);
 
   /* init built-in services */
   /*
@@ -87,7 +87,7 @@ int httpd_init(int argc, char *argv[])
 int httpd_register(const char* ctx,  httpd_service func)
 {
   hservice_t* service;
-  log_debug3("register service:t(%p):%s", service, SAVE_STR(ctx));
+  log_verbose3("register service:t(%p):%s", service, SAVE_STR(ctx));
 
   service = (hservice_t*)malloc(sizeof(hservice_t));
   service->next = NULL;
@@ -167,12 +167,14 @@ int httpd_send_header(httpd_conn_t *res,
   strcat(header, "\r\n");
   
   /* set content-type */
+  /*
   if (res->content_type[0] == '\0') {
     strcat(header, "Content-Type: text/html\r\n");
   } else {
     sprintf(buffer, "Content-Type: %s\r\n", res->content_type);
     strcat(header, buffer);
   }
+  */
 
   /* set server name */
   strcat(header, "Server: Nano HTTPD library\r\n");
@@ -216,18 +218,18 @@ static void httpd_request_print(hrequest_t *req)
 {
   hpair_t *pair;
 
-  printf("++++++ Request +++++++++\n");
-  printf(" Method : '%s'\n", req->method);
-  printf(" Path   : '%s'\n", req->path);
-  printf(" Spec   : '%s'\n", req->spec);
-  printf(" Parsed query string :\n");
+  log_verbose1("++++++ Request +++++++++");
+  log_verbose2(" Method : '%s'", req->method);
+  log_verbose2(" Path   : '%s'", req->path);
+  log_verbose2(" Spec   : '%s'", req->spec);
+  log_verbose1(" Parsed query string :");
 
   pair = req->query;
   while (pair != NULL) {
-    printf(" %s = '%s'\n", pair->key, pair->value);
+    log_verbose3(" %s = '%s'", pair->key, pair->value);
     pair = pair->next;
   }
-  printf("++++++++++++++++++++++++\n");
+  log_verbose1("++++++++++++++++++++++++");
   
 }
 
@@ -255,7 +257,7 @@ static void* httpd_session_main(void *data)
   len = 0;
 
 
-  log_debug1("starting httpd_session_main()\n");
+  log_verbose1("starting httpd_session_main()");
 
   while (len < 4064) {
     /*printf("receiving ...\n");*/
@@ -271,7 +273,7 @@ static void* httpd_session_main(void *data)
     }
   }
 
-  printf("=== HEADER ===\n%s\n============\n", header);
+  /*  log_verbose2("=== HEADER ===\n%s\n============\n", header);*/
   /* call the service */
   req = hrequest_new_from_buffer(header);
   httpd_request_print(req);
@@ -283,7 +285,7 @@ static void* httpd_session_main(void *data)
 
   service = httpd_find_service(req->path);
   if (service != NULL) {
-    log_verbose2("service '%s' found\n", req->path);
+    log_verbose2("service '%s' found", req->path);
     if (service->func != NULL) {
       service->func(rconn, req);
     } else {
@@ -321,7 +323,7 @@ int httpd_run()
   fd_set fds;
   /*struct timeval timeout;*/
   
-  log_debug1("starting run routine\n");
+  log_verbose1("starting run routine");
   /*
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
@@ -329,12 +331,12 @@ int httpd_run()
   /* listen to port */
   err = hsocket_listen(_httpd_socket,15);
   if (err  != HSOCKET_OK) {
-    log_error2("httpd_run(): '%d'\n", err);
+    log_error2("httpd_run(): '%d'", err);
     return err;
   }
 
 
-  log_debug2("listening to port '%d'\n", _httpd_port);
+  log_verbose2("listening to port '%d'", _httpd_port);
   
 
   /*  fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);*/
@@ -361,7 +363,7 @@ int httpd_run()
 
      err = pthread_create(&tid, NULL, httpd_session_main, conn); 
      if (err) {
-       printf("Error creating thread: ('%d')\n", err);
+       log_error2("Error creating thread: ('%d')", err);
      }
   }
 
@@ -411,6 +413,7 @@ char *httpd_get_postdata(httpd_conn_t *conn, hrequest_t *req, long *received, lo
   if (hsocket_read(conn->sock, postdata, 
 		   (int)content_length, 1) == HSOCKET_OK) {
     *received = content_length;
+    postdata[content_length] = '\0';
     return postdata;
   }
 

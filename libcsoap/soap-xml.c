@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.c,v 1.2 2004/02/03 08:07:36 snowdrop Exp $
+ *  $Id: soap-xml.c,v 1.3 2004/02/03 08:59:22 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -78,7 +78,7 @@ soap_xpath_eval(xmlDocPtr doc, const char *xpath)
 
 int
 soap_xpath_foreach(xmlDocPtr doc, const char *xpath, 
-		   soap_xmlnode_callback cb)
+		   soap_xmlnode_callback cb, void *userdata)
 {
   int i = 0;
   xmlNodeSetPtr nodeset; 
@@ -92,7 +92,7 @@ soap_xpath_foreach(xmlDocPtr doc, const char *xpath,
   if (!nodeset) return 0;
 
   for (i=0;i < nodeset->nodeNr; i++) {
-    if (!cb(nodeset->nodeTab[i]))
+    if (!cb(nodeset->nodeTab[i], userdata))
       break;
   }
   
@@ -119,7 +119,7 @@ void soap_xml_doc_print(xmlDocPtr doc)
   
 
   buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, doc, root, 1 ,1);
+  xmlNodeDump(buffer, doc, root, 1 ,0);
   puts( (const char*)xmlBufferContent(buffer));
   xmlBufferFree(buffer);  
 

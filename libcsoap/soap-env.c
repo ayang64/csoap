@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.c,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-env.c,v 1.2 2004/02/03 08:59:22 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -276,6 +276,24 @@ soap_env_get_body(SoapEnv* env)
 
   log_error1("Node Body tag found!");
   return NULL;
+}
+
+
+xmlNodePtr
+soap_env_get_method(SoapEnv* env)
+{
+  
+  xmlNodePtr body;
+
+  body = soap_env_get_body(env);
+  if (body == NULL) {
+    log_verbose1("body is NULL");
+    return NULL;
+  }
+
+ /* mehtod is the first child */
+  return soap_xml_get_children(body);
+  
 }
 
 

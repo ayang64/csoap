@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.2 2004/02/03 08:59:22 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -61,6 +61,8 @@ soap_env_pop_item(SoapEnv* env);
 
 xmlNodePtr
 soap_env_get_body(SoapEnv* env);
+xmlNodePtr
+soap_env_get_method(SoapEnv* env);
 xmlNodePtr
 soap_env_get_fault(SoapEnv* env);
 xmlNodePtr

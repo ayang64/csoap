@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.7 2004/01/21 12:28:20 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.8 2004/02/03 08:59:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -132,7 +132,7 @@ int hsocket_bind(hsocket_t *dsock, int port)
   /* create socket */
   sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock == -1) {
-    log_error2("Can not create socket: '%s'\n", strerror(errno));
+    log_error2("Can not create socket: '%s'", strerror(errno));
     return HSOCKET_CAN_NOT_CREATE;
   }
 
@@ -144,7 +144,7 @@ int hsocket_bind(hsocket_t *dsock, int port)
 
   if (bind(sock, (struct sockaddr *)&addr, 
 	   sizeof(struct sockaddr)) == -1) {
-    log_error2("Can not bind: '%s'\n", strerror(errno));
+    log_error2("Can not bind: '%s'", strerror(errno));
     return HSOCKET_CAN_NOT_BIND;
   }
 
@@ -158,7 +158,7 @@ int hsocket_bind(hsocket_t *dsock, int port)
 int hsocket_listen(hsocket_t sock, int n)
 {
   if (listen(sock, n) == -1) {
-    log_error2("Can not listen: '%s'\n", strerror(errno));
+    log_error2("Can not listen: '%s'", strerror(errno));
     return HSOCKET_CAN_NOT_LISTEN;
   }
   return HSOCKET_OK;
@@ -182,7 +182,7 @@ int hsocket_accept(hsocket_t sock, hsocket_t *dest)
     return HSOCKET_CAN_NOT_ACCEPT;
   }
 
-  log_debug3("accept new socket (%d) from '%s'\n", sockfd,
+  log_verbose3("accept new socket (%d) from '%s'", sockfd,
 	     SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
 
   *dest = sockfd;
@@ -279,7 +279,7 @@ int hsocket_recv(hsocket_t sock, char** buffer, int *totalSize)
     bufSize = HSOCKET_MAX_BUFSIZE;
 
     if (size == -1) {
-      log_error1("Error reading from socket\n");
+      log_error1("Error reading from socket");
       return HSOCKET_CAN_NOT_RECEIVE;
     }
 
@@ -289,22 +289,19 @@ int hsocket_recv(hsocket_t sock, char** buffer, int *totalSize)
 
     *totalSize += size;
     if (*buffer) {
-      log_debug2("reallocation %d bytes",*totalSize+fsize+1);
+      log_verbose2("reallocation %d bytes",*totalSize+fsize+1);
       *buffer = (char*)realloc((char*)*buffer, 
 			       (*totalSize)+fsize+HSOCKET_MAX_BUFSIZE);
       strcat(*buffer, tmp);
     } else {
-      log_debug1("Allocating");
       *buffer = (char*)realloc(NULL, *totalSize+1);
       strcpy(*buffer, tmp);
     }
 
-    log_debug1("Assigning");
     (*buffer)[*totalSize+fsize] = '\0';	
     chunk++;
   } while (size > 0);
 
-  log_debug1("Returning");
   return HSOCKET_OK;
 }
 
@@ -324,7 +321,7 @@ int hsocket_recv_cb(hsocket_t sock,
     size = recv(sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
 
     if (size == -1) {
-      log_error1("Error reading from socket\n");
+      log_error1("Error reading from socket");
       return HSOCKET_CAN_NOT_RECEIVE;
     }
     
@@ -354,7 +351,7 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
 
   if (bufsock->bufsize - bufsock->cur >= size) {
 
-    log_debug1("no need to read from socket");
+    log_verbose1("no need to read from socket");
     strncpy(buffer, &(bufsock->buffer[bufsock->cur]), size);
     bufsock->cur += size;
     return HSOCKET_OK;
@@ -362,7 +359,7 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
   } else {
 
     tmpsize = bufsock->bufsize - bufsock->cur;
-    log_debug2("tmpsize = %d", tmpsize);
+    log_verbose2("tmpsize = %d", tmpsize);
 
     if (tmpsize > 0)
       strncpy(buffer, &(bufsock->buffer[bufsock->cur]), tmpsize); 

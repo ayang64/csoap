@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.c,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-client.c,v 1.2 2004/02/03 08:59:22 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -46,7 +46,7 @@ soap_client_invoke(SoapEnv *call, const char *url, const char *soap_action)
   
   /* Create buffer */
   buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, call->root->doc,call->root, 1 ,2);
+  xmlNodeDump(buffer, call->root->doc,call->root, 1 ,0);
   content = (char*)xmlBufferContent(buffer);
   
   /* Transport via HTTP */

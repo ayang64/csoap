@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.7 2004/01/21 12:28:20 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.8 2004/02/03 08:59:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -254,6 +254,17 @@ void hpairnode_free(hpair_t *pair)
   free(pair);
 }
 
+
+void hpairnode_free_deep(hpair_t *pair)
+{
+  hpair_t *tmp;
+
+  while (pair != NULL) {
+    tmp = pair->next;
+    hpairnode_free(pair);
+    pair=tmp;
+  }
+}
 
 char *hpairnode_get_ignore_case(hpair_t *pair, const char* key)
 {
@@ -565,7 +576,15 @@ hrequest_t *hrequest_new_from_buffer(char *data)
 
 void hrequest_free(hrequest_t *req)
 {
-  log_warn1("hrequest_free() not implemented!");
+  if (req == NULL) return;
+
+  free(req->method);
+  free(req->path);
+  free(req->spec);
+
+  hpairnode_free_deep(req->header);
+  hpairnode_free_deep(req->query);
+    
 }
 
 /* response stuff */

@@ -2,7 +2,7 @@ dnl --------------------------------
 dnl Initialization macros.
 dnl --------------------------------
 
-AC_INIT(libcsoap/csoap.h)
+AC_INIT(libcsoap/soap-xml.h)
 AM_CONFIG_HEADER(config.h)
 
 dnl -----------------------------------------------
