@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.6 2003/12/18 12:23:44 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.7 2003/12/18 15:32:09 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -151,151 +151,19 @@ int httpc_send_header(httpc_conn_t *conn)
   return status;
 }
 
-
-/*--------------------------------------------------
-  FUNCTION: httpc_talk_to_server
-  DESC: This function is the heart of the httpc 
-  module. It will send the request and process the
-  response. 
-
-  Here the parameters:
-
-  method:
-   the request method. This can be HTTP_REQUEST_POST and 
-   HTTP_REQUEST_GET.
-
-  conn: 
-   the connection object (created with httpc_new())
-   
-  urlstr:
-   the complete url in string format.
-   http://<host>:<port>/<context>
-   where <port> is not mendatory.
-
-  start_cb:
-   a callback function, which will be called when
-   the response header is completely arrives.
-
-  cb:
-   a callback function, which will be called everytime
-   when data arrives.
-
-  content_size:
-   size of content to send. 
-   (only if method is HTTP_REQUEST_POST)
-
-  content:
-   the content data to send. 
-   (only if method is HTTP_REQUEST_POST)
-
-  userdata:
-   a user define data, which will be passed to the
-   start_cb and cb callbacks as a parameter. This
-   can also be NULL.
-
-   
-  If success, this function will return 0. 
-  >0 otherwise.
-----------------------------------------------------*/
 static
-int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *urlstr, 
-			 httpc_response_start_callback start_cb,
-			 httpc_response_callback cb, int content_size, 
-			 char* content, void *userdata)
+hresponse_t *httpc_receive_header(hsocket_t sock)
 {
-  hurl_t *url;
-  char buffer[4096];
-  int status;
-  char *response;
-  int rsize;
   hresponse_t *res;
+  int done;
+  int i;
+  int status;
+  char buffer[HSOCKET_MAX_BUFSIZE];
+  char *response;
   char *rest;
+  int rsize;
   int restsize;
-  int i, done;
 
-  /* content-length */
-  char *content_length_str;
-  long content_length;
-  long remain_length;
-  int counter;
-  int recvSize;
-  char readBuf[HSOCKET_MAX_BUFSIZE];
-
-  /* chunked encoding */
-  char *transfer_encoding;
-  char *chunk_buffer;
-  int chunk_size;
-  hbufsocket_t bufsock;
-  char chunk_size_str[25];
-  int chunk_size_cur;
-
-  /* connection closed */
-  char *connection_status;
-  
-
-  if (conn == NULL) {
-    log_error1("Connection object is NULL");
-    return 1;
-  }
-
-  /* set response to 0 to allocate 
-     it in hsocket_recv */
-  response = 0;
-
-  /* Build request header  */
-  httpc_header_add_date(conn);
-
-  /* Create url */
-  url = hurl_new(urlstr);
-  if (url == NULL) {
-    log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
-    return 2;
-  }
-
-  /* Set hostname  */
-  httpc_set_header(conn, HEADER_HOST, url->host);
-
-  /* Open connection */
-  status = hsocket_open(&conn->sock, url->host, url->port);
-  if (status != HSOCKET_OK) {
-    log_error3("Can not open connection to '%s' (status:%d)", 
-	      SAVE_STR(url->host), status);
-    return 3;
-  }
-
-  /* check method */
-  if (method == HTTP_REQUEST_GET) {
-
-    /* Set GET Header  */
-    sprintf(buffer, "GET %s HTTP/1.1\r\n", 
-	    (url->context)?url->context:("/"));
-
-  } else if (method == HTTP_REQUEST_POST) {
-
-    /* Set POST Header  */
-    sprintf(buffer, "POST %s HTTP/1.1\r\n", 
-	    (url->context)?url->context:("/"));
-  } else {
-    
-    log_error1("Unknown method type!");
-    return 15;
-  }
-
-  status = hsocket_send(conn->sock, buffer);
-  if (status != HSOCKET_OK) {
-    log_error2("Can not send request (status:%d)", status);
-    hsocket_close(conn->sock);
-    return 4;
-  }
-
-  /* Send Header */
-  status = httpc_send_header(conn);
-  if (status != HSOCKET_OK) {
-    log_error2("Can not send header (status:%d)", status);
-    hsocket_close(conn->sock);
-    return 5;
-  }
-  
   /* Receive Response incl. header */
   rsize = restsize = 0;
   response = rest = NULL;
@@ -303,11 +171,11 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
 
   while (!done) {
     
-    status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
+    status = hsocket_read(sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
   
     if (status <= 0) {
       log_error2("Can not receive response (status:%d)", status); 
-      return 6;
+      return NULL;
     } 
 
 
@@ -337,8 +205,7 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
 	  strncpy(&response[rsize], buffer, i);
 	  response[rsize+i] = '\0';
 	  rsize += i;
-
-	
+	  
 	  restsize = status - i - 3;
 	  rest = (char*)malloc(restsize+1);
 	  strncpy(rest, &buffer[i+3], restsize);
@@ -356,65 +223,92 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
 
   if (response == NULL) {
     log_error1("Header too long!");
-    return 13;
+    return NULL;
   }
   
   res = hresponse_new_from_buffer(response);
   if (res == NULL) {
-    log_error2("Can't create response (url:'%s')", urlstr);
-    return 7;
+    log_error1("Can't create response");
+    return NULL;
   }
 
-  /* Invoke callback */
-  start_cb(conn, userdata, res->header, res->spec, res->errcode, res->desc);
+  res->bodysize = restsize;
+  res->body = rest;
 
+  return res;
+}
+
+
+static
+int httpc_receive_with_connection_closed(httpc_conn_t *conn,
+					 hresponse_t *res,
+					 httpc_response_callback cb, 
+					 void *userdata)
+{
+  /* connection closed */
+  char *connection_status;
+  int status;
+  char buffer[HSOCKET_MAX_BUFSIZE];
+  int counter;
+
+  counter = 0;
 
   /* ================================================= */
-  /*   Retreive with content-length                    */ 
+  /*   Retreive with only "Connection: close"          */ 
   /* ================================================= */
+  connection_status = 
+    hpairnode_get(res->header, HEADER_CONNECTION);
 
-  /* Check if server communicates with content-length */
-  content_length_str = 
-    hpairnode_get_ignore_case(res->header, HEADER_CONTENT_LENGTH);
+  if (connection_status != NULL && 
+      !strcmp(connection_status, "close")) { 
 
-  if (content_length_str != NULL) {
+    log_debug1("Server communicates with 'Connection: close' !");
 
-    log_debug1("Server communicates with content-length!");
-    
     /* Invoke callback for rest */
-    if (restsize > 0)
-      cb(0, conn, userdata, restsize, rest);
+    if (res->bodysize > 0)
+      cb(0, conn, userdata, res->bodysize, res->body);
 
-    /* content length */
-    content_length = atol(content_length_str);
 
-    counter = 1;
-    remain_length = content_length - restsize;
-    while (remain_length > 0) {
-      if (remain_length >= HSOCKET_MAX_BUFSIZE) {
-	recvSize = HSOCKET_MAX_BUFSIZE;
-      } else {
-	recvSize = remain_length;
+    while (1) {
+      
+      status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
+
+      if (status == 0) { /* connection closed */
+	return 0; 
+      }
+    
+      if (status < 0) { /* error */
+	log_error2("Can nor read from socket (status: %d)", status);
+	return 11;
       }
 
-      if (hsocket_read(conn->sock, readBuf, recvSize,1)) {
-	log_error1("Can not read from socket!");
-	return 9;
-      } else {
-	cb(counter++, conn, userdata, recvSize, readBuf);
-      }
-
-      remain_length -= HSOCKET_MAX_BUFSIZE;
-
-    } /* while */
-
-    /* rest and response are no longer required */
+      /* Invoke callback */ 
+      cb(counter++, conn, userdata, status, buffer);
+    }
 
     return 0;
+  }
 
-  } /* if content length */
+  return -1;
+}
 
-
+static
+int httpc_receive_with_chunked_encoding(httpc_conn_t *conn,
+					hresponse_t *res,
+					httpc_response_callback cb, 
+					void *userdata)
+{
+  /* chunked encoding */
+  char *transfer_encoding;
+  char *chunk_buffer;
+  int chunk_size;
+  hbufsocket_t bufsock;
+  char chunk_size_str[25];
+  int chunk_size_cur;
+  int counter;
+  char buffer[2];
+  
+  counter = 0;
   /* ================================================= */
   /*   Retreive with chunked encoding                  */ 
   /* ================================================= */
@@ -422,6 +316,7 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
   /* Check if server communicates with chunked encoding */
   transfer_encoding = 
     hpairnode_get(res->header, HEADER_TRANSFER_ENCODING);
+
   if (transfer_encoding != NULL && 
       !strcmp(transfer_encoding, "chunked")) { 
 
@@ -430,8 +325,8 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
     /* initialize buffered socket */
     bufsock.sock = conn->sock;
     bufsock.cur = 0;
-    bufsock.buffer = rest;
-    bufsock.bufsize = restsize;
+    bufsock.buffer = res->body;
+    bufsock.bufsize = res->bodysize;
     
     chunk_size = 1;
     while (chunk_size > 0) {
@@ -489,45 +384,235 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
 
   } /* if transfer_encodig */
   
-  /* ================================================= */
-  /*   Retreive with only "Connection: close"          */ 
-  /* ================================================= */
-  connection_status = 
-    hpairnode_get(res->header, HEADER_CONNECTION);
+  return -1;
+}
 
-  if (connection_status != NULL && 
-      !strcmp(connection_status, "close")) { 
+/*
+  returns -1 if server does not communicate with 
+  content-length;
+ */
+static 
+int httpc_receive_with_content_length(httpc_conn_t *conn,
+				      hresponse_t *res,
+				      httpc_response_callback cb, 
+				      void *userdata)
+{
+  int counter;
+  int content_length;
+  int remain_length;
+  int recvSize;
+  char *content_length_str;
+  char buffer[HSOCKET_MAX_BUFSIZE];
 
+  /* ================================================= */
+  /*   Retreive with content-length                    */ 
+  /* ================================================= */
+
+  /* Check if server communicates with content-length */
+  content_length_str = 
+    hpairnode_get_ignore_case(res->header, HEADER_CONTENT_LENGTH);
+
+  if (content_length_str != NULL) {
+
+    log_debug1("Server communicates with content-length!");
+    
     /* Invoke callback for rest */
-    if (restsize > 0)
-      cb(0, conn, userdata, restsize, rest);
+    if (res->bodysize > 0)
+      cb(0, conn, userdata, res->bodysize, res->body);
 
-    log_debug1("Server communicates with 'Connection: close' !");
+    /* content length */
+    content_length = atol(content_length_str);
 
-    while (1) {
-      
-      status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
-
-      if (status == 0) { /* connection closed */
-	return 0; 
-      }
-    
-      if (status < 0) { /* error */
-	log_error2("Can nor read from socket (status: %d)", status);
-	return 11;
+    counter = 1;
+    remain_length = content_length - res->bodysize;
+    while (remain_length > 0) {
+      if (remain_length >= HSOCKET_MAX_BUFSIZE) {
+	recvSize = HSOCKET_MAX_BUFSIZE;
+      } else {
+	recvSize = remain_length;
       }
 
-      /* Invoke callback */ 
-      cb(counter++, conn, userdata, status, buffer);
-    }
-    
+      if (hsocket_read(conn->sock, buffer, recvSize,1)) {
+	log_error1("Can not read from socket!");
+	return 9;
+      } else {
+	cb(counter++, conn, userdata, recvSize, buffer);
+      }
+
+      remain_length -= HSOCKET_MAX_BUFSIZE;
+
+    } /* while */
+
+    /* rest and response are no longer required */
+
+    return 0;
+
+  } /* if content length */
+
+  return -1;
+}
+
+static
+int httpc_receive_response(httpc_conn_t *conn, 
+			 httpc_response_start_callback start_cb,
+			 httpc_response_callback cb, void *userdata)
+{
+  hresponse_t *res;
+  int status;
+
+  /* receive header */
+  res = httpc_receive_header(conn->sock);
+  if (res == NULL) return 1;
+
+  /* Invoke callback */
+  start_cb(conn, userdata, res->header, res->spec, 
+	   res->errcode, res->desc);
+
+  /* try to receive with content length */
+  status = httpc_receive_with_content_length(conn, res, 
+					     cb, userdata);
+  if (status != -1) {
+    hresponse_free(res);
+    return status;
   }
 
+  status = httpc_receive_with_chunked_encoding(conn, res,
+					       cb, userdata);
+
+  if (status != -1) {
+    hresponse_free(res);
+    return status;
+  }
+
+  status = httpc_receive_with_connection_closed(conn, res,
+						cb, userdata);
+  if (status != -1) {
+    hresponse_free(res);
+    return status;
+  }
 
   log_error1("Unknown server response retreive type!");
-  
 
-  return 1;
+}
+
+/*--------------------------------------------------
+  FUNCTION: httpc_talk_to_server
+  DESC: This function is the heart of the httpc 
+  module. It will send the request and process the
+  response. 
+
+  Here the parameters:
+
+  method:
+   the request method. This can be HTTP_REQUEST_POST and 
+   HTTP_REQUEST_GET.
+
+  conn: 
+   the connection object (created with httpc_new())
+   
+  urlstr:
+   the complete url in string format.
+   http://<host>:<port>/<context>
+   where <port> is not mendatory.
+
+  start_cb:
+   a callback function, which will be called when
+   the response header is completely arrives.
+
+  cb:
+   a callback function, which will be called everytime
+   when data arrives.
+
+  content_size:
+   size of content to send. 
+   (only if method is HTTP_REQUEST_POST)
+
+  content:
+   the content data to send. 
+   (only if method is HTTP_REQUEST_POST)
+
+  userdata:
+   a user define data, which will be passed to the
+   start_cb and cb callbacks as a parameter. This
+   can also be NULL.
+
+   
+  If success, this function will return 0. 
+  >0 otherwise.
+----------------------------------------------------*/
+static
+int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *urlstr, 
+			 httpc_response_start_callback start_cb,
+			 httpc_response_callback cb, int content_size, 
+			 char* content, void *userdata)
+{
+  hurl_t *url;
+  char buffer[4096];
+  int status;
+
+
+  if (conn == NULL) {
+    log_error1("Connection object is NULL");
+    return 1;
+  }
+
+  /* Build request header */
+  httpc_header_add_date(conn);
+
+  /* Create url */
+  url = hurl_new(urlstr);
+  if (url == NULL) {
+    log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
+    return 2;
+  }
+
+  /* Set hostname  */
+  httpc_set_header(conn, HEADER_HOST, url->host);
+
+  /* Open connection */
+  status = hsocket_open(&conn->sock, url->host, url->port);
+  if (status != HSOCKET_OK) {
+    log_error3("Can not open connection to '%s' (status:%d)", 
+	      SAVE_STR(url->host), status);
+    return 3;
+  }
+
+  /* check method */
+  if (method == HTTP_REQUEST_GET) {
+
+    /* Set GET Header  */
+    sprintf(buffer, "GET %s HTTP/1.1\r\n", 
+	    (url->context)?url->context:("/"));
+
+  } else if (method == HTTP_REQUEST_POST) {
+
+    /* Set POST Header  */
+    sprintf(buffer, "POST %s HTTP/1.1\r\n", 
+	    (url->context)?url->context:("/"));
+  } else {
+    
+    log_error1("Unknown method type!");
+    return 15;
+  }
+
+  status = hsocket_send(conn->sock, buffer);
+  if (status != HSOCKET_OK) {
+    log_error2("Can not send request (status:%d)", status);
+    hsocket_close(conn->sock);
+    return 4;
+  }
+
+  /* Send Header */
+  status = httpc_send_header(conn);
+  if (status != HSOCKET_OK) {
+    log_error2("Can not send header (status:%d)", status);
+    hsocket_close(conn->sock);
+    return 5;
+  }
+
+  status = httpc_receive_response(conn, start_cb, cb, userdata);
+  return status;
+  
 }
 	
 	 

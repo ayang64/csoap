@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.5 2003/12/18 12:23:44 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.6 2003/12/18 15:32:09 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -119,7 +119,7 @@ int strcmpigcase(const char *s1, const char *s2)
   l1 = strlen(s1);
   l2 = strlen(s2);
 
-  if (l1 != l2) return;
+  if (l1 != l2) return 0;
   
   for (i=0;i<l1;i++) 
     if (toupper(s1[i]) != toupper(s2[i]))
