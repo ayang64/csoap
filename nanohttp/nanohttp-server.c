@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.22 2004/09/14 15:31:24 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.23 2004/09/14 15:50:54 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -523,9 +523,6 @@ int _httpd_select(fd_set *pfds)
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
 
-  FD_ZERO (pfds);
-  FD_SET (_httpd_socket, pfds);
-
 #ifndef WIN32
   select (1, pfds, NULL, NULL, &timeout);
 #else
@@ -574,6 +571,9 @@ httpd_run ()
     return err;
   }
   
+  /* zero file descriptior */
+  FD_ZERO (&fds);
+  FD_SET (_httpd_socket, &fds);
 
   while (_httpd_run)
   {
@@ -585,15 +585,15 @@ httpd_run ()
     if (_httpd_select(&fds))
     {
       log_error1("Can not select!");
-      return -1; /* this is hard core! */
+      return -1; 
     }  
-    
+      
     /* Wait for a socket to accept */
-    while (_httpd_run && (FD_ISSET (_httpd_socket, &fds)));
+    while (_httpd_run && (!FD_ISSET (_httpd_socket, &fds)));
     
     if (!_httpd_run)    
         break;
-    
+  
     /* Accept a socket */
     err = hsocket_accept(_httpd_socket, &(conn->sock));
     if (err != HSOCKET_OK)

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.20 2004/09/14 15:31:24 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.21 2004/09/14 15:50:54 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -203,7 +203,6 @@ int hsocket_accept(hsocket_t sock, hsocket_t *dest)
 #ifdef WIN32
 	while(1)
 	{
-	  log_debug1("accept()");
 		sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
 		if (sockfd == INVALID_SOCKET) 
     { 
