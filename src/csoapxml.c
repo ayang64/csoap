@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: csoapxml.c,v 1.1 2003/03/25 22:17:31 snowdrop Exp $
+ *  $Id: csoapxml.c,v 1.2 2003/05/20 21:00:19 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammet.net
+ * Email: ayaz@jprogrammer.net
  ******************************************************************/
 #include "csoapxml.h"
 
