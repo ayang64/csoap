@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.6 2004/11/01 15:16:22 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.7 2004/11/02 22:42:52 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -96,7 +96,6 @@ int main(int argc, char *argv[])
   char href[MAX_HREF_SIZE];
   xmlNodePtr fault;
   herror_t err;
- 
 
 
   if (argc < 2) {
@@ -104,7 +103,9 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  log_set_level(HLOG_VERBOSE);
+  /*
+	Initialize soap client
+  */
   err = soap_client_init_args(argc, argv);
   if (err != H_OK) {
 	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
@@ -112,20 +113,34 @@ int main(int argc, char *argv[])
 	return 1;
   }
 
+  /*
+	Create a context object
+  */
   err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK) {
 	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
 	herror_release(err);
 	return 1;
   }
-   if (soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href) != H_OK) {
-    fprintf(stderr, "Error while adding '%s'\n", argv[1]);
-    soap_ctx_free(ctx);
-    exit(1);
-  }
+	
+  /*
+	Add file to the context
+  */
+	err = soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href);
+	if (err != H_OK) {
+		log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+		herror_release(err);
+		return 1;
+	}
 
+	/*
+		Add file reference to the envelope
+	*/
   soap_env_add_attachment(ctx->env,"source", href);
 
+  /*
+	Send soap request to the server
+  */
   printf("sending request ...\n");  
   if (argc > 2)
     err = soap_client_invoke(ctx, &ctx2, argv[2], "");
@@ -138,6 +153,9 @@ int main(int argc, char *argv[])
 	return 1;
   }
 
+  /*
+	Handle response (just print to the screen)
+  */
   fault = soap_env_get_fault(ctx2->env);
   if (fault) {
     soap_xml_doc_print(ctx2->env->root->doc);
@@ -148,8 +166,13 @@ int main(int argc, char *argv[])
     soap_xml_doc_print(ctx2->env->root->doc);
   }
 
+  /*
+	Clean up
+  */
   soap_ctx_free(ctx2);
   soap_ctx_free(ctx);
+
+  soap_client_destroy();
 
   return 0;
 }

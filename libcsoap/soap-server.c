@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.7 2004/10/28 10:30:46 snowdrop Exp $
+*  $Id: soap-server.c,v 1.8 2004/11/02 22:42:52 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -101,6 +101,7 @@ void soap_server_destroy()
 		free(node);
 		node = tmp;
 	}
+	httpd_destroy();
 }
 
 

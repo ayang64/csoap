@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.12 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.13 2004/11/02 22:42:52 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -60,6 +60,11 @@ typedef struct httpc_conn
 */
 herror_t httpc_init(int argc, char *argv[]);
  
+/**
+  Destroy the httpc_* module
+*/
+void  httpc_destroy();
+
 /**
   Creates a new connection
 */

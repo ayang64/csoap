@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.29 2004/10/29 09:27:05 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.30 2004/11/02 22:42:52 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -707,6 +707,7 @@ void httpd_destroy()
     cur = tmp;
   }
 
+  hsocket_module_destroy();
 }
 
 #ifdef WIN32

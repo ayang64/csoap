@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.12 2004/11/01 15:16:26 snowdrop Exp $
+*  $Id: soap-client.c,v 1.13 2004/11/02 22:42:52 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -50,6 +50,10 @@ herror_t soap_client_init_args(int argc, char *argv[])
 
 }
 
+void soap_client_destroy()
+{
+	httpc_destroy();
+}
 
 static
 long _file_get_size(const char* filename)

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.7 2004/11/01 15:16:22 snowdrop Exp $
+ * $Id: simpleclient.c,v 1.8 2004/11/02 22:42:52 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -67,5 +67,6 @@ int main(int argc, char *argv[])
   soap_ctx_free(ctx2);
   soap_ctx_free(ctx);
 
+  soap_client_destroy();
   return 0;
 }

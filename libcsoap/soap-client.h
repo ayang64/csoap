@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.7 2004/11/01 15:16:26 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.8 2004/11/02 22:42:52 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -31,6 +31,12 @@
 	Initializes the client side soap engine
 */
 herror_t soap_client_init_args(int argc, char *argv[]);
+
+
+/**
+	Destroy the soap client module
+*/
+void soap_client_destroy();
 
 
 /**

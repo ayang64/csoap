@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.24 2004/10/29 09:27:05 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.25 2004/11/02 22:42:52 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -55,6 +55,17 @@ httpc_init(int argc, char *argv[])
 	hsocket_module_init();
   return H_OK;
 }
+
+
+/*--------------------------------------------------
+FUNCTION: httpc_destroy
+DESC: Destroy the http client module
+----------------------------------------------------*/
+void httpc_destroy()
+{
+  hsocket_module_destroy();
+}
+
 
 /*--------------------------------------------------
 FUNCTION: httpc_new
