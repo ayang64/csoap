@@ -7,7 +7,7 @@ SUBDIRS= $(GENERIC_LIBRARY_NAME) $(NANOHTTP_LIBRARY_NAME) examples
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libcsoap-$(GENERIC_API_VERSION).pc
+pkgconfig_DATA = libcsoap.pc
 
 
 

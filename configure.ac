@@ -242,4 +242,4 @@ nanohttp/Makefile
 examples/Makefile
 examples/nanohttp/Makefile
 examples/csoap/Makefile
-libcsoap-1.0.pc)
+libcsoap.pc)
