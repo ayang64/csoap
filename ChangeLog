@@ -1,3 +1,7 @@
+2004/11/03
+	Added MIME support. (attachments). Implemented stream objects
+	to receive and send HTTP data. Added some new objects 
+	content-type attachements_t part_t. Added SoapCtx object.
 2004/09/13
 	fixed SIGTERM to work for Windows
 	Michael Rans
