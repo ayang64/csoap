@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.11 2004/09/14 13:23:10 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.12 2004/09/19 07:05:03 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -118,7 +118,7 @@ int hsocket_accept(hsocket_t sock, hsocket_t *dest);
   Returns 0 if success
   >0 if fail
  */
-int hsocket_nsend(hsocket_t sock, const char* buffer, int n); 
+int hsocket_nsend(hsocket_t sock, const unsigned char* buffer, int n); 
 
 /*
   hsocket_send
@@ -126,7 +126,7 @@ int hsocket_nsend(hsocket_t sock, const char* buffer, int n);
   Returns 0 if success
   >0 if fail
  */
-int hsocket_send(hsocket_t sock, const char* buffer); 
+int hsocket_send(hsocket_t sock, const char* str); 
 
 
 /*
@@ -161,7 +161,7 @@ int hsocket_send(hsocket_t sock, const char* buffer);
   Returns 0 if success
   >0 if fail
  */
-int hsocket_recv(hsocket_t sock, char** buffer, int *size); 
+int hsocket_recv(hsocket_t sock, unsigned char** buffer, int *size); 
 
 int hsocket_recv_limit(hsocket_t sock, char** buffer, 
 		       const char* delim, char **rest, 
@@ -173,7 +173,7 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
 int hsocket_recv_cb(hsocket_t sock, 
 		    hsocket_recv_callback cb, void *userdata);
 
-int hsocket_read(hsocket_t sock, char* buffer, int total, int force);
+int hsocket_read(hsocket_t sock, unsigned char* buffer, int total, int force);
 
 
 /* ======================================== */

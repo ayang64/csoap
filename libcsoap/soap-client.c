@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.6 2004/09/02 11:48:28 rans Exp $
+*  $Id: soap-client.c,v 1.7 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -113,3 +113,4 @@ SoapEnv* _soap_client_build_result(hresponse_t *res)
 
 	return env;
 }
+

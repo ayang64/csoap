@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.18 2004/09/01 07:58:00 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.19 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -58,7 +58,10 @@ httpc_new()
 	hsocket_init(&res->sock);
 	res->header = NULL;
 	res->url = NULL;
-
+	res->version = HTTP_1_1;
+	res->_dime_package_nr = 0;
+	res->_dime_sent_bytes = 0;
+	res->_is_chunked = 0;
 	return res;
 }
 
@@ -167,6 +170,49 @@ httpc_send_header(httpc_conn_t * conn)
 	return status;
 }
 
+/*--------------------------------------------------
+FUNCTION: httpc_set_transfer_encoding
+DESC: 
+----------------------------------------------------*/
+void httpc_set_transfer_encoding(httpc_conn_t *conn, const char* encoding)
+{
+  httpc_set_header(conn, HEADER_TRANSFER_ENCODING, encoding);
+
+  if (!strcmp(encoding, TRANSFER_ENCODING_CHUNKED))
+    conn->_is_chunked = 1;
+}
+
+/*--------------------------------------------------
+FUNCTION: httpc_set_transfer_encoding
+DESC: 
+----------------------------------------------------*/
+int httpc_send_data(httpc_conn_t *conn, const unsigned char* bytes, size_t size)
+{
+  int           status;
+  char          chunked[15];
+
+  if (conn->_is_chunked) 
+  {
+    sprintf(chunked,"%x\r\n",size);
+    status = hsocket_send(conn->sock, chunked);
+    if (status != HSOCKET_OK)
+        return status;    
+  }
+
+	status = hsocket_nsend(conn->sock, bytes, size);
+
+  if (conn->_is_chunked) 
+  {
+    status = hsocket_send(conn->sock, "\r\n");
+    if (status != HSOCKET_OK)
+        return status;    
+  }
+
+	return status;
+}
+
+
+
 static
 hresponse_t    *
 httpc_receive_header(hsocket_t sock)
@@ -196,10 +242,6 @@ httpc_receive_header(hsocket_t sock)
 		}
 		for (i = 0; i < status - 2; i++) {
 
-			/*
-			 * log_debug5("%d -> '%c' (%d, %d)", buffer[i],
-			 * buffer[i], buffer[i+1], buffer[i+2]);
-			 */
 			if (buffer[i] == '\n') {
 				if (buffer[i + 1] == '\n') {
 
@@ -353,11 +395,11 @@ httpc_receive_with_chunked_encoding(httpc_conn_t * conn,
 			chunk_size_cur = 0;
 			while (1) {
 
-
 				if (hbufsocket_read(&bufsock, &chunk_size_str[chunk_size_cur], 1)) {
 					log_error1("Can not read from socket");
 					return 9;
 				}
+
 				log_debug2("chunk_size_str[chunk_size_cur] = '%c'",
 					   chunk_size_str[chunk_size_cur]);
 
@@ -369,6 +411,8 @@ httpc_receive_with_chunked_encoding(httpc_conn_t * conn,
 				 && chunk_size_str[chunk_size_cur] != ';') {
 					chunk_size_cur++;
 				}
+				/* TODO (#1#): check for chunk_size_cur >= 25 */
+				
 			}	/* while (1) */
 
 			chunk_size = strtol(chunk_size_str, (char **) NULL, 16);	/* hex to dec */
@@ -475,6 +519,14 @@ httpc_receive_response(httpc_conn_t * conn,
 	hresponse_t    *res;
 	int             status;
 
+	/* check if chunked */
+	if (conn->_is_chunked) 
+	{
+	  status = hsocket_send(conn->sock, "0\r\n\r\n");
+	  if (status != HSOCKET_OK)
+	     return status;
+	}
+
 	/* receive header */
 	log_verbose1("receiving header");
 	res = httpc_receive_header(conn->sock);
@@ -508,6 +560,51 @@ httpc_receive_response(httpc_conn_t * conn,
 	}
 	log_error1("Unknown server response retreive type!");
 	return -1;
+}
+
+static
+int 
+_httpc_receive_response(httpc_conn_t * conn,
+		       httpc_response_start_callback start_cb,
+		       httpc_response_callback cb, void *userdata)
+{
+	hresponse_t    *res;
+	int             status, counter=1;
+	byte_t          buffer[MAX_SOCKET_BUFFER_SIZE+1];
+
+	/* check if chunked */
+	if (conn->_is_chunked) 
+	{
+	  status = hsocket_send(conn->sock, "0\r\n\r\n");
+	  if (status != HSOCKET_OK)
+	     return status;
+	}
+
+	/* Create response object */
+	res = hresponse_new_from_socket(conn->sock);
+	if (res == NULL)
+	{
+	  log_error1("hresponse_new_from_socket() failed!");
+	  return -1;
+	}
+
+	/* Invoke callback */
+	start_cb(conn, userdata, res->header, res->spec,
+		 res->errcode, res->desc);
+
+  while (http_input_stream_is_ready(res->in))
+  {
+    status = http_input_stream_read(res->in, buffer, MAX_SOCKET_BUFFER_SIZE);
+    if (status < 0)
+    {
+        log_error2("Stream read error: %d", status);
+        return -1;
+    }
+
+    cb(counter++, conn, userdata, status, buffer);
+  }
+
+	return HSOCKET_OK;
 }
 
 /*--------------------------------------------------
@@ -596,14 +693,16 @@ httpc_talk_to_server(hreq_method method, httpc_conn_t * conn,
 	if (method == HTTP_REQUEST_GET) {
 
 		/* Set GET Header  */
-		sprintf(buffer, "GET %s HTTP/1.1\r\n",
-			(url->context) ? url->context : ("/"));
+		sprintf(buffer, "GET %s HTTP/%s\r\n",
+			(url->context) ? url->context : ("/"), 
+			(conn->version == HTTP_1_0)?"1.0":"1.1");
 
 	} else if (method == HTTP_REQUEST_POST) {
 
 		/* Set POST Header  */
-		sprintf(buffer, "POST %s HTTP/1.1\r\n",
-			(url->context) ? url->context : ("/"));
+		sprintf(buffer, "POST %s HTTP/%s\r\n",
+			(url->context) ? url->context : ("/"),
+			(conn->version == HTTP_1_0)?"1.0":"1.1");
 	} else {
 
 		log_error1("Unknown method type!");
@@ -648,7 +747,7 @@ httpc_get_cb(httpc_conn_t * conn, const char *urlstr,
 	if (status != HSOCKET_OK)
 		return status;
 
-	status = httpc_receive_response(conn, start_cb, cb, userdata);
+	status = _httpc_receive_response(conn, start_cb, cb, userdata);
 	return status;
 }
 
@@ -668,7 +767,7 @@ int
 httpc_post_cb(httpc_conn_t * conn, const char *urlstr,
 	      httpc_response_start_callback start_cb,
 	      httpc_response_callback cb, int content_size,
-	      char *content, void *userdata)
+	      const char *content, void *userdata)
 {
 	int             status;
 	char            buffer[255];
@@ -689,11 +788,11 @@ httpc_post_cb(httpc_conn_t * conn, const char *urlstr,
 }
 
 
-/*
- * ====================================================== The following
- * functions are used internally to wrap the httpc_x_cb (x = get|post)
- * functions. ======================================================
- */
+/* ====================================================== 
+ The following
+ functions are used internally to wrap the httpc_x_cb 
+(x = get|post) functions. 
+======================================================*/
 static
 void 
 httpc_custom_res_callback(int counter, httpc_conn_t * conn,
@@ -788,6 +887,297 @@ httpc_post(httpc_conn_t * conn, const char *url,
 	return res;
 }
 
+
+/* ---------------------------------------------------
+  DIME support functions httpc_dime_* function set
+-----------------------------------------------------*/
+int httpc_dime_begin(httpc_conn_t *conn, const char *url)
+{
+  int status;
+	httpc_set_header(conn, HEADER_CONTENT_TYPE, "application/dime");
+
+	status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url);
+	return status;
+} 
+
+static _print_binary_ascii(int n)
+{
+  int i,c=0;
+  char ascii[36];
+
+  for (i=0;i<32;i++) {
+    ascii[34-i-c] = (n & (1<<i))?'1':'0';
+    if ((i+1)%8 == 0) {
+        c++;
+        ascii[i+c] = ' ';
+    }
+  }
+
+  ascii[35]='\0';
+
+  log_verbose2("%s", ascii);
+}
+
+static 
+void _get_binary_ascii8(unsigned char n, char* ascii)
+{
+  int i;
+  for (i=0;i<8;i++)
+    ascii[7-i] = (n & (1<<i))?'1':'0';
+
+  ascii[8]='\0';
+}
+
+static
+void _print_binary_ascii32(unsigned char b1, unsigned char b2,
+                           unsigned char b3, unsigned char b4)
+{
+  char ascii[4][9];
+  _get_binary_ascii8(b1, ascii[0]);
+  _get_binary_ascii8(b2, ascii[1]);
+  _get_binary_ascii8(b3, ascii[2]);
+  _get_binary_ascii8(b4, ascii[3]);
+
+  log_verbose5("%s %s %s %s", ascii[0], ascii[1], ascii[2], ascii[3]);
+}
+
+int httpc_dime_next(httpc_conn_t* conn, long content_length, 
+                    const char *content_type, const char *id,
+                    const char *dime_options, int last)
+{
+  int status, tmp;
+  unsigned char header[12];
+
+  for (tmp=0;tmp<12;tmp++)
+    header[tmp]=0;
+
+  header[0] |= DIME_VERSION_1;
+
+  if (conn->_dime_package_nr == 0)
+    header[0] |= DIME_FIRST_PACKAGE;
+
+  if (last)
+    header[0] |= DIME_LAST_PACKAGE;
+
+  header[1] = DIME_TYPE_URI;
+
+  tmp = strlen(dime_options);
+  header[2] = tmp >> 8;
+  header[3] = tmp;
+
+  tmp = strlen(id);
+  header[4] = tmp >> 8;
+  header[5] = tmp;
+
+  tmp = strlen(content_type);
+  header[6] = tmp >> 8;
+  header[7] = tmp;
+
+  header[8] = content_length >> 24;
+  header[9] = content_length >> 16;
+  header[10] = content_length >> 8;
+  header[11] = content_length;
+
+
+  _print_binary_ascii32(header[0], header[1], header[2], header[3]);
+  _print_binary_ascii32(header[4], header[5], header[6], header[7]);
+  _print_binary_ascii32(header[8], header[9], header[10], header[11]);
+
+	status = httpc_send_data(conn, header, 12);
+	if (status != HSOCKET_OK)
+		return status;
+  
+	status = httpc_send_data(conn, (const unsigned char*)dime_options, strlen(dime_options));
+	if (status != HSOCKET_OK)
+		return status;
+  
+	status = httpc_send_data(conn, (const unsigned char*)id, strlen(id));
+	if (status != HSOCKET_OK)
+		return status;
+  
+	status = httpc_send_data(conn, (const unsigned char*)content_type, strlen(content_type));
+	if (status != HSOCKET_OK)
+		return status;
+  
+  return status;
+}
+
+int httpc_dime_send_data(httpc_conn_t* conn, int size, unsigned char* data)
+{
+  return httpc_send_data(conn, data, size);
+}
+
+int httpc_dime_get_response_cb(httpc_conn_t *conn, 
+  httpc_response_start_callback start_cb,
+  httpc_response_callback cb, void *userdata)
+{
+  int status;
+
+ 	status = httpc_receive_response(conn, start_cb, cb, userdata);
+	return status;
+}
+
+
+hresponse_t* httpc_dime_get_response(httpc_conn_t *conn)
+{
+	int             status;
+	hresponse_t    *res;
+
+	res = hresponse_new();
+	status = httpc_dime_get_response_cb(conn, httpc_custom_start_callback,
+			       httpc_custom_res_callback, res);
+
+	if (status != 0) {
+		hresponse_free(res);
+		return NULL;
+	}
+
+	return res;
+}
+
+
+/* ---------------------------------------------------
+  MIME support functions httpc_mime_* function set
+-----------------------------------------------------*/
+
+static
+void _httpc_mime_get_boundary(httpc_conn_t *conn, char *dest)
+{
+  sprintf(dest, "---=_NH_%p", conn);
+  log_verbose2("boundary= \"%s\"", dest);
+}
+
+int httpc_mime_post_begin(httpc_conn_t *conn, const char *url,
+  const char* related_start, 
+  const char* related_start_info, 
+  const char* related_type)
+{
+	int             status;
+	char            buffer[300];
+	char            temp[75];
+	char            boundary[75];
+
+	/* 
+		Set Content-type 
+		Set multipart/related parameter
+		  type=..; start=.. ; start-info= ..; boundary=...
+		  
+	*/
+	sprintf(buffer, "multipart/related;");
+	
+  if (related_type) {
+    snprintf(temp, 75, " type=\"%s\";", related_type); 
+    strcat(buffer, temp);
+  }
+  
+  if (related_start) {
+    snprintf(temp, 75, " start=\"%s\";", related_start); 
+    strcat(buffer, temp);
+  }
+
+  if (related_start_info) {
+    snprintf(temp, 75, " start-info=\"%s\";", related_start_info); 
+    strcat(buffer, temp);
+  }
+
+  _httpc_mime_get_boundary(conn, boundary);
+  snprintf(temp, 75, " boundary=\"%s\"", boundary);
+  strcat(buffer, temp);
+
+	httpc_set_header(conn, HEADER_CONTENT_TYPE, buffer);
+
+	status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url);
+	return status;
+}
+
+
+int httpc_mime_post_next(httpc_conn_t *conn, 
+  const char* content_id,
+  const char* content_type, 
+  const char* transfer_encoding)
+{
+  int            status;
+  char           buffer[512];
+  char           boundary[75];
+
+  /* Get the boundary string */
+  _httpc_mime_get_boundary(conn, boundary);
+  sprintf(buffer, "\r\n--%s\r\n", boundary);
+
+  /* Send boundary */
+  status = httpc_send_data(conn, (const unsigned char*)buffer, strlen(buffer));
+  /*	status = hsocket_send(conn->sock, buffer);*/
+	if (status != HSOCKET_OK)
+		return status;
+
+	/* Send Content header */
+	sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n", 
+	 HEADER_CONTENT_TYPE, content_type,
+	 HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
+	 HEADER_CONTENT_ID, content_id);
+
+  status = httpc_send_data(conn, (const unsigned char*)buffer, strlen(buffer));
+
+	return status;
+}
+
+
+int httpc_mime_post_send(httpc_conn_t *conn, size_t size, const unsigned char* data)
+{
+  int status;
+  char buffer[15];
+
+  status = httpc_send_data(conn, (const unsigned char*)data, size);
+  if (status != HSOCKET_OK)
+      return status;    
+
+
+  return status;
+}
+
+
+int httpc_mime_post_end_cb(httpc_conn_t *conn, 
+  httpc_response_start_callback start_cb,
+  httpc_response_callback cb, void *userdata)
+{
+
+  int            status;
+  char           buffer[512];
+  char           boundary[75];
+  char           chunked[15];
+
+  /* Get the boundary string */
+  _httpc_mime_get_boundary(conn, boundary);
+  sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
+
+  /* Send boundary */
+  status = httpc_send_data(conn, (unsigned char*)buffer, strlen(buffer));
+  if (status != HSOCKET_OK)
+    return status;
+
+	/*status = hsocket_send(conn->sock, buffer);*/
+
+	status = httpc_receive_response(conn, start_cb, cb, userdata);
+	return status;
+}
+
+
+hresponse_t *httpc_mime_post_end(httpc_conn_t *conn)
+{
+	int             status;
+	hresponse_t    *res;
+
+	res = hresponse_new();
+	status = httpc_mime_post_end_cb(conn, httpc_custom_start_callback,
+			       httpc_custom_res_callback, res);
+
+	if (status != 0) {
+		hresponse_free(res);
+		return NULL;
+	}
+
+	return res;
+}
 
 
 /*

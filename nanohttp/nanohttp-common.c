@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.11 2004/09/01 07:58:08 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.12 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,7 @@
 ******************************************************************/
 
 #include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-reqres.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -657,6 +658,111 @@ hresponse_new()
 	return res;
 }
 
+static
+hresponse_t    *
+_hresponse_parse_header(const char *buffer)
+{
+	hresponse_t    *res;
+	char           *s1, *s2, *str;
+
+	/* create response object */
+	res = hresponse_new();
+
+	/* *** parse spec *** */
+	/* [HTTP/1.1 | 1.2] [CODE] [DESC] */
+
+	/* stage 1: HTTP spec */
+	str = (char *) strtok_r((char *) buffer, " ", &s2);
+	s1 = s2;
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
+	strncpy(res->spec, str, 10);
+
+	/* stage 2: http code */
+	str = (char *) strtok_r(s1, " ", &s2);
+	s1 = s2;
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
+	res->errcode = atoi(str);
+
+	/* stage 3: description text */
+	str = (char *) strtok_r(s1, "\r\n", &s2);
+	s1 = s2;
+	if (str == NULL) {
+		log_error1("Parse error");
+		return NULL;
+	}
+	res->desc = (char *) malloc(strlen(str) + 1);
+	strcpy(res->desc, str);
+	res->desc[strlen(str)] = '\0';
+
+	/* *** parse header *** */
+	/* [key]: [value] */
+	for (;;) {
+		str = strtok_r(s1, "\n", &s2);
+		s1 = s2;
+
+		/* check if header ends without body */
+		if (str == NULL) {
+			return res;
+		}
+		/* check also for end of header */
+		if (!strcmp(str, "\r")) {
+			break;
+		}
+		str[strlen(str) - 1] = '\0';
+		res->header = hpairnode_parse(str, ":", res->header);
+	}
+
+	/* return response object */
+	return res;
+}
+
+hresponse_t *
+hresponse_new_from_socket(hsocket_t sock)
+{
+  int              i=0, status;
+  hresponse_t     *res;
+  char             buffer[MAX_HEADER_SIZE+1];
+
+  /* Read header */
+  while (i<MAX_HEADER_SIZE)
+  {
+    status = hsocket_read(sock, &(buffer[i]), 1, 1);
+    if (status == -1)
+    {
+        log_error1("Socket read error");
+        return NULL;
+    }
+
+    buffer[i+1] = '\0'; /* for strmp */
+
+    if (i > 3)
+    {
+        if (!strcmp(&(buffer[i-1]), "\n\n") ||
+            !strcmp(&(buffer[i-2]), "\n\r\n"))
+            break;
+    }
+    i++;
+  }
+
+  /* Create response */
+  res = _hresponse_parse_header(buffer);
+  if (res == NULL)
+  {
+    log_error1("Header parse error");
+    return NULL;
+  }
+
+  /* Create input stream */
+  res->in = http_input_stream_new(sock, res->header);
+
+  return res;
+}
 
 /*
  * ------------------------------------------- FUNCTION:

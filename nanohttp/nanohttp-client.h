@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.7 2004/08/31 16:34:08 rans Exp $
+ *  $Id: nanohttp-client.h,v 1.8 2004/09/19 07:05:03 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,13 +27,22 @@
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
-
+#include <nanohttp/nanohttp-reqres.h>
 
 typedef struct httpc_conn
 {
   hsocket_t sock;
   hpair_t *header;
   hurl_t *url;
+  http_version_t version;
+  /*
+    -1  : last dime package 
+    0   : no dime connection
+    >0  : dime package number
+  */
+  int _dime_package_nr;
+  long _dime_sent_bytes; 
+  int _is_chunked;
 }httpc_conn_t;
 
 /*
@@ -56,6 +65,7 @@ httpc_conn_t* httpc_new();
 void httpc_free(httpc_conn_t* conn);
 
 int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value);
+void  httpc_set_transfer_encoding(httpc_conn_t *conn, const char*  encoding);
 
 hresponse_t *httpc_get(httpc_conn_t *conn, const char *url);
 hresponse_t *httpc_post(httpc_conn_t *conn, const char *url, 
@@ -69,8 +79,40 @@ int httpc_get_cb(httpc_conn_t *conn, const char *url,
 int httpc_post_cb(httpc_conn_t *conn, const char *url, 
 		  httpc_response_start_callback start_cb,
 		  httpc_response_callback cb, int content_size, 
-		  char *content,  void *userdata);
+		  const char *content,  void *userdata);
 
+/*
+  DIME support httpc_dime_* function set
+*/
+int httpc_dime_begin(httpc_conn_t *conn, const char *url);
+int httpc_dime_next(httpc_conn_t* conn, long content_length, 
+                    const char *content_type, const char *id,
+                    const char *dime_options, int last);
+int httpc_dime_send_data(httpc_conn_t* conn, int size, unsigned char* data);
+hresponse_t* httpc_dime_get_response(httpc_conn_t *conn);
+int httpc_dime_get_response_cb(httpc_conn_t *conn, 
+  httpc_response_start_callback start_cb,
+  httpc_response_callback cb, void *userdata);
+
+/*
+  MIME support httpc_mime_* function set
+*/
+
+int httpc_mime_post_begin(httpc_conn_t *conn, const char *url,
+  const char* related_start, 
+  const char* related_start_info, 
+  const char* related_type);
+
+int httpc_mime_post_next(httpc_conn_t *conn, 
+  const char* content_id,
+  const char* content_type, 
+  const char* transfer_encoding);
+
+int httpc_mime_post_send(httpc_conn_t *conn, size_t size, const unsigned char* data);
+hresponse_t *httpc_mime_post_end(httpc_conn_t *conn);
+int httpc_mime_post_end_cb(httpc_conn_t *conn, 
+  httpc_response_start_callback start_cb,
+  httpc_response_callback cb, void *userdata);
 
 
 /*

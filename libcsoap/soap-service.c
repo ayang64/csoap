@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.3 2004/08/26 17:06:18 rans Exp $
+*  $Id: soap-service.c,v 1.4 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -86,3 +86,4 @@ void soap_service_free(SoapService *service)
 	free(service);
 	log_verbose1("leave with success");
 }
+

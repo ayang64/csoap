@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.8 2004/09/13 07:12:33 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.9 2004/09/19 07:05:01 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -89,3 +89,4 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+

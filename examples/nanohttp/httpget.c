@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: httpget.c,v 1.3 2004/08/26 17:02:24 rans Exp $
+*  $Id: httpget.c,v 1.4 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,19 +23,10 @@
 ******************************************************************/
 #include <nanohttp/nanohttp-client.h>
 
-#ifdef WIN32
-#include <stdafx.h>
-#include <malloc.h>
-#else
 #include <stdio.h>
-#endif
 
 
-#ifdef WIN32
-int _tmain(int argc, _TCHAR* argv[])
-#else
 int main(int argc, char *argv[])
-#endif
 {
 	httpc_conn_t *conn;
 	hresponse_t *res;
@@ -47,6 +38,11 @@ int main(int argc, char *argv[])
 	}
 
 	log_set_level(HLOG_VERBOSE);
+	if (httpc_init(argc, argv))
+	{
+	 log_error1("Can not init httpc");
+	 return 1;
+	}
 
 	conn = httpc_new();
 	res = httpc_get(conn, argv[1]);

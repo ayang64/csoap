@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.21 2004/09/14 15:50:54 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.22 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,20 +24,17 @@
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-common.h>
 
-
-
-
 #ifdef WIN32
-    #include "wsockcompat.h"
-    #include <winsock2.h>
-    #include <process.h>
+#include "wsockcompat.h"
+#include <winsock2.h>
+#include <process.h>
 
-#ifndef __MINGW32__ 
-    typedef int ssize_t;
+#ifndef __MINGW32__
+typedef int ssize_t;
 #endif
 
 #else
-    #include <fcntl.h>
+#include <fcntl.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -99,7 +96,6 @@ hsocket_module_destroy ()
 #endif /* */
 }
 
-
 /*--------------------------------------------------
 FUNCTION: hsocket_init
 ----------------------------------------------------*/
@@ -111,7 +107,6 @@ hsocket_init (hsocket_t * sock)
   return 0;
 }
 
-
 /*--------------------------------------------------
 FUNCTION: hsocket_free
 ----------------------------------------------------*/
@@ -120,7 +115,6 @@ hsocket_free (hsocket_t sock)
 {
   /* nothing to free for unix sockets */
 }
-
 
 /*--------------------------------------------------
 FUNCTION: hsocket_open
@@ -148,6 +142,7 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
   /* set server addresss */
   address.sin_family = host->h_addrtype;
   address.sin_port = htons (port);
+
   /* connect to the server */
   if (connect (sock, (struct sockaddr *) &address, sizeof (address)) != 0)
     return HSOCKET_CAN_NOT_CONNECT;
@@ -155,7 +150,6 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
   *dsock = sock;
   return HSOCKET_OK;
 }
-
 
 /*--------------------------------------------------
 FUNCTION: hsocket_bind
@@ -169,62 +163,63 @@ hsocket_bind (hsocket_t * dsock, int port)
   /* create socket */
   sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock == -1)
-    {
-      log_error2 ("Can not create socket: '%s'", strerror (errno));
-      return HSOCKET_CAN_NOT_CREATE;
-    }
+  {
+    log_error2 ("Can not create socket: '%s'", strerror (errno));
+    return HSOCKET_CAN_NOT_CREATE;
+  }
   /* bind socket */
   addr.sin_family = AF_INET;
-  addr.sin_port = htons (port);	/* short, network byte order */
+  addr.sin_port = htons (port); /* short, network byte order */
   addr.sin_addr.s_addr = INADDR_ANY;
-  memset (&(addr.sin_zero), '\0', 8);	/* zero the rest of the
-					 * struct */
+  memset (&(addr.sin_zero), '\0', 8);   /* zero the rest of the
+                                         * struct */
 
   if (bind (sock, (struct sockaddr *) &addr, sizeof (struct sockaddr)) == -1)
-    {
-      log_error2 ("Can not bind: '%s'", strerror (errno));
-      return HSOCKET_CAN_NOT_BIND;
-    }
+  {
+    log_error2 ("Can not bind: '%s'", strerror (errno));
+    return HSOCKET_CAN_NOT_BIND;
+  }
   *dsock = sock;
   return HSOCKET_OK;
 }
 
-
 /*----------------------------------------------------------
 FUNCTION: hsocket_accept
 ----------------------------------------------------------*/
-int hsocket_accept(hsocket_t sock, hsocket_t *dest)
+int
+hsocket_accept (hsocket_t sock, hsocket_t * dest)
 {
-	socklen_t asize;
-	hsocket_t sockfd;
-	struct sockaddr_in addr;
+  socklen_t asize;
+  hsocket_t sockfd;
+  struct sockaddr_in addr;
 
-	asize = sizeof(struct sockaddr_in);
+  asize = sizeof (struct sockaddr_in);
 #ifdef WIN32
-	while(1)
-	{
-		sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
-		if (sockfd == INVALID_SOCKET) 
-    { 
-			if(WSAGetLastError()!=WSAEWOULDBLOCK)
-				return HSOCKET_CAN_NOT_ACCEPT;		    
-		}
-		else
-		{
-			break;
-		}		
-	}
+  while (1)
+  {
+    sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
+    if (sockfd == INVALID_SOCKET)
+    {
+      if (WSAGetLastError () != WSAEWOULDBLOCK)
+        return HSOCKET_CAN_NOT_ACCEPT;
+    }
+    else
+    {
+      break;
+    }
+  }
 #else
-	sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
-	if (sockfd == -1) { 
-		return HSOCKET_CAN_NOT_ACCEPT;
-	}
+  sockfd = accept (sock, (struct sockaddr *) &addr, &asize);
+  if (sockfd == -1)
+  {
+    return HSOCKET_CAN_NOT_ACCEPT;
+  }
 #endif
-	log_verbose3("accept new socket (%d) from '%s'", sockfd,
-		SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
+  log_verbose3 ("accept new socket (%d) from '%s'", sockfd,
+                SAVE_STR (((char *) inet_ntoa (addr.sin_addr))));
 
-	*dest = sockfd;
-	return HSOCKET_OK;  
+  *dest = sockfd;
+  return HSOCKET_OK;
 }
 
 /*--------------------------------------------------
@@ -234,10 +229,10 @@ int
 hsocket_listen (hsocket_t sock, int n)
 {
   if (listen (sock, n) == -1)
-    {
-      log_error2 ("Can not listen: '%s'", strerror (errno));
-      return HSOCKET_CAN_NOT_LISTEN;
-    }
+  {
+    log_error2 ("Can not listen: '%s'", strerror (errno));
+    return HSOCKET_CAN_NOT_LISTEN;
+  }
   return HSOCKET_OK;
 }
 
@@ -254,16 +249,15 @@ hsocket_close (hsocket_t sock)
 #endif
 }
 
-
 /*--------------------------------------------------
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 int
-hsocket_nsend (hsocket_t sock, const char *buffer, int n)
+hsocket_nsend (hsocket_t sock, const unsigned char *bytes, int n)
 {
   int size;
 
-  size = send ((int) sock, buffer, n, 0);
+  size = send ((int) sock, bytes, n, 0);
   if (size == -1)
     return HSOCKET_CAN_NOT_SEND;
 
@@ -274,14 +268,16 @@ hsocket_nsend (hsocket_t sock, const char *buffer, int n)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 int
-hsocket_send (hsocket_t sock, const char *buffer)
+hsocket_send (hsocket_t sock, const char *str)
 {
-	return hsocket_nsend(sock, buffer, strlen(buffer));
+  return hsocket_nsend (sock, str, strlen (str));
 }
 
-
+/*
+  return: -1 is error. read bytes otherwise
+*/
 int
-hsocket_read (hsocket_t sock, char *buffer, int total, int force)
+hsocket_read (hsocket_t sock, unsigned char *buffer, int total, int force)
 {
   int status;
   int totalRead;
@@ -289,37 +285,28 @@ hsocket_read (hsocket_t sock, char *buffer, int total, int force)
   totalRead = 0;
 
   do
-    {
-      status = recv (sock, &buffer[totalRead], total - totalRead, 0);
-      if (!force)
-	{
+  {
+    status = recv (sock, &buffer[totalRead], total - totalRead, 0);
+
 #ifdef WIN32
-	  if (WSAGetLastError () != WSAEWOULDBLOCK)
-	    {
-	      return status;
-	    }
+    if (status == INVALID_SOCKET)
+        if (WSAGetLastError () == WSAEWOULDBLOCK)
+          continue;
+        else       
+          return -1;
 #else
-	  return status;
+    if (status == -1)
+        return -1;
 #endif
-	}
-      if (status > 0)
-	{
-	  totalRead += status;
-	}
-      else
-	{
-#ifdef WIN32
-	  if (WSAGetLastError () != WSAEWOULDBLOCK)
-	    {
-	      return status;
-	    }
-#else
-	  return status;
-#endif
-	}
-      if (totalRead >= total)
-	return 0;
-    }
+    
+    if (!force)
+        return status;
+    
+    totalRead += status;
+
+    if (totalRead == total)
+      return totalRead;
+  }
   while (1);
 }
 
@@ -327,7 +314,7 @@ hsocket_read (hsocket_t sock, char *buffer, int total, int force)
 FUNCTION: hsocket_recv
 ----------------------------------------------------*/
 int
-hsocket_recv (hsocket_t sock, char **buffer, int *totalSize)
+hsocket_recv (hsocket_t sock, unsigned char **buffer, int *totalSize)
 {
   ssize_t size;
   int chunk = 1;
@@ -336,65 +323,53 @@ hsocket_recv (hsocket_t sock, char **buffer, int *totalSize)
   int bufSize;
 
   if (*totalSize > 0)
-    {
-      bufSize = *totalSize;
-    }
+    bufSize = *totalSize;
   else
-    {
-      bufSize = HSOCKET_MAX_BUFSIZE;
-    }
+    bufSize = HSOCKET_MAX_BUFSIZE;
 
   *totalSize = 0;
 
   /* calculate first size for realloc */
   if (*buffer)
-    {
-      fsize = strlen (*buffer);
-    }
+    fsize = strlen (*buffer);
   else
-    {
-      fsize = 0;
-    }
+    fsize = 0;
 
   do
+  {
+    size = recv (sock, tmp, bufSize, 0);
+    bufSize = HSOCKET_MAX_BUFSIZE;
+
+    if (size == -1)
     {
-
-      size = recv (sock, tmp, bufSize, 0);
-      bufSize = HSOCKET_MAX_BUFSIZE;
-
-      if (size == -1)
-	{
-	  log_error1 ("Error reading from socket");
-	  return HSOCKET_CAN_NOT_RECEIVE;
-	}
-      if (size == 0)
-	{
-	  break;
-	}
-      *totalSize += size;
-      if (*buffer)
-	{
-	  log_verbose2 ("reallocation %d bytes", *totalSize + fsize + 1);
-	  *buffer = (char *) realloc ((char *) *buffer,
-				      (*totalSize) + fsize +
-				      HSOCKET_MAX_BUFSIZE);
-	  strcat (*buffer, tmp);
-	}
-      else
-	{
-	  *buffer = (char *) realloc (NULL, *totalSize + 1);
-	  strcpy (*buffer, tmp);
-	}
-
-      (*buffer)[*totalSize + fsize] = '\0';
-      chunk++;
+      log_error1 ("Error reading from socket");
+      return HSOCKET_CAN_NOT_RECEIVE;
     }
-  while (size > 0);
+    
+    if (size == 0)
+    {
+      break;
+    }
+    *totalSize += size;
+    if (*buffer)
+    {
+      log_verbose2 ("reallocation %d bytes", *totalSize + fsize + 1);
+      *buffer = (char *) realloc ((char *) *buffer,
+                                  (*totalSize) + fsize + HSOCKET_MAX_BUFSIZE);
+      strcat (*buffer, tmp);
+    }
+    else
+    {
+      *buffer = (char *) realloc (NULL, *totalSize + 1);
+      strcpy (*buffer, tmp);
+    }
+
+    (*buffer)[*totalSize + fsize] = '\0';
+    chunk++;
+  } while (size > 0);
 
   return HSOCKET_OK;
 }
-
-
 
 /*--------------------------------------------------
 FUNCTION: hsocket_recv
@@ -406,31 +381,30 @@ hsocket_recv_cb (hsocket_t sock, hsocket_recv_callback cb, void *userdata)
   char tmp[HSOCKET_MAX_BUFSIZE + 1];
 
   do
+  {
+
+    size = recv (sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
+
+    if (size == -1)
     {
-
-      size = recv (sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
-
-      if (size == -1)
-	{
-	  log_error1 ("Error reading from socket");
-	  return HSOCKET_CAN_NOT_RECEIVE;
-	}
-      if (size == 0)
-	{
-	  break;
-	}
-      tmp[size] = '\0';
-      if (!cb (sock, tmp, size, userdata))
-	{
-	  break;
-	}
+      log_error1 ("Error reading from socket");
+      return HSOCKET_CAN_NOT_RECEIVE;
     }
+
+    if (size == 0)
+    {
+      break;
+    }
+    tmp[size] = '\0';
+    if (!cb (sock, tmp, size, userdata))
+    {
+      break;
+    }
+  }
   while (size > 0);
 
   return HSOCKET_OK;
 }
-
-
 
 /*--------------------------------------------------
 FUNCTION: hbufsocket_read
@@ -442,41 +416,44 @@ hbufsocket_read (hbufsocket_t * bufsock, char *buffer, int size)
   int tmpsize;
 
   if (bufsock->bufsize - bufsock->cur >= size)
-    {
+  {
 
-      log_verbose1 ("no need to read from socket");
-      strncpy (buffer, &(bufsock->buffer[bufsock->cur]), size);
-      bufsock->cur += size;
-      return HSOCKET_OK;
+    /* no need to read from socket*/
+    strncpy (buffer, &(bufsock->buffer[bufsock->cur]), size);
+    bufsock->cur += size;
+    return HSOCKET_OK;
 
-    }
+  }
   else
+  {
+
+    tmpsize = bufsock->bufsize - bufsock->cur;
+    log_verbose5 ("tmpsize=%d, bufsock->bufsize=%d, bufsock->cur=%d, size=%d", 
+        tmpsize, bufsock->bufsize, bufsock->cur, size);
+
+    if (tmpsize > 0)
+      strncpy (buffer, &(bufsock->buffer[bufsock->cur]), tmpsize);
+
+    size -= tmpsize;
+
+    free (bufsock->buffer);
+
+    status = hsocket_read (bufsock->sock, &buffer[tmpsize], size, 1);
+    log_verbose3("hsocket_read(): size=%d,status=%d", size, status);
+    if (status == size)
     {
-
-      tmpsize = bufsock->bufsize - bufsock->cur;
-      log_verbose2 ("tmpsize = %d", tmpsize);
-
-      if (tmpsize > 0)
-	strncpy (buffer, &(bufsock->buffer[bufsock->cur]), tmpsize);
-
-      size -= tmpsize;
-
-      free (bufsock->buffer);
-
-      status = hsocket_read (bufsock->sock, &buffer[tmpsize], size, 1);
-      if (status == size)
-	{
-	  bufsock->buffer = (char *) malloc (size + 1);
-	  strncpy (bufsock->buffer, &buffer[tmpsize], size);
-	  bufsock->cur = size;
-	}
-      else
-	{
-	  return status;
-	}
-
-      return HSOCKET_OK;
+      bufsock->buffer = (char *) malloc (size + 1);
+      strncpy (bufsock->buffer, &buffer[tmpsize], size);
+      bufsock->cur = size;
+      bufsock->bufsize = size;
     }
+    else
+    {
+      return status;
+    }
+
+    return HSOCKET_OK;
+  }
 }
 
 int
@@ -486,10 +463,10 @@ hsocket_makenonblock (hsocket_t sock)
   unsigned long iMode;
   iMode = HSOCKET_NONBLOCKMODE;
   if (ioctlsocket (sock, FIONBIO, (u_long FAR *) & iMode) == INVALID_SOCKET)
-    {
-      log_error1 ("ioctlsocket error");
-      return -1;
-    }
+  {
+    log_error1 ("ioctlsocket error");
+    return -1;
+  }
 #else /* fcntl(sock, F_SETFL, O_NONBLOCK); */
 #endif
   return HSOCKET_OK;
@@ -503,10 +480,10 @@ localtime_r (const time_t * const timep, struct tm *p_tm)
   static struct tm *tmp;
   tmp = localtime (timep);
   if (tmp)
-    {
-      memcpy (p_tm, tmp, sizeof (struct tm));
-      tmp = p_tm;
-    }
+  {
+    memcpy (p_tm, tmp, sizeof (struct tm));
+    tmp = p_tm;
+  }
   return tmp;
 }
 

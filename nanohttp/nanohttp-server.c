@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.24 2004/09/14 17:34:36 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.25 2004/09/19 07:05:03 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -559,26 +559,27 @@ httpd_run ()
     /* Wait for a socket to accept */
     while (_httpd_run) 
 	 {
-		/* zero and set file descriptior */
-		FD_ZERO (&fds);
-		FD_SET (_httpd_socket, &fds);
-		
-		/* select socket descriptor */
-		switch (select(_httpd_socket+1, &fds, NULL, NULL, &timeout))
-		{
-			case 0:
-				/* descriptor is not ready */
-				continue;
-			case -1:
-				/* got a signal? */
-				continue;
-			default:
-				/* no nothing */
-					break;
-		}
-		if (FD_ISSET (_httpd_socket, &fds)) {
-			break;
-		}
+  		/* zero and set file descriptior */
+  		FD_ZERO (&fds);
+  		FD_SET (_httpd_socket, &fds);
+  		
+  		/* select socket descriptor */
+  		switch (select(_httpd_socket+1, &fds, NULL, NULL, &timeout))
+  		{
+  			case 0:
+  				/* descriptor is not ready */
+  				continue;
+  			case -1:
+  				/* got a signal? */
+  				continue;
+  			default:
+  				/* no nothing */
+  					break;
+  		}
+  		if (FD_ISSET (_httpd_socket, &fds)) 
+      {
+  			break;
+  		}
     }
     
     /* check signal status*/
@@ -601,14 +602,14 @@ httpd_run ()
 }
 
 
-char *
+unsigned char *
 httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
                     long max)
 {
   char *content_length_str;
   long content_length = 0;
   long total = 0;
-  char *postdata = NULL;
+  unsigned char *postdata = NULL;
 
   if (!strcmp (req->method, "POST"))
   {
@@ -636,14 +637,14 @@ httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
     postdata[0] = '\0';
     return postdata;
   }
-  postdata = (char *) malloc (content_length + 1);
+  postdata = (unsigned char *) malloc (content_length + 1);
   if (postdata == NULL)
   {
     log_error1 ("Not enough memory");
     return NULL;
   }
   if (hsocket_read (conn->sock, postdata,
-                    (int) content_length, 1) == HSOCKET_OK)
+                    (int)content_length, 1)>0)
   {
     *received = content_length;
     postdata[content_length] = '\0';

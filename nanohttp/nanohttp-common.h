@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.10 2004/09/14 15:31:24 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.11 2004/09/19 07:05:03 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,16 +27,23 @@
 
 #define HEADER_CONTENT_LENGTH "Content-Length"
 #define HEADER_CONTENT_TYPE "Content-Type"
+#define HEADER_CONTENT_ID "Content-Id"
+#define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define HEADER_TRANSFER_ENCODING "Transfer-Encoding"
 #define HEADER_CONNECTION "Connection"
 
 #define HEADER_HOST "Host"
 #define HEADER_DATE "Date"
-
+#define HEADER_ACCEPT "Accept"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
 #endif
+
+#define TRANSFER_ENCODING_CHUNKED "chunked"
+
+#define MAX_HEADER_SIZE 4256
+#define MAX_SOCKET_BUFFER_SIZE 4256
 
 /*
 Set Sleep function platform depended
@@ -47,11 +54,14 @@ Set Sleep function platform depended
   #define system_sleep(seconds) sleep(seconds);
 #endif
 
+typedef unsigned char byte_t;
+
 /*
   string function to compare strings ignoring case
   Returns 1 if s1 equals s2 and 0 otherwise.  
  */
 int strcmpigcase(const char *s1, const char *s2);
+
 
 
 /*
@@ -76,6 +86,11 @@ hpair_t* hpairnode_copy_deep(const hpair_t *src);
 void hpairnode_dump_deep(hpair_t *pair);
 void hpairnode_dump(hpair_t *pair);
 
+typedef enum http_version { 
+  HTTP_1_0, 
+  HTTP_1_1 /* default */
+}http_version_t;
+
 typedef enum hreq_method 
 {
   HTTP_REQUEST_POST,
@@ -95,40 +110,33 @@ typedef struct hurl
 hurl_t* hurl_new(const char* urlstr);
 void hurl_free(hurl_t *url);
 
-/*
-  request object
- */
-typedef struct hrequest
-{
-  char *method;
-  char *path;
-  char *spec;
-  hpair_t *query;
-  hpair_t *header;
-}hrequest_t;
 
-hrequest_t *hrequest_new_from_buffer(char *data);
-void hrequest_free(hrequest_t *req);
-
-/* response object */
-
-typedef struct hresponse
-{
-  char spec[10];
-  int errcode;
-  char *desc;
-  hpair_t *header;
-  char *body;
-  long bodysize;
-}hresponse_t;
 
 /*
-  PARAMS
-  buffer: The hole received data from socket.
- */
-hresponse_t *hresponse_new_from_buffer(const char* buffer);
-hresponse_t *hresponse_new();
-void hresponse_free(hresponse_t *res); 
+  DIME common stuff
+*/
+#define DIME_VERSION_1      0x08
+#define DIME_FIRST_PACKAGE  0x04
+#define DIME_LAST_PACKAGE   0x02
+#define DIME_CHUNKED        0x01
+#define DIME_TYPE_URI       0x2
+
+typedef struct _DIME_PACKAGE
+{
+  char version; /* Specifies the version of the DIME message */
+  char first_record; /* Specifies that this record is the first record of the message */
+  char last_recored; /* Specifies that this record is the last record of the message */
+  char chunked; /* Specifies that the contents of the message have been chunked */
+  char type_t; /* Specifies the structure and format of the TYPE field */
+  char *options; /* Contains any optional information used by a DIME parser */
+  char *id; /* Contains a URI for uniquely identifying a DIME payload with any 
+                 additional padding; */
+  char *type; /* Specifies the encoding for the record based on a type reference URI or a MIME media-type */
+  int data_size; /* Specifies the length (in bytes) of the DATA */
+  unsigned char* data; /* Contains the actual data payload for the record; 
+                          format of the data depends on the type specified for the record */
+}DIME_PACKAGE;
+
 
 /* logging stuff*/
 typedef enum log_level

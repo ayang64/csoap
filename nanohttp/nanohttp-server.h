@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.4 2004/09/01 14:09:44 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.5 2004/09/19 07:05:03 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,7 @@
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
-
+#include <nanohttp/nanohttp-reqres.h>
 
 #define NHTTPD_ARG_PORT "-NHTTPport"
 #define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
@@ -73,7 +73,7 @@ int httpd_send_header(httpd_conn_t *res,
 		      hpair_t *pair);
 
 
-char *httpd_get_postdata(httpd_conn_t *conn, 
+unsigned char *httpd_get_postdata(httpd_conn_t *conn, 
 			 hrequest_t *req, long *received, long max);
 
 #endif
