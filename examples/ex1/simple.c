@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simple.c,v 1.2 2003/11/14 09:59:41 snowdrop Exp $
+ * $Id: simple.c,v 1.3 2004/01/30 16:39:59 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,7 +21,7 @@
  * Email: ayaz@jprogrammer.net
  ******************************************************************/
 
-#include <libcsoap/csoap.h>
+#include <libcsoap/soap-call.h>
 
 
 static const char *url = "http://csoap.sourceforge.net/cgi-bin/csoapserver";
@@ -31,52 +31,17 @@ static const char *method = "sayHello";
 
 int main(int argc, char *argv[])
 {
-  /* Objects to do a soap call */ 
-  HSOAPCALL call;
-  HSOAPRES result;
-  HSOAPPARAM res;
-  HSOAPFAULT fault;
+  SoapCall *call;
+  xmlDocPtr doc;
 
-  char *str;
+  call = soap_call_new(urn, method);
+  soap_call_add_param(call, "xsd:string", "name", "Jonny B. Good");
+  
+  doc = soap_call_invoke(call, url);
+  soap_xml_doc_print(doc);
+  xmlFreeDoc(doc);
 
-  /* Initialize CSOAP */
-  SoapInit(argc, argv);
-
-  /* Create a soap call object */
-  call = SoapCallCreate((argc>1)?argv[1]:url, urn, method);
-
-  /* Add the only parameter for the soap call */
-  SoapCallAddStringParam(call, "name", "John B. Good");
- 
-  /* Now invoke the call. Here we try to      */
-  /* establish a network (http) communication */
-  result = SoapCallInvoke(call);
-
-  /* Check if the call was succesfull*/
-  if (result == NULL) {
-    fprintf(stderr, "Can not send the soap call\n");
-    exit(1);
-  }
-
-  /* Now check if we received a fault object */
-  if (fault = SoapResGetFault(result)) {
-		
-    /* Use the default printer */
-    SoapFaultPrint(stdout, fault);
-
-  } else {
-    
-    /* Print the only string in the response */
-    res = SoapResGetParamChildren(result);
-
-    if (res != NULL) {
-      str = SoapParamToString(res);
-      fprintf(stdout, "Server: '%s'\n", str);
-      free(str);
-    } else {
-      fprintf(stderr, "Corrupt response!\n");
-    }
-  }
+  free(call);
 
   return 0;
 }
