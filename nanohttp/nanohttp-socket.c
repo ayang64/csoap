@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.26 2004/10/18 11:35:27 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.27 2004/10/18 11:42:00 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -299,16 +299,18 @@ hsocket_close (hsocket_t sock)
   _linger.l_linger = 30000;
   setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
 */
-  shutdown(sock, SD_SEND);
-  while (recv(sock, junk, sizeof(junk), 0)>0) { };  
 #ifdef WIN32
   /*shutdown(sock,SD_RECEIVE);*/
   
 
+  shutdown(sock, SD_SEND);
+  while (recv(sock, junk, sizeof(junk), 0)>0) { };  
   closesocket(sock);
   
   log_verbose1 ("closed");
 #else
+  shutdown(sock, 1);
+  while (recv(sock, junk, sizeof(junk), 0)>0) { };  
   close (sock);
 #endif
 }
