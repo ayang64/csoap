@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.11 2004/08/30 15:26:53 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.12 2004/08/31 11:13:55 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,14 +26,17 @@
 #ifdef WIN32
 #include "wsockcompat.h"
 #include <winsock2.h>
+#include <process.h>
 #define close(s) closesocket(s)
+#define localtime_r( _clock, _result ) \
+        ( *(_result) = *localtime( (_clock) ), \
+          (_result) )
 #endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <pthread.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +44,7 @@
 #include <signal.h>
 
 #ifndef WIN32
+#include <pthread.h>
 /* According to POSIX 1003.1-2001 */
 #include <sys/select.h>
 
@@ -265,7 +269,11 @@ static void httpd_request_print(hrequest_t *req)
 /* ----------------------------------------------------- 
 FUNCTION: httpd_session_main
 ----------------------------------------------------- */
+#ifdef WIN32
+unsigned _stdcall httpd_session_main(void *data)
+#else
 static void* httpd_session_main(void *data)
+#endif
 {
 	conndata_t *conn = (conndata_t*)data;
 	const char *msg = "SESSION 1.0\n";
@@ -333,8 +341,13 @@ static void* httpd_session_main(void *data)
 	/*  httpd_response_free(res);*/
 	hrequest_free(req);
 
+#ifdef WIN32
+	_endthread();
+	return 0;
+#else
 	pthread_exit(NULL);
 	return service;
+#endif
 } 
 
 
@@ -354,8 +367,12 @@ FUNCTION: httpd_run
 int httpd_run()
 {
 	conndata_t *conn;
+#ifdef WIN32
+	HANDLE tid;
+#else
 	pthread_t tid;
 	pthread_attr_t attr;
+#endif
 	hsocket_t sockfd;
 	int err;
 	fd_set fds;
@@ -364,13 +381,12 @@ int httpd_run()
 
 #ifdef WIN32
 	unsigned long iMode=HSOCKET_NONBLOCKMODE;
-#endif
-
+#else
 pthread_attr_init(&attr);
 #ifdef PTHREAD_CREATE_DETACHED
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 #endif
-
+#endif
 
 	log_verbose1("starting run routine");
 	timeout.tv_sec = 1;
@@ -434,7 +450,11 @@ pthread_attr_init(&attr);
 		conn = (conndata_t*)malloc(sizeof(conndata_t));
 		conn->sock = sockfd;
 
+#ifdef WIN32
+		tid=(HANDLE)_beginthreadex(NULL, 65535, httpd_session_main, conn, 0, &err);
+#else
 		err = pthread_create(&tid, &attr, httpd_session_main, conn); 
+#endif
 		if (err) {
 			log_error2("Error creating thread: ('%d')", err);
 		}
