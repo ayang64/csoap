@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.13 2004/08/31 13:57:27 rans Exp $
+*  $Id: nanohttp-server.c,v 1.14 2004/08/31 16:34:08 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,38 +23,15 @@
 ******************************************************************/
 #include <nanohttp/nanohttp-server.h>
 
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <signal.h>
-
-#ifdef WIN32
-#include "wsockcompat.h"
-#include <winsock2.h>
-#include <process.h>
-#define close(s) closesocket(s)
-
-static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
-{
-	static struct tm* tmp;
-	tmp = localtime(timep);
-	if (tmp) {
-		memcpy(p_tm, tmp, sizeof(struct tm));
-		tmp = p_tm;
-	}    
-	return tmp;
-}
-
-typedef int socklen_t;
-#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #ifndef WIN32
-#include <pthread.h>
 /* According to POSIX 1003.1-2001 */
 #include <sys/select.h>
 
@@ -63,31 +40,24 @@ typedef int socklen_t;
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <fcntl.h>
 #endif
-
-typedef struct tag_conndata
-{
-	hsocket_t sock;
-#ifdef WIN32
-	HANDLE tid;
-#else
-	pthread_t tid;
-	pthread_attr_t attr;
-#endif
-}conndata_t;
 
 /* ----------------------------------------------------- 
 nano httpd internally globals
 ----------------------------------------------------- */
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
+static int _httpd_max_idle = 120;
 static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
 static int _httpd_terminate_signal = SIGTERM;
 static conndata_t *_httpd_connection;
+
+#ifdef WIN32
+#include <nanohttp/nanohttp-windows.h>
+#endif
 
 /* ----------------------------------------------------- 
 FUNCTION: httpd_init
@@ -96,12 +66,9 @@ NOTE: This will be called from soap_server_init_args()
 int httpd_init(int argc, char *argv[])
 {
 	int i, status;
-	_httpd_connection=calloc(_httpd_max_connections, sizeof(conndata_t));	for(i=0; i<_httpd_max_connections; i++)	{		_httpd_connection[i].sock=0;
-	}
-	status = hsocket_module_init();
+	status = hsocket_module_init();
 	if (status != 0)
 		return status;
-
 
 	/* write argument information */
 	log_verbose1("Arguments:");  
@@ -123,6 +90,15 @@ int httpd_init(int argc, char *argv[])
 	/*
 	httpd_register("/httpd/list", service_list);
 	*/
+	_httpd_connection=calloc(_httpd_max_connections, sizeof(conndata_t));	for(i=0; i<_httpd_max_connections; i++)	{		memset((char *)&_httpd_connection[i], 0, sizeof(_httpd_connection[i]));
+	}
+
+#ifdef WIN32
+	if (_beginthread(WSAReaper, 0, NULL)==-1) {
+		log_error1("Winsock reaper thread failed to start");
+		return(-1);
+	}
+#endif
 
 	/* create socket */
 	hsocket_init(&_httpd_socket);
@@ -312,7 +288,7 @@ static void* httpd_session_main(void *data)
 
 
 	log_verbose1("starting httpd_session_main()");
-
+	conn->atime=time((time_t)0);
 	while (len < 4064) {
 		/*printf("receiving ...\n");*/
 		total = recv(conn->sock, ch, 1, 0);
@@ -361,6 +337,7 @@ static void* httpd_session_main(void *data)
 	hrequest_free(req);
 
 #ifdef WIN32
+	CloseHandle((HANDLE)conn->tid);
 	_endthread();
 	return 0;
 #else
@@ -379,65 +356,6 @@ void httpd_term(int sig)
 		_httpd_run = 0;
 }
 
-static int httpd_accept(hsocket_t sock)
-{
-	int i;
-	int err;
-	socklen_t asize;
-	struct sockaddr_in addr;
-
-	asize = sizeof(struct sockaddr_in);
-	while(1)
-	{
-		for (i=0;;i++) {
-			if (i>=_httpd_max_connections) {
-				Sleep(1000);
-				i=0;
-				continue;
-			}
-			if (_httpd_connection[i].sock==0) break;
-		}
-		_httpd_connection[i].sock = accept(sock, (struct sockaddr *)&addr, &asize);
-#ifndef WIN32
-		if (_httpd_connection[i].sock == -1) { 
-			_httpd_connection[i].sock=0;
-			continue;
-		}
-#else
-		if (_httpd_connection[i].sock ==  INVALID_SOCKET) 
-		{ 
-			if(WSAGetLastError()!=WSAEWOULDBLOCK)
-			{
-				log_error1("accept() died...  restarting...");
-				closesocket(sock);
-				WSACleanup();
-				return INVALID_SOCKET;
-			}
-			else
-			{
-				_httpd_connection[i].sock=0;
-				continue;
-			}
-		}
-#endif
-		else
-		{
-			log_verbose3("accept new socket (%d) from '%s'", _httpd_connection[i].sock,
-				SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
-
-#ifdef WIN32
-			_httpd_connection[i].tid=(HANDLE)_beginthreadex(NULL, 65535, httpd_session_main, &_httpd_connection[i], 0, &err);
-#else
-			err = pthread_create(&(_httpd_connection[i].tid), &(_httpd_connection[i].attr), httpd_session_main, &_httpd_connection[i]); 
-#endif
-			if (err) {
-				log_error2("Error creating thread: ('%d')", err);
-			}
-		}
-	}
-	return 0;
-}
-
 /* ----------------------------------------------------- 
 FUNCTION: httpd_run
 ----------------------------------------------------- */
@@ -449,9 +367,7 @@ int httpd_run()
 	struct timeval timeout;
 
 
-#ifdef WIN32
-	unsigned long iMode=HSOCKET_NONBLOCKMODE;
-#else
+#ifndef WIN32
 pthread_attr_init(&attr);
 #ifdef PTHREAD_CREATE_DETACHED
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -474,19 +390,11 @@ pthread_attr_init(&attr);
 	log_verbose2("listening to port '%d'", _httpd_port);
 
 
-#ifndef WIN32
-/* Try always non block mode
-#if HSOCKET_BLOCKMODE!=0*/
-		fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);
-/*#endif*/
-#else
-	iMode = HSOCKET_NONBLOCKMODE;
-	if(ioctlsocket(_httpd_socket, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
-	{
-		log_error1("ioctlsocket error");
-		return -1;
+	err=hsocket_makenonblock(_httpd_socket);
+	if (err  != HSOCKET_OK) {
+		log_error2("httpd_run(): '%d'", err);
+		return err;
 	}
-#endif
 
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
@@ -512,7 +420,8 @@ pthread_attr_init(&attr);
 			if (!_httpd_run)
 				break;
 
-		if (httpd_accept(_httpd_socket) != 0)
+		if (hsocket_accept(_httpd_socket, httpd_session_main, _httpd_connection, 
+			_httpd_max_connections) != 0)
 		{
 			continue;
 		}
@@ -520,9 +429,6 @@ pthread_attr_init(&attr);
 	free(_httpd_connection);
 	return 0;
 }
-
-
-
 
 char *httpd_get_postdata(httpd_conn_t *conn, hrequest_t *req, long *received, long max)
 {
@@ -570,5 +476,4 @@ char *httpd_get_postdata(httpd_conn_t *conn, hrequest_t *req, long *received, lo
 
 		free (postdata);
 		return NULL;
-
 }

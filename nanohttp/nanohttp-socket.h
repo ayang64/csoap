@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.7 2004/08/30 15:26:53 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.8 2004/08/31 16:34:08 rans Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -39,10 +39,16 @@
 #define HSOCKET_BLOCKMODE 0
 #define HSOCKET_NONBLOCKMODE 1
 
+#include <time.h>
 #ifdef WIN32
 #include <winsock2.h>
+#include <process.h>
+#include <string.h>
 typedef SOCKET hsocket_t;
+typedef int socklen_t;
+#define close(s) closesocket(s)
 #else
+#include <pthread.h>
 typedef int hsocket_t;
 #endif
 /*
@@ -91,7 +97,24 @@ int hsocket_bind(hsocket_t *sock, int port);
  */
 int hsocket_listen(hsocket_t sock, int n);
 
-int hsocket_accept(hsocket_t sock, hsocket_t *dest);
+typedef struct tag_conndata
+{
+	hsocket_t sock;
+#ifdef WIN32
+	HANDLE tid;
+#else
+	pthread_t tid;
+	pthread_attr_t attr;
+#endif
+	time_t atime;
+}conndata_t;
+
+#ifdef WIN32
+int hsocket_accept(hsocket_t sock, unsigned ( __stdcall *func )( void * ), conndata_t *conns, 
+				   int max_conn);
+#else
+int hsocket_accept(hsocket_t sock, void(*func) (void *), conndata_t *conns, int max_conn);
+#endif
 
 
 /*
@@ -172,6 +195,15 @@ typedef struct _bufsocket
 
 int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size);
 
+/*--------------------------------------------------
+FUNCTION: hsocket_makenonblock
+----------------------------------------------------*/
+int hsocket_makenonblock(hsocket_t sock);
+
+#ifdef WIN32
+
+struct tm *localtime_r(const time_t *const timep, struct tm *p_tm);
+#endif
 #endif
 
 

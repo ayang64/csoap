@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.16 2004/08/30 15:26:53 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.17 2004/08/31 16:34:08 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,12 +23,6 @@
 ******************************************************************/
 #include <nanohttp/nanohttp-client.h>
 
-#ifdef WIN32
-#include "wsockcompat.h"
-#include <winsock2.h>
-#define close(s) closesocket(s)
-#endif
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -37,23 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-#ifdef WIN32
-
-#include <string.h>
-
-static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
-{
-	static struct tm* tmp;
-	tmp = localtime(timep);
-	if (tmp) {
-		memcpy(p_tm, tmp, sizeof(struct tm));
-		tmp = p_tm;
-	}    
-	return tmp;
-}
-
-#endif
 
 /*--------------------------------------------------
 FUNCTION: httpc_init
@@ -589,11 +566,6 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 	char buffer[4096];
 	int status;
 
-#ifdef WIN32
-	unsigned long iMode = HSOCKET_NONBLOCKMODE;
-#endif
-
-
 	if (conn == NULL) {
 		log_error1("Connection object is NULL");
 		return 1;
@@ -620,20 +592,12 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 		return 3;
 	}
 
-#ifndef WIN32
-	/* Try always non block mode
-	#if HSOCKET_BLOCKMODE!=0*/
-		fcntl(conn->sock, F_SETFL, O_NONBLOCK);
-	/*#endif*/
-#else
-	iMode = HSOCKET_NONBLOCKMODE;
-	if(ioctlsocket(conn->sock, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
+	status=hsocket_makenonblock(conn->sock);
+	if(status!=HSOCKET_OK)
 	{
-		log_error1("ioctlsocket error");
-		return -1;
+		log_error1("Cannot make socket non-blocking");
+		return status;
 	}
-
-#endif
 
 	/* check method */
 	if (method == HTTP_REQUEST_GET) {

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.6 2004/08/30 15:26:53 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.7 2004/08/31 16:34:08 rans Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -89,19 +89,4 @@ int httpc_post_finish_cb(httpc_conn_t *conn,
 */
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

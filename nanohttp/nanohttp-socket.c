@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.12 2004/08/31 13:56:24 rans Exp $
+*  $Id: nanohttp-socket.c,v 1.13 2004/08/31 16:34:08 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,8 +27,11 @@
 #ifdef WIN32
 #include "wsockcompat.h"
 #include <winsock2.h>
+#include <process.h>
 #define close(s) closesocket(s)
 typedef int ssize_t;
+#else
+#include <fcntl.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -141,7 +144,7 @@ int hsocket_open(hsocket_t *dsock, const char* hostname, int port)
 
 
 /*--------------------------------------------------
-FUNCTION: hsocket_close
+FUNCTION: hsocket_bind
 ----------------------------------------------------*/
 int hsocket_bind(hsocket_t *dsock, int port)
 {
@@ -173,6 +176,70 @@ int hsocket_bind(hsocket_t *dsock, int port)
 		//  setsockopt(sock, SOL_SOCKET, SO_CONDITIONAL_ACCEPT, (char*)true, sizeof(BOOL));
 #endif
 		return HSOCKET_OK;
+}
+
+#ifdef WIN32
+int hsocket_accept(hsocket_t sock, unsigned ( __stdcall *func )( void * ), conndata_t *conns, 
+				   int max_conn)
+#else
+int hsocket_accept(hsocket_t sock, void(*func) (void *), conndata_t *conns, int max_conn)
+#endif
+{
+	int i;
+	int err;
+	socklen_t asize;
+	struct sockaddr_in addr;
+
+	asize = sizeof(struct sockaddr_in);
+	while(1)
+	{
+		for (i=0;;i++) {
+			if (i>=max_conn) {
+				Sleep(1000);
+				i=0;
+				continue;
+			}
+			if (conns[i].sock==0) break;
+		}
+		conns[i].sock = accept(sock, (struct sockaddr *)&addr, &asize);
+#ifndef WIN32
+		if (conns[i].sock == -1) { 
+			conns[i].sock=0;
+			continue;
+		}
+#else
+		if (conns[i].sock ==  INVALID_SOCKET) 
+		{ 
+			if(WSAGetLastError()!=WSAEWOULDBLOCK)
+			{
+				log_error1("accept() died...  restarting...");
+				closesocket(sock);
+				WSACleanup();
+				return INVALID_SOCKET;
+			}
+			else
+			{
+				conns[i].sock=0;
+				continue;
+			}
+		}
+#endif
+		else
+		{
+			log_verbose3("accept new socket (%d) from '%s'", conns[i].sock,
+				SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
+
+#ifdef WIN32
+			conns[i].tid=(HANDLE)_beginthreadex(NULL, 65535, func, &conns[i], 0, &err);
+#else
+			err = pthread_create(&(conns[i].tid), &(conns[i].attr), func, &conns[i]); 
+#endif
+			if (err) {
+				log_error2("Error creating thread: ('%d')", err);
+			}
+		}
+	}
+	return 0;
 }
 
 /*--------------------------------------------------
@@ -394,3 +461,33 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
 		return HSOCKET_OK;
 	}
 }
+
+int hsocket_makenonblock(hsocket_t sock)
+{
+#ifdef WIN32
+	unsigned long iMode;
+	iMode = HSOCKET_NONBLOCKMODE;
+	if(ioctlsocket(sock, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
+	{
+		log_error1("ioctlsocket error");
+		return -1;
+	}
+#else	fcntl(sock, F_SETFL, O_NONBLOCK);
+#endif
+	return HSOCKET_OK;
+}
+
+#ifdef WIN32
+
+struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
+{
+	static struct tm* tmp;
+	tmp = localtime(timep);
+	if (tmp) {
+		memcpy(p_tm, tmp, sizeof(struct tm));
+		tmp = p_tm;
+	}    
+	return tmp;
+}
+
+#endif
