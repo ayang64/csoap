@@ -1,7 +1,7 @@
 ## top directory
 
 #Build in these directories:
-SUBDIRS= $(GENERIC_LIBRARY_NAME) examples
+SUBDIRS= $(GENERIC_LIBRARY_NAME) $(NANOHTTP_LIBRARY_NAME) examples
 
 #Distribute these directories:
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME)

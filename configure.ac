@@ -35,6 +35,19 @@ GENERIC_LIBRARY_VERSION=1:0:0
 #                +- increment if interfaces have been added, removed or changed
 
 
+NANOHTTP_LIBRARY_NAME=nanohttp
+#release versioning
+NANOHTTP_MAJOR_VERSION=1
+NANOHTTP_MINOR_VERSION=0
+NANOHTTP_MICRO_VERSION=0
+
+#API version (often = GENERIC_MAJOR_VERSION.GENERIC_MINOR_VERSION)
+NANOHTTP_API_VERSION=1.0
+AC_SUBST(NANOHTTP_API_VERSION)
+
+#shared library versioning
+NANOHTTP_LIBRARY_VERSION=1:0:0
+
 dnl --------------------------------
 dnl Package name and version number
 dnl --------------------------------
@@ -53,6 +66,22 @@ VERSION=$GENERIC_VERSION
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 
+dnl --------------------------------
+dnl Package name and version number (nanohttp)
+dnl --------------------------------
+
+AC_SUBST(NANOHTTP_LIBRARY_VERSION)
+
+PACKAGE=$NANOHTTP_LIBRARY_NAME
+AC_SUBST(NANOHTTP_LIBRARY_NAME)
+
+NANOHTTP_VERSION=$NANOHTTP_MAJOR_VERSION.$NANOHTTP_MINOR_VERSION.$NANOHTTP_MICRO_VERSION
+NANOHTTP_RELEASE=$NANOHTTP_MAJOR_VERSION.$NANOHTTP_MINOR_VERSION
+AC_SUBST(NANOHTTP_RELEASE)
+AC_SUBST(NANOHTTP_VERSION)
+
+
+
 # Process this file with autoconf to produce a configure script.
 #AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
 #AC_INIT(src/csoap.c)
@@ -70,6 +99,8 @@ AC_CHECK_HEADERS([arpa/inet.h netdb.h string.h sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_HEADER_TIME
+AC_STRUCT_TM
 
  Checks for library functions.
 #AC_FUNC_MALLOC
@@ -199,6 +230,8 @@ AC_SUBST(LDFLAGS)
 #AC_CONFIG_FILES([])
 AC_OUTPUT(Makefile 
 libcsoap/Makefile 
+nanohttp/Makefile 
 examples/Makefile
+examples/nanohttp/Makefile
 examples/ex1/Makefile
 libcsoap-1.0.pc)
