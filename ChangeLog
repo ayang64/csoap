@@ -1,3 +1,11 @@
+2004/05/18
+	Added command line argument support for "-NHTTPtsig <signal>".
+	This defines  the termination signal handler value.
+	Example :
+	  ./myserver -NHTTPtsig 2
+	will shutdown nano http properly by pressing ctrl-c (SIGINT = 2).
+	Ferhat Ayaz
+	  
 2004/04/14
 	added content-type text/xml as default in  soap_client_invoke()
 	Ferhat Ayaz
