@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: httpget.c,v 1.1 2003/12/11 14:52:14 snowdrop Exp $
+ *  $Id: httpget.c,v 1.2 2003/12/18 12:23:44 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C (example)
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "usage %s <url>\n", argv[0]);
     exit(1);
   }
+
+  log_set_level(HLOG_VERBOSE);
 
   conn = httpc_new();
   res = httpc_get(conn, argv[1]);

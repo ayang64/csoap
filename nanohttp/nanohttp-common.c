@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.4 2003/12/18 11:14:37 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.5 2003/12/18 12:23:44 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -103,6 +103,29 @@ void log_error(const char* FUNC, const char *format, ...)
   va_start(ap, format);
   log_write(HLOG_ERROR, "ERROR", FUNC, format, ap);
   va_end(ap);
+}
+
+
+/* -----------------------------------------
+   FUNCTION: strcmpigcase
+ ------------------------------------------ */
+int strcmpigcase(const char *s1, const char *s2)
+{
+  int l1, l2, i;
+
+  if (s1 == NULL && s2 == NULL) return 1;
+  if (s1 == NULL || s2 == NULL) return 0;
+
+  l1 = strlen(s1);
+  l2 = strlen(s2);
+
+  if (l1 != l2) return;
+  
+  for (i=0;i<l1;i++) 
+    if (toupper(s1[i]) != toupper(s2[i]))
+      return 0;
+
+  return 1;
 }
 
 
@@ -231,6 +254,25 @@ void hpairnode_free(hpair_t *pair)
   free(pair);
 }
 
+
+char *hpairnode_get_ignore_case(hpair_t *pair, const char* key)
+{
+  if (key == NULL) {
+    log_error1("key is NULL");
+    return NULL;
+  }
+
+  while (pair != NULL) {
+    if (pair->key != NULL) {
+      if (strcmpigcase(pair->key, key)) {
+	return pair->value;
+      }
+    }
+    pair = pair->next;
+  }
+
+  return NULL;
+}
 
 char *hpairnode_get(hpair_t *pair, const char* key)
 {

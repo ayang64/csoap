@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.4 2003/12/18 11:14:37 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.5 2003/12/18 12:23:44 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -38,6 +38,14 @@
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
 #endif
 
+
+/*
+  string function to compare strings ignoring case
+  Returns 1 if s1 equals s2 and 0 otherwise.  
+ */
+int strcmpigcase(const char *s1, const char *s2);
+
+
 /*
   hpairnode_t represents a pair (key, value) pair.
   This is also a linked list.
@@ -54,6 +62,7 @@ struct hpair
 hpair_t *hpairnode_new(const char* key, const char* value, hpair_t* next);
 void hpairnode_free(hpair_t *pair);
 char *hpairnode_get(hpair_t *pair, const char* key);
+char *hpairnode_get_ignore_case(hpair_t *pair, const char* key);
 hpair_t* hpairnode_copy(const hpair_t *src);
 hpair_t* hpairnode_copy_deep(const hpair_t *src);
 void hpairnode_dump_deep(hpair_t *pair);

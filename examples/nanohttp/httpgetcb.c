@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: httpgetcb.c,v 1.1 2003/12/11 14:52:14 snowdrop Exp $
+ *  $Id: httpgetcb.c,v 1.2 2003/12/18 12:23:44 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C (example)
  * Copyright (C) 2003  Ferhat Ayaz
@@ -39,7 +39,7 @@ void my_start_callback(httpc_conn_t *conn, void *userdata,
 
   pair = header;
   while (pair != NULL) {
-    log_debug3("%s: %s", pair->key, pair->value);
+    log_debug3("%s: '%s'", pair->key, pair->value);
     pair = pair->next;
   }
 
@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
   }
 
   conn = httpc_new();
+  /*  httpc_set_header(conn, HEADER_TRANSFER_ENCODING, "chunked");*/
   httpc_get_cb(conn, argv[1], my_start_callback, my_callback, NULL);
   httpc_free(conn);
 

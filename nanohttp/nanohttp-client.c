@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.5 2003/12/18 11:14:37 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.6 2003/12/18 12:23:44 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -375,7 +375,7 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
 
   /* Check if server communicates with content-length */
   content_length_str = 
-    hpairnode_get(res->header, HEADER_CONTENT_LENGTH);
+    hpairnode_get_ignore_case(res->header, HEADER_CONTENT_LENGTH);
 
   if (content_length_str != NULL) {
 
