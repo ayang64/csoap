@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.21 2004/09/14 13:23:10 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.22 2004/09/14 15:31:24 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -457,12 +457,12 @@ void _httpd_register_signal_handler()
 FUNCTION: _httpd_wait_for_empty_conn
 ----------------------------------------------------*/
 static
-conndata_t *_httpd_wait_for_empty_conn(int *term_flag)
+conndata_t *_httpd_wait_for_empty_conn()
 {
   int i;  
   for (i = 0;; i++)
   {
-    if (!*term_flag)
+    if (!_httpd_run)
         return NULL;
         
     if (i >= _httpd_max_connections) 
@@ -510,6 +510,37 @@ void _httpd_start_thread(conndata_t* conn)
 
 /*
  * -----------------------------------------------------
+ * FUNCTION: _httpd_select
+ * Returns 0 if success != otherwise
+ * -----------------------------------------------------
+ */
+static
+int _httpd_select(fd_set *pfds)
+{
+  int err;
+  struct timeval timeout;
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+
+  FD_ZERO (pfds);
+  FD_SET (_httpd_socket, pfds);
+
+#ifndef WIN32
+  select (1, pfds, NULL, NULL, &timeout);
+#else
+  if (select (1, pfds, NULL, NULL, &timeout) == SOCKET_ERROR)
+  {
+    err = WSAGetLastError ();
+    log_error1 ("select error");
+    return 1;
+  }
+#endif
+  return 0;
+}
+
+/*
+ * -----------------------------------------------------
  * FUNCTION: httpd_run
  * -----------------------------------------------------
  */
@@ -519,6 +550,7 @@ httpd_run ()
 {
   int err;
   conndata_t *conn;
+  fd_set fds;
 
   log_verbose1 ("starting run routine");
 
@@ -546,8 +578,21 @@ httpd_run ()
   while (_httpd_run)
   {
     /* Get an empty connection struct */
-    conn = _httpd_wait_for_empty_conn(&_httpd_run);	
-    if (conn == NULL) break;
+    conn = _httpd_wait_for_empty_conn();	
+    if (!_httpd_run) break;
+    
+    /* Select file descriptor */
+    if (_httpd_select(&fds))
+    {
+      log_error1("Can not select!");
+      return -1; /* this is hard core! */
+    }  
+    
+    /* Wait for a socket to accept */
+    while (_httpd_run && (FD_ISSET (_httpd_socket, &fds)));
+    
+    if (!_httpd_run)    
+        break;
     
     /* Accept a socket */
     err = hsocket_accept(_httpd_socket, &(conn->sock));
