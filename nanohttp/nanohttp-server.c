@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.4 2004/02/03 08:59:23 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.5 2004/03/26 13:37:57 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,10 +27,22 @@
 #include <config.h>
 #endif
 
+#include <pthread.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+
+/* According to POSIX 1003.1-2001 */
+#include <sys/select.h>
+ 
+/* According to earlier standards */
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <fcntl.h>
 
 
 typedef struct tag_conndata
@@ -45,6 +57,7 @@ static int _httpd_port = 10000;
 static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
+static int _httpd_run = 1;
 
 
 /* ----------------------------------------------------- 
@@ -311,6 +324,15 @@ static void* httpd_session_main(void *data)
 
 
 /* ----------------------------------------------------- 
+ FUNCTION: httpd_term
+----------------------------------------------------- */
+void httpd_term(int sig)
+{
+  if (sig == SIGTERM)
+    _httpd_run = 0;
+}
+
+/* ----------------------------------------------------- 
  FUNCTION: httpd_run
 ----------------------------------------------------- */
 
@@ -318,16 +340,22 @@ int httpd_run()
 {
   conndata_t *conn;
   pthread_t tid;
+  pthread_attr_t attr;
   hsocket_t sockfd;
   int err;
   fd_set fds;
-  /*struct timeval timeout;*/
+  struct timeval timeout;
+
+  pthread_attr_init(&attr);
+#ifdef PTHREAD_CREATE_DETACHED
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+#endif
+
   
   log_verbose1("starting run routine");
-  /*
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-  */
+
   /* listen to port */
   err = hsocket_listen(_httpd_socket,15);
   if (err  != HSOCKET_OK) {
@@ -335,23 +363,26 @@ int httpd_run()
     return err;
   }
 
+  log_verbose1("registering sigterm handler");
+  signal(SIGTERM,httpd_term);
 
   log_verbose2("listening to port '%d'", _httpd_port);
   
 
-  /*  fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);*/
+  fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);
 
-  while (1) {
+  while (_httpd_run) {
     
-    /*FD_ZERO(&fds);
+    FD_ZERO(&fds);
     FD_SET(_httpd_socket, &fds);
 
     select(1, &fds, NULL, NULL, &timeout);
 
-    while ( (FD_ISSET(_httpd_socket, &fds)))
+    while (_httpd_run && (FD_ISSET(_httpd_socket, &fds)))
       select(1, &fds, NULL, NULL, &timeout);
-    */   
-    
+
+    if (!_httpd_run)
+	break;
   
     if (hsocket_accept(_httpd_socket, &sockfd) != HSOCKET_OK) {
       continue;
@@ -361,7 +392,7 @@ int httpd_run()
      conn = (conndata_t*)malloc(sizeof(conndata_t));
      conn->sock = sockfd;
 
-     err = pthread_create(&tid, NULL, httpd_session_main, conn); 
+     err = pthread_create(&tid, &attr, httpd_session_main, conn); 
      if (err) {
        log_error2("Error creating thread: ('%d')", err);
      }
