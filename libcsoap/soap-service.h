@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-service.h,v 1.1 2004/02/03 08:10:05 snowdrop Exp $
+ *  $Id: soap-service.h,v 1.2 2004/10/15 13:34:02 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -19,15 +19,16 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: ayaz@jprogrammer.net
+ * Email: ferhatayaz@jprogrammer.net
  ******************************************************************/
 #ifndef cSOAP_SERVICE_H
 #define cSOAP_SERVICE_H
 
 
 #include <libcsoap/soap-env.h>
+#include <libcsoap/soap-ctx.h>
 
-typedef SoapEnv* (*SoapServiceFunc)(SoapEnv*);
+typedef SoapCtx* (*SoapServiceFunc)(SoapCtx*);
 
 
 typedef struct _SoapService
@@ -54,3 +55,5 @@ void soap_service_free(SoapService *service);
 
 
 #endif
+
+

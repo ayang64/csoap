@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.4 2004/09/02 11:48:28 rans Exp $
+*  $Id: soap-fault.c,v 1.5 2004/10/15 13:34:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -122,3 +122,7 @@ xmlDocPtr soap_fault_build(fault_code_t fcode,
 	return fault;
 
 } 
+
+
+
+

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-fault.h,v 1.1 2004/01/30 16:39:34 snowdrop Exp $
+ *  $Id: soap-fault.h,v 1.2 2004/10/15 13:34:02 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,7 @@
 #define cSOAP_FAULT_H
 
 #include <libcsoap/soap-xml.h>
+
 
 
 typedef enum _fault_code {

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.5 2004/09/02 11:48:28 rans Exp $
+*  $Id: soap-xml.c,v 1.6 2004/10/15 13:34:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -125,3 +125,9 @@ void soap_xml_doc_print(xmlDocPtr doc)
 	xmlBufferFree(buffer);  
 
 }
+
+char *soap_xml_get_text(xmlNodePtr node)
+{
+ return (char*)xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
+}
+
