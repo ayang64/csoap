@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.6 2004/01/21 12:28:20 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.7 2004/08/26 17:07:47 rans Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -110,7 +110,7 @@ typedef struct hresponse
   int errcode;
   char *desc;
   hpair_t *header;
-  unsigned char *body;
+  char *body;
   long bodysize;
 }hresponse_t;
 
