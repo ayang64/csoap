@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.3 2004/02/10 09:51:10 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.4 2004/05/14 09:27:52 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -237,6 +237,13 @@ soap_env_push_item(SoapEnv *env, const char *type,
 void
 soap_env_pop_item(SoapEnv* env);
 
+/**
+   Free the envelope. 
+
+   @param env The envelope object
+ */
+void
+soap_env_free(SoapEnv *env);
 
 
 /* --------------------------------------------------- */
