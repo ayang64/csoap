@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.7 2003/12/18 15:32:09 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.8 2004/01/05 10:42:15 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -541,10 +541,8 @@ int httpc_receive_response(httpc_conn_t *conn,
   >0 otherwise.
 ----------------------------------------------------*/
 static
-int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *urlstr, 
-			 httpc_response_start_callback start_cb,
-			 httpc_response_callback cb, int content_size, 
-			 char* content, void *userdata)
+int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, 
+			 const char *urlstr)
 {
   hurl_t *url;
   char buffer[4096];
@@ -610,7 +608,6 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn, const char *url
     return 5;
   }
 
-  status = httpc_receive_response(conn, start_cb, cb, userdata);
   return status;
   
 }
@@ -630,8 +627,12 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 {
   int status;
 
-  status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr,
-				start_cb, cb, 0, NULL, userdata);
+  status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr);
+
+  if (status != HSOCKET_OK)
+    return status;
+
+  status = httpc_receive_response(conn, start_cb, cb, userdata);
   return status;
 }
 
@@ -644,6 +645,8 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 
   See the documentation of httpc_talk_to_server()
   for more information.
+
+  TODO: Add post content rutine
 ----------------------------------------------------*/
 int httpc_post_cb(httpc_conn_t *conn, const char *urlstr, 
 		  httpc_response_start_callback start_cb,
@@ -651,11 +654,21 @@ int httpc_post_cb(httpc_conn_t *conn, const char *urlstr,
 		  char *content,  void *userdata)
 {
   int status;
+  char buffer[255];
 
-  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, urlstr,
-				start_cb, cb, content_size, content, 
-				userdata);
-  return status;
+  sprintf(buffer, "%d", content_size);
+  httpc_set_header(conn, HEADER_CONTENT_LENGTH, buffer);
+
+  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, urlstr);
+  if (status != HSOCKET_OK) 
+    return status; 
+
+  status = hsocket_nsend(conn->sock, content, content_size);
+  if (status != HSOCKET_OK)
+    return status;
+
+  status = httpc_receive_response(conn, start_cb, cb, userdata); 
+  return status; 
 }
 		 
 
@@ -760,13 +773,89 @@ hresponse_t *httpc_post(httpc_conn_t *conn, const char *url,
 
 
 
+/*
+  POST Module
+ */
 
 
 
+/*--------------------------------------------------
+  FUNCTION: httpc_post_open
+----------------------------------------------------*/
+int httpc_post_open(httpc_conn_t *conn, const char *urlstr)
+{
+  int status;
+
+  httpc_set_header(conn, HEADER_TRANSFER_ENCODING, "chunked");
+
+  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, urlstr);
+  return status;
+}
 
 
+/*--------------------------------------------------
+  FUNCTION: httpc_post_send
+----------------------------------------------------*/
+int httpc_post_send(httpc_conn_t *conn, 
+		    const char* buffer, 
+		    int bufsize)
+{
+  char hexsize[100]; /* chunk size in hex */
+  int status;
+
+  sprintf(hexsize, "%x\r\n", bufsize); 
+  
+  status = hsocket_send(conn->sock, hexsize);
+  if (status != HSOCKET_OK) 
+    return status;
+
+  status = hsocket_nsend(conn->sock, buffer, bufsize);
+  if (status != HSOCKET_OK) 
+    return status;
+
+  status = hsocket_send(conn->sock, "\r\n");
+  
+  return status;
+}
 
 
+/*--------------------------------------------------
+  FUNCTION: httpc_post_finish
+----------------------------------------------------*/
+hresponse_t *httpc_post_finish(httpc_conn_t *conn)
+{
+  int status;
+  hresponse_t *res;
+
+  res = hresponse_new();
+  status = httpc_post_finish_cb(conn, httpc_custom_start_callback,
+			 httpc_custom_res_callback, res);
+
+  if (status != 0) {
+    hresponse_free(res);
+    return NULL;
+  }
+
+  return res;  
+}
+
+
+/*--------------------------------------------------
+  FUNCTION: httpc_post_finish_cb
+----------------------------------------------------*/
+int httpc_post_finish_cb(httpc_conn_t *conn, 
+			 httpc_response_start_callback start_cb,
+			 httpc_response_callback cb, 
+			 void *userdata)
+{
+  int status;
+
+  status = hsocket_send(conn->sock, "0\r\n");
+  if (status != HSOCKET_OK) return status;
+
+  status = httpc_receive_response(conn, start_cb, cb, userdata); 
+  return status; 
+}
 
 
 

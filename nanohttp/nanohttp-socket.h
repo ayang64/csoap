@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.3 2003/12/16 14:12:58 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.4 2004/01/05 10:42:15 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -70,6 +70,14 @@ void hsocket_free(hsocket_t sock);
 int hsocket_open(hsocket_t *sock, const char* host, int port);
 void hsocket_close(hsocket_t sock);
 
+
+/*
+  hsocket_nsend
+  sends n bytes of data
+  Returns 0 if success
+  >0 if fail
+ */
+int hsocket_nsend(hsocket_t sock, const char* buffer, int n); 
 
 /*
   hsocket_send

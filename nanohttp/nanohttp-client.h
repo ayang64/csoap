@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.3 2003/12/18 15:32:09 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.4 2004/01/05 10:42:15 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -72,12 +72,15 @@ int httpc_post_cb(httpc_conn_t *conn, const char *url,
 
 
 
-int httpc_post_open(httpc_conn_t *conn);
-int httpc_post_send(httpc_conn_t *conn, const char* buffer);
+/*
+  Chunked POST Module
+ */
+int httpc_post_open(httpc_conn_t *conn, const char *url);
+int httpc_post_send(httpc_conn_t *conn, const char* buffer, int bufsize);
 hresponse_t *httpc_post_finish(httpc_conn_t *conn);
 int httpc_post_finish_cb(httpc_conn_t *conn, 
 			 httpc_response_start_callback start_cb,
-			 httpc_response_callback cb);
+			 httpc_response_callback cb, void *userdata);
 
 
 #endif

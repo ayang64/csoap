@@ -1,13 +1,16 @@
-bin_PROGRAMS=httpget httpgetcb
+bin_PROGRAMS=httpget httpgetcb httppost
+
+INCLUDES=-I$(top_srcdir)/ 
 
 httpget_SOURCES=httpget.c
-INCLUDES=-I$(top_srcdir)/ $(LIBXML_CFLAGS)
-httpget_LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
-$(LIBXML_LIBS)
+httpget_LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION)
 
 httpgetcb_SOURCES=httpgetcb.c
-httpgetcb_LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
-$(LIBXML_LIBS)
+httpgetcb_LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION)
+
+httppost_SOURCES=httppost.c
+httppost_LDFLAGS=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION)
+
 
 
 
