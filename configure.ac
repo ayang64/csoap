@@ -109,6 +109,14 @@ AC_CHECK_FUNCS([gethostbyname socket])
 
 AC_CHECK_TYPE(ssize_t, int)
 
+# ------------------------------------------
+dnl Check socket library (for Solaris)
+# ------------------------------------------
+AC_CHECK_LIB(socket, socket, [LIBSOCKET="-lsocket"])
+AC_SUBST(LIBSOCKET)
+AC_CHECK_LIB(nsl, gethostbyname, [LIBNSL="-lnsl"])
+AC_SUBST(LIBNSL)
+
 dnl
 dnl The following new parameters were added to offer
 dnl the ability to specify the location of the libxml
