@@ -1,4 +1,4 @@
-<schema>
+<schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <complexType name="Person">
    <attribute name="id" type="xs:string"/>
@@ -7,7 +7,7 @@
       <element name="Lastname" type="xs:string"/>
       <element name="Degree" type="xs:int"/>
       <element name="Project" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-      <element name="Address" type="Address"/>
+      <element name="Address" type="Address" />
     </sequence>
   </complexType>
 
