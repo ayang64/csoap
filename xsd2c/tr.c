@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: tr.c,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+ *  $Id: tr.c,v 1.2 2004/06/03 20:23:03 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -180,6 +180,15 @@ void trRegisterTypeNS(const char* ns, const char* xsdType, const char* cType)
   tr_tail = reg;
 }
 
+char* trXSDParseNs(const char* xsdType)
+{
+	int c = 0;
+	while (xsdType[c] != '\0' ) {
+		if (xsdType[c] == ':') return &xsdType[++c];
+		c++;
+	}
+	return xsdType;
+}
 
 void trRegisterListType(const char* xsdType, const char* cType)
 {

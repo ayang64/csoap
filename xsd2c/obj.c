@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: obj.c,v 1.2 2004/06/02 14:57:23 snowdrop Exp $
+ *  $Id: obj.c,v 1.3 2004/06/03 20:23:03 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,7 @@
  ******************************************************************/
 #include "obj.h"
 #include "tr.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -149,7 +150,7 @@ static
 HFIELD fieldCreate(const char* name, const char* type, int flag, int mino, int maxo, HCOMPLEXTYPE parentObj)
 {
   HFIELD field;
-
+	
   field = (HFIELD)malloc(sizeof(struct FIELD));
   field->name = (char*)malloc(strlen(name)+1);
   field->type = (char*)malloc(strlen(type)+1);

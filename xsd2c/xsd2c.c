@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.c,v 1.5 2004/06/03 13:14:35 snowdrop Exp $
+ *  $Id: xsd2c.c,v 1.6 2004/06/03 20:23:03 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -463,6 +463,7 @@ HCOMPLEXTYPE xsdProcComplexType(xmlNodePtr node, const char* type)
   xsdKeyword keyword;
   HCOMPLEXTYPE ct;
 
+
   if (!type)
     name = xmlGetProp(node, ATTR_NAME_STR);
   else {
@@ -566,7 +567,7 @@ void runGenerator(xmlNodePtr xsdRoot)
       xsdProcComplexType(cur, NULL);
 
 		}  else if (xsdGetKeyword(cur) == XSD_ELEMENT) {
-      
+     
       type = xmlGetProp(cur, "name");
       if (type == NULL) {
         fprintf(stderr, "WARNING: Element found without name  ('%s')\n", cur->name);
@@ -579,6 +580,7 @@ void runGenerator(xmlNodePtr xsdRoot)
 
       }
 
+      /*xsdProcElement(..., cur);*/
     }
 
     cur = cur->next;
