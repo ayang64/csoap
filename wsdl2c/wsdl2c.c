@@ -1,8 +1,9 @@
 #include <libxml/xpath.h>
 #include <xsd2c/xsd2c.h>
 #include <xsd2c/util.h> /* parseNS */
-
-
+#include <xsd2c/formatter.h> /* formatter sax serializer */
+#include <xsd2c/obj.h> /* formatter sax serializer */
+#include <string.h>
 
 xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 {
@@ -423,25 +424,58 @@ void wsdlParse(xmlDocPtr doc)
 
 }
 
+
+static
+void usage(const char* execname);
+
 int main(int argc, char *argv[])
 {
   xmlDocPtr doc;
   xmlNodePtr cur;
   xmlNodePtr node;
+  xmlNodePtr xsdRoot;
   xmlNsPtr default_ns;
+  int i;
+  char outDir[1054];
+  char fname[255];
 
   if (argc < 2) {
-    fprintf(stderr, "usage: %s <wsdl file>\n", argv[0]);
+    usage(argv[0]);
     return 1;
   }
 
-  doc = xmlParseFile(argv[1]);
 
-  if (doc == NULL ) {
-    fprintf(stderr,"Document not parsed successfully. \n");
-    return 1;
+  
+ strcpy(outDir, ".");
+
+  for (i=1;i<argc;i++) 
+  {
+    if (!strcmp(argv[i], "-d"))
+      if (i==argc-1) usage(argv[0]);
+      else strcpy(outDir, argv[++i]);
+    else if (!strcmp(argv[i], "-S"))
+      formatter_generate_sax_serializer = 1;
+    else strcpy(fname, argv[i]);
   }
+  
 
+  xsdRoot = wsdlLoadFile(fname);
+  
+  if (xsdRoot == NULL ) 
+  {
+    fprintf(stderr,"No Schema data found\n");
+    doc = xmlParseFile(fname);
+    if (doc == NULL) 
+    {
+	    fprintf(stderr,"Can not parse document\n");
+	    return 1;
+    }
+  } 
+  else 
+  {
+	  doc = xsdRoot->doc;
+  }
+  
 
   node = xmlDocGetRootElement(doc);
   if (node == NULL) {
@@ -458,9 +492,24 @@ int main(int argc, char *argv[])
   } 
 
 
+  if (xsdEngineRun(xsdRoot, outDir)) {
+   fprintf(stderr, "xsd2c engine error\n");
+  	return 1;
+  }
+
   wsdlParse(doc);
+
+  trFreeModule();
+  objFreeModule();
 
   xmlFreeDoc(doc);
   return 0;
 }
 
+
+
+static
+void usage(const char* execname)
+{
+	fprintf(stderr, "usage: %s -d dest <wsdl file>\n", execname);	
+}

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: xsd2c.c,v 1.2 2004/06/02 14:57:23 snowdrop Exp $
+ *  $Id: xsd2c.c,v 1.3 2004/06/02 15:35:07 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -628,21 +628,24 @@ int writeSource(HCOMPLEXTYPE ct)
 
 int xsdInitTrModule(xmlNodePtr xsdNode)
 {
-  xmlNsPtr ns;
+  xmlNsPtr ns = NULL;
 
-  ns = xmlSearchNsByHref(xsdNode->doc, xsdNode, "http://www.w3.org/2001/XMLSchema");
-  if (ns == NULL) {
-    fprintf(stderr, "XML Schema namespace not found!\n");
-    return 0;
-  } 
+  if (xsdNode != NULL) {
+	  ns = xmlSearchNsByHref(xsdNode->doc, xsdNode, "http://www.w3.org/2001/XMLSchema");
+	  if (ns == NULL) {
+   	 fprintf(stderr, "XML Schema namespace not found!\n");
+	    return 0;
+	  } 
 
-  if (ns->prefix == NULL) {
-    fprintf(stderr, "XML Schema namespace not found!\n");
-    return 0;
+	  if (ns->prefix == NULL) {
+   	 fprintf(stderr, "XML Schema namespace not found!\n");
+	    return 0;
+	  }
+	  fprintf(stdout, "XMLSchema namespace prefix: '%s'\n", ns->prefix);
+	  trInitModule(ns->prefix);
+  } else {
+	  trInitModule("ts");
   }
-
-  fprintf(stdout, "XMLSchema namespace prefix: '%s'\n", ns->prefix);
-  trInitModule(ns->prefix);
 
   return 1;
 }
@@ -650,10 +653,11 @@ int xsdInitTrModule(xmlNodePtr xsdNode)
 
 int xsdInitObjModule(xmlNodePtr xsdNode)
 {
-  xmlChar *tns;
+  xmlChar *tns = NULL;
   xmlNsPtr ns;
 
-  tns = xmlGetProp(xsdNode, (const xmlChar*)"targetNamespace");
+	if (xsdNode != NULL)
+	  tns = xmlGetProp(xsdNode, (const xmlChar*)"targetNamespace");
 
   if (tns == NULL) {
    
@@ -695,13 +699,13 @@ int xsdEngineRun(xmlNodePtr xsdNode, const char* destDir)
   mkdir(destDir, 	S_IRUSR|S_IWUSR|S_IXUSR | 
   						S_IRGRP|S_IWGRP|S_IXGRP | 
   						S_IROTH|S_IXOTH  );
- 						
-  runGenerator(xsdNode);
-  objRegistryEnumComplexType(declareStructs);
-  objRegistryEnumComplexType(writeSource);
 
-  trFreeModule();
-  objFreeModule();
+	if (xsdNode != NULL) {
+	  runGenerator(xsdNode);
+	  objRegistryEnumComplexType(declareStructs);
+	  objRegistryEnumComplexType(writeSource);
+  }
+
   
   return 0;
 }
