@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.18 2004/09/07 18:40:38 rans Exp $
+*  $Id: nanohttp-server.c,v 1.19 2004/09/13 07:12:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -412,7 +412,14 @@ httpd_term (int sig)
     _httpd_run = 0;
 }
 
-static void __httpd_run(void *p)
+/*
+ * ----------------------------------------------------- 
+ * FUNCTION: httpd_run
+ * -----------------------------------------------------
+ */
+
+int
+httpd_run ()
 {
   int err;
   fd_set fds;
@@ -428,7 +435,7 @@ static void __httpd_run(void *p)
   if (err != HSOCKET_OK)
   {
     log_error2 ("httpd_run(): '%d'", err);
-    return;
+    return err;
   }
   log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
                 _httpd_terminate_signal);
@@ -440,7 +447,7 @@ static void __httpd_run(void *p)
   if (err != HSOCKET_OK)
   {
     log_error2 ("httpd_run(): '%d'", err);
-    return;
+    return err;
   }
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
@@ -448,9 +455,6 @@ static void __httpd_run(void *p)
   while (_httpd_run)
   {
 
-#ifdef WIN32
-	Sleep(10);
-#endif
     FD_ZERO (&fds);
     FD_SET (_httpd_socket, &fds);
 
@@ -461,23 +465,14 @@ static void __httpd_run(void *p)
     {
       err = WSAGetLastError ();
       log_error1 ("select error");
-      return;
+      return -1;
     }
 #endif
 
     while (_httpd_run && (FD_ISSET (_httpd_socket, &fds)))
-	{
       if (!_httpd_run)
-	  {
         break;
-	  }
-#ifdef WIN32
-	  else
-	  {
-	    Sleep(10);
-	  }
-#endif
-	}
+
     if (hsocket_accept
         (_httpd_socket, httpd_session_main, _httpd_connection,
          _httpd_max_connections) != 0)
@@ -486,30 +481,7 @@ static void __httpd_run(void *p)
     }
   }
   free (_httpd_connection);
-#ifdef WIN32
-  _endthread ();
-#endif
-}
-
-/*
- * ----------------------------------------------------- 
- * FUNCTION: httpd_run
- * -----------------------------------------------------
- */
-
-int
-httpd_run ()
-{
-#ifdef WIN32
-  if (_beginthread (__httpd_run, 0, NULL) == -1)
-  {
-    log_error1 ("httpd_run thread failed to start");
-    return (-1);
-  }
-#else
-  void *p;
-  __httpd_run(p);
-#endif
+  return 0;
 }
 
 char *
