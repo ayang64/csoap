@@ -1,0 +1,289 @@
+<!-- <?xml version='1.0' encoding='ISO-8859-1' ?>  -->
+<article>
+
+ <articleinfo>                                                
+  <title>cSOAP Implementation Guide $Revision: 1.1 $</title>
+  <author><firstname>Ferhat</firstname><surname>Ayaz</surname></author>
+  <copyright><year>2004</year><holder>csoap</holder></copyright>
+ </articleinfo> 
+
+<section>
+ <title>Introduction</title>
+
+ <para>
+	This document gives you information about how to use the cSOAP API in your applications.
+ </para>
+
+</section>
+
+<section>
+<title>Implementing a simple SOAP Client</title>
+
+<example>
+<title>A simple SOAP client</title>
+
+<programlistingco>
+
+<areaspec>
+	<area id="ex.client.newmethod" coords="11"/>
+	<area id="ex.client.additem" coords="13"/>
+	<area id="ex.client.invoke" coords="15"/>
+	<area id="ex.client.print" coords="17"/>
+	<areaset id="ex.client.free" coords="">
+		<area id="ex.client.free1" coords='19'/>
+		<area id="ex.client.free2" coords='20'/>
+	</areaset>
+</areaspec>
+
+<programlisting>
+/* FILE: simpleclient.c */
+static const char *url = "http://csoap.sourceforge.net/cgi-bin/csoapserver";
+static const char *urn = "urn:examples";
+static const char *method = "sayHello";
+
+int main(int argc, char *argv[])
+{
+  SoapEnv *env, *res;
+
+  <callout arearefs="ex.client.newmethod"/> env = soap_env_new_with_method(urn, method);
+
+  <callout arearefs="ex.client.additem"/> soap_env_add_item(env, "xsd:string", 
+	"name", "Jonny B. Good");
+  <callout arearefs="ex.client.invoke"/> res = soap_client_invoke(env, url , "");
+
+  <callout arearefs="ex.client.print"/> soap_xml_doc_print(res->root->doc);
+  
+  <callout arearefs="ex.client.free"/> soap_env_free(res);
+  <callout arearefs="ex.client.free"/> soap_env_free(env);
+
+  return 0;
+}
+</programlisting>
+
+
+<calloutlist> 
+
+<callout arearefs="ex.client.newmethod">
+
+<para>
+	First we create a SOAP envelope (<type>SoapEnv</type>) using the
+	<function>soap_env_new_with_method()</function>. This creates the
+	following SOAP envelope.
+</para>
+
+<example>
+<title>Generated SOAP envelope</title>
+
+<programlisting>
+<![CDATA[
+
+<SOAP-ENV:Envelope  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+        SOAP-ENV:encoding="http://schemas.xmlsoap.org/soap/encoding/"> 
+  
+  <SOAP-ENV:Body>  
+    <m:sayHello xmlns:m="urn:examples">  
+    </m:sayHello> 
+  </SOAP-ENV:Body>
+
+</SOAP-ENV:Envelope>
+
+]]>
+</programlisting>
+
+</example>
+
+</callout>
+
+<callout arearefs="ex.client.additem">
+
+<para><function>soap_env_add_item()</function> will add a xml parameter to the envelope like follows</para>
+
+<example>
+<title>Added "name" parameter</title>
+<programlisting>
+<![CDATA[
+
+<SOAP-ENV:Envelope  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+        SOAP-ENV:encoding="http://schemas.xmlsoap.org/soap/encoding/"> 
+  
+  <SOAP-ENV:Body>  
+    <m:sayHello xmlns:m="urn:examples">  
+      <m:name xsi:type="xsd:string">Jonny B. Good</m:name>
+    </m:sayHello> 
+  </SOAP-ENV:Body>
+
+</SOAP-ENV:Envelope>
+
+]]>
+</programlisting>
+</example>
+</callout>
+
+<callout arearefs="ex.client.invoke">
+<para>
+	Now we can send our soap call using <function>soap_client_invoke()</function>. The third argument
+is the <emphasis>SoapAction</emphasis> header value. The result is also a SOAP envelope.
+<function>soap_client_invoke()</function> will return always a <type>SoapEnv</type> object. It is 
+the result SOAP envelope or a fault object.
+</para>
+</callout>
+
+<callout arearefs="ex.client.print">
+<para> 
+	<varname>res-&gt;root</varname> is always the root xml element of the result SOAP envelope
+	and <varname>res-&gt;root-&gt;doc</varname> points always to the <type>xmlDocPtr</type>.
+	<function>soap_xml_doc_print()</function> is a helper function to print out a xml document.
+</para>
+</callout>
+
+<callout arearefs="ex.client.free">
+<para>Free both envelope objects</para>
+</callout>
+
+</calloutlist>
+
+</programlistingco>
+
+</example>
+
+</section>
+
+
+<section>
+<title>Implementing a simple SOAP Server</title>
+
+<example>
+<title>A simple SOAP server</title>
+
+<programlistingco>
+
+<areaspec>
+	<area id="ex.server.init" coords="7"/>
+	<area id="ex.server.newrouter" coords="11"/>
+	<area id="ex.server.regservice" coords="13"/>
+	<area id="ex.server.regrouter" coords="14"/>
+	<area id="ex.server.run" coords="16"/>
+	<area id="ex.server.freerouter" coords="18"/>
+	<area id="ex.server.destroy" coords="19"/>
+</areaspec>
+
+<programlisting>
+/* FILE: simpleserver.c */
+
+int main(int argc, char *argv[])
+{
+
+  SoapRouter *router;
+  
+  <callout arearefs="ex.server.init"/> if (!soap_server_init_args(argc, argv)) {
+    return 0;
+  }
+  
+  <callout arearefs="ex.server.newrouter"/> router = soap_router_new();
+
+  <callout arearefs="ex.server.regservice"/> soap_router_register_service(router, say_hello, "sayHello", "urn:examples");
+  <callout arearefs="ex.server.regrouter"/> soap_server_register_router(router, "/csoapserver");
+
+  <callout arearefs="ex.server.run"/> soap_server_run();
+
+  <callout arearefs="ex.server.freerouter"/> soap_router_free(router);
+  <callout arearefs="ex.server.destroy"/> soap_server_destroy();
+
+  return 0;
+}
+</programlisting>
+
+
+<calloutlist> 
+
+<callout arearefs="ex.server.init">
+<para>
+Init server with commandline arguments. The init argument at this time is only
+<varname> -NHTTPport &lt;portnum&gt; </varname>.
+</para>
+</callout>
+
+<callout arearefs="ex.server.newrouter">
+<para>Create a router</para>
+</callout>
+
+<callout arearefs="ex.server.regservice">
+<para>
+	Register the service function <function>say_hello</function> under the methodname <quote>sayHello</quote> a
+	and urn <quote>urn:examples</quote> at the router object <varname>router</varname>.
+</para>
+</callout>
+
+<callout arearefs="ex.server.regrouter">
+<para>Register the router under the context <quote>/csoapserver</quote>. 
+Now your service is avaiable at the address <quote>http://localhost:port/csoapserver</quote>.
+</para>
+<note>
+Default http port is 10000
+</note>
+</callout>
+
+<callout arearefs="ex.server.run">
+<para>
+	Enter the http server loop. after calling <function>soap_server_run()</function> ,
+	the application will enter the http server (nanohttp) loop.
+</para>
+</callout>
+
+<callout arearefs="ex.server.freerouter">
+<para>
+	Free the router.
+</para>
+</callout>
+
+<callout arearefs="ex.server.destroy">
+<para>
+	Destroy and free soap server stuff.
+</para>
+</callout>
+
+</calloutlist>
+
+</programlistingco>
+</example>
+
+</section>
+
+<section>
+<title>Compiling SOAP applications</title>
+
+<para>
+	<emphasis>csoap</emphasis> has <emphasis>pkg-config</emphasis> support.  So you can can use 
+<emphasis>pkg-config</emphasis>  with <quote>libcsoap</quote> parameter.
+</para>
+
+<example>
+<title>An example Makefile</title>
+
+<programlisting>
+<![CDATA[
+SHELL   =       bash
+CFLAGS  =       `pkg-config --cflags libcsoap`
+LDFLAGS =       `pkg-config --libs libcsoap`
+ 
+CLIENTOBJECTS =       simpleclient.o
+SERVEROBJECTS =       simpleserver.o
+  
+simpleclient: $(CLIENTOBJECTS)
+	$(CC) -o $@ $< $(LDFLAGS)
+
+simpleserver: $(SERVEROBJECTS)
+	$(CC) -o $@ $< $(LDFLAGS)
+
+]]>
+</programlisting>
+
+</example>
+
+</section>
+
+</article>
