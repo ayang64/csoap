@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.3 2003/12/16 14:12:58 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.4 2003/12/17 12:55:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -380,15 +380,25 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
     size -= tmpsize;
 
     free(bufsock->buffer);
-    status = recv(bufsock->sock, bufsock->buffer, size, 0);
-    if (status > 0) {
+    /*
+      status = recv(bufsock->sock, bufsock->buffer, size, 0);
+      if (status > 0) {
       bufsock->bufsize = size;
       bufsock->cur = size;
       strncpy(&buffer[tmpsize], bufsock->buffer, size);
+      } else {
+      return status;
+      }
+    */
+    status = hsocket_read(bufsock->sock, &buffer[tmpsize], size, 1);
+    if (status == size) {
+      bufsock->buffer = (char*)malloc(size+1);
+      strncpy(bufsock->buffer, &buffer[tmpsize], size);
+      bufsock->cur = size;
     } else {
       return status;
     }
-
+    
     return HSOCKET_OK;
   }
 }

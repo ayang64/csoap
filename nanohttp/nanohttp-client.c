@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.3 2003/12/16 14:12:57 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.4 2003/12/17 12:55:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -390,7 +390,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   char *rest;
   int restsize;
   httpc_cb_userdata_t cbdata;
-  int i;
+  int i, done;
 
   /* content-length */
   char *content_length_str;
@@ -409,6 +409,10 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   char chunk_size_str[25];
   int chunk_size_cur;
   char chunk_ch[2];
+
+  /* connection closed */
+  char *connection_status;
+  
 
   if (conn == NULL) {
     log_error1("Connection object is NULL");
@@ -461,36 +465,60 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
   /* Receive Response incl. header */
   rsize = restsize = 0;
   response = rest = NULL;
+  done = 0;
 
-  status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE*1, 0);
-  if (status <= 0) {
-    log_error2("Can not receive response (status:%d)", status); 
-    return 6;
-  } 
+  while (!done) {
+    
+    status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
+  
+    if (status <= 0) {
+      log_error2("Can not receive response (status:%d)", status); 
+      return 6;
+    } 
 
-  for (i=0;i<status-3;i++) {
 
-    if (buffer[i] == '\n') {
-      if (buffer[i+1] == '\n') {
-	rsize = i;
-	response = buffer;
-	response[rsize] = '\0';
+    for (i=0;i<status-2;i++) {
 
-	restsize = status - rsize - 2;
-	rest = &buffer[i+2];
-	rest[restsize] = '\0';
-      } else if (buffer[i+1] == '\r' &&  buffer[i+2] == '\n') {
-      
-	rsize = i;
-	response = buffer;
-	response[rsize] = '\0';
+      /*  log_debug5("%d -> '%c' (%d, %d)", buffer[i], buffer[i], 
+       	 buffer[i+1], buffer[i+2]);
+      */
+      if (buffer[i] == '\n') {
+	if (buffer[i+1] == '\n') {
+	  
+	  response = (char*)realloc(response, rsize+i+1);
+	  strncpy(&response[rsize], buffer, i);
+	  response[rsize+i] = '\0';
+	  rsize += i;
+	
+	  restsize = status - i - 2;
+	  rest = (char*)malloc(restsize+1);
+	  strncpy(rest, &buffer[i+2], restsize);
+	  rest[restsize] = '\0';
+	  done = 1;
+	  break;
 
-	restsize = status - rsize - 3;
-	rest = &buffer[i+3];
-	rest[restsize] = '\0'; /* REST WILL BE FREED IN BUFFEREDSOCKET !!!! */
+	} else if (buffer[i+1] == '\r' &&  buffer[i+2] == '\n') {
+	
+	  response = (char*)realloc(response, rsize+i+1);
+	  strncpy(&response[rsize], buffer, i);
+	  response[rsize+i] = '\0';
+	  rsize += i;
+
+	
+	  restsize = status - i - 3;
+	  rest = (char*)malloc(restsize+1);
+	  strncpy(rest, &buffer[i+3], restsize);
+	  rest[restsize] = '\0';
+	  done = 1;
+	  break;
+	}
       }
     }
+
+    if (!done)
+      rsize += status;
   }
+
 
   if (response == NULL) {
     log_error1("Header too long!");
@@ -571,6 +599,7 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
     bufsock.buffer = rest;
     bufsock.bufsize = restsize;
     
+    chunk_size = 1;
     while (chunk_size > 0) {
 
       /* read chunk size */
@@ -583,6 +612,9 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 	  return 9;
 	}
 	
+	log_debug2("chunk_size_str[chunk_size_cur] = '%c'", 
+		   chunk_size_str[chunk_size_cur]);
+
 	if (chunk_size_str[chunk_size_cur] == '\n') {
 	    chunk_size_str[chunk_size_cur] = '\0';
 	    break;
@@ -601,13 +633,19 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 
       if (chunk_size <= 0) break;
 
-      chunk_buffer = (char*)malloc(chunk_size);
+      chunk_buffer = (char*)malloc(chunk_size+1);
       if (hbufsocket_read(&bufsock, chunk_buffer, chunk_size)) {
 	log_error1("Can not read from socket");
 	return 9;
       }
       cb(counter++, conn, userdata, chunk_size, chunk_buffer);
       free(chunk_buffer);
+
+      /* skip new line */
+      buffer[0] = 0; /* reset buffer[0] */
+      while (buffer[0] != '\n') {
+	hbufsocket_read(&bufsock, &buffer[0], 1);
+      }
 
     } /* while (chunk_size > 0) */
     
@@ -617,8 +655,43 @@ int httpc_get_cb(httpc_conn_t *conn, const char *urlstr,
 
   } /* if transfer_encodig */
   
+  /* ================================================= */
+  /*   Retreive with only "Connection: close"          */ 
+  /* ================================================= */
+  connection_status = 
+    hpairnode_get(res->header, HEADER_CONNECTION);
+
+  if (connection_status != NULL && 
+      !strcmp(connection_status, "close")) { 
+
+    /* Invoke callback for rest */
+    if (restsize > 0)
+      cb(0, conn, userdata, restsize, rest);
+
+    log_debug1("Server communicates with 'Connection: close' !");
+
+    while (1) {
+      
+      status = hsocket_read(conn->sock, buffer, HSOCKET_MAX_BUFSIZE, 0);
+
+      if (status == 0) { /* connection closed */
+	return 0; 
+      }
+    
+      if (status < 0) { /* error */
+	log_error2("Can nor read from socket (status: %d)", status);
+	return 11;
+      }
+
+      /* Invoke callback */ 
+      cb(counter++, conn, userdata, status, buffer);
+    }
+    
+  }
+
 
   log_error1("Unknown server response retreive type!");
+  
 
   return 1;
 }
