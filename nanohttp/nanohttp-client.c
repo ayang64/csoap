@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.11 2004/05/14 09:30:42 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.12 2004/06/04 08:55:07 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -235,6 +235,10 @@ hresponse_t *httpc_receive_header(hsocket_t sock)
   res->bodysize = restsize;
   res->body = rest;
 
+  if (res->errcode == 100) { /* continue */
+    hresponse_free(res);
+    res = httpc_receive_header(sock);
+  }
   return res;
 }
 
