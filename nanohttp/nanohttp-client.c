@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.c,v 1.9 2004/01/06 08:05:43 snowdrop Exp $
+ *  $Id: nanohttp-client.c,v 1.10 2004/01/13 12:31:57 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -461,8 +461,10 @@ int httpc_receive_response(httpc_conn_t *conn,
   int status;
 
   /* receive header */
+  log_verbose1("receiving header");
   res = httpc_receive_header(conn->sock);
   if (res == NULL) return 1;
+  log_verbose1("header ok");
 
   /* Invoke callback */
   start_cb(conn, userdata, res->header, res->spec, 
@@ -850,12 +852,29 @@ int httpc_post_finish_cb(httpc_conn_t *conn,
 {
   int status;
 
-  status = hsocket_send(conn->sock, "0\r\n");
+  status = hsocket_send(conn->sock, "0\r\n\r\n");
   if (status != HSOCKET_OK) return status;
-
+  
   status = httpc_receive_response(conn, start_cb, cb, userdata); 
   return status; 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

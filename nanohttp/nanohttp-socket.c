@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.5 2004/01/05 10:42:15 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.6 2004/01/13 12:31:57 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -150,7 +150,6 @@ int hsocket_nsend(hsocket_t sock, const char* buffer, int n)
 int hsocket_send(hsocket_t sock, const char* buffer)
 {
   int size;
-
   size = send((int)sock, buffer, strlen(buffer), 0);
   if (size == -1)
     return HSOCKET_CAN_NOT_SEND;
@@ -158,98 +157,6 @@ int hsocket_send(hsocket_t sock, const char* buffer)
   return HSOCKET_OK;
 }
 
-
-/*--------------------------------------------------
-  FUNCTION: hsocket_recv_limit (DON'T USE!)
-----------------------------------------------------*/
-int hsocket_recv_limit(hsocket_t sock, char** buffer, 
-		       const char* delim, char **rest, 
-		       int *totalBuffer, int *totalRest)
-{
-  ssize_t size;
-  int chunk=1;
-  char tmp[HSOCKET_MAX_BUFSIZE+1];
-  int delimlen;
-  int fsize;
-  int i;
-
-  *totalBuffer = 0;
-  *totalRest = 0;
-  delimlen = strlen(delim);
-
-  /* calculate first size for realloc */
-  if (*buffer) {
-    fsize = strlen(*buffer);
-  } else {
-    fsize = 0;
-  }
-
-  do {
-    
-    log_debug1("recv()");
-    size = recv(sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
-
-    if (size == -1) {
-      log_error1("Error reading from socket\n");
-      return HSOCKET_CAN_NOT_RECEIVE;
-    }
-
-    if (size == 0) {
-      break;
-    }
-
-    puts(tmp);
-    /* section 1: find delimiter if exist */
-    for (i=0;i<size-delimlen;i++) {
-      if (!strncmp(&tmp[i],delim,delimlen)) {
-	
-	log_debug1("Found delimiter");
-	/* ** split to buffer and rest ** */
-	
-	/* fill buffer until i */
-	*totalBuffer += i;
-	if (*buffer) {
-	  *buffer = (char*)realloc(*buffer, *totalBuffer+fsize+1+HSOCKET_MAX_BUFSIZE);
-	  strncat(*buffer, tmp, i);
-	  *buffer[*totalBuffer+fsize] = '\0';
-	} else {
-	  *buffer = (char*)realloc(NULL, *totalBuffer+1);
-	  strncpy(*buffer, tmp, i);
-	  (*buffer)[*totalBuffer] = '\0';
-	}
-
-
-	/* fill rest from i to size */
-	if (size - (i+delimlen)+1 > 0) {
-	  *rest = (char*)realloc(NULL, size - (i+delimlen)+1 + HSOCKET_MAX_BUFSIZE);
-	  strcpy(*rest, &tmp[i+delimlen]);
-	  *totalRest = size - (i+delimlen);
-	  (*rest)[*totalRest] = '\0';
-	} else {
-	  *rest = NULL;
-	}
-
-	return HSOCKET_OK;
-      }
-    }
-    
-    /* section 2: no delimiter found. so add tmp to buffer */
-    *totalBuffer += size;
-    if (*buffer) {
-      *buffer = (char*)realloc(*buffer, *totalBuffer+fsize+1);
-      strcat(*buffer, tmp);
-    } else {
-      *buffer = (char*)realloc(NULL, *totalBuffer+1);
-      strcpy(*buffer, tmp);
-    }
-
-    (*buffer)[*totalBuffer] = '\0';	
-    
-    chunk++;
-  } while (size > 0);
-
-  return HSOCKET_OK;  
-}
 
 int hsocket_read(hsocket_t sock, char* buffer, int total, int force)
 {
@@ -394,16 +301,7 @@ int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
     size -= tmpsize;
 
     free(bufsock->buffer);
-    /*
-      status = recv(bufsock->sock, bufsock->buffer, size, 0);
-      if (status > 0) {
-      bufsock->bufsize = size;
-      bufsock->cur = size;
-      strncpy(&buffer[tmpsize], bufsock->buffer, size);
-      } else {
-      return status;
-      }
-    */
+ 
     status = hsocket_read(bufsock->sock, &buffer[tmpsize], size, 1);
     if (status == size) {
       bufsock->buffer = (char*)malloc(size+1);
