@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.15 2004/09/01 07:58:08 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.16 2004/09/01 14:10:23 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -68,49 +68,51 @@ static conndata_t *_httpd_connection;
 int
 httpd_init(int argc, char *argv[])
 {
-	int             i, status;
-	status = hsocket_module_init();
-	if (status != 0)
-		return status;
+  int             i, status;
+  status = hsocket_module_init();
+  if (status != 0)
+    return status;
 
-	/* write argument information */
-	log_verbose1("Arguments:");
-	for (i = 0; i < argc; i++)
-		log_verbose3("argv[%i] = '%s'", i, SAVE_STR(argv[i]));
+  /* write argument information */
+  log_verbose1("Arguments:");
+  for (i = 0; i < argc; i++)
+    log_verbose3("argv[%i] = '%s'", i, SAVE_STR(argv[i]));
 
-	/* initialize from arguments */
-	for (i = 0; i < argc; i++) {
-		if (!strcmp(argv[i], NHTTPD_ARG_PORT) && i < argc - 1) {
-			_httpd_port = atoi(argv[i + 1]);
-		} else if (!strcmp(argv[i], NHTTPD_ARG_TERMSIG) && i < argc - 1) {
-			_httpd_terminate_signal = atoi(argv[i + 1]);
-		}
-	}
+  /* initialize from arguments */
+  for (i = 0; i < argc; i++) {
+    if (!strcmp(argv[i], NHTTPD_ARG_PORT) && i < argc - 1) {
+      _httpd_port = atoi(argv[i + 1]);
+    } else if (!strcmp(argv[i], NHTTPD_ARG_TERMSIG) && i < argc - 1) {
+      _httpd_terminate_signal = atoi(argv[i + 1]);
+    } else if (!strcmp(argv[i], NHTTPD_ARG_MAXCONN) && i < argc - 1) {
+      _httpd_max_connections = atoi(argv[i + 1]);
+    }
+  }
 
-	log_verbose2("socket bind to port '%d'", _httpd_port);
-
-	/* init built-in services */
-	/*
-	 * httpd_register("/httpd/list", service_list);
-	 */
-	_httpd_connection = calloc(_httpd_max_connections, sizeof(conndata_t));
-	for (i = 0; i < _httpd_max_connections; i++) {
-		memset((char *) &_httpd_connection[i], 0,
-		       sizeof(_httpd_connection[i]));
-	}
-
+  log_verbose2("socket bind to port '%d'", _httpd_port);
+  
+  /* init built-in services */
+  /*
+   * httpd_register("/httpd/list", service_list);
+   */
+  _httpd_connection = calloc(_httpd_max_connections, sizeof(conndata_t));
+  for (i = 0; i < _httpd_max_connections; i++) {
+    memset((char *) &_httpd_connection[i], 0,
+	   sizeof(_httpd_connection[i]));
+  }
+  
 #ifdef WIN32
-	if (_beginthread(WSAReaper, 0, NULL) == -1) {
-		log_error1("Winsock reaper thread failed to start");
-		return (-1);
-	}
+  if (_beginthread(WSAReaper, 0, NULL) == -1) {
+    log_error1("Winsock reaper thread failed to start");
+    return (-1);
+  }
 #endif
 
-	/* create socket */
-	hsocket_init(&_httpd_socket);
-	status = hsocket_bind(&_httpd_socket, _httpd_port);
-
-	return status;
+  /* create socket */
+  hsocket_init(&_httpd_socket);
+  status = hsocket_bind(&_httpd_socket, _httpd_port);
+  
+  return status;
 }
 
 /*
