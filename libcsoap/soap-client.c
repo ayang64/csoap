@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.c,v 1.2 2004/02/03 08:59:22 snowdrop Exp $
+ *  $Id: soap-client.c,v 1.3 2004/04/14 09:20:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -51,6 +51,10 @@ soap_client_invoke(SoapEnv *call, const char *url, const char *soap_action)
   
   /* Transport via HTTP */
   conn = httpc_new();
+
+  /* content-type is always 'text/xml' */
+  httpc_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
+
   if (soap_action != NULL) {
     httpc_set_header(conn, "SoapAction", soap_action);
   }
