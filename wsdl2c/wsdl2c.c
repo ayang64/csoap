@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: wsdl2c.c,v 1.5 2004/06/03 08:53:34 snowdrop Exp $
+ *  $Id: wsdl2c.c,v 1.6 2004/06/03 13:13:47 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,48 @@
 #include <xsd2c/formatter.h> /* formatter sax serializer */
 #include <xsd2c/obj.h> /* formatter sax serializer */
 #include <string.h>
+
+#define _DESERIALIZER_DISABLE_
+#include "CallList.h"
+
+/* ------------- Just for test --------------------------------- */
+
+int Writer_Tab = 0;
+int Writer_Ret = 0;
+
+void Writer_StartElement(const char* element_name, int attr_count, char **keys, char **values, void* userData)
+{
+  int i, j;
+  if (Writer_Ret) printf("\n");
+  for (j=0;j<Writer_Tab;j++) printf("\t");
+  printf("<%s", element_name);
+  for (i=0;i<attr_count;i++)
+  {
+    printf(" %s = \"%s\"", keys[i], values[i]);
+  }
+  printf(">");
+  Writer_Tab++;
+  Writer_Ret = 1;
+}
+
+void Writer_Characters(const char* element_name, const char* chars, void* userData)
+{
+  printf("%s", chars!=NULL?chars:"null");
+}
+
+void Writer_EndElement(const char* element_name, void* userData)
+{
+  int j;
+  Writer_Tab--;
+  if (!Writer_Ret)
+    for (j=0;j<Writer_Tab;j++) printf("\t");
+  printf("</%s>\n", element_name);
+  Writer_Ret = 0;
+}
+
+/* ------------------------------------------------------------- */
+
+struct CallList* callList = NULL;
 
 xmlXPathObjectPtr xpath_eval(xmlDocPtr doc, const char *xpath)
 {
@@ -192,13 +234,13 @@ xmlNodePtr findSubNode(xmlNodePtr root, const char *element_name)
 }
 
 
-void handleInputParameters(xmlDocPtr doc, const char *name)
+void handleInputParameters(xmlDocPtr doc, const char *name, struct CallFunc *func)
 {
   char ns[10];
   char message_name[255];
   xmlNodePtr node;
   xmlNodePtr cur;
-
+  struct CallVar *var;
   xmlChar *var_name, *var_type;
 
   parseNS(name, ns, message_name); /* check why to pase ns? */
@@ -243,6 +285,10 @@ void handleInputParameters(xmlDocPtr doc, const char *name)
       continue;
     } 
 
+    var = CallVar_Create();
+    CallVar_Set_name(var, (const char*)var_name);
+    CallVar_Set_type(var, (const char*)var_type);
+    CallFunc_Add_in(func, var);
 
     fprintf(stdout, "\t\t(%s,%s)\n", trXSD2C((const char*)var_type), (const char*)var_name);
 
@@ -262,7 +308,7 @@ void handlePortType(xmlDocPtr doc, const char *name)
   xmlNodePtr cur;
   xmlChar *attr_name;
   xmlChar *message;
-
+  struct CallFunc *func;
   char opname[255];
 
   node = findPortType(doc, name);
@@ -292,6 +338,11 @@ void handlePortType(xmlDocPtr doc, const char *name)
 
     strcpy(opname, (const char*)attr_name);
     xmlFree(attr_name);
+    
+    func = CallFunc_Create();
+    CallList_Add_operation(callList, func);
+  
+    CallFunc_Set_name(func, opname);
     fprintf(stdout, "Operation -> '%s'\n", opname);
 
     /* handle input */
@@ -311,7 +362,7 @@ void handlePortType(xmlDocPtr doc, const char *name)
     
     fprintf(stdout, "\tinput  = '%s'\n", (const char*)message);
     
-    handleInputParameters(doc, (const char*)message);
+    handleInputParameters(doc, (const char*)message, func);
 
     xmlFree(message);
   
@@ -515,7 +566,7 @@ int main(int argc, char *argv[])
 
   if (!xsdInitObjModule(xsdRoot))
     return 1;
-
+ 
   
 	
   if (xsdEngineRun(xsdRoot, outDir)) {
@@ -523,7 +574,15 @@ int main(int argc, char *argv[])
   	return 1;
   }
 
+  callList = CallList_Create();
   wsdlParse(doc);
+
+  CallList_Sax_Serialize(callList, "CallList", 
+    Writer_StartElement, 
+    Writer_Characters,
+    Writer_EndElement, 0); 
+
+  CallList_Free(callList); 
 
   trFreeModule();
   objFreeModule();
