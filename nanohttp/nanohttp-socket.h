@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.10 2004/09/13 15:33:32 rans Exp $
+ *  $Id: nanohttp-socket.h,v 1.11 2004/09/14 13:23:10 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -109,13 +109,7 @@ typedef struct tag_conndata
 	time_t atime;
 }conndata_t;
 
-#ifdef WIN32
-int hsocket_accept(hsocket_t sock, unsigned ( __stdcall *func )( void * ), conndata_t *conns, 
-				   int max_conn, int *termsig);
-#else
-int hsocket_accept(hsocket_t sock, void(*func) (void *), conndata_t *conns, 
-				   int max_conn, int *termsig);
-#endif
+int hsocket_accept(hsocket_t sock, hsocket_t *dest);
 
 
 /*
@@ -204,7 +198,8 @@ int hsocket_makenonblock(hsocket_t sock);
 #ifdef WIN32
 
 struct tm *localtime_r(const time_t *const timep, struct tm *p_tm);
-#endif
+
+#endif
 #endif
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.8 2004/08/30 07:55:41 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.9 2004/09/14 13:23:10 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -38,6 +38,14 @@
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
 #endif
 
+/*
+Set Sleep function platform depended
+*/
+#ifdef WIN32
+  #define system_sleep(seconds) Sleep(seconds*1000);
+#else
+  #define system_sleep(seconds) sleep(seconds);
+#endif
 
 /*
   string function to compare strings ignoring case

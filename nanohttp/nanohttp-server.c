@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.20 2004/09/13 15:33:32 rans Exp $
+*  $Id: nanohttp-server.c,v 1.21 2004/09/14 13:23:10 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -410,18 +410,103 @@ httpd_session_main (void *data)
  * -----------------------------------------------------
  */
 #ifdef WIN32
-BOOL WINAPI httpd_term(DWORD sig) {
+BOOL WINAPI httpd_term(DWORD sig) 
+{
+  log_debug2("Got signal %d", sig);
+  if (sig == _httpd_terminate_signal)
+    _httpd_run = 0;  
+  return TRUE;
+}
+  
 #else
+
 void
 httpd_term (int sig) {
-#endif
+  log_debug2("Got signal %d", sig);
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
-
-#ifdef WIN32
-  return TRUE;
-#endif
 }
+
+#endif
+
+
+/*
+ * -----------------------------------------------------
+ * FUNCTION: _httpd_register_signal_handler
+ * -----------------------------------------------------
+ */
+static
+void _httpd_register_signal_handler()
+{
+  log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
+                _httpd_terminate_signal);
+#ifdef WIN32
+  if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)httpd_term, TRUE) ==  FALSE){
+	  log_error1 ("Unable to install console event handler!");
+  }
+
+#else
+  signal (_httpd_terminate_signal, httpd_term);
+#endif
+}    
+
+
+
+
+/*--------------------------------------------------
+FUNCTION: _httpd_wait_for_empty_conn
+----------------------------------------------------*/
+static
+conndata_t *_httpd_wait_for_empty_conn(int *term_flag)
+{
+  int i;  
+  for (i = 0;; i++)
+  {
+    if (!*term_flag)
+        return NULL;
+        
+    if (i >= _httpd_max_connections) 
+    {
+      system_sleep(1);
+      i = 0;
+    }
+    else if (_httpd_connection[i].sock == 0)
+    {
+      break;
+    }  
+	}
+	
+	return &_httpd_connection[i];
+}    
+
+/*
+ * -----------------------------------------------------
+ * FUNCTION: _httpd_start_thread
+ * -----------------------------------------------------
+ */
+static
+void _httpd_start_thread(conndata_t* conn)
+{
+  int err;
+  
+#ifdef WIN32
+	  conn->tid =
+	    (HANDLE) _beginthreadex (NULL, 65535, httpd_session_main, conn, 0, &err);
+#else
+	pthread_attr_init (&(conn-> attr));
+  #ifdef PTHREAD_CREATE_DETACHED
+  	  pthread_attr_setdetachstate (&(conn->attr),
+  				       PTHREAD_CREATE_DETACHED);
+  #endif
+  err = pthread_create (&(conn->tid), &(conn->attr),httpd_session_main, 
+    conn);
+  if (err)
+   {
+	      log_error2 ("Error creating thread: ('%d')", err);
+   }
+#endif
+}  
+
 
 /*
  * -----------------------------------------------------
@@ -433,13 +518,9 @@ int
 httpd_run ()
 {
   int err;
-  fd_set fds;
-  struct timeval timeout;
-
+  conndata_t *conn;
 
   log_verbose1 ("starting run routine");
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
 
   /* listen to port */
   err = hsocket_listen (_httpd_socket, 15);
@@ -448,59 +529,41 @@ httpd_run ()
     log_error2 ("httpd_run(): '%d'", err);
     return err;
   }
-  log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
-                _httpd_terminate_signal);
-#ifdef WIN32
-  if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)httpd_term, TRUE) ==  FALSE){
-	  log_error1 ("Unable to install console event handler!");
-  }
-
-#else
-  signal (_httpd_terminate_signal, httpd_term);
-#endif
   log_verbose2 ("listening to port '%d'", _httpd_port);
 
-
+  /* register signal handler */
+  _httpd_register_signal_handler();
+  
+  /* make the socket non blocking */
   err = hsocket_makenonblock (_httpd_socket);
   if (err != HSOCKET_OK)
   {
     log_error2 ("httpd_run(): '%d'", err);
     return err;
   }
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
+  
 
   while (_httpd_run)
   {
-
-    FD_ZERO (&fds);
-    FD_SET (_httpd_socket, &fds);
-
-#ifndef WIN32
-    select (1, &fds, NULL, NULL, &timeout);
-#else
-    if (select (1, &fds, NULL, NULL, &timeout) == SOCKET_ERROR)
+    /* Get an empty connection struct */
+    conn = _httpd_wait_for_empty_conn(&_httpd_run);	
+    if (conn == NULL) break;
+    
+    /* Accept a socket */
+    err = hsocket_accept(_httpd_socket, &(conn->sock));
+    if (err != HSOCKET_OK)
     {
-      err = WSAGetLastError ();
-      log_error1 ("select error");
-      return -1;
-    }
-#endif
-
-    while (_httpd_run && (FD_ISSET (_httpd_socket, &fds)))
-      if (!_httpd_run)
-        break;
-
-    if (hsocket_accept
-        (_httpd_socket, httpd_session_main, _httpd_connection,
-         _httpd_max_connections, &_httpd_run) != 0)
-    {
-      continue;
-    }
+      log_error2("Can not accept socket: %d", err);
+      return -1; /* this is hard core! */
+    }  
+      
+    /* Now start a thread */
+    _httpd_start_thread(conn);
   }
   free (_httpd_connection);
   return 0;
 }
+
 
 char *
 httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,

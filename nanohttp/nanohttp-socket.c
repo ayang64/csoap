@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.17 2004/09/13 15:33:32 rans Exp $
+*  $Id: nanohttp-socket.c,v 1.18 2004/09/14 13:23:10 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,14 +24,20 @@
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-common.h>
 
+
+
+
 #ifdef WIN32
-#include "wsockcompat.h"
-#include <winsock2.h>
-#include <process.h>
-#define close(s) closesocket(s)
-typedef int ssize_t;
+    #include "wsockcompat.h"
+    #include <winsock2.h>
+    #include <process.h>
+
+#ifndef __MINGW32__ 
+    typedef int ssize_t;
+#endif
+
 #else
-#include <fcntl.h>
+    #include <fcntl.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -70,7 +76,6 @@ int
 hsocket_module_init ()
 {
 #ifdef WIN32
-  //WSACleanup();
   struct WSAData info;
   WSAStartup (MAKEWORD (2, 2), &info);
 
@@ -181,102 +186,45 @@ hsocket_bind (hsocket_t * dsock, int port)
       return HSOCKET_CAN_NOT_BIND;
     }
   *dsock = sock;
-#ifdef WIN32
-  //setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char *) true, sizeof(BOOL));
-  //setsockopt(sock, SOL_SOCKET, SO_CONDITIONAL_ACCEPT, (char *) true, sizeof(BOOL));
-#endif
   return HSOCKET_OK;
 }
 
-#ifdef WIN32
-int
-hsocket_accept (hsocket_t sock, unsigned (__stdcall * func) (void *),
-		conndata_t * conns, int max_conn, int *termsig)
-#else
-int
-hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
-		int max_conn, int *termsig)
-#endif
+
+/*----------------------------------------------------------
+FUNCTION: hsocket_accept
+----------------------------------------------------------*/
+int hsocket_accept(hsocket_t sock, hsocket_t *dest)
 {
-  int i;
-  int err;
-  socklen_t asize;
-  struct sockaddr_in addr;
+	socklen_t asize;
+	SOCKET sockfd;
+	struct sockaddr_in addr;
 
-  asize = sizeof (struct sockaddr_in);
-  while (1)
-    {
-      for (i = 0;; i++)
-	{
-	  if (i >= max_conn)
-	    {
+	asize = sizeof(struct sockaddr_in);
 #ifdef WIN32
-	      Sleep (1000);
-#else
-	      log_verbose2 ("max connection i=%d", i);
-	      sleep (1);
-#endif
-	      i = 0;
-	      continue;
-	    }
-	  if (conns[i].sock == 0)
-	    break;
-	}
-      conns[i].sock = accept (sock, (struct sockaddr *) &addr, &asize);
-#ifndef WIN32
-      if (conns[i].sock == -1)
+	while(1)
 	{
-	  conns[i].sock = 0;
-  	  if(*termsig==0)
-		return 0;
-	  continue;
+		sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
+		if (sockfd == INVALID_SOCKET) 
+    { 
+			if(WSAGetLastError()!=WSAEWOULDBLOCK)
+				return HSOCKET_CAN_NOT_ACCEPT;		    
+		}
+		else
+		{
+			break;
+		}		
 	}
 #else
-      if (conns[i].sock == INVALID_SOCKET)
-	{
-	  if (WSAGetLastError () != WSAEWOULDBLOCK)
-	    {
-	      log_error1 ("accept() died...  restarting...");
-	      closesocket (sock);
-	      WSACleanup ();
-	      return INVALID_SOCKET;
-	    }
-	  else
-	    {
-	      conns[i].sock = 0;
-		  if(*termsig==0)
-			  return 0;
-   	      Sleep(10);
-	      continue;
-	    }
+	sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
+	if (sockfd == -1) { 
+		return HSOCKET_CAN_NOT_ACCEPT;
 	}
 #endif
-      else
-	{
-	  log_verbose3 ("accept new socket (%d) from '%s'", conns[i].sock,
-			SAVE_STR (((char *) inet_ntoa (addr.sin_addr))));
+	log_verbose3("accept new socket (%d) from '%s'", sockfd,
+		SAVE_STR(((char*)inet_ntoa(addr.sin_addr))) );
 
-#ifdef WIN32
-	  conns[i].tid =
-	    (HANDLE) _beginthreadex (NULL, 65535, func, &conns[i], 0, &err);
-#else
-	  pthread_attr_init (&(conns[i].attr));
-#ifdef PTHREAD_CREATE_DETACHED
-	  pthread_attr_setdetachstate (&(conns[i].attr),
-				       PTHREAD_CREATE_DETACHED);
-#endif
-
-	  err =
-	    pthread_create (&(conns[i].tid), &(conns[i].attr), func,
-			    &conns[i]);
-	  if (err)
-	    {
-	      log_error2 ("Error creating thread: ('%d')", err);
-	    }
-#endif
-	}
-    }
-  return 0;
+	*dest = sockfd;
+	return HSOCKET_OK;  
 }
 
 /*--------------------------------------------------
@@ -299,7 +247,11 @@ FUNCTION: hsocket_close
 void
 hsocket_close (hsocket_t sock)
 {
+#ifdef WIN32
+  closesocket (sock);
+#else
   close (sock);
+#endif
 }
 
 

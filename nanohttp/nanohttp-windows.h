@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-windows.h,v 1.1 2004/08/31 16:34:57 rans Exp $
+ *  $Id: nanohttp-windows.h,v 1.2 2004/09/14 13:23:10 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -61,3 +61,4 @@ static void WSAReaper(void *x)
 #endif
 
 #endif
+
