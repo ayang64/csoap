@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.25 2004/10/18 09:31:58 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.26 2004/10/18 11:35:27 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -246,34 +246,69 @@ hsocket_listen (hsocket_t sock)
   return H_OK;
 }
 
+
+static
+void _hsocket_wait_until_receive(hsocket_t sock)
+{
+  fd_set fds;
+  struct timeval timeout;
+
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+
+  while (1) 
+  {
+    log_verbose1 ("waiting until receive mode");
+    /* zero and set file descriptior */
+    FD_ZERO (&fds);
+    FD_SET (sock, &fds);
+  
+    /* select socket descriptor */
+    switch (select (sock + 1, &fds,  NULL, NULL, &timeout))
+    {
+    case 0:
+      /* descriptor is not ready */
+      continue;
+    case -1:
+      /* got a signal? */
+      continue;
+    default:
+      /* no nothing */
+      break;
+    }
+    if (FD_ISSET (sock, &fds))
+    {
+      break;
+    }
+  }
+}
+
 /*--------------------------------------------------
 FUNCTION: hsocket_close
 ----------------------------------------------------*/
 void
 hsocket_close (hsocket_t sock)
 {
-#ifdef WIN32
-  /*shutdown(sock,SD_RECEIVE);*/
-  
-/*  struct linger _linger;
-
-  hsocket_block(sock,1);
+  char junk[10];
+  struct linger _linger;
+/*  _hsocket_wait_until_receive(sock);*/
+  log_verbose1 ("closing socket ...");
+/*  hsocket_block(sock,1);
   _linger.l_onoff =1;
   _linger.l_linger = 30000;
   setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
-
-*/  
-  closesocket (sock);
-
-#else
-	/*
-	struct linger _linger;
-	  hsocket_block(sock,1);
-	    _linger.l_onoff =1;
-	      _linger.l_linger = 30000;
-	        setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
-
 */
+  shutdown(sock, SD_SEND);
+  while (recv(sock, junk, sizeof(junk), 0)>0) { };  
+#ifdef WIN32
+  /*shutdown(sock,SD_RECEIVE);*/
+  
+
+  closesocket(sock);
+  
+  log_verbose1 ("closed");
+#else
   close (sock);
 #endif
 }
