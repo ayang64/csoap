@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.4 2004/08/30 13:28:58 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.5 2004/08/30 15:26:49 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
   log_set_level(HLOG_VERBOSE);
 
   if (!soap_server_init_args(argc, argv)) {
-    return 0;
+    return 1;
   }
   
   router = soap_router_new();

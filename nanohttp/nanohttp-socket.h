@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.6 2004/08/26 17:07:47 rans Exp $
+ *  $Id: nanohttp-socket.h,v 1.7 2004/08/30 15:26:53 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,6 @@
 #ifndef NANO_HTTP_SOCKET_H 
 #define NANO_HTTP_SOCKET_H 
 
-#define HSOCKET_BLOCKMODE 0
 #define HSOCKET_OK 0
 #define HSOCKET_CAN_NOT_CREATE 1001
 #define HSOCKET_CAN_NOT_GET_HOSTNAME 1002
@@ -36,6 +35,9 @@
 #define HSOCKET_CAN_NOT_ACCEPT 1008
 
 #define HSOCKET_MAX_BUFSIZE 1024
+
+#define HSOCKET_BLOCKMODE 0
+#define HSOCKET_NONBLOCKMODE 1
 
 #ifdef WIN32
 #include <winsock2.h>

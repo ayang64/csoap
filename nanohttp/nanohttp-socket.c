@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.10 2004/08/30 07:55:42 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.11 2004/08/30 15:26:53 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -61,26 +61,10 @@ typedef int socklen_t;
 
 /*--------------------------------------------------
 FUNCTION: hsocket_module_init
+NOTE: This will be called from httpd_init() 
+	for server and from httpc_init() for client
 ----------------------------------------------------*/
 int hsocket_module_init()
-{
-	/* nothing to init for unix sockets */
-	return 0;
-}
-
-/*--------------------------------------------------
-FUNCTION: hsocket_module_destroy
-----------------------------------------------------*/
-void hsocket_module_destroy()
-{
-	/* nothing to destroy for unix sockets */
-}
-
-
-/*--------------------------------------------------
-FUNCTION: hsocket_init
-----------------------------------------------------*/
-int hsocket_init(hsocket_t *sock)
 {
 #ifdef WIN32
 	//  WSACleanup();
@@ -89,6 +73,27 @@ int hsocket_init(hsocket_t *sock)
 #else
 	/* nothing to init for unix sockets */
 #endif
+	return 0;
+}
+
+/*--------------------------------------------------
+FUNCTION: hsocket_module_destroy
+----------------------------------------------------*/
+void hsocket_module_destroy()
+{
+#ifdef WIN32
+	WSACleanup();
+#else
+	/* nothing to destroy for unix sockets */
+#endif
+}
+
+
+/*--------------------------------------------------
+FUNCTION: hsocket_init
+----------------------------------------------------*/
+int hsocket_init(hsocket_t *sock)
+{
 	/* just set the descriptor to -1 */
 	*sock = -1;
 	return 0;
@@ -109,11 +114,7 @@ FUNCTION: hsocket_open
 ----------------------------------------------------*/
 int hsocket_open(hsocket_t *dsock, const char* hostname, int port)
 {
-#ifdef WIN32
-	SOCKET sock;
-#else
-	int sock;
-#endif
+	hsocket_t sock;
 	char *ip;
 	struct sockaddr_in address; 
 	struct hostent* host;
@@ -145,11 +146,7 @@ FUNCTION: hsocket_close
 ----------------------------------------------------*/
 int hsocket_bind(hsocket_t *dsock, int port)
 {
-#ifdef WIN32
-	SOCKET sock;
-#else
-	int sock;
-#endif
+	hsocket_t sock;
 	struct sockaddr_in addr;
 
 	/* create socket */
@@ -198,7 +195,7 @@ FUNCTION: hsocket_listen
 int hsocket_accept(hsocket_t sock, hsocket_t *dest)
 {
 	socklen_t asize;
-	SOCKET sockfd;
+	hsocket_t sockfd;
 	struct sockaddr_in addr;
 
 	asize = sizeof(struct sockaddr_in);
@@ -206,7 +203,8 @@ int hsocket_accept(hsocket_t sock, hsocket_t *dest)
 	while(1)
 	{
 		sockfd = accept(sock, (struct sockaddr *)&addr, &asize);
-		if (sockfd == -1) { 
+		if (sockfd ==  INVALID_SOCKET) 
+		{ 
 			if(WSAGetLastError()!=WSAEWOULDBLOCK)
 			{
 				return HSOCKET_CAN_NOT_ACCEPT;		    
@@ -238,9 +236,6 @@ FUNCTION: hsocket_close
 void hsocket_close(hsocket_t sock)
 {
 	close(sock);
-#ifdef WIN32
-	WSACleanup();
-#endif
 }
 
 

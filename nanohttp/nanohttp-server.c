@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.10 2004/08/30 13:25:23 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.11 2004/08/30 15:26:53 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -69,10 +69,16 @@ static int _httpd_terminate_signal = SIGTERM;
 
 /* ----------------------------------------------------- 
 FUNCTION: httpd_init
+NOTE: This will be called from soap_server_init_args()
 ----------------------------------------------------- */
 int httpd_init(int argc, char *argv[])
 {
 	int i, status;
+
+	status = hsocket_module_init();
+	if (status != 0)
+		return status;
+
 
 	/* write argument information */
 	log_verbose1("Arguments:");  
@@ -356,11 +362,8 @@ int httpd_run()
 	struct timeval timeout;
 
 
-#ifndef WIN32
-#if HSOCKET_BLOCKMODE!=0
-#endif
-#else
-	unsigned long iMode=HSOCKET_BLOCKMODE;
+#ifdef WIN32
+	unsigned long iMode=HSOCKET_NONBLOCKMODE;
 #endif
 
 pthread_attr_init(&attr);
@@ -386,10 +389,12 @@ pthread_attr_init(&attr);
 
 
 #ifndef WIN32
-#if HSOCKET_BLOCKMODE!=0
+/* Try always non block mode
+#if HSOCKET_BLOCKMODE!=0*/
 		fcntl(_httpd_socket, F_SETFL, O_NONBLOCK);
-#endif
+/*#endif*/
 #else
+	iMode = HSOCKET_NONBLOCKMODE;
 	if(ioctlsocket(_httpd_socket, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
 	{
 		log_error1("ioctlsocket error");

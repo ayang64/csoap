@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.4 2004/08/26 17:06:18 rans Exp $
+*  $Id: soap-client.c,v 1.5 2004/08/30 15:26:53 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,6 +29,10 @@
 static SoapEnv *_soap_client_build_result(hresponse_t *res);
 /*--------------------------------- */
 
+int soap_client_init_args(int argc, char *argv[])
+{
+	return !httpc_init(argc, argv);
+}
 
 SoapEnv*
 soap_client_invoke(SoapEnv *call, const char *url, const char *soap_action)

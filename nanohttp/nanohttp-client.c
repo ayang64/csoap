@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.15 2004/08/30 13:28:58 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.16 2004/08/30 15:26:53 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -54,6 +54,18 @@ static struct tm *localtime_r(const time_t *const timep, struct tm *p_tm)
 }
 
 #endif
+
+/*--------------------------------------------------
+FUNCTION: httpc_init
+DESC: Initialize http client connection 
+NOTE: This will be called from soap_client_init_args()
+----------------------------------------------------*/
+int httpc_init(int argc, char *argv[])
+{
+	hsocket_module_init();
+	return 0;
+}
+
 /*--------------------------------------------------
 FUNCTION: httpc_new
 DESC: Creates a new http client connection object
@@ -577,12 +589,8 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 	char buffer[4096];
 	int status;
 
-#ifndef WIN32
-  #if HSOCKET_BLOCKMODE!=0
-		fcntl(conn->sock, F_SETFL, O_NONBLOCK);
-  #endif
-#else
-	unsigned long iMode = HSOCKET_BLOCKMODE;
+#ifdef WIN32
+	unsigned long iMode = HSOCKET_NONBLOCKMODE;
 #endif
 
 
@@ -613,10 +621,12 @@ int httpc_talk_to_server(hreq_method method, httpc_conn_t *conn,
 	}
 
 #ifndef WIN32
-#if HSOCKET_BLOCKMODE!=0
+	/* Try always non block mode
+	#if HSOCKET_BLOCKMODE!=0*/
 		fcntl(conn->sock, F_SETFL, O_NONBLOCK);
-#endif
+	/*#endif*/
 #else
+	iMode = HSOCKET_NONBLOCKMODE;
 	if(ioctlsocket(conn->sock, FIONBIO, (u_long FAR*) &iMode) == INVALID_SOCKET)
 	{
 		log_error1("ioctlsocket error");

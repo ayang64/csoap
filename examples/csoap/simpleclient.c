@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.3 2004/08/30 13:28:58 snowdrop Exp $
+ * $Id: simpleclient.c,v 1.4 2004/08/30 15:26:48 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,6 +37,9 @@ int main(int argc, char *argv[])
   SoapEnv *env, *res;
 
   log_set_level(HLOG_VERBOSE);
+  if (!soap_client_init_args(argc, argv)) {
+	  return 1;
+  }
 
   env = soap_env_new_with_method(urn, method);
   soap_env_add_item(env, "xsd:string", "name", "Jonny B. Good");
