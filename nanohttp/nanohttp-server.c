@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.c,v 1.1 2004/01/21 12:15:30 snowdrop Exp $
+ *  $Id: nanohttp-server.c,v 1.2 2004/01/29 15:52:04 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -328,13 +328,13 @@ int httpd_run()
   hsocket_t sockfd;
   int err;
   fd_set fds;
-  struct timeval timeout;
+  /*struct timeval timeout;*/
   
   log_debug1("starting run routine\n");
-
+  /*
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-
+  */
   /* listen to port */
   err = hsocket_listen(_httpd_socket,15);
   if (err  != HSOCKET_OK) {
