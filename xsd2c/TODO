@@ -1,0 +1,21 @@
+--------------------------------------------------------
+				xsd2c TODO 
+--------------------------------------------------------
+PROJECT: xsd2c
+CREATED: 30.03.2003
+WRITTEN BY: Ferhat Ayaz
+--------------------------------------------------------
+$Id: TODO,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+$Log: TODO,v $
+Revision 1.1  2004/06/02 11:17:03  snowdrop
+initial import
+
+Revision 1.1  2003/03/30 21:38:20  snowdrop
+initial import
+
+--------------------------------------------------------
+
++ Add extension base functionality
++ Add deserialize functionality
++ Add simpleTypes (list, restriction?, ...)
+ 
