@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.7 2004/11/02 22:42:52 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.8 2004/11/02 23:09:19 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz

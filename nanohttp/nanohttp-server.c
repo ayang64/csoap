@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.30 2004/11/02 22:42:52 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.31 2004/11/02 23:09:27 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz

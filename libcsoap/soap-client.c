@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.13 2004/11/02 22:42:52 snowdrop Exp $
+*  $Id: soap-client.c,v 1.14 2004/11/02 23:09:26 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
