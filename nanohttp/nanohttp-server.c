@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.17 2004/09/01 16:03:17 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.18 2004/09/07 18:40:38 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -412,14 +412,7 @@ httpd_term (int sig)
     _httpd_run = 0;
 }
 
-/*
- * ----------------------------------------------------- 
- * FUNCTION: httpd_run
- * -----------------------------------------------------
- */
-
-int
-httpd_run ()
+static void __httpd_run(void *p)
 {
   int err;
   fd_set fds;
@@ -435,7 +428,7 @@ httpd_run ()
   if (err != HSOCKET_OK)
   {
     log_error2 ("httpd_run(): '%d'", err);
-    return err;
+    return;
   }
   log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
                 _httpd_terminate_signal);
@@ -447,7 +440,7 @@ httpd_run ()
   if (err != HSOCKET_OK)
   {
     log_error2 ("httpd_run(): '%d'", err);
-    return err;
+    return;
   }
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
@@ -455,6 +448,9 @@ httpd_run ()
   while (_httpd_run)
   {
 
+#ifdef WIN32
+	Sleep(10);
+#endif
     FD_ZERO (&fds);
     FD_SET (_httpd_socket, &fds);
 
@@ -465,14 +461,23 @@ httpd_run ()
     {
       err = WSAGetLastError ();
       log_error1 ("select error");
-      return -1;
+      return;
     }
 #endif
 
     while (_httpd_run && (FD_ISSET (_httpd_socket, &fds)))
+	{
       if (!_httpd_run)
+	  {
         break;
-
+	  }
+#ifdef WIN32
+	  else
+	  {
+	    Sleep(10);
+	  }
+#endif
+	}
     if (hsocket_accept
         (_httpd_socket, httpd_session_main, _httpd_connection,
          _httpd_max_connections) != 0)
@@ -481,7 +486,30 @@ httpd_run ()
     }
   }
   free (_httpd_connection);
-  return 0;
+#ifdef WIN32
+  _endthread ();
+#endif
+}
+
+/*
+ * ----------------------------------------------------- 
+ * FUNCTION: httpd_run
+ * -----------------------------------------------------
+ */
+
+int
+httpd_run ()
+{
+#ifdef WIN32
+  if (_beginthread (__httpd_run, 0, NULL) == -1)
+  {
+    log_error1 ("httpd_run thread failed to start");
+    return (-1);
+  }
+#else
+  void *p;
+  __httpd_run(p);
+#endif
 }
 
 char *

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.14 2004/09/01 07:58:08 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.15 2004/09/07 18:40:38 rans Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -242,6 +242,7 @@ hsocket_accept (hsocket_t sock, void (*func) (void *), conndata_t * conns,
 	  else
 	    {
 	      conns[i].sock = 0;
+   	      Sleep(10);
 	      continue;
 	    }
 	}
