@@ -239,6 +239,7 @@ AC_SUBST(LDFLAGS)
 AC_OUTPUT(Makefile 
 libcsoap/Makefile 
 nanohttp/Makefile 
+xsd2c/Makefile 
 examples/Makefile
 examples/nanohttp/Makefile
 examples/csoap/Makefile
