@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.c,v 1.1 2003/12/11 14:51:04 snowdrop Exp $
+ *  $Id: nanohttp-socket.c,v 1.2 2003/12/16 13:16:14 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -234,6 +234,25 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
   return HSOCKET_OK;  
 }
 
+int hsocket_read(hsocket_t sock, char* buffer, int total)
+{
+  int status;
+  int totalRead;
+
+  totalRead = 0;
+
+  do {
+    status = recv(sock, &buffer[totalRead], total - totalRead, 0);
+    if (status > 0) {
+      totalRead += status;
+    } else {
+      return status;
+    }
+    if (totalRead >= total)
+      return 0;
+  } while (1);
+}
+
 /*--------------------------------------------------
   FUNCTION: hsocket_recv
 ----------------------------------------------------*/
@@ -243,6 +262,13 @@ int hsocket_recv(hsocket_t sock, char** buffer, int *totalSize)
   int chunk=1;
   char tmp[HSOCKET_MAX_BUFSIZE+1];
   int fsize;
+  int bufSize;
+
+  if (*totalSize > 0) {
+    bufSize = *totalSize;
+  } else {
+    bufSize = HSOCKET_MAX_BUFSIZE;
+  }
 
   *totalSize = 0;
 
@@ -255,7 +281,8 @@ int hsocket_recv(hsocket_t sock, char** buffer, int *totalSize)
 
   do {
     
-    size = recv(sock, tmp, HSOCKET_MAX_BUFSIZE, 0);
+    size = recv(sock, tmp, bufSize, 0);
+    bufSize = HSOCKET_MAX_BUFSIZE;
 
     if (size == -1) {
       log_error1("Error reading from socket\n");
@@ -269,7 +296,8 @@ int hsocket_recv(hsocket_t sock, char** buffer, int *totalSize)
     *totalSize += size;
     if (*buffer) {
       log_debug2("reallocation %d bytes",*totalSize+fsize+1);
-      *buffer = (char*)realloc((char*)*buffer, (*totalSize)+fsize+HSOCKET_MAX_BUFSIZE);
+      *buffer = (char*)realloc((char*)*buffer, 
+			       (*totalSize)+fsize+HSOCKET_MAX_BUFSIZE);
       strcat(*buffer, tmp);
     } else {
       log_debug1("Allocating");
@@ -319,6 +347,50 @@ int hsocket_recv_cb(hsocket_t sock,
 
   return HSOCKET_OK;
 }
+
+
+
+/*--------------------------------------------------
+  FUNCTION: hbufsocket_read
+----------------------------------------------------*/
+int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size)
+{
+  int status;
+  int tmpsize;
+
+  if (bufsock->bufsize - bufsock->cur >= size) {
+
+    log_debug1("no need to read from socket");
+    strncpy(buffer, &(bufsock->buffer[bufsock->cur]), size);
+    bufsock->cur += size;
+    return HSOCKET_OK;
+
+  } else {
+
+    tmpsize = bufsock->bufsize - bufsock->cur;
+    log_debug2("tmpsize = %d", tmpsize);
+
+    if (tmpsize > 0)
+      strncpy(buffer, &(bufsock->buffer[bufsock->cur]), tmpsize); 
+
+    size -= tmpsize;
+
+    free(bufsock->buffer);
+    status = recv(bufsock->sock, bufsock->buffer, size, 0);
+    if (status > 0) {
+      bufsock->bufsize = size;
+      bufsock->cur = size;
+      strncpy(&buffer[tmpsize], bufsock->buffer, size);
+    }
+
+    return HSOCKET_OK;
+  }
+}
+
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.c,v 1.1 2003/12/11 14:51:04 snowdrop Exp $
+ *  $Id: nanohttp-common.c,v 1.2 2003/12/16 13:16:13 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -116,7 +116,8 @@ hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t *next)
 {
   hpair_t *pair;
   char *key, *value;
-  
+  int c;
+
   pair = (hpair_t*)malloc(sizeof(hpair_t));
   pair->key = "";
   pair->value = "";
@@ -130,8 +131,9 @@ hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t *next)
   }
 
   if (value != NULL) {
-    pair->value = (char*)malloc(strlen(value)+1);
-    strcpy(pair->value, value);
+    for (c=0;value[c]==' ';c++); /* skip white space */
+    pair->value = (char*)malloc(strlen(&value[c])+1);
+    strcpy(pair->value, &value[c]);
   }
 
   return pair;
@@ -147,6 +149,25 @@ void hpairnode_free(hpair_t *pair)
   free(pair);
 }
 
+
+char *hpairnode_get(hpair_t *pair, const char* key)
+{
+  if (key == NULL) {
+    log_error1("key is NULL");
+    return NULL;
+  }
+
+  while (pair != NULL) {
+    if (pair->key != NULL) {
+      if (!strcmp(pair->key, key)) {
+	return pair->value;
+      }
+    }
+    pair = pair->next;
+  }
+
+  return NULL;
+}
 
 static
 void hurl_dump(const hurl_t *url)
@@ -338,7 +359,7 @@ hresponse_t *hresponse_new(const char* buffer)
     }
 
     str[strlen(str)-1] = '\0';
-    res->header = hpairnode_parse(str, ": ", res->header);
+    res->header = hpairnode_parse(str, ":", res->header);
   }
 
   /* *** Save body *** */

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.1 2003/12/11 14:51:04 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.2 2003/12/16 13:16:14 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -123,6 +123,23 @@ int hsocket_recv_limit(hsocket_t sock, char** buffer,
  */
 int hsocket_recv_cb(hsocket_t sock, 
 		    hsocket_recv_callback cb, void *userdata);
+
+int hsocket_read(hsocket_t sock, char* buffer, int total);
+
+
+/* ======================================== */
+/*  Buffered socket                         */
+/* ======================================== */
+typedef struct _bufsocket
+{
+  hsocket_t sock;
+  char *buffer;
+  int bufsize;
+  int cur;
+}hbufsocket_t;
+
+
+int hbufsocket_read(hbufsocket_t *bufsock, char *buffer, int size);
 
 #endif
 

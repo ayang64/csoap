@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.1 2003/12/11 14:51:04 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.2 2003/12/16 13:16:14 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,7 @@
 
 #define HEADER_CONTENT_LENGTH "Content-Length"
 #define HEADER_CONTENT_TYPE "Content-Type"
+#define HEADER_TRANSFER_ENCODING "Transfer-Encoding"
 #define HEADER_HOST "Host"
 #define HEADER_DATE "Date"
 
@@ -50,7 +51,7 @@ struct hpair
 
 hpair_t *hpairnode_new(const char* key, const char* value, hpair_t* next);
 void hpairnode_free(hpair_t *pair);
-
+char *hpairnode_get(hpair_t *pair, const char* key);
 
 
 typedef enum hreq_method 
