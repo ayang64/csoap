@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.7 2004/10/15 13:33:13 snowdrop Exp $
+*  $Id: soap-env.c,v 1.8 2004/10/15 14:33:07 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,14 @@
 #include <libcsoap/soap-env.h>
 #include <stdarg.h>
 #include <string.h>
+
+#ifdef WIN32
+#define USE_XMLSTRING
+#endif
+
+#ifdef USE_XMLSTRING
 #include <libxml/xmlstring.h>
+#endif
 
 static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
@@ -158,16 +165,28 @@ soap_env_new_with_method (const char *urn, const char *method)
 
   if (!strcmp(urn, ""))
   {
+#ifdef USE_XMLSTRING
     xmlStrPrintf (buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_EMPTY_TARGET_,
   		soap_env_ns, soap_env_enc, soap_xsi_ns,
   		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
+#else
+    sprintf(buffer, _SOAP_MSG_TEMPLATE_EMPTY_TARGET_,
+  		soap_env_ns, soap_env_enc, soap_xsi_ns,
+  		soap_xsd_ns, method, urn, method);
+#endif
   }
   else
   {
+#ifdef USE_XMLSTRING
     xmlStrPrintf (buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_,
   		soap_env_ns, soap_env_enc, soap_xsi_ns,
   		soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
-  
+#else  
+    sprintf(buffer, _SOAP_MSG_TEMPLATE_,
+  		soap_env_ns, soap_env_enc, soap_xsi_ns,
+  		soap_xsd_ns, method, urn, method);
+#endif
+
   }
   env = xmlParseDoc (buffer);
   call = soap_env_new_from_doc (env);
