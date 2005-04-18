@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.14 2004/11/02 23:09:26 snowdrop Exp $
+*  $Id: soap-client.c,v 1.15 2005/04/18 20:52:26 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -244,8 +244,11 @@ herror_t
 		return herror_new("_soap_client_build_result", 
 			GENERAL_INVALID_PARAM, "Empty response from server");
 
+	if (res->errcode != 200)
+		return herror_new("_soap_client_build_result", 
+			GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
 
-    err = soap_env_new_from_stream(res->in, env);
+    	err = soap_env_new_from_stream(res->in, env);
 
 	if (err != H_OK) {
 		return err;
