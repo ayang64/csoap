@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.15 2005/04/18 20:52:26 snowdrop Exp $
+*  $Id: soap-client.c,v 1.16 2005/05/27 19:28:14 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -92,7 +92,6 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
 	char start_id[150];
 	static int counter=1;
 	part_t *part;
-	int file_count=0;
 
 	/* for copy attachments */
   char href[MAX_HREF_SIZE];

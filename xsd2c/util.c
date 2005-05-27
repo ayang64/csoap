@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: util.c,v 1.1 2004/06/02 11:17:03 snowdrop Exp $
+ *  $Id: util.c,v 1.2 2005/05/27 19:28:16 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 int parseNS(const char* fullname, char *ns, char *name)
 {

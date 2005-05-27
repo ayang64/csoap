@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.32 2004/11/02 23:09:27 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.33 2005/05/27 19:28:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -63,6 +63,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
@@ -257,7 +258,7 @@ hsocket_listen (hsocket_t sock)
   return H_OK;
 }
 
-
+#if 0
 static
 void _hsocket_wait_until_receive(hsocket_t sock)
 {
@@ -294,6 +295,7 @@ void _hsocket_wait_until_receive(hsocket_t sock)
     }
   }
 }
+#endif
 
 /*--------------------------------------------------
 FUNCTION: hsocket_close
@@ -327,7 +329,7 @@ hsocket_close (hsocket_t sock)
   log_verbose1 ("closed");
 }
 
-
+#if 0
 static int _test_send_to_file(const char* filename, const byte_t* bytes,int n)
 {
 	int size;
@@ -337,7 +339,7 @@ static int _test_send_to_file(const char* filename, const byte_t* bytes,int n)
 	fclose(f);
 	return size;
 }
-
+#endif
 /*--------------------------------------------------
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
@@ -391,7 +393,9 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
 {
   int status;
   int totalRead;
-  int wsa_error;
+#ifdef WIN32
+  int wsa_error = 0;
+#endif
   totalRead = 0;
 /*
   log_verbose3("Entering hsocket_read(total=%d,force=%d)", total, force);

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.26 2004/11/02 23:09:26 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.27 2005/05/27 19:28:15 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -32,17 +32,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
 
+#if 0
 static 
 int  httpc_send_data(httpc_conn_t *conn, const unsigned char* data, size_t size)
 {
   return -1;
 }
-
+#endif
 /*--------------------------------------------------
 FUNCTION: httpc_init
 DESC: Initialize http client connection
@@ -188,7 +190,7 @@ httpc_header_add_date(httpc_conn_t * conn)
 	/* Set date */
 	nw = time(NULL);
 	localtime_r(&nw, &stm);
-	strftime(buffer, 255, "%a, %d %b %y %T GMT", &stm);
+	strftime(buffer, 255, "%a, %d %b %Y %T GMT", &stm);
 	httpc_set_header(conn, HEADER_DATE, buffer);
 
 }

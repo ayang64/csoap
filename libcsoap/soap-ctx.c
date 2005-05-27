@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.4 2004/11/02 23:09:26 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.5 2005/05/27 19:28:15 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,6 +23,7 @@
  ******************************************************************/
 #include <libcsoap/soap-ctx.h>
 
+#include <string.h>
 
 SoapCtx* soap_ctx_new(SoapEnv *env) /* should only be used internally */
 {
@@ -86,7 +87,7 @@ part_t *soap_ctx_get_file(SoapCtx* ctx, xmlNodePtr node)
 
 	prop = xmlGetProp(node, "href");
 
-	if (!prop) NULL;
+	if (!prop) return NULL;
 	
 	strcpy(href, (const char*)prop);
 	if (!strncmp(href, "cid:", 4)) {

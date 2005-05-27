@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: wsdl2c.c,v 1.8 2004/10/15 13:34:47 snowdrop Exp $
+ *  $Id: wsdl2c.c,v 1.9 2005/05/27 19:28:16 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -135,7 +135,7 @@ xmlNodePtr findPortType(xmlDocPtr doc, const char *name)
   root = xmlDocGetRootElement(doc);
   if (root == NULL) {
     fprintf(stderr, "Empty document!\n");
-    return;
+    return NULL;
   }
 
   cur = root->xmlChildrenNode;
@@ -180,7 +180,7 @@ xmlNodePtr findMessage(xmlDocPtr doc, const char *name)
   root = xmlDocGetRootElement(doc);
   if (root == NULL) {
     fprintf(stderr, "Empty document!\n");
-    return;
+    return NULL;
   }
 
   cur = root->xmlChildrenNode;

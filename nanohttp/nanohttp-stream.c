@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.6 2004/11/02 23:09:27 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.7 2005/05/27 19:28:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,6 +23,8 @@
 ******************************************************************/
 
 #include <nanohttp/nanohttp-stream.h>
+
+#include <string.h>
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>

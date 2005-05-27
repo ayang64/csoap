@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.31 2004/11/02 23:09:27 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.32 2005/05/27 19:28:15 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,6 +42,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef HAVE_SOCKET
+#include <sys/socket.h>
+#endif
+
 #else
 
 #include <process.h>  
@@ -50,6 +55,8 @@
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
+
+#include <pthread.h>
 
 typedef struct _conndata
 {
@@ -71,7 +78,9 @@ typedef struct _conndata
  */
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
+#ifdef WIN32
 static int _httpd_max_idle = 120;
+#endif
 static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
@@ -267,7 +276,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   /* set date */
   nw = time (NULL);
   localtime_r (&nw, &stm);
-  strftime (buffer, 255, "Date: %a, %d %b %y %T GMT", &stm);
+  strftime (buffer, 255, "Date: %a, %d %b %Y %T GMT", &stm);
   strcat (header, buffer);
   strcat (header, "\r\n");
 
@@ -386,11 +395,9 @@ httpd_session_main (void *data)
   int len = strlen (msg);
   char buffer[256];             /* temp buffer for recv() */
   char header[4064];            /* received header */
-  int headerreached = 0;        /* whether reach header * "\n\n" */
   hrequest_t *req = NULL;       /* only for test */
   httpd_conn_t *rconn;
   hservice_t *service = NULL;
-  long content_length = 0;
   herror_t status;
 
   header[0] = '\0';
@@ -754,7 +761,6 @@ httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
 {
   char *content_length_str;
   long content_length = 0;
-  long total = 0;
   unsigned char *postdata = NULL;
 
   if (req->method == HTTP_REQUEST_POST)
