@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.32 2005/05/27 19:28:15 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.33 2005/07/15 19:59:30 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -661,6 +661,11 @@ httpd_run ()
     /* Wait for a socket to accept */
     while (_httpd_run)
     {
+
+      /* set struct timeval to the proper timeout */
+      timeout.tv_sec = 1;
+      timeout.tv_usec = 0;
+
       /* zero and set file descriptior */
       FD_ZERO (&fds);
       FD_SET (_httpd_socket, &fds);
