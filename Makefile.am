@@ -1,7 +1,7 @@
 ## top directory
 
 #Build in these directories:
-SUBDIRS= $(NANOHTTP_LIBRARY_NAME) $(GENERIC_LIBRARY_NAME) xsd2c wsdl2c examples
+SUBDIRS= $(NANOHTTP_LIBRARY_NAME) $(GENERIC_LIBRARY_NAME) examples
 
 #Distribute these directories:
 DIST_SUBDIRS = $(GENERIC_LIBRARY_NAME)
