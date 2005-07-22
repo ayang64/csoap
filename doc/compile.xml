@@ -172,12 +172,16 @@ Ok. Here is a script which will download, compile and install csoap and libxml2.
 #-----------------------------------------------------------
 #!/bin/sh
 
+# Alter this variables for your installation directory
+LIBSOAPDIST=/usr/local
+LIBXMLDIST=/usr/local
+
 # Download and install libxml2
 
 wget ftp://ftp.xmlsoft.org/libxml2-2.6.20.tar.gz
 tar zxvf libxml2-2.6.20.tar.gz 
 cd libxml2-2.6.20
-./configure --prefix=`pwd`/../libxml2
+./configure --prefix=$LIBXMLDIST
 make
 make install
 cd ..
@@ -187,11 +191,12 @@ cd ..
 wget http://kent.dl.sourceforge.net/sourceforge/csoap/libsoap-1.0.3.tar.gz
 tar zxvf libsoap-1.0.3.tar.gz
 cd libsoap-1.0.3
-./configure --prefix=`pwd`/../libsoap --with-libxml-prefix=`pwd`/../libxml2 
+./configure --prefix=$LIBSOAPDIST --with-libxml-prefix=$LIBXMLDIST
 make
 make install
 
 #-----------------------------------------------------------
+
 
 ]]></synopsis>
 
