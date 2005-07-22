@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.33 2005/07/15 19:59:30 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.34 2005/07/22 13:26:41 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -42,6 +42,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <pthread.h>
+
 #ifdef HAVE_SOCKET
 #include <sys/socket.h>
 #endif
@@ -56,7 +58,6 @@
 #include <utils/alloc.h>
 #endif
 
-#include <pthread.h>
 
 typedef struct _conndata
 {
