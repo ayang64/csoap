@@ -1,4 +1,4 @@
-bin_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server
+noinst_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server
 
 INCLUDES=-I$(top_srcdir)/ $(LIBXML_CFLAGS)
 csoap_LDFLAG=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
