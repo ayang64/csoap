@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.18 2004/11/05 11:58:01 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.19 2005/07/23 23:14:31 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -480,7 +480,7 @@ void log_set_file(const char *filename);
 char *log_get_file();
 
 #ifdef WIN32
-  #ifndef __FUNCTION__ 
+  #if defined(_MSC_VER) && _MSC_VER <= 1200 
 	char *VisualC_funcname(const char* file, int line); /* not thread safe!*/
     #define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
   #endif
