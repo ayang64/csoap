@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.14 2004/11/02 23:09:26 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.15 2005/07/27 07:45:57 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -69,6 +69,11 @@ void  httpc_destroy();
   Creates a new connection
 */
 httpc_conn_t* httpc_new();
+
+/**
+  Close and release a connection
+*/
+void httpc_close_free(httpc_conn_t* conn);
 
 /**
   Release a connections

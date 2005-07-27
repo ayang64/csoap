@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.33 2005/05/27 19:28:16 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.34 2005/07/27 07:45:57 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -322,7 +322,7 @@ hsocket_close (hsocket_t sock)
   closesocket(sock);
   
 #else
-  shutdown(sock, 1);
+  shutdown(sock, SHUT_RDWR);
   while (recv(sock, junk, sizeof(junk), 0)>0) { };  
   close (sock);
 #endif
