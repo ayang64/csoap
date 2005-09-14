@@ -1,5 +1,7 @@
 noinst_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server
 
+bin_PROGRAMS=soapclient
+
 INCLUDES=-I$(top_srcdir)/ $(LIBXML_CFLAGS)
 csoap_LDFLAG=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
 	$(LIBSOCKET) $(LIBNSL) -lpthread\
@@ -17,6 +19,9 @@ echoattachments_server_LDFLAGS=$(csoap_LDFLAG)
 
 echoattachments_client_SOURCES=echoattachments-client.c
 echoattachments_client_LDFLAGS=$(csoap_LDFLAG)
+
+soapclient_SOURCES=soapclient.c
+soapclient_LDFLAGS=$(csoap_LDFLAG)
 
 
 
