@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.28 2005/07/27 07:45:56 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.29 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -81,7 +81,9 @@ httpc_new()
   static int counter = 10000;
 	httpc_conn_t   *res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t));
 
-	hsocket_init(&res->sock);
+	if(hsocket_init(&res->sock)!= H_OK){
+        return NULL;
+    }
 	res->header = NULL;
 	res->version = HTTP_1_1;
 	res->out = NULL;
@@ -92,19 +94,6 @@ httpc_new()
 	return res;
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_close_free
-DESC: Close and free the given http client object.
-----------------------------------------------------*/
-void
-httpc_close_free(httpc_conn_t * conn)
-{
-	if (conn == NULL)
-		return;
-
-	hsocket_close(conn->sock);
-	httpc_free(conn);
-}
 
 /*--------------------------------------------------
 FUNCTION: httpc_free
@@ -316,11 +305,14 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 	if (status != H_OK) {
 		return status;
 	}
-	status = hsocket_block(conn->sock, conn->block);
-	if (status != H_OK) {
-		log_error1("Cannot make socket non-blocking");
-		return status;
-	}
+    /* TODO XXX XXX this is probably not right -- matt */
+    if(!&conn->sock.ssl){
+        status = hsocket_block(conn->sock, conn->block);
+        if (status != H_OK) {
+            log_error1("Cannot make socket non-blocking");
+            return status;
+        }
+    }
 	/* check method */
 	if (method == HTTP_REQUEST_GET) {
 
@@ -344,6 +336,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 				"hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
 	}
 
+    log_verbose1("Sending header...");
 	status = hsocket_send(conn->sock, buffer);
 	if (status != H_OK) {
 		log_error2("Can not send request (status:%d)", status);

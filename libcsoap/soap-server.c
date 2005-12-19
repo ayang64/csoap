@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.11 2005/07/30 12:43:12 snowdrop Exp $
+*  $Id: soap-server.c,v 1.12 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -134,10 +134,12 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 	if (err != H_OK) 
 	{
   		_soap_server_send_fault(conn, header, herror_message(err));
-                if (env) soap_env_free(env);
 		herror_release(err);
+		return;
+	}
 
-	} else if (env == NULL) {
+
+	if (env == NULL) {
 
 		_soap_server_send_fault(conn, header,"Can not receive POST data!");
 
@@ -165,14 +167,20 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 				if (!soap_env_find_urn(ctx->env, urn)) {
 
 					_soap_server_send_fault(conn, header, "No URN found!");
+					soap_ctx_free(ctx);
+					return;
 				} else {
 					log_verbose2("urn: '%s'", urn);
+				}
 
 				if (!soap_env_find_methodname(ctx->env, method)) {
 
 					_soap_server_send_fault(conn, header, "No method found!");
+					soap_ctx_free(ctx);
+					return;
 				}else {
 					log_verbose2("method: '%s'", method);
+				}
 
 				service = soap_router_find_service(router, urn, method);
 
@@ -180,6 +188,8 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 
 					sprintf(buffer, "URN '%s' not found", urn);
 					_soap_server_send_fault(conn, header, buffer);
+					soap_ctx_free(ctx);
+					return;
 				} else {
 
 					log_verbose2("func: %p", service->func);
@@ -193,30 +203,33 @@ void soap_server_entry(httpd_conn_t *conn, hrequest_t *req)
 							herror_message(err));
 						herror_release(err);
 						_soap_server_send_fault(conn, header, buffer);
+						soap_ctx_free(ctx);
+						return;
+					}
 
-					} else if (ctxres->env == NULL) {
+					if (ctxres->env == NULL) {
 
 						sprintf(buffer, "Service '%s' returned no envelope", urn);
 						_soap_server_send_fault(conn, header, buffer);
+						soap_ctx_free(ctx);
+						return;
+
 					} else {
 
 /*						httpd_send_header(conn, 200, "OK");
 						_soap_server_send_env(conn->out, ctxres->env);
 */
   				 _soap_server_send_ctx(conn, ctxres);
-					}
 						/* free envctx */
 						soap_ctx_free(ctxres);
+					}
 
-				}
-				}
 				}
 
 			}   
 		}
 		soap_ctx_free(ctx);
 	}
-        hpairnode_free (header);
 }
 
 
@@ -252,8 +265,26 @@ void _soap_server_send_ctx(httpd_conn_t* conn, SoapCtx *ctx)
 	}
 	else
 	{
-	  httpd_send_header(conn, 200, "OK");
+      char buflen[100];
+      xmlXPathContextPtr xpathCtx;
+      xmlXPathObjectPtr xpathObj;
+      xpathCtx = xmlXPathNewContext(ctx->env->root->doc);
+      xpathObj = xmlXPathEvalExpression("//Fault", xpathCtx);
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
+      snprintf(buflen,100,"%d", strlen((const char*)xmlBufferContent (buffer)));
+      httpd_set_header (conn, HEADER_CONTENT_LENGTH, buflen);
+      if((xpathObj->nodesetval) ? xpathObj->nodesetval->nodeNr : 0){
+          httpd_send_header(conn, 500, "FAILED");
+      } else {
+          httpd_send_header(conn, 200, "OK");
+      }
+
 		http_output_stream_write_string(conn->out, (const char*)xmlBufferContent(buffer));
+       xmlXPathFreeObject(xpathObj);
+       xmlXPathFreeContext(xpathCtx);
+
 	}
 	xmlBufferFree(buffer);  
 
@@ -307,7 +338,6 @@ void _soap_server_send_fault(httpd_conn_t *conn, hpair_t *header,
 		 herror_release(err);
 	 } else {
 	_soap_server_send_env(conn->out, envres);
-	soap_env_free(envres);
 	 }
 
 }

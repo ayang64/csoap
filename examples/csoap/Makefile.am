@@ -1,11 +1,10 @@
 noinst_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server
-
 bin_PROGRAMS=soapclient
 
 INCLUDES=-I$(top_srcdir)/ $(LIBXML_CFLAGS)
 csoap_LDFLAG=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
 	$(LIBSOCKET) $(LIBNSL) -lpthread\
-	-L$(top_builddir)/libcsoap/ -lcsoap-$(GENERIC_API_VERSION) \
+	-L$(top_builddir)/libcsoap/ -lcsoap-$(GENERIC_API_VERSION) -lssl\
 	$(LIBXML_LIBS)
 
 simpleclient_SOURCES=simpleclient.c

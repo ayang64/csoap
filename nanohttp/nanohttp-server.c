@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.34 2005/07/22 13:26:41 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.35 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -22,6 +22,7 @@
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
 #include <nanohttp/nanohttp-server.h>
+#include <nanohttp/nanohttp-ssl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,7 +97,11 @@ static conndata_t *_httpd_connection;
 
 #ifdef WIN32
 static void WSAReaper(void *x);
+#else
+sigset_t thrsigset;
 #endif
+
+
 
 /*
  * -----------------------------------------------------
@@ -162,7 +167,10 @@ httpd_init (int argc, char *argv[])
 #endif
 
   /* create socket */
-  hsocket_init (&_httpd_socket);
+  status = hsocket_init (&_httpd_socket);
+  if( status != H_OK ){
+    return status;
+  }
   status = hsocket_bind (&_httpd_socket, _httpd_port);
 
   return status;
@@ -292,7 +300,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   strcat (header, "Server: Nano HTTPD library\r\n");
 
   /* set _httpd_connection status */
-  strcat (header, "Connection: close\r\n");
+  //strcat (header, "Connection: close\r\n");
 
   /* add pairs */
   cur = res->header;
@@ -310,7 +318,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   status = hsocket_nsend (res->sock, header, strlen (header));
 	if (status != H_OK)
 		return status;
-
+  
   res->out = http_output_stream_new (res->sock, res->header);
   return H_OK;
 }
@@ -323,9 +331,15 @@ httpd_send_internal_error (httpd_conn_t * conn, const char *errmsg)
     "<html><body><h3>Error!</h3><hr> Message: '%s' </body></html>\r\n";
 
   char buffer[4064];
+  char buflen[5];
   sprintf (buffer, template1, errmsg);
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
+  snprintf(buflen, 5, "%d", strlen(buffer));
+  httpd_set_header (conn, HEADER_CONTENT_LENGTH, buflen);
   httpd_send_header (conn, 500, "INTERNAL");
-  return send (conn->sock, buffer, strlen (buffer), 0);
+  return hsocket_nsend (conn->sock, buffer, strlen (buffer));
 }
 
 /*
@@ -345,6 +359,13 @@ httpd_request_print (hrequest_t * req)
   log_verbose1 (" Parsed query string :");
 
   pair = req->query;
+  while (pair != NULL)
+  {
+    log_verbose3 (" %s = '%s'", pair->key, pair->value);
+    pair = pair->next;
+  }
+  log_verbose1 (" Parsed header :");
+  pair = req->header;
   while (pair != NULL)
   {
     log_verbose3 (" %s = '%s'", pair->key, pair->value);
@@ -378,6 +399,23 @@ void httpd_free(httpd_conn_t *conn)
   free(conn);
 }
 
+void do_req_timeout(int signum){
+/*
+    struct sigaction req_timeout;
+    memset(&req_timeout, 0, sizeof(&req_timeout));
+    req_timeout.sa_handler=SIG_IGN;
+    sigaction(SIGALRM, &req_timeout, NULL);
+*/
+
+    // XXX this is not real pretty, is there a better way?
+    log_verbose1("Thread timeout.");
+#ifdef WIN32
+   _endthread ();
+ #else
+    pthread_exit(0);
+#endif
+}
+
 /*
  * -----------------------------------------------------
  * FUNCTION: httpd_session_main
@@ -394,6 +432,7 @@ httpd_session_main (void *data)
   conndata_t *conn = (conndata_t *) data;
   const char *msg = "SESSION 1.0\n";
   int len = strlen (msg);
+  int done=0;
   char buffer[256];             /* temp buffer for recv() */
   char header[4064];            /* received header */
   hrequest_t *req = NULL;       /* only for test */
@@ -404,55 +443,71 @@ httpd_session_main (void *data)
   header[0] = '\0';
   len = 0;
 
-
-
   log_verbose1 ("starting httpd_session_main()");
   conn->atime = time ((time_t) 0);
   /* call the service */
 /*  req = hrequest_new_from_buffer (header);*/
-  rconn = httpd_new(conn->sock);
 
-  status = hrequest_new_from_socket (conn->sock, &req);
-  if (status != H_OK)
-  {
-    httpd_send_internal_error (rconn, herror_message(status)/*"Request parse error!"*/);
-	herror_release(status);
-  }
-  else
-  {
-    httpd_request_print (req);
+  do{
+      log_verbose1("starting HTTP request");
+      rconn = httpd_new(conn->sock);
 
+      status = hrequest_new_from_socket (conn->sock, &req);
 
-    service = httpd_find_service (req->path);
-    if (service != NULL)
-    {
-      log_verbose2 ("service '%s' found", req->path);
-      if (service->func != NULL)
+      if (status != H_OK)
       {
-        service->func (rconn, req);
+        if(herror_code(status) != HSOCKET_SSL_CLOSE){
+            httpd_send_internal_error (rconn, herror_message(status)/*"Request parse error!"*/);
+            herror_release(status);
+        }
+        done=1;
       }
       else
       {
-        sprintf (buffer,
-                 "service '%s' not registered properly (func == NULL)",
-                 req->path);
-        log_verbose1 (buffer);
-        httpd_send_internal_error (rconn, buffer);
-      }
-    }
-    else
-    {
-      sprintf (buffer, "service '%s' not found", req->path);
-      log_verbose1 (buffer);
-      httpd_send_internal_error (rconn, buffer);
-    }
+        char *conn_str = hpairnode_get_ignore_case (req->header, HEADER_CONNECTION);
+#ifdef WIN32
+#define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
+#endif
+        if(conn_str && strncasecmp( conn_str, "close",5 ) == 0){
+            done=1;
+        }
+        if(!done){
+            done = req->version==HTTP_1_0?1:0;
+        }
+        httpd_request_print (req);
 
-    /* httpd_response_free(res); */
-    /*hrequest_free (req);*/
-  }
+
+        service = httpd_find_service (req->path);
+        if (service != NULL)
+        {
+          log_verbose2 ("service '%s' found", req->path);
+          if (service->func != NULL)
+          {
+            service->func (rconn, req);
+          }
+          else
+          {
+            sprintf (buffer,
+                     "service '%s' not registered properly (func == NULL)",
+                     req->path);
+            log_verbose1 (buffer);
+            httpd_send_internal_error (rconn, buffer);
+          }
+        }
+        else
+        {
+          sprintf (buffer, "service '%s' not found", req->path);
+          log_verbose1 (buffer);
+          httpd_send_internal_error (rconn, buffer);
+        }
+
+        /* httpd_response_free(res); */
+        /*hrequest_free (req);*/
+      }
+  }while(!done);
 
   hsocket_close(conn->sock);
-  conn->sock = 0;
+  conn->sock.sock = 0;
   hrequest_free(req);
   httpd_free(rconn);
 #ifdef WIN32
@@ -513,7 +568,7 @@ void httpd_set_headers(httpd_conn_t *conn, hpair_t *header)
 BOOL WINAPI
 httpd_term (DWORD sig)
 {
-  log_debug2 ("Got signal %d", sig);
+  //log_debug2 ("Got signal %d", sig);
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
   return TRUE;
@@ -573,7 +628,7 @@ _httpd_wait_for_empty_conn ()
       system_sleep (1);
       i = 0;
     }
-    else if (_httpd_connection[i].sock == 0)
+    else if (_httpd_connection[i].sock.sock == 0)
     {
       break;
     }
@@ -600,6 +655,7 @@ _httpd_start_thread (conndata_t * conn)
 #ifdef PTHREAD_CREATE_DETACHED
   pthread_attr_setdetachstate (&(conn->attr), PTHREAD_CREATE_DETACHED);
 #endif
+  pthread_sigmask(SIG_BLOCK, &thrsigset, NULL);
   err = pthread_create (&(conn->tid), &(conn->attr), httpd_session_main,
                         conn);
   if (err)
@@ -625,10 +681,17 @@ httpd_run ()
   fd_set fds;
   struct timeval timeout;
 
+
   log_verbose1 ("starting run routine");
 
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
+#ifdef WIN32
+#else
+  sigemptyset(&thrsigset);
+  sigaddset(&thrsigset, SIGALRM);
+#endif
+
 
   /* listen to port */
   err = hsocket_listen (_httpd_socket);
@@ -669,10 +732,10 @@ httpd_run ()
 
       /* zero and set file descriptior */
       FD_ZERO (&fds);
-      FD_SET (_httpd_socket, &fds);
+      FD_SET (_httpd_socket.sock, &fds);
 
       /* select socket descriptor */
-      switch (select (_httpd_socket + 1, &fds, NULL, NULL, &timeout))
+      switch (select (_httpd_socket.sock + 1, &fds, NULL, NULL, &timeout))
       {
       case 0:
         /* descriptor is not ready */
@@ -684,7 +747,7 @@ httpd_run ()
         /* no nothing */
         break;
       }
-      if (FD_ISSET (_httpd_socket, &fds))
+      if (FD_ISSET (_httpd_socket.sock, &fds))
       {
         break;
       }
@@ -696,7 +759,13 @@ httpd_run ()
 
     /* Accept a socket */
     err = hsocket_accept (_httpd_socket, &(conn->sock));
-    if (err != H_OK)
+    if (err != H_OK && herror_code(err) == SSL_ERROR_INIT) {
+      hsocket_close(conn->sock);
+      conn->sock.sock = -1;
+      conn->sock.ssl = NULL;
+      log_error1(herror_message(err));
+      continue;
+    } else if (err != H_OK) 
     {
       log_error2 ("Can not accept socket: %s", herror_message(err));
       return err;                /* this is hard core! */
@@ -746,10 +815,10 @@ void WSAReaper(void *x)
 				(_httpd_connection[i].atime==0)) continue;
 			log_verbose3("Reaping socket %u from (runtime ~= %d seconds)", 
 				_httpd_connection[i].sock, ctime-_httpd_connection[i].atime);
-			shutdown(_httpd_connection[i].sock, 2);
-			while (recv(_httpd_connection[i].sock, junk, sizeof(junk), 0)>0) { };
-			closesocket(_httpd_connection[i].sock);
-			_httpd_connection[i].sock = 0;
+			shutdown(_httpd_connection[i].sock.sock, 2);
+			while (recv(_httpd_connection[i].sock.sock, junk, sizeof(junk), 0)>0) { };
+			closesocket(_httpd_connection[i].sock.sock);
+			_httpd_connection[i].sock.sock = 0;
 			TerminateThread(_httpd_connection[i].tid, (DWORD)&rc);
 			CloseHandle(_httpd_connection[i].tid);
 			memset((char *)&_httpd_connection[i], 0, sizeof(_httpd_connection[i]));
@@ -849,9 +918,7 @@ httpd_mime_send_header (httpd_conn_t * conn,
 	/*
 	  using sprintf instead of snprintf because visual c does not support snprintf
 	*/
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
+
   sprintf (buffer, "multipart/related;");
 
   if (related_type)

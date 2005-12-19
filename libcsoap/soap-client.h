@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.9 2004/11/02 23:09:26 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.10 2005/12/19 14:06:16 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,6 +26,8 @@
 
 #include <libcsoap/soap-env.h>
 #include <libcsoap/soap-ctx.h>
+
+#define SOAP_ERROR_CLIENT_INIT 5001
 
 /**
 	Initializes the client side soap engine

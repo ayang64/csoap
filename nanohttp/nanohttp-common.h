@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.19 2005/07/23 23:14:31 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.20 2005/12/19 14:06:16 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,6 +45,11 @@
 #define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
 #define NHTTP_ARG_LOGFILE "-NHTTPlog"
 #define NHTTP_ARG_TMPDIR "-NHTTPtmpdir"
+
+#define NHTTP_ARG_CERT "-NHTTPcert"
+#define NHTTP_ARG_CERTPASS "-NHTTPcertpass"
+#define NHTTP_ARG_CA "-NHTTPCA"
+#define NHTTP_ARG_HTTPS "-NHTTPS"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
@@ -100,6 +105,7 @@
 #define HSOCKET_ERROR_ACCEPT 1008
 #define HSOCKET_ERROR_NOT_INITIALIZED 1009
 #define HSOCKET_ERROR_IOCTL 1010
+#define HSOCKET_SSL_CLOSE 1011
 
 /* URL errors */
 #define URL_ERROR_UNKNOWN_PROTOCOL 1101
@@ -131,6 +137,9 @@
 /* XML Errors */
 #define XML_ERROR_EMPTY_DOCUMENT 1600
 #define XML_ERROR_PARSE 1601
+
+/* SSL Errors */
+#define SSL_ERROR_INIT 1700
 
 /*
 Set Sleep function platform depended
@@ -458,7 +467,6 @@ void attachments_add_part(attachments_t *attachments, part_t *part);
 void hoption_init_args(int argc, char* argv[]);
 void hoption_set(int opt, const char* value);
 char *hoption_get(int opt);
-
 
 /* logging stuff */
 typedef enum log_level

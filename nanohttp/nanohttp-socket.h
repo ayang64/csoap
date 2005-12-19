@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.15 2004/11/02 23:09:27 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.16 2005/12/19 14:06:16 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,7 @@
 #include <nanohttp/nanohttp-common.h>
 
 #include <time.h>
+#include <openssl/ssl.h>
 
 #ifdef WIN32
   #include <winsock2.h>
@@ -34,10 +35,16 @@
 
 
 #ifdef WIN32
-  typedef SOCKET hsocket_t;
+  typedef struct hsocket_t {
+    SSL *ssl;
+    SOCKET sock;
+  } hsocket_t;
   typedef int socklen_t;
 #else
-  typedef int hsocket_t;
+  typedef struct hsocket_t {
+    SSL *ssl;
+    int sock;
+  } hsocket_t;
 #endif
 
 
@@ -66,7 +73,7 @@ void hsocket_module_destroy();
 
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_init(hsocket_t *sock);
+herror_t hsocket_init(hsocket_t *sock );
 
 
 /**

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.5 2004/10/15 13:34:02 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.6 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -46,12 +46,12 @@ Parameters:
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
 	" <SOAP-ENV:Body>"\
-	"  <Fault>"\
+	"  <SOAP-ENV:Fault>"\
 	"   <faultcode>%s</faultcode>"\
 	"   <faultstring>%s</faultstring>"\
 	"   <faultactor>%s</faultactor>"\
-	"   <faultdetail>%s</faultdetail>"\
-	"  </Fault>" \
+	"   <detail>%s</detail>"\
+	"  </SOAP-ENV:Fault>" \
 	" </SOAP-ENV:Body>"\
 	"</SOAP-ENV:Envelope>"
 

@@ -17,7 +17,8 @@ nanohttp-server.c\
 nanohttp-stream.c\
 nanohttp-mime.c\
 nanohttp-request.c\
-nanohttp-response.c
+nanohttp-response.c\
+nanohttp-ssl.c
 
 
 library_includedir=$(includedir)/$(NANOHTTP_LIBRARY_NAME)-$(NANOHTTP_API_VERSION)/$(NANOHTTP_LIBRARY_NAME)

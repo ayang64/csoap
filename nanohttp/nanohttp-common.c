@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.18 2005/05/27 19:28:15 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.19 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,6 +41,11 @@
 
 static  char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
 
+extern char *SSLCert;
+extern char *SSLPass;
+extern char *SSLCA;
+extern int SSLCertLess;
+
 /* option stuff */
 void hoption_set(int opt, const char* value)
 {
@@ -80,6 +85,22 @@ void hoption_init_args(int argc, char* argv[])
     else if (!strcmp (argv[i], NHTTP_ARG_LOGFILE) && i < argc - 1)
     {
        log_set_file(argv[i+1]);
+    }
+    else if (!strcmp (argv[i], NHTTP_ARG_CERT) && i < argc - 1)
+    {
+      SSLCert = argv[i + 1];
+    }
+    else if (!strcmp (argv[i], NHTTP_ARG_CERTPASS) && i < argc - 1)
+    {
+      SSLPass = argv[i + 1];
+    }
+    else if (!strcmp (argv[i], NHTTP_ARG_CA) && i < argc - 1)
+    {
+      SSLCA = argv[i + 1];
+    }
+    else if (!strcmp (argv[i], NHTTP_ARG_HTTPS) )
+    {
+      SSLCertLess = 1;
     }
   }
 
@@ -158,6 +179,7 @@ void herror_release(herror_t err)
 
 static log_level_t loglevel = HLOG_DEBUG;
 static char logfile[75] = {'\0'};
+static int log_background=0;
 
 log_level_t 
 log_set_level(log_level_t level)
@@ -183,6 +205,11 @@ void  log_set_file(const char *filename)
 	logfile[0] = '\0';
 }
 
+void log_set_background(int state)
+{
+    log_background=state;
+}
+
 char *log_get_file()
 {
 	if (logfile[0] == '\0') return NULL;
@@ -201,19 +228,29 @@ log_write(log_level_t level, const char *prefix,
 	if (level < loglevel)
 		return;
 
-	sprintf(buffer, "*%s*: [%s] %s\n", prefix, func, format);
-	vsprintf(buffer2, buffer, ap);
-	printf(buffer2);
-	fflush(stdout);
+    if(!log_background || log_get_file()){
+#ifdef WIN32
+		  sprintf(buffer, "*%s*: [%s] %s\n", 
+                prefix, func, format);
+#else
+        sprintf(buffer, "*%s*:(%d) [%s] %s\n", 
+                prefix, pthread_self(),func, format);
+#endif
+        vsprintf(buffer2, buffer, ap);
+        if(!log_background){
+            printf(buffer2);
+            fflush(stdout);
+        }
 
-	if (log_get_file()) {
-		f = fopen(log_get_file(), "a");
-		if (!f) f = fopen(log_get_file(), "w");
-		if (f) {
-			fprintf(f, buffer2);
-			fflush(f);
-			fclose(f);
-		}
+        if (log_get_file()) {
+            f = fopen(log_get_file(), "a");
+            if (!f) f = fopen(log_get_file(), "w");
+            if (f) {
+                fprintf(f, buffer2);
+                fflush(f);
+                fclose(f);
+            }
+        }
 	}
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.5 2005/05/27 19:28:15 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.6 2005/12/19 14:06:16 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -228,13 +228,16 @@ hrequest_new_from_socket(hsocket_t sock, hrequest_t **out)
   char             buffer[MAX_HEADER_SIZE+1];
   attachments_t  *mimeMessage;
 
+  memset(buffer, 0, MAX_HEADER_SIZE);
   /* Read header */
   while (i<MAX_HEADER_SIZE)
   {
     status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
     if (status != H_OK)
     {
-        log_error1("Socket read error");
+        if(herror_code(status) != HSOCKET_SSL_CLOSE){
+            log_error1("Socket read error");
+        }
         return status;
     }
 
