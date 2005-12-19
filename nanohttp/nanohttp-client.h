@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.15 2005/07/27 07:45:57 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.16 2005/12/19 14:18:26 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -76,9 +76,15 @@ httpc_conn_t* httpc_new();
 void httpc_close_free(httpc_conn_t* conn);
 
 /**
-  Release a connections
+  Release a connection
+  (use httpc_close_free() instead)
 */
 void httpc_free(httpc_conn_t* conn);
+
+/**
+ * Close and release a connection
+ */
+void httpc_close_free(httpc_conn_t* conn);
 
 /**
   Set header element (key,value) pair.

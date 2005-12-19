@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.29 2005/12/19 14:06:16 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.30 2005/12/19 14:18:26 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -124,6 +124,20 @@ httpc_free(httpc_conn_t * conn)
 	hsocket_free(conn->sock);
 	free(conn);
 
+}
+
+/*--------------------------------------------------
+ FUNCTION: httpc_close_free
+ DESC: Close and free the given http client object.
+ ----------------------------------------------------*/
+void
+httpc_close_free(httpc_conn_t * conn)
+{
+      if (conn == NULL)
+              return;
+
+       hsocket_close(conn->sock);
+       httpc_free(conn);
 }
 
 

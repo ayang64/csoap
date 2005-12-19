@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.18 2005/12/19 14:06:16 snowdrop Exp $
+*  $Id: soap-client.c,v 1.19 2005/12/19 14:18:26 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -124,21 +124,21 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
     status = httpc_post_begin(conn, url);
   
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
   
     status = http_output_stream_write_string(conn->out, content);
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
   
     status = httpc_post_end(conn, &res);
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
@@ -152,21 +152,21 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
   	sprintf(start_id, "289247829121218%d", counter++);
 	  status = httpc_mime_begin(conn, url, start_id, "", "text/xml");
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
   
     status = httpc_mime_next(conn, start_id, "text/xml", "binary");
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
 
     status = http_output_stream_write(conn->out, content, strlen(content));
     if (status != H_OK) {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
@@ -178,7 +178,7 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
                 part->content_type, part->transfer_encoding, part->filename);
         if (status != H_OK) {
           log_error2("Send file failed. Status:%d", status);
-          httpc_free(conn);
+          httpc_close_free(conn);
         	xmlBufferFree(buffer);
 			return status;
         }
@@ -187,7 +187,7 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
     status = httpc_mime_end(conn, &res);
     if (status != H_OK)
     {
-      httpc_free(conn);
+      httpc_close_free(conn);
     	xmlBufferFree(buffer);
 		return status;
     }
@@ -200,7 +200,7 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
 	status = _soap_client_build_result(res, &res_env); 
 	if (status != H_OK) {
 		hresponse_free(res);
-		httpc_free(conn);
+		httpc_close_free(conn);
 		return status;
 	}
 
@@ -224,7 +224,7 @@ soap_client_invoke(SoapCtx *call, SoapCtx** response, const char *url, const cha
 
 
 	hresponse_free(res);
-	httpc_free(conn);
+	httpc_close_free(conn);
 	return H_OK;
 }
 
