@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.36 2005/12/19 14:10:40 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.37 2005/12/20 21:48:10 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -479,7 +479,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
             int ret = select (sock.sock + 1, &fds, NULL, NULL, &timeout);
             //log_verbose2("DEBUG %d",ret);
 #ifdef WIN32
-			if (status == SOCKET_ERROR) 
+			if (ret == SOCKET_ERROR) 
 			{
 				wsa_error = WSAGetLastError();
 				log_error2("WSAGetLastError()=%d", wsa_error);
@@ -504,25 +504,25 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
 #endif
     } else {
         status = recv(sock.sock, &buffer[totalRead], total - totalRead, 0);
-    }
 
 #ifdef WIN32
-    if (status == INVALID_SOCKET) 
-    {
-        wsa_error = WSAGetLastError();
-        switch (wsa_error)
+        if (status == INVALID_SOCKET) 
         {
-          case WSAEWOULDBLOCK: 
-         /* case WSAEALREADY:
-          case WSAEINPROGRESS:        */
-             continue;
-          default:
-             log_error2("WSAGetLastError()=%d", wsa_error);
-			return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "Socket error: %d", errno);
+            wsa_error = WSAGetLastError();
+            switch (wsa_error)
+            {
+              case WSAEWOULDBLOCK: 
+             /* case WSAEALREADY:
+              case WSAEINPROGRESS:        */
+                 continue;
+              default:
+                 log_error2("WSAGetLastError()=%d", wsa_error);
+                return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "Socket error: %d", errno);
+            }
         }
     }
-
 #else
+    }
 /*
  switch (errno) {
    case EWOULDBLOCK: 
