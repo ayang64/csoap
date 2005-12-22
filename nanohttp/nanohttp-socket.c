@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.37 2005/12/20 21:48:10 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.38 2005/12/22 21:59:41 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -258,18 +258,7 @@ hsocket_accept (hsocket_t sock, hsocket_t * dest)
   log_verbose3 ("accept new socket (%d) from '%s'", sockfd.sock,
                 SAVE_STR (((char *) inet_ntoa (addr.sin_addr))));
 
-  if( !SSLctx ){
-    log_verbose1("Using HTTP");
-    dest->sock = sockfd.sock;
-  } else {
-    log_verbose1("Using HTTPS");
-    dest->ssl = init_ssl(SSLctx, sockfd.sock, SSL_SERVER);
-    dest->sock = sockfd.sock;
-    hsocket_block (sockfd, 0);
-    if( dest->ssl == NULL ){
-		return herror_new("hsocket_accept", SSL_ERROR_INIT, "Unable to initialize SSL");
-    }
-  }
+  dest->sock = sockfd.sock;
   return H_OK;
 }
 
