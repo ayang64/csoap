@@ -22,7 +22,11 @@
  */
 
 #include <sys/types.h>
+#ifndef WIN32
 #include <netinet/in.h>
+#include <openssl/rand.h>
+#include <openssl/err.h>
+#endif
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
 #else
@@ -36,8 +40,7 @@ typedef unsigned int uint32_t;
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <openssl/rand.h>
-#include <openssl/err.h>
+
 #include <fcntl.h>
 
 #include "nanohttp-ssl.h"
