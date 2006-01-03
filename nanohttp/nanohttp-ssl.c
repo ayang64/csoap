@@ -130,6 +130,7 @@ static int verify_cb(int prev_ok, X509_STORE_CTX* ctx)
 	}
 }
 
+#ifdef NOUSER_VERIFY
 int user_verify(X509* cert)
 {   
     //TODO: Make sure that the client is providing a client cert,
@@ -138,6 +139,7 @@ int user_verify(X509* cert)
     log_verbose1("Validating certificate.");
     return 1;
 } 
+#endif
 
 SSL_CTX *initialize_ctx(char* keyfile, char* password, char* calist)
 {
