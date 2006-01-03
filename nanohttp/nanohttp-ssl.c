@@ -116,13 +116,16 @@ static int verify_cb(int prev_ok, X509_STORE_CTX* ctx)
 	X509* cert = X509_STORE_CTX_get_current_cert(ctx);
 	int depth = X509_STORE_CTX_get_error_depth(ctx);
     int err = X509_STORE_CTX_get_error(ctx);
-
+/*
     if( err = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ){
+        log_verbose1("Self signed cert in chain");
         return 1;
     }
+*/
 	if(depth == 0) {
 		return user_verify(cert);
 	} else {
+        log_verbose1( "Cert ok (prev)" );
 		return prev_ok;
 	}
 }
