@@ -45,6 +45,7 @@ typedef unsigned int uint32_t;
 
 #include "nanohttp-ssl.h"
 #include "nanohttp-common.h"
+#include "nanohttp-socket.h"
 
 
 #ifdef WIN32
@@ -309,7 +310,11 @@ SSL* init_ssl(SSL_CTX* ctx, int sock, int type)
     SSL_set_fd(ssl, sock);
 
 	if(type == SSL_SERVER) {
+		hsocket_t sock_t;
+		sock_t.sock = sock;
+		hsocket_block(sock_t, 1);
 		ret = SSL_accept(ssl);
+		hsocket_block(sock_t, 0);
 		if(ret <= 0) {
 			log_error1( "SSL accept error");
 			log_ssl_error(ssl, ret);
