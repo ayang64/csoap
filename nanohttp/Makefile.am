@@ -1,6 +1,6 @@
 ## Source directory
 
-
+	
 h_sources = nanohttp-common.h\
 nanohttp-socket.h\
 nanohttp-client.h\
@@ -8,7 +8,9 @@ nanohttp-server.h\
 nanohttp-stream.h\
 nanohttp-mime.h\
 nanohttp-request.h\
-nanohttp-response.h
+nanohttp-response.h\
+nanohttp-ssl.h
+
 
 cc_sources = nanohttp-common.c\
 nanohttp-socket.c\
@@ -19,6 +21,7 @@ nanohttp-mime.c\
 nanohttp-request.c\
 nanohttp-response.c\
 nanohttp-ssl.c
+
 
 
 library_includedir=$(includedir)/$(NANOHTTP_LIBRARY_NAME)-$(NANOHTTP_API_VERSION)/$(NANOHTTP_LIBRARY_NAME)
