@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.19 2005/12/19 14:06:16 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.20 2006/01/06 16:16:10 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,10 +41,12 @@
 
 static  char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
 
+#ifdef HAVE_SSL
 extern char *SSLCert;
 extern char *SSLPass;
 extern char *SSLCA;
 extern int SSLCertLess;
+#endif
 
 /* option stuff */
 void hoption_set(int opt, const char* value)
@@ -88,19 +90,35 @@ void hoption_init_args(int argc, char* argv[])
     }
     else if (!strcmp (argv[i], NHTTP_ARG_CERT) && i < argc - 1)
     {
+#ifndef HAVE_SSL
+	fprintf(stderr,"WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled", NHTTP_ARG_CERT);
+#else
       SSLCert = argv[i + 1];
+#endif
     }
     else if (!strcmp (argv[i], NHTTP_ARG_CERTPASS) && i < argc - 1)
     {
+#ifndef HAVE_SSL
+	fprintf(stderr,"WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled", NHTTP_ARG_CERTPASS);
+#else
       SSLPass = argv[i + 1];
+#endif
     }
     else if (!strcmp (argv[i], NHTTP_ARG_CA) && i < argc - 1)
     {
+#ifndef HAVE_SSL
+	fprintf(stderr,"WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled", NHTTP_ARG_CA);
+#else
       SSLCA = argv[i + 1];
+#endif
     }
     else if (!strcmp (argv[i], NHTTP_ARG_HTTPS) )
     {
+#ifndef HAVE_SSL
+	fprintf(stderr,"WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled", NHTTP_ARG_HTTPS);
+#else
       SSLCertLess = 1;
+#endif
     }
   }
 
