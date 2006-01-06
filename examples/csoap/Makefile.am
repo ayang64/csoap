@@ -4,7 +4,7 @@ bin_PROGRAMS=soapclient
 INCLUDES=-I$(top_srcdir)/ $(LIBXML_CFLAGS)
 csoap_LDFLAG=-L$(top_builddir)/nanohttp -lnanohttp-$(GENERIC_API_VERSION) \
 	$(LIBSOCKET) $(LIBNSL) -lpthread\
-	-L$(top_builddir)/libcsoap/ -lcsoap-$(GENERIC_API_VERSION) -lssl\
+	-L$(top_builddir)/libcsoap/ -lcsoap-$(GENERIC_API_VERSION) $(LIBS)\
 	$(LIBXML_LIBS)
 
 simpleclient_SOURCES=simpleclient.c
