@@ -126,12 +126,16 @@ static int verify_cb(int prev_ok, X509_STORE_CTX* ctx)
         return 1;
     }
 */
+#ifdef NOUSER_VERIFY /* ifdef's added by Ferhat. because of unresolved reference while compiling */
 	if(depth == 0) {
 		return user_verify(cert);
 	} else {
+#endif
         log_verbose1( "Cert ok (prev)" );
 		return prev_ok;
+#ifdef NOUSER_VERIFY
 	}
+#endif
 }
 
 #ifdef NOUSER_VERIFY
