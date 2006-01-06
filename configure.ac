@@ -117,6 +117,51 @@ AC_SUBST(LIBSOCKET)
 AC_CHECK_LIB(nsl, gethostbyname, [LIBNSL="-lnsl"])
 AC_SUBST(LIBNSL)
 
+# ------------------------------------------
+dnl Check ssl library 
+dnl Original work at: http://autoconf-archive.cryp.to/check_ssl.html
+# ------------------------------------------
+AC_DEFUN([CHECK_SSL],
+[AC_MSG_CHECKING(if ssl is wanted)
+AC_ARG_WITH(ssl,
+[  --with-ssl=PFX	will check PFX for ssl library
+  --with-ssl		will check /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr for ssl library
+],
+[   AC_MSG_RESULT(yes)
+    for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
+        ssldir="$dir"
+        if test -f "$dir/include/openssl/ssl.h"; then
+            found_ssl="yes";
+            CFLAGS="$CFLAGS -I$ssldir/include/openssl -DHAVE_SSL";
+            CXXFLAGS="$CXXFLAGS -I$ssldir/include/openssl -DHAVE_SSL";
+            break;
+        fi
+        if test -f "$dir/include/ssl.h"; then
+            found_ssl="yes";
+            CFLAGS="$CFLAGS -I$ssldir/include/ -DHAVE_SSL";
+            CXXFLAGS="$CXXFLAGS -I$ssldir/include/ -DHAVE_SSL";
+            break
+        fi
+    done
+    if test x_$found_ssl != x_yes; then
+        AC_MSG_ERROR(Cannot find ssl libraries
+		Please goto http://www.openssl.org and install OpenSSL or
+		install it from your os distribution)
+    else
+        printf "OpenSSL found in $ssldir\n";
+        LIBS="$LIBS -lssl -lcrypto";
+        LDFLAGS="$LDFLAGS -L$ssldir/lib";
+        HAVE_SSL=yes
+    fi
+    AC_SUBST(HAVE_SSL)
+],
+[
+    AC_MSG_RESULT(no)
+])
+])dnl
+
+CHECK_SSL
+
 dnl
 dnl The following new parameters were added to offer
 dnl the ability to specify the location of the libxml
@@ -209,7 +254,7 @@ dnl make sure xml2-config is executable,
 dnl test version and init our variables
 dnl
 
-AC_DEFUN(VERSION_TO_NUMBER,
+AC_DEFUN([VERSION_TO_NUMBER],
 [`$1 | sed -e 's/libxml //' | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`])
 if ${XML_CONFIG} --libs print > /dev/null 2>&1
 then
