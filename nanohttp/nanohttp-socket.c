@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.39 2006/01/06 14:09:27 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.40 2006/01/06 15:16:03 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -179,13 +179,17 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
   if (connect (sock.sock, (struct sockaddr *) &address, sizeof (address)) != 0)
     return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT, "Socket error: %d", errno);
 
+#ifdef HAVE_SSL
   if( !SSLctx ){
+#endif
     log_verbose1("Using HTTP");
     dsock->sock = sock.sock;
+#ifdef HAVE_SSL
   } else {
     log_verbose1("Using HTTPS");
     dsock->ssl = init_ssl(SSLctx, sock.sock, SSL_CLIENT);
   }
+#endif
   return H_OK;
 }
 
@@ -353,6 +357,7 @@ hsocket_close (hsocket_t sock)
 #else
   /* XXX m. campbell - It seems like the while loop here needs this */
   fcntl( sock.sock, F_SETFL, O_NONBLOCK);
+#ifdef HAVE_SSL
   if( sock.ssl ){
     log_verbose1("Closing SSL");
     ssl_cleanup(sock.ssl);
@@ -360,10 +365,13 @@ hsocket_close (hsocket_t sock)
     while (recv(sock.sock, junk, sizeof(junk), 0)>0) { };  
     close (sock.sock);
   }else {
+#endif
       shutdown(sock.sock, SHUT_RDWR);
       while (recv(sock.sock, junk, sizeof(junk), 0)>0) { };  
       close (sock.sock);
+#ifdef HAVE_SSL
   }
+#endif
 #endif
   log_verbose1 ("socket closed");
 }
@@ -389,7 +397,11 @@ hsocket_nsend (hsocket_t sock, const byte_t *bytes, int n)
   int total=0;
 
   log_verbose1( "Starting to send" );
+#ifdef HAVE_SSL
   if (sock.sock <= 0 && !sock.ssl)
+#else
+  if (sock.sock <= 0)
+#endif
 	return herror_new("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED, 
 	 "Called hsocket_listen() before initializing!");
 
@@ -398,11 +410,15 @@ hsocket_nsend (hsocket_t sock, const byte_t *bytes, int n)
   /* TODO (#1#): check return value and send again until n bytes sent */
   while (1)
   {
+#ifdef HAVE_SSL
     if(sock.ssl){
         size = SSL_write(sock.ssl, bytes + total, n);
     } else {
+#endif
         size = send((int) sock.sock, bytes + total, n, 0);
+#ifdef HAVE_SSL
     }
+#endif
     log_verbose2("Sent %d", size );
 	 /* size = _test_send_to_file(filename, bytes, n);*/
 #ifdef WIN32
@@ -413,10 +429,12 @@ hsocket_nsend (hsocket_t sock, const byte_t *bytes, int n)
 		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "Socket error: %d", errno);
 #else
     if (size == -1){
+#ifdef HAVE_SSL
         if(sock.ssl){
             log_error1("Send error");
             log_ssl_error(sock.ssl, size);
         }
+#endif
 		return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "Socket error: %d", errno);
     }
 #endif
@@ -452,6 +470,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
   log_verbose3("Entering hsocket_read(total=%d,force=%d)", total, force);
 */
   do {
+#ifdef HAVE_SSL
     if(sock.ssl){
         struct timeval timeout;
         int i=0;
@@ -496,6 +515,9 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
         fcntl( sock.sock, F_SETFL, 0);
 #endif
     } else {
+#else // HAVE_SSL
+    {
+#endif //HAVE_SSL
         status = recv(sock.sock, &buffer[totalRead], total - totalRead, 0);
 
 #ifdef WIN32
@@ -525,6 +547,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
    }
 */
 
+#ifdef HAVE_SSL
     if( sock.ssl && status < 1 ){
 
         // XXX I'm not sure this err_syscall is right here...
@@ -537,6 +560,7 @@ hsocket_read (hsocket_t sock, byte_t *buffer, int total, int force, int *receive
         log_ssl_error( sock.ssl, status );
         return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "SSL Error");
     }
+#endif
     if (status == -1)
 		return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "Socket error: %d", errno);
 #endif

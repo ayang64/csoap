@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.30 2005/12/19 14:18:26 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.31 2006/01/06 15:16:03 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -319,6 +319,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 	if (status != H_OK) {
 		return status;
 	}
+#ifdef HAVE_SSL
     /* TODO XXX XXX this is probably not right -- matt */
     if(!&conn->sock.ssl){
         status = hsocket_block(conn->sock, conn->block);
@@ -327,6 +328,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
             return status;
         }
     }
+#endif
 	/* check method */
 	if (method == HTTP_REQUEST_GET) {
 
