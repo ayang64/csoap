@@ -21,6 +21,9 @@
  * Descrip:		SSL connection routines
  */
 
+/* Enter only if --with-ssl was specified to the configure script */
+#ifdef HAVE_SSL 
+
 #include <sys/types.h>
 #ifndef WIN32
 #include <netinet/in.h>
@@ -359,4 +362,6 @@ void ssl_cleanup(SSL* ssl)
 		ssl = NULL;
 	}
 }
+
+#endif /* end of ifdef HAVE_SSL */
 

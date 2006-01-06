@@ -22,13 +22,16 @@
  * Descrip:		Common ssl routines
  */
 
+/* Do enter only if --with-ssl was specified by the configure script */
+#ifdef HAVE_SSL 
+
 #ifdef TRU64
 #include <arpa/inet.h>
 typedef unsigned int uint32_t;
 #endif
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#ifndef __NANOHTTP_SSL_H_
+#define __NANOHTTP_SSL_H_
 
 #include <openssl/ssl.h>
 
@@ -95,3 +98,6 @@ SSL* init_ssl(SSL_CTX* ctx, int sock, int type);
 void ssl_cleanup();
 
 #endif
+
+#endif /* HAVE_SSL */
+

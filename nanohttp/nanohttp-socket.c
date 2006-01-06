@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.38 2005/12/22 21:59:41 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.39 2006/01/06 14:09:27 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -76,12 +76,14 @@
 #define errno WSAGetLastError()
 #endif
 
+
+#ifdef HAVE_SSL
 SSL_CTX* SSLctx = NULL;
 char *SSLCert = NULL;
 char *SSLPass = NULL;
 char *SSLCA = NULL;
 int SSLCertLess = 0;
-
+#endif
 
 /*--------------------------------------------------
 FUNCTION: hsocket_module_init
@@ -124,6 +126,7 @@ hsocket_init (hsocket_t * sock )
   log_verbose1("Starting hsocket init");
   /* just set the descriptor to -1 */
   sock->sock = -1;
+#ifdef HAVE_SSL
   sock->ssl = NULL;
   if(SSLCert || SSLCertLess){
 	  log_verbose1("calling init ctx");
@@ -132,6 +135,7 @@ hsocket_init (hsocket_t * sock )
             return herror_new("hsocket_init", HSOCKET_ERROR_CONNECT, "Unable to initialize SSL CTX" );
       }
   }
+#endif
   return H_OK;
 }
 

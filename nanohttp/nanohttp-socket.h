@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.16 2005/12/19 14:06:16 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.17 2006/01/06 14:09:27 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,10 @@
 #include <nanohttp/nanohttp-common.h>
 
 #include <time.h>
+
+#ifdef HAVE_SSL
 #include <openssl/ssl.h>
+#endif
 
 #ifdef WIN32
   #include <winsock2.h>
@@ -36,13 +39,17 @@
 
 #ifdef WIN32
   typedef struct hsocket_t {
+#ifdef HAVE_SSL	  
     SSL *ssl;
+#endif
     SOCKET sock;
   } hsocket_t;
   typedef int socklen_t;
 #else
   typedef struct hsocket_t {
+#ifdef HAVA_SSL
     SSL *ssl;
+#endif
     int sock;
   } hsocket_t;
 #endif
