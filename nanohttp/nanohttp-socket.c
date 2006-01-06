@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.40 2006/01/06 15:16:03 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.41 2006/01/06 16:17:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
 * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * Boston, MA  02111-1307, USA.
 *
-* Email: ayaz@jprogrammer.net
+* Email: ferhatayaz@yahoo.com
 ******************************************************************/
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-common.h>
