@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.4 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: soap-router.c,v 1.5 2006/01/10 11:29:04 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,11 +25,11 @@
 #include <string.h>
 
 SoapRouter *
-soap_router_new ()
+soap_router_new()
 {
   SoapRouter *router;
 
-  router = (SoapRouter *) malloc (sizeof (SoapRouter));
+  router = (SoapRouter *) malloc(sizeof(SoapRouter));
   router->service_head = NULL;
   router->service_tail = NULL;
 
@@ -38,30 +38,30 @@ soap_router_new ()
 
 
 void
-soap_router_register_service (SoapRouter * router,
-                              SoapServiceFunc func,
-                              const char *method, const char *urn)
+soap_router_register_service(SoapRouter * router,
+                             SoapServiceFunc func,
+                             const char *method, const char *urn)
 {
   SoapService *service;
 
-  service = soap_service_new (urn, method, func);
+  service = soap_service_new(urn, method, func);
 
   if (router->service_tail == NULL)
   {
     router->service_head =
-      router->service_tail = soap_service_node_new (service, NULL);
+      router->service_tail = soap_service_node_new(service, NULL);
   }
   else
   {
-    router->service_tail->next = soap_service_node_new (service, NULL);
+    router->service_tail->next = soap_service_node_new(service, NULL);
     router->service_tail = router->service_tail->next;
   }
 }
 
 
 SoapService *
-soap_router_find_service (SoapRouter * router,
-                          const char *urn, const char *method)
+soap_router_find_service(SoapRouter * router,
+                         const char *urn, const char *method)
 {
   SoapServiceNode *node;
 
@@ -75,8 +75,8 @@ soap_router_find_service (SoapRouter * router,
     if (node->service && node->service->urn && node->service->method)
     {
 
-      if (!strcmp (node->service->urn, urn)
-          && !strcmp (node->service->method, method))
+      if (!strcmp(node->service->urn, urn)
+          && !strcmp(node->service->method, method))
         return node->service;
 
     }
@@ -89,10 +89,10 @@ soap_router_find_service (SoapRouter * router,
 
 
 void
-soap_router_free (SoapRouter * router)
+soap_router_free(SoapRouter * router)
 {
   SoapServiceNode *node;
-  log_verbose2 ("enter: router=%p", router);
+  log_verbose2("enter: router=%p", router);
   if (router == NULL)
     return;
 
@@ -101,11 +101,11 @@ soap_router_free (SoapRouter * router)
     node = router->service_head->next;
     /* log_verbose2("soap_service_free(%p)\n",
        router->service_head->service); */
-    soap_service_free (router->service_head->service);
-    free (router->service_head);
+    soap_service_free(router->service_head->service);
+    free(router->service_head);
     router->service_head = node;
   }
 
-  free (router);
-  log_verbose1 ("leave with success");
+  free(router);
+  log_verbose1("leave with success");
 }

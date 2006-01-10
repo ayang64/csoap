@@ -70,53 +70,53 @@ static char *pass;
  */
 
 void
-superseed ()
+superseed()
 {
   int buf[256], i;
 
-  srand (time (NULL));
+  srand(time(NULL));
 
   for (i = 0; i < 256; i++)
   {
-    buf[i] = rand ();
+    buf[i] = rand();
   }
-  RAND_seed ((unsigned char *) buf, sizeof (buf));
+  RAND_seed((unsigned char *) buf, sizeof(buf));
 }
 
 static int
-pw_cb (char *buf, int num, int rwflag, void *userdata)
+pw_cb(char *buf, int num, int rwflag, void *userdata)
 {
-  if (num < (int) strlen (pass) + 1)
+  if (num < (int) strlen(pass) + 1)
     return (0);
 
-  strcpy (buf, pass);
-  return strlen (pass);
+  strcpy(buf, pass);
+  return strlen(pass);
 }
 
 int
-verify_sn (X509 * cert, int who, int nid, char *str)
+verify_sn(X509 * cert, int who, int nid, char *str)
 {
   char name[256];
   char buf[256];
 
-  memset (name, '\0', 256);
-  memset (buf, '\0', 256);
+  memset(name, '\0', 256);
+  memset(buf, '\0', 256);
 
   if (who == CERT_SUBJECT)
   {
-    X509_NAME_oneline (X509_get_subject_name (cert), name, 256);
+    X509_NAME_oneline(X509_get_subject_name(cert), name, 256);
   }
   else
   {
-    X509_NAME_oneline (X509_get_issuer_name (cert), name, 256);
+    X509_NAME_oneline(X509_get_issuer_name(cert), name, 256);
   }
 
   buf[0] = '/';
-  strcat (buf, OBJ_nid2sn (nid));
-  strcat (buf, "=");
-  strcat (buf, str);
+  strcat(buf, OBJ_nid2sn(nid));
+  strcat(buf, "=");
+  strcat(buf, str);
 
-  if (strstr (name, buf))
+  if (strstr(name, buf))
   {
     return 1;
   }
@@ -127,11 +127,11 @@ verify_sn (X509 * cert, int who, int nid, char *str)
 }
 
 static int
-verify_cb (int prev_ok, X509_STORE_CTX * ctx)
+verify_cb(int prev_ok, X509_STORE_CTX * ctx)
 {
-  X509 *cert = X509_STORE_CTX_get_current_cert (ctx);
-  int depth = X509_STORE_CTX_get_error_depth (ctx);
-  int err = X509_STORE_CTX_get_error (ctx);
+  X509 *cert = X509_STORE_CTX_get_current_cert(ctx);
+  int depth = X509_STORE_CTX_get_error_depth(ctx);
+  int err = X509_STORE_CTX_get_error(ctx);
 /*
     if( err = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ){
         log_verbose1("Self signed cert in chain");
@@ -142,12 +142,12 @@ verify_cb (int prev_ok, X509_STORE_CTX * ctx)
                                    unresolved reference while compiling */
   if (depth == 0)
   {
-    return user_verify (cert);
+    return user_verify(cert);
   }
   else
   {
 #endif
-    log_verbose1 ("Cert ok (prev)");
+    log_verbose1("Cert ok (prev)");
     return prev_ok;
 #ifdef NOUSER_VERIFY
   }
@@ -156,18 +156,18 @@ verify_cb (int prev_ok, X509_STORE_CTX * ctx)
 
 #ifdef NOUSER_VERIFY
 int
-user_verify (X509 * cert)
+user_verify(X509 * cert)
 {
   // TODO: Make sure that the client is providing a client cert,
   // or that the Module is providing the Module cert
   /* connect to anyone */
-  log_verbose1 ("Validating certificate.");
+  log_verbose1("Validating certificate.");
   return 1;
 }
 #endif
 
 SSL_CTX *
-initialize_ctx (char *keyfile, char *password, char *calist)
+initialize_ctx(char *keyfile, char *password, char *calist)
 {
   SSL_CTX *ctx = NULL;
 
@@ -176,139 +176,139 @@ initialize_ctx (char *keyfile, char *password, char *calist)
 
 
   /* Global system initialization */
-  log_verbose1 ("Initializing library");
-  SSL_library_init ();
-  SSL_load_error_strings ();
-  ERR_load_crypto_strings ();
-  OpenSSL_add_ssl_algorithms ();
+  log_verbose1("Initializing library");
+  SSL_library_init();
+  SSL_load_error_strings();
+  ERR_load_crypto_strings();
+  OpenSSL_add_ssl_algorithms();
 
   /* Create our context */
-  ctx = SSL_CTX_new (SSLv23_method ());
+  ctx = SSL_CTX_new(SSLv23_method());
 
   if (ctx == NULL)
   {
-    log_error1 ("Cannot create SSL context");
+    log_error1("Cannot create SSL context");
     return NULL;
   }
-  log_verbose1 ("SSL context created ok");
+  log_verbose1("SSL context created ok");
 
   /* Load our keys and certificates */
   if (keyfile != NULL && password != NULL)
   {
 
-    if (!(SSL_CTX_use_certificate_file (ctx, keyfile, SSL_FILETYPE_PEM)))
+    if (!(SSL_CTX_use_certificate_file(ctx, keyfile, SSL_FILETYPE_PEM)))
     {
-      log_error2 ("Couldn't read certificate file: %s", keyfile);
-      SSL_CTX_free (ctx);
+      log_error2("Couldn't read certificate file: %s", keyfile);
+      SSL_CTX_free(ctx);
       return ctx = NULL;
     }
 
-    log_verbose1 ("Certificate file read ok");
+    log_verbose1("Certificate file read ok");
 
     pass = password;
-    SSL_CTX_set_default_passwd_cb (ctx, pw_cb);
+    SSL_CTX_set_default_passwd_cb(ctx, pw_cb);
 
-    if (!(SSL_CTX_use_PrivateKey_file (ctx, keyfile, SSL_FILETYPE_PEM)))
+    if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
     {
-      log_error2 ("Couldn't read key file: %s", keyfile);
-      SSL_CTX_free (ctx);
+      log_error2("Couldn't read key file: %s", keyfile);
+      SSL_CTX_free(ctx);
       return ctx = NULL;
     }
 
-    log_verbose1 ("Keyfile read ok");
+    log_verbose1("Keyfile read ok");
   }
   if (calist != NULL)
   {
 
     /* Load the CAs we trust */
-    if (!(SSL_CTX_load_verify_locations (ctx, calist, NULL)))
+    if (!(SSL_CTX_load_verify_locations(ctx, calist, NULL)))
     {
-      log_error2 ("Couldn't read CA list: %s", calist);
-      SSL_CTX_free (ctx);
+      log_error2("Couldn't read CA list: %s", calist);
+      SSL_CTX_free(ctx);
       return ctx = NULL;
     }
 
-    SSL_CTX_set_client_CA_list (ctx, SSL_load_client_CA_file (calist));
-    log_verbose1 ("Certificate Authority contacted");
+    SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(calist));
+    log_verbose1("Certificate Authority contacted");
 
   }
-  SSL_CTX_set_verify (ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
-                      verify_cb);
-  log_verbose1 ("Verify callback registered");
+  SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
+                     verify_cb);
+  log_verbose1("Verify callback registered");
 
-  SSL_CTX_set_session_cache_mode (ctx, SSL_SESS_CACHE_OFF);
+  SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
 
 
   /* Load randomness */
-  superseed ();
+  superseed();
 
   return ctx;
 }
 
 void
-log_ssl_error (SSL * ssl, int ret)
+log_ssl_error(SSL * ssl, int ret)
 {
   int errqueue;
   char errorbuf[256] = "Error: ";
 
   if (ret == 0)
   {
-    log_error1 ("SSL handshake was not successful, contolled shutdown");
+    log_error1("SSL handshake was not successful, contolled shutdown");
   }
   else if (ret == -1)
   {
-    log_error1 ("SSL handshake was not successful, fatal error at protocol");
+    log_error1("SSL handshake was not successful, fatal error at protocol");
   }
 
-  errqueue = SSL_get_error (ssl, ret);
+  errqueue = SSL_get_error(ssl, ret);
 
   switch (errqueue)
   {
   case SSL_ERROR_NONE:
-    strcat (errorbuf, "None");
+    strcat(errorbuf, "None");
     break;
   case SSL_ERROR_ZERO_RETURN:
-    strcat (errorbuf, "Zero return");
+    strcat(errorbuf, "Zero return");
     break;
   case SSL_ERROR_WANT_READ:
-    strcat (errorbuf, "Want read");
+    strcat(errorbuf, "Want read");
     break;
   case SSL_ERROR_WANT_WRITE:
-    strcat (errorbuf, "Want write");
+    strcat(errorbuf, "Want write");
     break;
   case SSL_ERROR_WANT_X509_LOOKUP:
-    strcat (errorbuf, "Want x509 lookup");
+    strcat(errorbuf, "Want x509 lookup");
     break;
   case SSL_ERROR_SYSCALL:
-    strcat (errorbuf, "Syscall:");
+    strcat(errorbuf, "Syscall:");
     if (ret == 0)
     {
-      strcat (errorbuf, "Protocol violation");
+      strcat(errorbuf, "Protocol violation");
     }
     else if (ret == -1)
     {
-      strcat (errorbuf, "BIO reported an I/O error");
+      strcat(errorbuf, "BIO reported an I/O error");
     }
     else
     {
-      strcat (errorbuf, "Unknown syscall error");
+      strcat(errorbuf, "Unknown syscall error");
     }                           /* if */
 
     break;
   case SSL_ERROR_SSL:
-    strcat (errorbuf, "SSL library");
-    while (errqueue = ERR_get_error ())
+    strcat(errorbuf, "SSL library");
+    while (errqueue = ERR_get_error())
     {
-      log_error2 ("SSL %s", ERR_error_string (errqueue, NULL));
+      log_error2("SSL %s", ERR_error_string(errqueue, NULL));
     }
     break;
   }                             /* switch code */
 
-  log_error1 (errorbuf);
+  log_error1(errorbuf);
 }
 
 SSL *
-init_ssl (SSL_CTX * ctx, int sock, int type)
+init_ssl(SSL_CTX * ctx, int sock, int type)
 {
   int ret;
   int status;
@@ -322,63 +322,63 @@ init_ssl (SSL_CTX * ctx, int sock, int type)
 #endif
 #endif
 
-  log_verbose1 ("Starting SSL Initialization");
+  log_verbose1("Starting SSL Initialization");
 
-  ssl = SSL_new (ctx);
+  ssl = SSL_new(ctx);
 
   if (ssl == NULL)
   {
-    log_error1 ("Cannot create new ssl object");
+    log_error1("Cannot create new ssl object");
     return NULL;
   }
 
 #if 0
 #ifdef WIN32
-  log_error1 ("Setting up BIO with socket");
-  rbio = BIO_new_socket (sock, BIO_NOCLOSE);
+  log_error1("Setting up BIO with socket");
+  rbio = BIO_new_socket(sock, BIO_NOCLOSE);
   if (rbio == NULL)
   {
-    log_error1 ("BIO_new_socket failed");
+    log_error1("BIO_new_socket failed");
     return NULL;
   }
-  SSL_set_bio (ssl, rbio, rbio);
+  SSL_set_bio(ssl, rbio, rbio);
 
 #else
-  sbio = BIO_new_socket (sock, BIO_NOCLOSE);
+  sbio = BIO_new_socket(sock, BIO_NOCLOSE);
 
   if (sbio == NULL)
   {
-    log_error1 ("BIO_new_socket failed");
+    log_error1("BIO_new_socket failed");
     return NULL;
   }
-  SSL_set_bio (ssl, sbio, sbio);
+  SSL_set_bio(ssl, sbio, sbio);
 #endif
 #endif
-  SSL_set_fd (ssl, sock);
+  SSL_set_fd(ssl, sock);
 
   if (type == SSL_SERVER)
   {
     hsocket_t sock_t;
     sock_t.sock = sock;
-    hsocket_block (sock_t, 1);
-    ret = SSL_accept (ssl);
-    hsocket_block (sock_t, 0);
+    hsocket_block(sock_t, 1);
+    ret = SSL_accept(ssl);
+    hsocket_block(sock_t, 0);
     if (ret <= 0)
     {
-      log_error1 ("SSL accept error");
-      log_ssl_error (ssl, ret);
-      SSL_free (ssl);
+      log_error1("SSL accept error");
+      log_ssl_error(ssl, ret);
+      SSL_free(ssl);
       return ssl = NULL;
     }                           /* if error */
   }
   else
   {                             /* client */
-    ret = SSL_connect (ssl);
+    ret = SSL_connect(ssl);
     if (ret <= 0)
     {
-      log_error1 ("SSL connect error");
-      log_ssl_error (ssl, ret);
-      SSL_free (ssl);
+      log_error1("SSL connect error");
+      log_ssl_error(ssl, ret);
+      SSL_free(ssl);
       return ssl = NULL;
     }                           /* if error */
     /* SSL_connect should take care of this for us.
@@ -388,21 +388,21 @@ init_ssl (SSL_CTX * ctx, int sock, int type)
        did not verify"); SSL_free(ssl); return ssl = NULL; } */
   }
 
-  log_verbose1 ("Completed SSL Initialization");
+  log_verbose1("Completed SSL Initialization");
   return ssl;
 }
 
 void
-ssl_cleanup (SSL * ssl)
+ssl_cleanup(SSL * ssl)
 {
   /* does nothing to context */
 
   if (ssl != NULL)
   {
 
-    SSL_shutdown (ssl);
+    SSL_shutdown(ssl);
 //        SSL_clear(ssl);
-    SSL_free (ssl);
+    SSL_free(ssl);
     ssl = NULL;
   }
 }

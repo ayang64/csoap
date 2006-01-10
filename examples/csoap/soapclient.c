@@ -11,7 +11,7 @@
 
 // stripcslashes - unescapes the string
 void
-stripcslashes (char *str, int *len)
+stripcslashes(char *str, int *len)
 {
   char *source, *target, *end;
   int nlen = *len, i;
@@ -57,10 +57,10 @@ stripcslashes (char *str, int *len)
         nlen--;
         break;
       case 'x':
-        if (source + 1 < end && isxdigit ((int) (*(source + 1))))
+        if (source + 1 < end && isxdigit((int) (*(source + 1))))
         {
           numtmp[0] = *++source;
-          if (source + 1 < end && isxdigit ((int) (*(source + 1))))
+          if (source + 1 < end && isxdigit((int) (*(source + 1))))
           {
             numtmp[1] = *++source;
             numtmp[2] = '\0';
@@ -71,7 +71,7 @@ stripcslashes (char *str, int *len)
             numtmp[1] = '\0';
             nlen -= 2;
           }
-          *target++ = (char) strtol (numtmp, NULL, 16);
+          *target++ = (char) strtol(numtmp, NULL, 16);
           break;
         }
       default:
@@ -83,7 +83,7 @@ stripcslashes (char *str, int *len)
         if (i)
         {
           numtmp[i] = '\0';
-          *target++ = (char) strtol (numtmp, NULL, 8);
+          *target++ = (char) strtol(numtmp, NULL, 8);
           nlen -= i;
           source--;
         }
@@ -108,24 +108,24 @@ stripcslashes (char *str, int *len)
 // ParseLine - gets a line, finds the commas, unescapes the value and adds it
 //   to the SOAP request
 void
-ParseLine (SoapCtx * ctx, char *Buffer, int LineLen)
+ParseLine(SoapCtx * ctx, char *Buffer, int LineLen)
 {
   // if wrong line length, return
   if (LineLen <= 0)
     return;
 
   // alloc buffer for the line, copy it
-  char *Line = (char *) malloc (LineLen + 1);
-  memcpy (Line, Buffer, LineLen);
+  char *Line = (char *) malloc(LineLen + 1);
+  memcpy(Line, Buffer, LineLen);
   Line[LineLen] = '\0';
 
   // find first comma
-  char *FirstCommaPos = strchr (Line, ',');
+  char *FirstCommaPos = strchr(Line, ',');
   if (!FirstCommaPos)
     return;
 
   // find second comma
-  char *SecondCommaPos = strchr (FirstCommaPos + 1, ',');
+  char *SecondCommaPos = strchr(FirstCommaPos + 1, ',');
   if (!SecondCommaPos)
     return;
 
@@ -134,29 +134,29 @@ ParseLine (SoapCtx * ctx, char *Buffer, int LineLen)
   SecondCommaPos[0] = '\0';
 
   // unescape
-  int len = strlen (SecondCommaPos + 1);
-  stripcslashes (SecondCommaPos + 1, &len);
+  int len = strlen(SecondCommaPos + 1);
+  stripcslashes(SecondCommaPos + 1, &len);
 
   // add to the request
-  soap_env_add_item (ctx->env, Line, FirstCommaPos + 1, SecondCommaPos + 1);
+  soap_env_add_item(ctx->env, Line, FirstCommaPos + 1, SecondCommaPos + 1);
 
   // free the buffer
-  free (Line);
+  free(Line);
 }
 
 void
-printusage (char *FileName)
+printusage(char *FileName)
 {
-  printf ("Usage: %s [URL] [URN] [SOAPMETHOD]\n\n", FileName);
-  printf ("- [URL] is the url of the SOAP server.\n");
-  printf ("- [URN] is the namespace for the method/webservice.\n");
-  printf ("- [SOAPMETHOD] is the method to call.\n\n");
-  printf ("All commandline paramaters are mandatory.\n\n");
+  printf("Usage: %s [URL] [URN] [SOAPMETHOD]\n\n", FileName);
+  printf("- [URL] is the url of the SOAP server.\n");
+  printf("- [URN] is the namespace for the method/webservice.\n");
+  printf("- [SOAPMETHOD] is the method to call.\n\n");
+  printf("All commandline paramaters are mandatory.\n\n");
   printf
     ("%s reads the parameters for the SOAPMETHOD from STDIN as a comma-separated list\n\n",
      FileName);
-  printf ("Each line is one parameter and has the following form:\n\n");
-  printf ("xsd:[TYPE],[PARAMETERNAME],[PARAMETERVALUE]\n\n");
+  printf("Each line is one parameter and has the following form:\n\n");
+  printf("xsd:[TYPE],[PARAMETERNAME],[PARAMETERVALUE]\n\n");
   printf
     ("- [TYPE] is a basic type for SOAP or a complex type defined by the WSDL.\n");
   printf
@@ -166,7 +166,7 @@ printusage (char *FileName)
 }
 
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
   SoapCtx *ctx, *ctx2;
   herror_t err;
@@ -174,27 +174,27 @@ main (int argc, char *argv[])
   // check the parameter count
   if (argc != 4)
   {
-    printusage (argv[0]);
+    printusage(argv[0]);
     return 1;
   }
 
   // init cSOAP client
-  err = soap_client_init_args (argc, argv);
+  err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4 ("%s():%s [%d]", herror_func (err),
-                herror_message (err), herror_code (err));
-    herror_release (err);
+    log_error4("%s():%s [%d]", herror_func(err),
+               herror_message(err), herror_code(err));
+    herror_release(err);
     return 1;
   }
 
   // create a SoapCtx object
-  err = soap_ctx_new_with_method (argv[2], argv[3], &ctx);
+  err = soap_ctx_new_with_method(argv[2], argv[3], &ctx);
   if (err != H_OK)
   {
-    log_error4 ("%s():%s [%d]", herror_func (err),
-                herror_message (err), herror_code (err));
-    herror_release (err);
+    log_error4("%s():%s [%d]", herror_func(err),
+               herror_message(err), herror_code(err));
+    herror_release(err);
     return 1;
   }
 
@@ -203,51 +203,50 @@ main (int argc, char *argv[])
   int bytes_read, bytes_left;
 
   // read from stdin until EOF
-  while (!feof (stdin))
+  while (!feof(stdin))
   {
-    bytes_read = fread (Buffer, 1, MAX_LINE_LENGTH, stdin);
+    bytes_read = fread(Buffer, 1, MAX_LINE_LENGTH, stdin);
 
     // pass each line into ParseLine
     char *EndLinePos;
-    while (EndLinePos = strchr (Buffer, '\n'))
+    while (EndLinePos = strchr(Buffer, '\n'))
     {
-      ParseLine (ctx, Buffer, EndLinePos - Buffer);
-      memmove (Buffer, EndLinePos + 1, bytes_read - (EndLinePos -
-                                                     Buffer + 1));
+      ParseLine(ctx, Buffer, EndLinePos - Buffer);
+      memmove(Buffer, EndLinePos + 1, bytes_read - (EndLinePos - Buffer + 1));
       Buffer[bytes_read - (EndLinePos - Buffer + 1)] = '\0';
     }
 
     // no '\n' found in the whole Buffer, that means line's too 
-    long bytes_left = strlen (Buffer);
+    long bytes_left = strlen(Buffer);
     if (bytes_left == MAX_LINE_LENGTH)
     {
-      log_error1 ("The parameter line is too long.");
-      herror_release (err);
-      soap_ctx_free (ctx);
+      log_error1("The parameter line is too long.");
+      herror_release(err);
+      soap_ctx_free(ctx);
       return 1;
     }
   }
 
   // invoke
-  err = soap_client_invoke (ctx, &ctx2, argv[1], "");
+  err = soap_client_invoke(ctx, &ctx2, argv[1], "");
   if (err != H_OK)
   {
-    log_error4 ("[%d] %s(): %s ", herror_code (err),
-                herror_func (err), herror_message (err));
-    herror_release (err);
-    soap_ctx_free (ctx);
+    log_error4("[%d] %s(): %s ", herror_code(err),
+               herror_func(err), herror_message(err));
+    herror_release(err);
+    soap_ctx_free(ctx);
     return 1;
   }
 
   // print the result
-  soap_xml_doc_print (ctx2->env->root->doc);
+  soap_xml_doc_print(ctx2->env->root->doc);
 
   // free the objects
-  soap_ctx_free (ctx2);
-  soap_ctx_free (ctx);
+  soap_ctx_free(ctx2);
+  soap_ctx_free(ctx);
 
   // destroy the cSOAP client
-  soap_client_destroy ();
+  soap_client_destroy();
 
   return 0;
 }

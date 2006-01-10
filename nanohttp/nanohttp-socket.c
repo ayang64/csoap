@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.42 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.43 2006/01/10 11:29:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -91,11 +91,11 @@ NOTE: This will be called from httpd_init()
 	for server and from httpc_init() for client
 ----------------------------------------------------*/
 herror_t
-hsocket_module_init ()
+hsocket_module_init()
 {
 #ifdef WIN32
   struct WSAData info;
-  WSAStartup (MAKEWORD (2, 2), &info);
+  WSAStartup(MAKEWORD(2, 2), &info);
 
 #else /* */
   /* nothing to init for unix sockets */
@@ -107,10 +107,10 @@ hsocket_module_init ()
 FUNCTION: hsocket_module_destroy
 ----------------------------------------------------*/
 void
-hsocket_module_destroy ()
+hsocket_module_destroy()
 {
 #ifdef WIN32
-  WSACleanup ();
+  WSACleanup();
 
 #else /* */
   /* nothing to destroy for unix sockets */
@@ -121,21 +121,21 @@ hsocket_module_destroy ()
 FUNCTION: hsocket_init
 ----------------------------------------------------*/
 herror_t
-hsocket_init (hsocket_t * sock)
+hsocket_init(hsocket_t * sock)
 {
-  log_verbose1 ("Starting hsocket init");
+  log_verbose1("Starting hsocket init");
   /* just set the descriptor to -1 */
   sock->sock = -1;
 #ifdef HAVE_SSL
   sock->ssl = NULL;
   if (SSLCert || SSLCertLess)
   {
-    log_verbose1 ("calling init ctx");
-    SSLctx = initialize_ctx (SSLCert, SSLPass, SSLCA);
+    log_verbose1("calling init ctx");
+    SSLctx = initialize_ctx(SSLCert, SSLPass, SSLCA);
     if (SSLctx == NULL)
     {
-      return herror_new ("hsocket_init", HSOCKET_ERROR_CONNECT,
-                         "Unable to initialize SSL CTX");
+      return herror_new("hsocket_init", HSOCKET_ERROR_CONNECT,
+                        "Unable to initialize SSL CTX");
     }
   }
 #endif
@@ -146,7 +146,7 @@ hsocket_init (hsocket_t * sock)
 FUNCTION: hsocket_free
 ----------------------------------------------------*/
 void
-hsocket_free (hsocket_t sock)
+hsocket_free(hsocket_t sock)
 {
   /* nothing to free for unix sockets */
 }
@@ -155,49 +155,48 @@ hsocket_free (hsocket_t sock)
 FUNCTION: hsocket_open
 ----------------------------------------------------*/
 herror_t
-hsocket_open (hsocket_t * dsock, const char *hostname, int port)
+hsocket_open(hsocket_t * dsock, const char *hostname, int port)
 {
   hsocket_t sock;
   char *ip;
   struct sockaddr_in address;
   struct hostent *host;
 
-  sock.sock = socket (AF_INET, SOCK_STREAM, 0);
+  sock.sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock.sock <= 0)
-    return herror_new ("hsocket_open", HSOCKET_ERROR_CREATE,
-                       "Socket error: %d", errno);
+    return herror_new("hsocket_open", HSOCKET_ERROR_CREATE,
+                      "Socket error: %d", errno);
 
   /* Get host data */
-  host = gethostbyname (hostname);
+  host = gethostbyname(hostname);
   if (host == NULL)
-    return herror_new ("hsocket_open", HSOCKET_ERROR_GET_HOSTNAME,
-                       "Socket error: %d", errno);
+    return herror_new("hsocket_open", HSOCKET_ERROR_GET_HOSTNAME,
+                      "Socket error: %d", errno);
 
-  ip = inet_ntoa (*(struct in_addr *) *host->h_addr_list);
-  address.sin_addr.s_addr = inet_addr (ip);
+  ip = inet_ntoa(*(struct in_addr *) *host->h_addr_list);
+  address.sin_addr.s_addr = inet_addr(ip);
 
   /* set server addresss */
   address.sin_family = host->h_addrtype;
-  address.sin_port = htons ((unsigned short) port);
+  address.sin_port = htons((unsigned short) port);
 
   /* connect to the server */
-  if (connect (sock.sock, (struct sockaddr *) &address, sizeof (address)) !=
-      0)
-    return herror_new ("hsocket_open", HSOCKET_ERROR_CONNECT,
-                       "Socket error: %d", errno);
+  if (connect(sock.sock, (struct sockaddr *) &address, sizeof(address)) != 0)
+    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT,
+                      "Socket error: %d", errno);
 
 #ifdef HAVE_SSL
   if (!SSLctx)
   {
 #endif
-    log_verbose1 ("Using HTTP");
+    log_verbose1("Using HTTP");
     dsock->sock = sock.sock;
 #ifdef HAVE_SSL
   }
   else
   {
-    log_verbose1 ("Using HTTPS");
-    dsock->ssl = init_ssl (SSLctx, sock.sock, SSL_CLIENT);
+    log_verbose1("Using HTTPS");
+    dsock->ssl = init_ssl(SSLctx, sock.sock, SSL_CLIENT);
   }
 #endif
   return H_OK;
@@ -207,35 +206,34 @@ hsocket_open (hsocket_t * dsock, const char *hostname, int port)
 FUNCTION: hsocket_bind
 ----------------------------------------------------*/
 herror_t
-hsocket_bind (hsocket_t * dsock, int port)
+hsocket_bind(hsocket_t * dsock, int port)
 {
   hsocket_t sock;
   struct sockaddr_in addr;
   int opt = 1;
 
   /* create socket */
-  sock.sock = socket (AF_INET, SOCK_STREAM, 0);
+  sock.sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock.sock == -1)
   {
-    log_error3 ("Can not create socket: '%s'", "Socket error: %d", errno);
-    return herror_new ("hsocket_bind", HSOCKET_ERROR_CREATE,
-                       "Socket error: %d", errno);
+    log_error3("Can not create socket: '%s'", "Socket error: %d", errno);
+    return herror_new("hsocket_bind", HSOCKET_ERROR_CREATE,
+                      "Socket error: %d", errno);
   }
 
-  setsockopt (sock.sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt));
+  setsockopt(sock.sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
   /* bind socket */
   addr.sin_family = AF_INET;
-  addr.sin_port = htons ((unsigned short) port);        /* short, network
-                                                           byte order */
+  addr.sin_port = htons((unsigned short) port); /* short, network byte order */
   addr.sin_addr.s_addr = INADDR_ANY;
-  memset (&(addr.sin_zero), '\0', 8);   /* zero the rest of the struct */
+  memset(&(addr.sin_zero), '\0', 8);    /* zero the rest of the struct */
 
-  if (bind (sock.sock, (struct sockaddr *) &addr, sizeof (struct sockaddr)) ==
+  if (bind(sock.sock, (struct sockaddr *) &addr, sizeof(struct sockaddr)) ==
       -1)
   {
-    log_error3 ("Can not bind: '%s'", "Socket error: %d", errno);
-    return herror_new ("hsocket_bind", HSOCKET_ERROR_BIND, "Socket error: %d",
-                       errno);
+    log_error3("Can not bind: '%s'", "Socket error: %d", errno);
+    return herror_new("hsocket_bind", HSOCKET_ERROR_BIND, "Socket error: %d",
+                      errno);
   }
   dsock->sock = sock.sock;
   return H_OK;
@@ -245,26 +243,26 @@ hsocket_bind (hsocket_t * dsock, int port)
 FUNCTION: hsocket_accept
 ----------------------------------------------------------*/
 herror_t
-hsocket_accept (hsocket_t sock, hsocket_t * dest)
+hsocket_accept(hsocket_t sock, hsocket_t * dest)
 {
   socklen_t asize;
   hsocket_t sockfd;
   struct sockaddr_in addr;
 
   if (sock.sock <= 0)
-    return herror_new ("hsocket_accept", HSOCKET_ERROR_NOT_INITIALIZED,
-                       "Called hsocket_listen() before initializing!");
+    return herror_new("hsocket_accept", HSOCKET_ERROR_NOT_INITIALIZED,
+                      "Called hsocket_listen() before initializing!");
 
-  asize = sizeof (struct sockaddr_in);
+  asize = sizeof(struct sockaddr_in);
 #ifdef WIN32
   while (1)
   {
-    sockfd.sock = accept (sock.sock, (struct sockaddr *) &addr, &asize);
+    sockfd.sock = accept(sock.sock, (struct sockaddr *) &addr, &asize);
     if (sockfd.sock == INVALID_SOCKET)
     {
-      if (WSAGetLastError () != WSAEWOULDBLOCK)
-        return herror_new ("hsocket_accept", HSOCKET_ERROR_ACCEPT,
-                           "Socket error: %d", errno);
+      if (WSAGetLastError() != WSAEWOULDBLOCK)
+        return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT,
+                          "Socket error: %d", errno);
     }
     else
     {
@@ -273,17 +271,17 @@ hsocket_accept (hsocket_t sock, hsocket_t * dest)
   }
 #else
 /* TODO (#1#): why not a loop like in win32? */
-  sockfd.sock = accept (sock.sock, (struct sockaddr *) &addr, &asize);
+  sockfd.sock = accept(sock.sock, (struct sockaddr *) &addr, &asize);
   if (sockfd.sock == -1)
   {
-    return herror_new ("hsocket_accept", HSOCKET_ERROR_ACCEPT,
-                       "Socket error: %d", errno);
+    return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT,
+                      "Socket error: %d", errno);
   }
 #endif
 /* TODO (#1#): Write to access.log file */
 
-  log_verbose3 ("accept new socket (%d) from '%s'", sockfd.sock,
-                SAVE_STR (((char *) inet_ntoa (addr.sin_addr))));
+  log_verbose3("accept new socket (%d) from '%s'", sockfd.sock,
+               SAVE_STR(((char *) inet_ntoa(addr.sin_addr))));
 
   dest->sock = sockfd.sock;
   return H_OK;
@@ -293,17 +291,17 @@ hsocket_accept (hsocket_t sock, hsocket_t * dest)
 FUNCTION: hsocket_listen
 ----------------------------------------------------*/
 herror_t
-hsocket_listen (hsocket_t sock)
+hsocket_listen(hsocket_t sock)
 {
   if (sock.sock <= 0)
-    return herror_new ("hsocket_listen", HSOCKET_ERROR_NOT_INITIALIZED,
-                       "Called hsocket_listen() before initializing!");
+    return herror_new("hsocket_listen", HSOCKET_ERROR_NOT_INITIALIZED,
+                      "Called hsocket_listen() before initializing!");
 
-  if (listen (sock.sock, 15) == -1)
+  if (listen(sock.sock, 15) == -1)
   {
-    log_error3 ("Can not listen: '%s'", "Socket error: %d", errno);
-    return herror_new ("hsocket_listen", HSOCKET_ERROR_LISTEN,
-                       "Socket error: %d", errno);
+    log_error3("Can not listen: '%s'", "Socket error: %d", errno);
+    return herror_new("hsocket_listen", HSOCKET_ERROR_LISTEN,
+                      "Socket error: %d", errno);
   }
 
   return H_OK;
@@ -311,7 +309,7 @@ hsocket_listen (hsocket_t sock)
 
 #if 0
 static void
-_hsocket_wait_until_receive (hsocket_t sock)
+_hsocket_wait_until_receive(hsocket_t sock)
 {
   fd_set fds;
   struct timeval timeout;
@@ -322,13 +320,13 @@ _hsocket_wait_until_receive (hsocket_t sock)
 
   while (1)
   {
-    log_verbose1 ("waiting until receive mode");
+    log_verbose1("waiting until receive mode");
     /* zero and set file descriptior */
-    FD_ZERO (&fds);
-    FD_SET (sock, &fds);
+    FD_ZERO(&fds);
+    FD_SET(sock, &fds);
 
     /* select socket descriptor */
-    switch (select (sock + 1, &fds, NULL, NULL, &timeout))
+    switch (select(sock + 1, &fds, NULL, NULL, &timeout))
     {
     case 0:
       /* descriptor is not ready */
@@ -340,7 +338,7 @@ _hsocket_wait_until_receive (hsocket_t sock)
       /* no nothing */
       break;
     }
-    if (FD_ISSET (sock, &fds))
+    if (FD_ISSET(sock, &fds))
     {
       break;
     }
@@ -352,11 +350,11 @@ _hsocket_wait_until_receive (hsocket_t sock)
 FUNCTION: hsocket_close
 ----------------------------------------------------*/
 void
-hsocket_close (hsocket_t sock)
+hsocket_close(hsocket_t sock)
 {
   char junk[10];
 /*  _hsocket_wait_until_receive(sock);*/
-  log_verbose2 ("closing socket %d...", sock.sock);
+  log_verbose2("closing socket %d...", sock.sock);
 /*  
   struct linger _linger;
 	hsocket_block(sock,1);
@@ -370,51 +368,51 @@ hsocket_close (hsocket_t sock)
   /* shutdown(sock,SD_RECEIVE); */
 
 
-  shutdown (sock.sock, SD_SEND);
-  while (recv (sock.sock, junk, sizeof (junk), 0) > 0)
+  shutdown(sock.sock, SD_SEND);
+  while (recv(sock.sock, junk, sizeof(junk), 0) > 0)
   {
   };
-  closesocket (sock.sock);
+  closesocket(sock.sock);
 
 #else
   /* XXX m. campbell - It seems like the while loop here needs this */
-  fcntl (sock.sock, F_SETFL, O_NONBLOCK);
+  fcntl(sock.sock, F_SETFL, O_NONBLOCK);
 #ifdef HAVE_SSL
   if (sock.ssl)
   {
-    log_verbose1 ("Closing SSL");
-    ssl_cleanup (sock.ssl);
-    shutdown (sock.sock, SHUT_RDWR);
-    while (recv (sock.sock, junk, sizeof (junk), 0) > 0)
+    log_verbose1("Closing SSL");
+    ssl_cleanup(sock.ssl);
+    shutdown(sock.sock, SHUT_RDWR);
+    while (recv(sock.sock, junk, sizeof(junk), 0) > 0)
     {
     };
-    close (sock.sock);
+    close(sock.sock);
   }
   else
   {
 #endif
-    shutdown (sock.sock, SHUT_RDWR);
-    while (recv (sock.sock, junk, sizeof (junk), 0) > 0)
+    shutdown(sock.sock, SHUT_RDWR);
+    while (recv(sock.sock, junk, sizeof(junk), 0) > 0)
     {
     };
-    close (sock.sock);
+    close(sock.sock);
 #ifdef HAVE_SSL
   }
 #endif
 #endif
-  log_verbose1 ("socket closed");
+  log_verbose1("socket closed");
 }
 
 #if 0
 static int
-_test_send_to_file (const char *filename, const byte_t * bytes, int n)
+_test_send_to_file(const char *filename, const byte_t * bytes, int n)
 {
   int size;
-  FILE *f = fopen (filename, "ab");
+  FILE *f = fopen(filename, "ab");
   if (!f)
-    f = fopen (filename, "wb");
-  size = fwrite (bytes, 1, n, f);
-  fclose (f);
+    f = fopen(filename, "wb");
+  size = fwrite(bytes, 1, n, f);
+  fclose(f);
   return size;
 }
 #endif
@@ -422,19 +420,19 @@ _test_send_to_file (const char *filename, const byte_t * bytes, int n)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 herror_t
-hsocket_nsend (hsocket_t sock, const byte_t * bytes, int n)
+hsocket_nsend(hsocket_t sock, const byte_t * bytes, int n)
 {
   int size;
   int total = 0;
 
-  log_verbose1 ("Starting to send");
+  log_verbose1("Starting to send");
 #ifdef HAVE_SSL
   if (sock.sock <= 0 && !sock.ssl)
 #else
   if (sock.sock <= 0)
 #endif
-    return herror_new ("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED,
-                       "Called hsocket_listen() before initializing!");
+    return herror_new("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED,
+                      "Called hsocket_listen() before initializing!");
 
   // log_verbose2( "SENDING %s", bytes );
 
@@ -444,36 +442,36 @@ hsocket_nsend (hsocket_t sock, const byte_t * bytes, int n)
 #ifdef HAVE_SSL
     if (sock.ssl)
     {
-      size = SSL_write (sock.ssl, bytes + total, n);
+      size = SSL_write(sock.ssl, bytes + total, n);
     }
     else
     {
 #endif
-      size = send ((int) sock.sock, bytes + total, n, 0);
+      size = send((int) sock.sock, bytes + total, n, 0);
 #ifdef HAVE_SSL
     }
 #endif
-    log_verbose2 ("Sent %d", size);
+    log_verbose2("Sent %d", size);
     /* size = _test_send_to_file(filename, bytes, n); */
 #ifdef WIN32
     if (size == INVALID_SOCKET)
-      if (WSAGetLastError () == WSAEWOULDBLOCK)
+      if (WSAGetLastError() == WSAEWOULDBLOCK)
         continue;
       else
-        return herror_new ("hsocket_nsend", HSOCKET_ERROR_SEND,
-                           "Socket error: %d", errno);
+        return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND,
+                          "Socket error: %d", errno);
 #else
     if (size == -1)
     {
 #ifdef HAVE_SSL
       if (sock.ssl)
       {
-        log_error1 ("Send error");
-        log_ssl_error (sock.ssl, size);
+        log_error1("Send error");
+        log_ssl_error(sock.ssl, size);
       }
 #endif
-      return herror_new ("hsocket_nsend", HSOCKET_ERROR_SEND,
-                         "Socket error: %d", errno);
+      return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND,
+                        "Socket error: %d", errno);
     }
 #endif
     n -= size;
@@ -488,17 +486,17 @@ hsocket_nsend (hsocket_t sock, const byte_t * bytes, int n)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 herror_t
-hsocket_send (hsocket_t sock, const char *str)
+hsocket_send(hsocket_t sock, const char *str)
 {
-  return hsocket_nsend (sock, str, strlen (str));
+  return hsocket_nsend(sock, str, strlen(str));
 }
 
 /*
   return: -1 is error. read bytes otherwise
 */
 herror_t
-hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
-              int *received)
+hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
+             int *received)
 {
   int status;
   int totalRead;
@@ -517,41 +515,41 @@ hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
       struct timeval timeout;
       int i = 0;
       fd_set fds;
-      FD_ZERO (&fds);
-      FD_SET (sock.sock, &fds);
+      FD_ZERO(&fds);
+      FD_SET(sock.sock, &fds);
       timeout.tv_sec = 10;
       timeout.tv_usec = 0;
 #ifdef WIN32
 #else
-      fcntl (sock.sock, F_SETFL, O_NONBLOCK);
+      fcntl(sock.sock, F_SETFL, O_NONBLOCK);
 #endif
       // log_verbose1("START READ LOOP");
       // do{
       // log_verbose2("DEBUG A %d",i);
-      status = SSL_read (sock.ssl, &buffer[totalRead], total - totalRead);
+      status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
       if (status < 1)
       {
-        int ret = select (sock.sock + 1, &fds, NULL, NULL, &timeout);
+        int ret = select(sock.sock + 1, &fds, NULL, NULL, &timeout);
         // log_verbose2("DEBUG %d",ret);
 #ifdef WIN32
         if (ret == SOCKET_ERROR)
         {
-          wsa_error = WSAGetLastError ();
-          log_error2 ("WSAGetLastError()=%d", wsa_error);
-          return herror_new ("hsocket_read", HSOCKET_ERROR_RECEIVE,
-                             "Socket error: %d", errno);
+          wsa_error = WSAGetLastError();
+          log_error2("WSAGetLastError()=%d", wsa_error);
+          return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE,
+                            "Socket error: %d", errno);
 
         }
 #endif
         if (ret == 0)
         {
-          log_verbose1 ("Socket timeout");
-          return herror_new ("hsocket_read", HSOCKET_SSL_CLOSE, "Timeout");
+          log_verbose1("Socket timeout");
+          return herror_new("hsocket_read", HSOCKET_SSL_CLOSE, "Timeout");
         }
         else
         {
           // log_verbose1("DEBUG C");
-          status = SSL_read (sock.ssl, &buffer[totalRead], total - totalRead);
+          status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
         }
         // log_verbose3("DEBUG D char: %d status: %d", 
         // buffer[totalRead], SSL_get_error(sock.ssl, status));
@@ -559,7 +557,7 @@ hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
       // } while( SSL_get_error(sock.ssl, status) == SSL_ERROR_WANT_READ);
 #ifdef WIN32
 #else
-      fcntl (sock.sock, F_SETFL, 0);
+      fcntl(sock.sock, F_SETFL, 0);
 #endif
     }
     else
@@ -567,21 +565,21 @@ hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
 #else // HAVE_SSL
     {
 #endif // HAVE_SSL
-      status = recv (sock.sock, &buffer[totalRead], total - totalRead, 0);
+      status = recv(sock.sock, &buffer[totalRead], total - totalRead, 0);
 
 #ifdef WIN32
       if (status == INVALID_SOCKET)
       {
-        wsa_error = WSAGetLastError ();
+        wsa_error = WSAGetLastError();
         switch (wsa_error)
         {
         case WSAEWOULDBLOCK:
           /* case WSAEALREADY: case WSAEINPROGRESS: */
           continue;
         default:
-          log_error2 ("WSAGetLastError()=%d", wsa_error);
-          return herror_new ("hsocket_read", HSOCKET_ERROR_RECEIVE,
-                             "Socket error: %d", errno);
+          log_error2("WSAGetLastError()=%d", wsa_error);
+          return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE,
+                            "Socket error: %d", errno);
         }
       }
     }
@@ -601,20 +599,20 @@ hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
     {
 
       // XXX I'm not sure this err_syscall is right here...
-      if (SSL_get_shutdown (sock.ssl) == SSL_RECEIVED_SHUTDOWN ||
-          SSL_get_error (sock.ssl, status) == SSL_ERROR_SYSCALL)
+      if (SSL_get_shutdown(sock.ssl) == SSL_RECEIVED_SHUTDOWN ||
+          SSL_get_error(sock.ssl, status) == SSL_ERROR_SYSCALL)
       {
         *received = NULL;;
-        return herror_new ("hsocket_read", HSOCKET_SSL_CLOSE, "SSL Closed");
+        return herror_new("hsocket_read", HSOCKET_SSL_CLOSE, "SSL Closed");
       }
-      log_error2 ("Read error (%d)", status);
-      log_ssl_error (sock.ssl, status);
-      return herror_new ("hsocket_read", HSOCKET_ERROR_RECEIVE, "SSL Error");
+      log_error2("Read error (%d)", status);
+      log_ssl_error(sock.ssl, status);
+      return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "SSL Error");
     }
 #endif
     if (status == -1)
-      return herror_new ("hsocket_read", HSOCKET_ERROR_RECEIVE,
-                         "Socket error: %d", errno);
+      return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE,
+                        "Socket error: %d", errno);
 #endif
 
     if (!force)
@@ -643,15 +641,15 @@ hsocket_read (hsocket_t sock, byte_t * buffer, int total, int force,
 
 
 herror_t
-hsocket_block (hsocket_t sock, int block)
+hsocket_block(hsocket_t sock, int block)
 {
 #ifdef WIN32
   unsigned long iMode;
 #endif
 
   if (sock.sock <= 0)
-    return herror_new ("hsocket_block", HSOCKET_ERROR_NOT_INITIALIZED,
-                       "Called hsocket_listen() before initializing!");
+    return herror_new("hsocket_block", HSOCKET_ERROR_NOT_INITIALIZED,
+                      "Called hsocket_listen() before initializing!");
 
 #ifdef WIN32
 /*#define HSOCKET_BLOCKMODE 0
@@ -659,13 +657,13 @@ hsocket_block (hsocket_t sock, int block)
 */
 
   iMode = (block == 0) ? 1 : 0; /* Non block mode */
-  if (ioctlsocket (sock.sock, FIONBIO, (u_long FAR *) & iMode) ==
+  if (ioctlsocket(sock.sock, FIONBIO, (u_long FAR *) & iMode) ==
       INVALID_SOCKET)
   {
-    int err = WSAGetLastError ();
-    log_error2 ("ioctlsocket error %d", err);
-    return herror_new ("hsocket_block", HSOCKET_ERROR_IOCTL,
-                       "Socket error: %d", err);
+    int err = WSAGetLastError();
+    log_error2("ioctlsocket error %d", err);
+    return herror_new("hsocket_block", HSOCKET_ERROR_IOCTL,
+                      "Socket error: %d", err);
   }
 #else /* fcntl(sock, F_SETFL, O_NONBLOCK); */
 /* TODO (#1#): check for *nix the non blocking sockets */

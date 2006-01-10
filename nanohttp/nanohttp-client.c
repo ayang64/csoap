@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.32 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.33 2006/01/10 11:29:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -40,7 +40,7 @@
 
 #if 0
 static int
-httpc_send_data (httpc_conn_t * conn, const unsigned char *data, size_t size)
+httpc_send_data(httpc_conn_t * conn, const unsigned char *data, size_t size)
 {
   return -1;
 }
@@ -51,10 +51,10 @@ DESC: Initialize http client connection
 NOTE: This will be called from soap_client_init_args()
 ----------------------------------------------------*/
 herror_t
-httpc_init (int argc, char *argv[])
+httpc_init(int argc, char *argv[])
 {
-  hoption_init_args (argc, argv);
-  hsocket_module_init ();
+  hoption_init_args(argc, argv);
+  hsocket_module_init();
   return H_OK;
 }
 
@@ -64,9 +64,9 @@ FUNCTION: httpc_destroy
 DESC: Destroy the http client module
 ----------------------------------------------------*/
 void
-httpc_destroy ()
+httpc_destroy()
 {
-  hsocket_module_destroy ();
+  hsocket_module_destroy();
 }
 
 
@@ -77,12 +77,12 @@ You need to create at least 1 http client connection
 to communicate via http.
 ----------------------------------------------------*/
 httpc_conn_t *
-httpc_new ()
+httpc_new()
 {
   static int counter = 10000;
-  httpc_conn_t *res = (httpc_conn_t *) malloc (sizeof (httpc_conn_t));
+  httpc_conn_t *res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t));
 
-  if (hsocket_init (&res->sock) != H_OK)
+  if (hsocket_init(&res->sock) != H_OK)
   {
     return NULL;
   }
@@ -102,7 +102,7 @@ FUNCTION: httpc_free
 DESC: Free the given http client object.
 ----------------------------------------------------*/
 void
-httpc_free (httpc_conn_t * conn)
+httpc_free(httpc_conn_t * conn)
 {
   hpair_t *tmp;
 
@@ -114,17 +114,17 @@ httpc_free (httpc_conn_t * conn)
   {
     tmp = conn->header;
     conn->header = conn->header->next;
-    hpairnode_free (tmp);
+    hpairnode_free(tmp);
   }
 
   if (conn->out != NULL)
   {
-    http_output_stream_free (conn->out);
+    http_output_stream_free(conn->out);
     conn->out = NULL;
   }
 
-  hsocket_free (conn->sock);
-  free (conn);
+  hsocket_free(conn->sock);
+  free(conn);
 
 }
 
@@ -133,13 +133,13 @@ httpc_free (httpc_conn_t * conn)
  DESC: Close and free the given http client object.
  ----------------------------------------------------*/
 void
-httpc_close_free (httpc_conn_t * conn)
+httpc_close_free(httpc_conn_t * conn)
 {
   if (conn == NULL)
     return;
 
-  hsocket_close (conn->sock);
-  httpc_free (conn);
+  hsocket_close(conn->sock);
+  httpc_free(conn);
 }
 
 
@@ -150,13 +150,13 @@ or modifies the old pair if this function will
 finds another pair with the same 'key' value.
 ----------------------------------------------------*/
 int
-httpc_set_header (httpc_conn_t * conn, const char *key, const char *value)
+httpc_set_header(httpc_conn_t * conn, const char *key, const char *value)
 {
   hpair_t *p;
 
   if (conn == NULL)
   {
-    log_warn1 ("Connection object is NULL");
+    log_warn1("Connection object is NULL");
     return 0;
   }
   p = conn->header;
@@ -164,18 +164,18 @@ httpc_set_header (httpc_conn_t * conn, const char *key, const char *value)
   {
     if (p->key != NULL)
     {
-      if (!strcmp (p->key, key))
+      if (!strcmp(p->key, key))
       {
-        free (p->value);
-        p->value = (char *) malloc (strlen (value) + 1);
-        strcpy (p->value, value);
+        free(p->value);
+        p->value = (char *) malloc(strlen(value) + 1);
+        strcpy(p->value, value);
         return 1;
       }
     }
     p = p->next;
   }
 
-  conn->header = hpairnode_new (key, value, conn->header);
+  conn->header = hpairnode_new(key, value, conn->header);
   return 0;
 }
 
@@ -185,15 +185,15 @@ FUNCTION: httpc_header_add_date
 DESC: Adds the current date to the header.
 ----------------------------------------------------*/
 static void
-_httpc_set_error (httpc_conn_t * conn, int errcode, const char *format, ...)
+_httpc_set_error(httpc_conn_t * conn, int errcode, const char *format, ...)
 {
   va_list ap;
 
   conn->errcode = errcode;
 
-  va_start (ap, format);
-  vsprintf (conn->errmsg, format, ap);
-  va_end (ap);
+  va_start(ap, format);
+  vsprintf(conn->errmsg, format, ap);
+  va_end(ap);
 }
 
 /*--------------------------------------------------
@@ -201,17 +201,17 @@ FUNCTION: httpc_header_add_date
 DESC: Adds the current date to the header.
 ----------------------------------------------------*/
 static void
-httpc_header_add_date (httpc_conn_t * conn)
+httpc_header_add_date(httpc_conn_t * conn)
 {
   char buffer[255];
   time_t nw;
   struct tm stm;
 
   /* Set date */
-  nw = time (NULL);
-  localtime_r (&nw, &stm);
-  strftime (buffer, 255, "%a, %d %b %Y %T GMT", &stm);
-  httpc_set_header (conn, HEADER_DATE, buffer);
+  nw = time(NULL);
+  localtime_r(&nw, &stm);
+  strftime(buffer, 255, "%a, %d %b %Y %T GMT", &stm);
+  httpc_set_header(conn, HEADER_DATE, buffer);
 
 }
 
@@ -222,7 +222,7 @@ DESC: Sends the current header information stored
 in conn through conn->sock.
 ----------------------------------------------------*/
 herror_t
-httpc_send_header (httpc_conn_t * conn)
+httpc_send_header(httpc_conn_t * conn)
 {
   hpair_t *p;
   herror_t status;
@@ -233,15 +233,15 @@ httpc_send_header (httpc_conn_t * conn)
   {
     if (p->key && p->value)
     {
-      sprintf (buffer, "%s: %s\r\n", p->key, p->value);
-      status = hsocket_send (conn->sock, buffer);
+      sprintf(buffer, "%s: %s\r\n", p->key, p->value);
+      status = hsocket_send(conn->sock, buffer);
       if (status != H_OK)
         return status;
     }
     p = p->next;
   }
 
-  status = hsocket_send (conn->sock, "\r\n");
+  status = hsocket_send(conn->sock, "\r\n");
   return status;
 }
 
@@ -291,8 +291,8 @@ If success, this function will return 0.
 >0 otherwise.
 ----------------------------------------------------*/
 static herror_t
-httpc_talk_to_server (hreq_method_t method, httpc_conn_t * conn,
-                      const char *urlstr)
+httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
+                     const char *urlstr)
 {
 
   hurl_t url;
@@ -301,26 +301,26 @@ httpc_talk_to_server (hreq_method_t method, httpc_conn_t * conn,
 
   if (conn == NULL)
   {
-    return herror_new ("httpc_talk_to_server",
-                       GENERAL_INVALID_PARAM, "httpc_conn_t param is NULL");
+    return herror_new("httpc_talk_to_server",
+                      GENERAL_INVALID_PARAM, "httpc_conn_t param is NULL");
   }
   /* Build request header */
-  httpc_header_add_date (conn);
+  httpc_header_add_date(conn);
 
   /* Create url */
-  status = hurl_parse (&url, urlstr);
+  status = hurl_parse(&url, urlstr);
   if (status != H_OK)
   {
-    log_error2 ("Can not parse URL '%s'", SAVE_STR (urlstr));
+    log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
     return status;
   }
 /* TODO (#1#): Check for HTTP protocol in URL */
 
   /* Set hostname */
-  httpc_set_header (conn, HEADER_HOST, url.host);
+  httpc_set_header(conn, HEADER_HOST, url.host);
 
   /* Open connection */
-  status = hsocket_open (&conn->sock, url.host, url.port);
+  status = hsocket_open(&conn->sock, url.host, url.port);
   if (status != H_OK)
   {
     return status;
@@ -329,10 +329,10 @@ httpc_talk_to_server (hreq_method_t method, httpc_conn_t * conn,
   /* TODO XXX XXX this is probably not right -- matt */
   if (!&conn->sock.ssl)
   {
-    status = hsocket_block (conn->sock, conn->block);
+    status = hsocket_block(conn->sock, conn->block);
     if (status != H_OK)
     {
-      log_error1 ("Cannot make socket non-blocking");
+      log_error1("Cannot make socket non-blocking");
       return status;
     }
   }
@@ -342,42 +342,42 @@ httpc_talk_to_server (hreq_method_t method, httpc_conn_t * conn,
   {
 
     /* Set GET Header */
-    sprintf (buffer, "GET %s HTTP/%s\r\n",
-             (url.context[0] != '\0') ? url.context : ("/"),
-             (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+    sprintf(buffer, "GET %s HTTP/%s\r\n",
+            (url.context[0] != '\0') ? url.context : ("/"),
+            (conn->version == HTTP_1_0) ? "1.0" : "1.1");
 
   }
   else if (method == HTTP_REQUEST_POST)
   {
 
     /* Set POST Header */
-    sprintf (buffer, "POST %s HTTP/%s\r\n",
-             (url.context[0] != '\0') ? url.context : ("/"),
-             (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+    sprintf(buffer, "POST %s HTTP/%s\r\n",
+            (url.context[0] != '\0') ? url.context : ("/"),
+            (conn->version == HTTP_1_0) ? "1.0" : "1.1");
   }
   else
   {
 
-    log_error1 ("Unknown method type!");
-    return herror_new ("httpc_talk_to_server",
-                       GENERAL_INVALID_PARAM,
-                       "hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
+    log_error1("Unknown method type!");
+    return herror_new("httpc_talk_to_server",
+                      GENERAL_INVALID_PARAM,
+                      "hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
   }
 
-  log_verbose1 ("Sending header...");
-  status = hsocket_send (conn->sock, buffer);
+  log_verbose1("Sending header...");
+  status = hsocket_send(conn->sock, buffer);
   if (status != H_OK)
   {
-    log_error2 ("Can not send request (status:%d)", status);
-    hsocket_close (conn->sock);
+    log_error2("Can not send request (status:%d)", status);
+    hsocket_close(conn->sock);
     return status;
   }
   /* Send Header */
-  status = httpc_send_header (conn);
+  status = httpc_send_header(conn);
   if (status != H_OK)
   {
-    log_error2 ("Can not send header (status:%d)", status);
-    hsocket_close (conn->sock);
+    log_error2("Can not send header (status:%d)", status);
+    hsocket_close(conn->sock);
     return status;
   }
 
@@ -390,18 +390,18 @@ FUNCTION: httpc_get
 DESC:
 ----------------------------------------------------*/
 herror_t
-httpc_get (httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
+httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
 {
   herror_t status;
 
-  status = httpc_talk_to_server (HTTP_REQUEST_GET, conn, urlstr);
+  status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr);
 
   if (status != H_OK)
   {
     return status;
   }
 
-  status = hresponse_new_from_socket (conn->sock, out);
+  status = hresponse_new_from_socket(conn->sock, out);
   if (status != H_OK)
   {
     return status;
@@ -417,16 +417,16 @@ FUNCTION: httpc_post_begin
 DESC: Returns H_OK if success
 ----------------------------------------------------*/
 herror_t
-httpc_post_begin (httpc_conn_t * conn, const char *url)
+httpc_post_begin(httpc_conn_t * conn, const char *url)
 {
 
   herror_t status;
 
-  status = httpc_talk_to_server (HTTP_REQUEST_POST, conn, url);
+  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url);
   if (status != H_OK)
     return status;
 
-  conn->out = http_output_stream_new (conn->sock, conn->header);
+  conn->out = http_output_stream_new(conn->sock, conn->header);
 
   return H_OK;
 }
@@ -438,18 +438,18 @@ DESC: End a "POST" method and receive the response.
   You MUST call httpc_post_end() before!
 ----------------------------------------------------*/
 herror_t
-httpc_post_end (httpc_conn_t * conn, hresponse_t ** out)
+httpc_post_end(httpc_conn_t * conn, hresponse_t ** out)
 {
   herror_t status;
 
-  status = http_output_stream_flush (conn->out);
+  status = http_output_stream_flush(conn->out);
 
   if (status != H_OK)
   {
     return status;
   }
 
-  status = hresponse_new_from_socket (conn->sock, out);
+  status = hresponse_new_from_socket(conn->sock, out);
   if (status != H_OK)
   {
     return status;
@@ -612,16 +612,16 @@ hresponse_t* httpc_dime_end(httpc_conn_t *conn)
 -----------------------------------------------------*/
 
 static void
-_httpc_mime_get_boundary (httpc_conn_t * conn, char *dest)
+_httpc_mime_get_boundary(httpc_conn_t * conn, char *dest)
 {
-  sprintf (dest, "---=.Part_NH_%d", conn->id);
-  log_verbose2 ("boundary= \"%s\"", dest);
+  sprintf(dest, "---=.Part_NH_%d", conn->id);
+  log_verbose2("boundary= \"%s\"", dest);
 }
 
 herror_t
-httpc_mime_begin (httpc_conn_t * conn, const char *url,
-                  const char *related_start,
-                  const char *related_start_info, const char *related_type)
+httpc_mime_begin(httpc_conn_t * conn, const char *url,
+                 const char *related_start,
+                 const char *related_start_info, const char *related_type)
 {
   herror_t status;
   char buffer[300];
@@ -633,7 +633,7 @@ httpc_mime_begin (httpc_conn_t * conn, const char *url,
      start-info= ..; boundary=...
 
    */
-  sprintf (buffer, "multipart/related;");
+  sprintf(buffer, "multipart/related;");
   /* 
      using sprintf instead of snprintf because visual c does not support
      snprintf */
@@ -643,96 +643,93 @@ httpc_mime_begin (httpc_conn_t * conn, const char *url,
 
   if (related_type)
   {
-    snprintf (temp, 75, " type=\"%s\";", related_type);
-    strcat (buffer, temp);
+    snprintf(temp, 75, " type=\"%s\";", related_type);
+    strcat(buffer, temp);
   }
 
   if (related_start)
   {
-    snprintf (temp, 75, " start=\"%s\";", related_start);
-    strcat (buffer, temp);
+    snprintf(temp, 75, " start=\"%s\";", related_start);
+    strcat(buffer, temp);
   }
 
   if (related_start_info)
   {
-    snprintf (temp, 75, " start-info=\"%s\";", related_start_info);
-    strcat (buffer, temp);
+    snprintf(temp, 75, " start-info=\"%s\";", related_start_info);
+    strcat(buffer, temp);
   }
 
-  _httpc_mime_get_boundary (conn, boundary);
-  snprintf (temp, 75, " boundary=\"%s\"", boundary);
-  strcat (buffer, temp);
+  _httpc_mime_get_boundary(conn, boundary);
+  snprintf(temp, 75, " boundary=\"%s\"", boundary);
+  strcat(buffer, temp);
 
-  httpc_set_header (conn, HEADER_CONTENT_TYPE, buffer);
+  httpc_set_header(conn, HEADER_CONTENT_TYPE, buffer);
 
-  status = httpc_post_begin (conn, url);
+  status = httpc_post_begin(conn, url);
   return status;
 }
 
 
 herror_t
-httpc_mime_next (httpc_conn_t * conn,
-                 const char *content_id,
-                 const char *content_type, const char *transfer_encoding)
+httpc_mime_next(httpc_conn_t * conn,
+                const char *content_id,
+                const char *content_type, const char *transfer_encoding)
 {
   herror_t status;
   char buffer[512];
   char boundary[75];
 
   /* Get the boundary string */
-  _httpc_mime_get_boundary (conn, boundary);
-  sprintf (buffer, "\r\n--%s\r\n", boundary);
+  _httpc_mime_get_boundary(conn, boundary);
+  sprintf(buffer, "\r\n--%s\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write(conn->out,
+                                    (const byte_t *) buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;
 
   /* Send Content header */
-  sprintf (buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
-           HEADER_CONTENT_TYPE, content_type,
-           HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
-           HEADER_CONTENT_ID, content_id);
+  sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
+          HEADER_CONTENT_TYPE, content_type,
+          HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
+          HEADER_CONTENT_ID, content_id);
 
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write(conn->out,
+                                    (const byte_t *) buffer, strlen(buffer));
 
   return status;
 }
 
 
 herror_t
-httpc_mime_end (httpc_conn_t * conn, hresponse_t ** out)
+httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
 {
   herror_t status;
   char buffer[512];
   char boundary[75];
 
   /* Get the boundary string */
-  _httpc_mime_get_boundary (conn, boundary);
-  sprintf (buffer, "\r\n--%s--\r\n\r\n", boundary);
+  _httpc_mime_get_boundary(conn, boundary);
+  sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write(conn->out,
+                                    (const byte_t *) buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;
 
   /* Flush put stream */
-  status = http_output_stream_flush (conn->out);
+  status = http_output_stream_flush(conn->out);
 
   if (status != H_OK)
   {
     return status;
   }
 
-  status = hresponse_new_from_socket (conn->sock, out);
+  status = hresponse_new_from_socket(conn->sock, out);
   if (status != H_OK)
   {
     return status;
@@ -748,51 +745,50 @@ httpc_mime_end (httpc_conn_t * conn, hresponse_t ** out)
   with next part
 */
 herror_t
-httpc_mime_send_file (httpc_conn_t * conn,
-                      const char *content_id,
-                      const char *content_type,
-                      const char *transfer_encoding, const char *filename)
+httpc_mime_send_file(httpc_conn_t * conn,
+                     const char *content_id,
+                     const char *content_type,
+                     const char *transfer_encoding, const char *filename)
 {
   herror_t status;
-  FILE *fd = fopen (filename, "rb");
+  FILE *fd = fopen(filename, "rb");
   byte_t buffer[MAX_FILE_BUFFER_SIZE];
   size_t size;
 
   if (fd == NULL)
-    return herror_new ("httpc_mime_send_file", FILE_ERROR_OPEN,
-                       "Can not open file '%s'", filename);
+    return herror_new("httpc_mime_send_file", FILE_ERROR_OPEN,
+                      "Can not open file '%s'", filename);
 
-  status =
-    httpc_mime_next (conn, content_id, content_type, transfer_encoding);
+  status = httpc_mime_next(conn, content_id, content_type, transfer_encoding);
   if (status != H_OK)
   {
-    fclose (fd);
+    fclose(fd);
     return status;
   }
 
-  while (!feof (fd))
+  while (!feof(fd))
   {
-    size = fread (buffer, 1, MAX_FILE_BUFFER_SIZE, fd);
+    size = fread(buffer, 1, MAX_FILE_BUFFER_SIZE, fd);
     if (size == -1)
     {
-      fclose (fd);
-      return herror_new ("httpc_mime_send_file", FILE_ERROR_READ,
-                         "Can not read from file '%s'", filename);
+      fclose(fd);
+      return herror_new("httpc_mime_send_file", FILE_ERROR_READ,
+                        "Can not read from file '%s'", filename);
     }
 
     if (size > 0)
     {
       /* DEBUG: fwrite(buffer, 1, size, stdout); */
-      status = http_output_stream_write (conn->out, buffer, size);
+      status = http_output_stream_write(conn->out, buffer, size);
       if (status != H_OK)
       {
-        fclose (fd);
+        fclose(fd);
         return status;
       }
     }
   }
 
-  fclose (fd);
-  log_verbose1 ("file sent!");
+  fclose(fd);
+  log_verbose1("file sent!");
   return H_OK;
 }

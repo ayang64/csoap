@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.7 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: soap-xml.c,v 1.8 2006/01/10 11:29:04 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,13 +26,13 @@
 static const char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 
 xmlNodePtr
-soap_xml_get_children (xmlNodePtr param)
+soap_xml_get_children(xmlNodePtr param)
 {
   xmlNodePtr children;
 
   if (param == NULL)
   {
-    log_error1 ("Invalid parameter 'param' (null)");
+    log_error1("Invalid parameter 'param' (null)");
     return NULL;
   }
 
@@ -49,7 +49,7 @@ soap_xml_get_children (xmlNodePtr param)
 }
 
 xmlNodePtr
-soap_xml_get_next (xmlNodePtr param)
+soap_xml_get_next(xmlNodePtr param)
 {
 
   xmlNodePtr node = param->next;
@@ -67,33 +67,33 @@ soap_xml_get_next (xmlNodePtr param)
 
 
 xmlXPathObjectPtr
-soap_xpath_eval (xmlDocPtr doc, const char *xpath)
+soap_xpath_eval(xmlDocPtr doc, const char *xpath)
 {
   xmlXPathContextPtr context;
   xmlXPathObjectPtr result;
 
-  context = xmlXPathNewContext (doc);
-  result = xmlXPathEvalExpression (BAD_CAST xpath, context);
-  if (xmlXPathNodeSetIsEmpty (result->nodesetval))
+  context = xmlXPathNewContext(doc);
+  result = xmlXPathEvalExpression(BAD_CAST xpath, context);
+  if (xmlXPathNodeSetIsEmpty(result->nodesetval))
   {
     /* no result */
     return NULL;
   }
 
-  xmlXPathFreeContext (context);
+  xmlXPathFreeContext(context);
   return result;
 }
 
 
 int
-soap_xpath_foreach (xmlDocPtr doc, const char *xpath,
-                    soap_xmlnode_callback cb, void *userdata)
+soap_xpath_foreach(xmlDocPtr doc, const char *xpath,
+                   soap_xmlnode_callback cb, void *userdata)
 {
   int i = 0;
   xmlNodeSetPtr nodeset;
   xmlXPathObjectPtr xpathobj;
 
-  xpathobj = soap_xpath_eval (doc, xpath);
+  xpathobj = soap_xpath_eval(doc, xpath);
 
   if (!xpathobj)
     return 0;
@@ -104,44 +104,44 @@ soap_xpath_foreach (xmlDocPtr doc, const char *xpath,
 
   for (i = 0; i < nodeset->nodeNr; i++)
   {
-    if (!cb (nodeset->nodeTab[i], userdata))
+    if (!cb(nodeset->nodeTab[i], userdata))
       break;
   }
 
-  xmlXPathFreeObject ((xmlXPathObjectPtr) nodeset);
+  xmlXPathFreeObject((xmlXPathObjectPtr) nodeset);
   return i;
 }
 
 
 void
-soap_xml_doc_print (xmlDocPtr doc)
+soap_xml_doc_print(xmlDocPtr doc)
 {
   xmlBufferPtr buffer;
   xmlNodePtr root;
 
   if (doc == NULL)
   {
-    puts ("xmlDocPtr is NULL!");
+    puts("xmlDocPtr is NULL!");
     return;
   }
 
-  root = xmlDocGetRootElement (doc);
+  root = xmlDocGetRootElement(doc);
   if (root == NULL)
   {
-    puts ("Empty document!");
+    puts("Empty document!");
     return;
   }
 
 
-  buffer = xmlBufferCreate ();
-  xmlNodeDump (buffer, doc, root, 1, 0);
-  puts ((const char *) xmlBufferContent (buffer));
-  xmlBufferFree (buffer);
+  buffer = xmlBufferCreate();
+  xmlNodeDump(buffer, doc, root, 1, 0);
+  puts((const char *) xmlBufferContent(buffer));
+  xmlBufferFree(buffer);
 
 }
 
 char *
-soap_xml_get_text (xmlNodePtr node)
+soap_xml_get_text(xmlNodePtr node)
 {
-  return (char *) xmlNodeListGetString (node->doc, node->xmlChildrenNode, 1);
+  return (char *) xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
 }

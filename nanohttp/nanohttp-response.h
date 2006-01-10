@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.3 2006/01/10 11:21:55 snowdrop Exp $
+ *  $Id: nanohttp-response.h,v 1.4 2006/01/10 11:29:05 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -43,8 +43,8 @@ typedef struct hresponse
   char root_part_id[150];
 } hresponse_t;
 
-herror_t hresponse_new_from_socket (hsocket_t sock, hresponse_t ** out);
-void hresponse_free (hresponse_t * res);
+herror_t hresponse_new_from_socket(hsocket_t sock, hresponse_t ** out);
+void hresponse_free(hresponse_t * res);
 
 
 

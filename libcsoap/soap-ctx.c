@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -26,9 +26,9 @@
 #include <string.h>
 
 SoapCtx *
-soap_ctx_new (SoapEnv * env)    /* should only be used internally */
+soap_ctx_new(SoapEnv * env)     /* should only be used internally */
 {
-  SoapCtx *ctx = (SoapCtx *) malloc (sizeof (SoapCtx));
+  SoapCtx *ctx = (SoapCtx *) malloc(sizeof(SoapCtx));
   ctx->env = env;
   ctx->attachments = NULL;
 
@@ -37,7 +37,7 @@ soap_ctx_new (SoapEnv * env)    /* should only be used internally */
 
 
 void
-soap_ctx_add_files (SoapCtx * ctx, attachments_t * attachments)
+soap_ctx_add_files(SoapCtx * ctx, attachments_t * attachments)
 {
   part_t *part;
   char href[MAX_HREF_SIZE];
@@ -48,43 +48,43 @@ soap_ctx_add_files (SoapCtx * ctx, attachments_t * attachments)
   part = attachments->parts;
   while (part)
   {
-    soap_ctx_add_file (ctx, part->filename, part->content_type, href);
+    soap_ctx_add_file(ctx, part->filename, part->content_type, href);
     part = part->next;
   }
 }
 
 
 herror_t
-soap_ctx_add_file (SoapCtx * ctx, const char *filename,
-                   const char *content_type, char *dest_href)
+soap_ctx_add_file(SoapCtx * ctx, const char *filename,
+                  const char *content_type, char *dest_href)
 {
   char cid[250];
   char id[250];
   part_t *part;
   static int counter = 1;
-  FILE *test = fopen (filename, "r");
+  FILE *test = fopen(filename, "r");
   if (!test)
-    return herror_new ("soap_ctx_add_file", FILE_ERROR_OPEN,
-                       "Can not open file '%s'", filename);
+    return herror_new("soap_ctx_add_file", FILE_ERROR_OPEN,
+                      "Can not open file '%s'", filename);
 
-  fclose (test);
+  fclose(test);
 
   /* generate an id */
-  sprintf (id, "005512345894583%d", counter++);
-  sprintf (dest_href, "cid:%s", id);
-  sprintf (cid, "<%s>", id);
+  sprintf(id, "005512345894583%d", counter++);
+  sprintf(dest_href, "cid:%s", id);
+  sprintf(cid, "<%s>", id);
 
   /* add part to context */
-  part = part_new (cid, filename, content_type, NULL, NULL);
+  part = part_new(cid, filename, content_type, NULL, NULL);
   if (!ctx->attachments)
-    ctx->attachments = attachments_new ();
-  attachments_add_part (ctx->attachments, part);
+    ctx->attachments = attachments_new();
+  attachments_add_part(ctx->attachments, part);
 
   return H_OK;
 }
 
 part_t *
-soap_ctx_get_file (SoapCtx * ctx, xmlNodePtr node)
+soap_ctx_get_file(SoapCtx * ctx, xmlNodePtr node)
 {
   xmlChar *prop;
   char href[MAX_HREF_SIZE];
@@ -94,18 +94,18 @@ soap_ctx_get_file (SoapCtx * ctx, xmlNodePtr node)
   if (!ctx->attachments)
     return NULL;
 
-  prop = xmlGetProp (node, "href");
+  prop = xmlGetProp(node, "href");
 
   if (!prop)
     return NULL;
 
-  strcpy (href, (const char *) prop);
-  if (!strncmp (href, "cid:", 4))
+  strcpy(href, (const char *) prop);
+  if (!strncmp(href, "cid:", 4))
   {
     for (part = ctx->attachments->parts; part; part = part->next)
     {
-      sprintf (buffer, "<%s>", href + 4);
-      if (!strcmp (part->id, buffer))
+      sprintf(buffer, "<%s>", href + 4);
+      if (!strcmp(part->id, buffer))
         return part;
 
     }
@@ -114,7 +114,7 @@ soap_ctx_get_file (SoapCtx * ctx, xmlNodePtr node)
   {
     for (part = ctx->attachments->parts; part; part = part->next)
     {
-      if (!strcmp (part->location, href))
+      if (!strcmp(part->location, href))
         return part;
 
     }
@@ -124,29 +124,29 @@ soap_ctx_get_file (SoapCtx * ctx, xmlNodePtr node)
 }
 
 void
-soap_ctx_free (SoapCtx * ctx)
+soap_ctx_free(SoapCtx * ctx)
 {
   if (!ctx)
     return;
 
   if (ctx->attachments)
-    attachments_free (ctx->attachments);
+    attachments_free(ctx->attachments);
   if (ctx->env)
-    soap_env_free (ctx->env);
+    soap_env_free(ctx->env);
 
-  free (ctx);
+  free(ctx);
 }
 
 
 herror_t
-soap_ctx_new_with_method (const char *urn, const char *method, SoapCtx ** out)
+soap_ctx_new_with_method(const char *urn, const char *method, SoapCtx ** out)
 {
   SoapEnv *env;
   herror_t err;
-  err = soap_env_new_with_method (urn, method, &env);
+  err = soap_env_new_with_method(urn, method, &env);
   if (err != H_OK)
     return err;
-  *out = soap_ctx_new (env);
+  *out = soap_ctx_new(env);
 
   return H_OK;
 }

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: nanohttp-response.c,v 1.7 2006/01/10 11:29:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -32,12 +32,12 @@
 #endif
 
 static hresponse_t *
-hresponse_new ()
+hresponse_new()
 {
   hresponse_t *res;
 
   /* create response object */
-  res = (hresponse_t *) malloc (sizeof (hresponse_t));
+  res = (hresponse_t *) malloc(sizeof(hresponse_t));
   res->version = HTTP_1_1;
   res->errcode = -1;
   res->desc[0] = '\0';
@@ -49,58 +49,58 @@ hresponse_new ()
 }
 
 static hresponse_t *
-_hresponse_parse_header (const char *buffer)
+_hresponse_parse_header(const char *buffer)
 {
   hresponse_t *res;
   char *s1, *s2, *str;
 
   /* create response object */
-  res = hresponse_new ();
+  res = hresponse_new();
 
   /* *** parse spec *** */
   /* [HTTP/1.1 | 1.2] [CODE] [DESC] */
 
   /* stage 1: HTTP spec */
-  str = (char *) strtok_r ((char *) buffer, " ", &s2);
+  str = (char *) strtok_r((char *) buffer, " ", &s2);
   s1 = s2;
   if (str == NULL)
   {
-    log_error1 ("Parse error reading HTTP spec");
+    log_error1("Parse error reading HTTP spec");
     return NULL;
   }
 
-  if (!strcmp (str, "HTTP/1.0"))
+  if (!strcmp(str, "HTTP/1.0"))
     res->version = HTTP_1_0;
   else
     res->version = HTTP_1_1;
 
   /* stage 2: http code */
-  str = (char *) strtok_r (s1, " ", &s2);
+  str = (char *) strtok_r(s1, " ", &s2);
   s1 = s2;
   if (str == NULL)
   {
-    log_error1 ("Parse error reading HTTP code");
+    log_error1("Parse error reading HTTP code");
     return NULL;
   }
-  res->errcode = atoi (str);
+  res->errcode = atoi(str);
 
   /* stage 3: description text */
-  str = (char *) strtok_r (s1, "\r\n", &s2);
+  str = (char *) strtok_r(s1, "\r\n", &s2);
   s1 = s2;
   if (str == NULL)
   {
-    log_error1 ("Parse error reading HTTP description");
+    log_error1("Parse error reading HTTP description");
     return NULL;
   }
 /*	res->desc = (char *) malloc(strlen(str) + 1);*/
-  strncpy (res->desc, str, RESPONSE_MAX_DESC_SIZE);
-  res->desc[strlen (str)] = '\0';
+  strncpy(res->desc, str, RESPONSE_MAX_DESC_SIZE);
+  res->desc[strlen(str)] = '\0';
 
   /* *** parse header *** */
   /* [key]: [value] */
   for (;;)
   {
-    str = strtok_r (s1, "\n", &s2);
+    str = strtok_r(s1, "\n", &s2);
     s1 = s2;
 
     /* check if header ends without body */
@@ -109,18 +109,18 @@ _hresponse_parse_header (const char *buffer)
       return res;
     }
     /* check also for end of header */
-    if (!strcmp (str, "\r"))
+    if (!strcmp(str, "\r"))
     {
       break;
     }
-    str[strlen (str) - 1] = '\0';
-    res->header = hpairnode_parse (str, ":", res->header);
+    str[strlen(str) - 1] = '\0';
+    res->header = hpairnode_parse(str, ":", res->header);
   }
 
   /* Check Content-type */
-  str = hpairnode_get (res->header, HEADER_CONTENT_TYPE);
+  str = hpairnode_get(res->header, HEADER_CONTENT_TYPE);
   if (str != NULL)
-    res->content_type = content_type_new (str);
+    res->content_type = content_type_new(str);
 
   /* return response object */
   return res;
@@ -128,7 +128,7 @@ _hresponse_parse_header (const char *buffer)
 
 
 herror_t
-hresponse_new_from_socket (hsocket_t sock, hresponse_t ** out)
+hresponse_new_from_socket(hsocket_t sock, hresponse_t ** out)
 {
   int i = 0, readed;
   herror_t status;
@@ -140,10 +140,10 @@ read_header:                   /* for errorcode: 100 (continue) */
   /* Read header */
   while (i < MAX_HEADER_SIZE)
   {
-    status = hsocket_read (sock, &(buffer[i]), 1, 1, &readed);
+    status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
     if (status != H_OK)
     {
-      log_error1 ("Socket read error");
+      log_error1("Socket read error");
       return status;
     }
 
@@ -151,52 +151,52 @@ read_header:                   /* for errorcode: 100 (continue) */
 
     if (i > 3)
     {
-      if (!strcmp (&(buffer[i - 1]), "\n\n") ||
-          !strcmp (&(buffer[i - 2]), "\n\r\n"))
+      if (!strcmp(&(buffer[i - 1]), "\n\n") ||
+          !strcmp(&(buffer[i - 2]), "\n\r\n"))
         break;
     }
     i++;
   }
 
   /* Create response */
-  res = _hresponse_parse_header (buffer);
+  res = _hresponse_parse_header(buffer);
   if (res == NULL)
   {
-    log_error1 ("Header parse error");
-    return herror_new ("hresponse_new_from_socket",
-                       GENERAL_HEADER_PARSE_ERROR,
-                       "Can not parse response header");
+    log_error1("Header parse error");
+    return herror_new("hresponse_new_from_socket",
+                      GENERAL_HEADER_PARSE_ERROR,
+                      "Can not parse response header");
   }
 
   /* Chec for Errorcode: 100 (continue) */
   if (res->errcode == 100)
   {
-    hresponse_free (res);
+    hresponse_free(res);
     i = 0;
     goto read_header;
   }
 
   /* Create input stream */
-  res->in = http_input_stream_new (sock, res->header);
+  res->in = http_input_stream_new(sock, res->header);
 
 
   /* Check for MIME message */
   if ((res->content_type &&
-       !strcmp (res->content_type->type, "multipart/related")))
+       !strcmp(res->content_type->type, "multipart/related")))
   {
-    status = mime_get_attachments (res->content_type, res->in, &mimeMessage);
+    status = mime_get_attachments(res->content_type, res->in, &mimeMessage);
     if (status != H_OK)
     {
       /* TODO (#1#): Handle error */
-      hresponse_free (res);
+      hresponse_free(res);
       return status;
     }
     else
     {
       res->attachments = mimeMessage;
-      http_input_stream_free (res->in);
+      http_input_stream_free(res->in);
       res->in =
-        http_input_stream_new_from_file (mimeMessage->root_part->filename);
+        http_input_stream_new_from_file(mimeMessage->root_part->filename);
       if (!res->in)
       {
         /* TODO (#1#): Handle error */
@@ -215,21 +215,21 @@ read_header:                   /* for errorcode: 100 (continue) */
 
 
 void
-hresponse_free (hresponse_t * res)
+hresponse_free(hresponse_t * res)
 {
   if (res == NULL)
     return;
 
   if (res->header)
-    hpairnode_free_deep (res->header);
+    hpairnode_free_deep(res->header);
 
   if (res->in)
-    http_input_stream_free (res->in);
+    http_input_stream_free(res->in);
 
   if (res->content_type)
-    content_type_free (res->content_type);
+    content_type_free(res->content_type);
 
   if (res->attachments)
-    attachments_free (res->attachments);
-  free (res);
+    attachments_free(res->attachments);
+  free(res);
 }

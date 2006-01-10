@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.5 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: soap-service.c,v 1.6 2006/01/10 11:29:04 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,11 +26,11 @@
 #include <string.h>
 
 SoapServiceNode *
-soap_service_node_new (SoapService * service, SoapServiceNode * next)
+soap_service_node_new(SoapService * service, SoapServiceNode * next)
 {
   SoapServiceNode *node;
 
-  node = (SoapServiceNode *) malloc (sizeof (SoapServiceNode));
+  node = (SoapServiceNode *) malloc(sizeof(SoapServiceNode));
   node->service = service;
   node->next = next;
 
@@ -41,33 +41,33 @@ soap_service_node_new (SoapService * service, SoapServiceNode * next)
 
 
 SoapService *
-soap_service_new (const char *urn, const char *method, SoapServiceFunc f)
+soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
 {
   SoapService *service;
 
 
-  service = (SoapService *) malloc (sizeof (SoapService));
+  service = (SoapService *) malloc(sizeof(SoapService));
   service->func = f;
 
   if (urn != NULL)
   {
-    service->urn = (char *) malloc (strlen (urn) + 1);
-    strcpy (service->urn, urn);
+    service->urn = (char *) malloc(strlen(urn) + 1);
+    strcpy(service->urn, urn);
   }
   else
   {
-    log_warn1 ("urn is NULL");
+    log_warn1("urn is NULL");
     service->urn = "";
   }
 
   if (method != NULL)
   {
-    service->method = (char *) malloc (strlen (method) + 1);
-    strcpy (service->method, method);
+    service->method = (char *) malloc(strlen(method) + 1);
+    strcpy(service->method, method);
   }
   else
   {
-    log_warn1 ("method is NULL");
+    log_warn1("method is NULL");
     service->method = "";
   }
 
@@ -77,19 +77,19 @@ soap_service_new (const char *urn, const char *method, SoapServiceFunc f)
 
 
 void
-soap_service_free (SoapService * service)
+soap_service_free(SoapService * service)
 {
-  log_verbose2 ("enter: service=%p", service);
+  log_verbose2("enter: service=%p", service);
 
   if (service == NULL)
     return;
 
-  if (strcmp (service->urn, ""))
-    free (service->urn);
+  if (strcmp(service->urn, ""))
+    free(service->urn);
 
-  if (strcmp (service->method, ""))
-    free (service->method);
+  if (strcmp(service->method, ""))
+    free(service->method);
 
-  free (service);
-  log_verbose1 ("leave with success");
+  free(service);
+  log_verbose1("leave with success");
 }

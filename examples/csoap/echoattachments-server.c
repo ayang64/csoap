@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -32,14 +32,14 @@ static const char *method = "echo";
 
 
 herror_t
-echo_attachments (SoapCtx * req, SoapCtx * res)
+echo_attachments(SoapCtx * req, SoapCtx * res)
 {
   herror_t err;
 
   part_t *part;
   char href[MAX_HREF_SIZE];
 
-  err = soap_env_new_with_response (req->env, &res->env);
+  err = soap_env_new_with_response(req->env, &res->env);
   if (err != H_OK)
   {
     return err;
@@ -49,8 +49,8 @@ echo_attachments (SoapCtx * req, SoapCtx * res)
   {
     for (part = req->attachments->parts; part != NULL; part = part->next)
     {
-      soap_ctx_add_file (res, part->filename, part->content_type, href);
-      soap_env_add_attachment (res->env, "echoFile", href);
+      soap_ctx_add_file(res, part->filename, part->content_type, href);
+      soap_env_add_attachment(res->env, "echoFile", href);
     }
   }
 
@@ -59,31 +59,31 @@ echo_attachments (SoapCtx * req, SoapCtx * res)
 
 
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
   herror_t err;
   SoapRouter *router;
 
-  log_set_level (HLOG_VERBOSE);
+  log_set_level(HLOG_VERBOSE);
 
-  err = soap_server_init_args (argc, argv);
+  err = soap_server_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
-                herror_code (err));
-    herror_release (err);
+    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
+               herror_code(err));
+    herror_release(err);
     return 1;
   }
 
-  router = soap_router_new ();
-  soap_router_register_service (router, echo_attachments, method, urn);
-  soap_server_register_router (router, url);
+  router = soap_router_new();
+  soap_router_register_service(router, echo_attachments, method, urn);
+  soap_server_register_router(router, url);
 
-  log_info1 ("send SIGTERM to shutdown");
-  soap_server_run ();
+  log_info1("send SIGTERM to shutdown");
+  soap_server_run();
 
-  log_info1 ("shutting down\n");
-  soap_server_destroy ();
+  log_info1("shutting down\n");
+  soap_server_destroy();
 
   return 0;
 }

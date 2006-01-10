@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.8 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.9 2006/01/10 11:29:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -30,7 +30,7 @@
 #include <utils/alloc.h>
 #endif
 void
-_log_str (char *fn, char *str, int size)
+_log_str(char *fn, char *str, int size)
 {
 /*  FILE *f = fopen(fn, "ab");
   if (!f) f=fopen(fn,"wb");
@@ -49,19 +49,19 @@ HTTP INPUT STREAM
 */
 
 static int
-_http_stream_is_content_length (hpair_t * header)
+_http_stream_is_content_length(hpair_t * header)
 {
-  return hpairnode_get_ignore_case (header, HEADER_CONTENT_LENGTH) != NULL;
+  return hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH) != NULL;
 }
 
 static int
-_http_stream_is_chunked (hpair_t * header)
+_http_stream_is_chunked(hpair_t * header)
 {
   char *chunked;
-  chunked = hpairnode_get_ignore_case (header, HEADER_TRANSFER_ENCODING);
+  chunked = hpairnode_get_ignore_case(header, HEADER_TRANSFER_ENCODING);
   if (chunked != NULL)
   {
-    if (!strcmp (chunked, TRANSFER_ENCODING_CHUNKED))
+    if (!strcmp(chunked, TRANSFER_ENCODING_CHUNKED))
     {
       return 1;
     }
@@ -74,7 +74,7 @@ _http_stream_is_chunked (hpair_t * header)
   Creates a new input stream. 
 */
 http_input_stream_t *
-http_input_stream_new (hsocket_t sock, hpair_t * header)
+http_input_stream_new(hsocket_t sock, hpair_t * header)
 {
   http_input_stream_t *result;
   char *content_length;
@@ -82,26 +82,25 @@ http_input_stream_new (hsocket_t sock, hpair_t * header)
   /* Paranoya check */
   /* if (header == NULL) return NULL; */
   /* Create object */
-  result = (http_input_stream_t *) malloc (sizeof (http_input_stream_t));
+  result = (http_input_stream_t *) malloc(sizeof(http_input_stream_t));
   result->sock = sock;
   result->err = H_OK;
 
   /* Find connection type */
-  hpairnode_dump_deep (header);
+  hpairnode_dump_deep(header);
   /* Check if Content-type */
-  if (_http_stream_is_content_length (header))
+  if (_http_stream_is_content_length(header))
   {
-    log_verbose1 ("Stream transfer with 'Content-length'");
-    content_length =
-      hpairnode_get_ignore_case (header, HEADER_CONTENT_LENGTH);
-    result->content_length = atoi (content_length);
+    log_verbose1("Stream transfer with 'Content-length'");
+    content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
+    result->content_length = atoi(content_length);
     result->received = 0;
     result->type = HTTP_TRANSFER_CONTENT_LENGTH;
   }
   /* Check if Chunked */
-  else if (_http_stream_is_chunked (header))
+  else if (_http_stream_is_chunked(header))
   {
-    log_verbose1 ("Stream transfer with 'chunked'");
+    log_verbose1("Stream transfer with 'chunked'");
     result->type = HTTP_TRANSFER_CHUNKED;
     result->chunk_size = -1;
     result->received = -1;
@@ -109,7 +108,7 @@ http_input_stream_new (hsocket_t sock, hpair_t * header)
   /* Assume connection close */
   else
   {
-    log_verbose1 ("Stream transfer with 'Connection: close'");
+    log_verbose1("Stream transfer with 'Connection: close'");
     result->type = HTTP_TRANSFER_CONNECTION_CLOSE;
     result->connection_closed = 0;
     result->received = 0;
@@ -123,20 +122,20 @@ http_input_stream_new (hsocket_t sock, hpair_t * header)
   and for debugging.
 */
 http_input_stream_t *
-http_input_stream_new_from_file (const char *filename)
+http_input_stream_new_from_file(const char *filename)
 {
   http_input_stream_t *result;
-  FILE *fd = fopen (filename, "rb");
+  FILE *fd = fopen(filename, "rb");
 
   if (fd == NULL)
     return NULL;
 
   /* Create object */
-  result = (http_input_stream_t *) malloc (sizeof (http_input_stream_t));
+  result = (http_input_stream_t *) malloc(sizeof(http_input_stream_t));
   result->type = HTTP_TRANSFER_FILE;
   result->fd = fd;
   result->deleteOnExit = 0;
-  strcpy (result->filename, filename);
+  strcpy(result->filename, filename);
   return result;
 }
 
@@ -144,47 +143,47 @@ http_input_stream_new_from_file (const char *filename)
   Free input stream
 */
 void
-http_input_stream_free (http_input_stream_t * stream)
+http_input_stream_free(http_input_stream_t * stream)
 {
   if (stream->type == HTTP_TRANSFER_FILE && stream->fd)
   {
-    fclose (stream->fd);
+    fclose(stream->fd);
     if (stream->deleteOnExit)
-      log_info2 ("Removing '%s'", stream->filename);
+      log_info2("Removing '%s'", stream->filename);
     /* remove(stream->filename); */
   }
 
-  free (stream);
+  free(stream);
 }
 
 static int
-_http_input_stream_is_content_length_ready (http_input_stream_t * stream)
+_http_input_stream_is_content_length_ready(http_input_stream_t * stream)
 {
   return (stream->content_length > stream->received);
 }
 
 static int
-_http_input_stream_is_chunked_ready (http_input_stream_t * stream)
+_http_input_stream_is_chunked_ready(http_input_stream_t * stream)
 {
   return stream->chunk_size != 0;
 
 }
 
 static int
-_http_input_stream_is_connection_closed_ready (http_input_stream_t * stream)
+_http_input_stream_is_connection_closed_ready(http_input_stream_t * stream)
 {
   return !stream->connection_closed;
 }
 
 static int
-_http_input_stream_is_file_ready (http_input_stream_t * stream)
+_http_input_stream_is_file_ready(http_input_stream_t * stream)
 {
-  return !feof (stream->fd);
+  return !feof(stream->fd);
 }
 
 static int
-_http_input_stream_content_length_read (http_input_stream_t * stream,
-                                        byte_t * dest, int size)
+_http_input_stream_content_length_read(http_input_stream_t * stream,
+                                       byte_t * dest, int size)
 {
   herror_t status;
   int read;
@@ -194,7 +193,7 @@ _http_input_stream_content_length_read (http_input_stream_t * stream,
     size = stream->content_length - stream->received;
 
   /* read from socket */
-  status = hsocket_read (stream->sock, dest, size, 1, &read);
+  status = hsocket_read(stream->sock, dest, size, 1, &read);
   if (status != H_OK)
   {
     stream->err = status;
@@ -206,7 +205,7 @@ _http_input_stream_content_length_read (http_input_stream_t * stream,
 }
 
 static int
-_http_input_stream_chunked_read_chunk_size (http_input_stream_t * stream)
+_http_input_stream_chunked_read_chunk_size(http_input_stream_t * stream)
 {
   char chunk[25];
   int status, i = 0;
@@ -215,19 +214,19 @@ _http_input_stream_chunked_read_chunk_size (http_input_stream_t * stream)
 
   while (1)
   {
-    err = hsocket_read (stream->sock, &(chunk[i]), 1, 1, &status);
+    err = hsocket_read(stream->sock, &(chunk[i]), 1, 1, &status);
     if (status != 1)
     {
-      stream->err = herror_new ("_http_input_stream_chunked_read_chunk_size",
-                                GENERAL_INVALID_PARAM,
-                                "This should never happens!");
+      stream->err = herror_new("_http_input_stream_chunked_read_chunk_size",
+                               GENERAL_INVALID_PARAM,
+                               "This should never happens!");
       return -1;
     }
 
     if (err != H_OK)
     {
-      log_error4 ("[%d] %s(): %s ", herror_code (err), herror_func (err),
-                  herror_message (err));
+      log_error4("[%d] %s(): %s ", herror_code(err), herror_func(err),
+                 herror_message(err));
 
       stream->err = err;
       return -1;
@@ -240,7 +239,7 @@ _http_input_stream_chunked_read_chunk_size (http_input_stream_t * stream)
     else if (chunk[i] == '\n')
     {
       chunk[i] = '\0';          /* double check */
-      chunk_size = strtol (chunk, (char **) NULL, 16);  /* hex to dec */
+      chunk_size = strtol(chunk, (char **) NULL, 16);   /* hex to dec */
       /* 
          log_verbose3("chunk_size: '%s' as dec: '%d'", chunk, chunk_size); */
       return chunk_size;
@@ -249,8 +248,8 @@ _http_input_stream_chunked_read_chunk_size (http_input_stream_t * stream)
     if (i == 24)
     {
       stream->err =
-        herror_new ("_http_input_stream_chunked_read_chunk_size",
-                    STREAM_ERROR_NO_CHUNK_SIZE, "reached max line == %d", i);
+        herror_new("_http_input_stream_chunked_read_chunk_size",
+                   STREAM_ERROR_NO_CHUNK_SIZE, "reached max line == %d", i);
       return -1;
     }
     else
@@ -259,14 +258,14 @@ _http_input_stream_chunked_read_chunk_size (http_input_stream_t * stream)
 
   /* this should never happens */
   stream->err =
-    herror_new ("_http_input_stream_chunked_read_chunk_size",
-                STREAM_ERROR_NO_CHUNK_SIZE, "reached max line == %d", i);
+    herror_new("_http_input_stream_chunked_read_chunk_size",
+               STREAM_ERROR_NO_CHUNK_SIZE, "reached max line == %d", i);
   return -1;
 }
 
 static int
-_http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
-                                 int size)
+_http_input_stream_chunked_read(http_input_stream_t * stream, byte_t * dest,
+                                int size)
 {
   int status, counter;
   int remain, read = 0;
@@ -284,7 +283,7 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
       counter = 100;            /* maximum for stop infinity */
       while (1)
       {
-        err = hsocket_read (stream->sock, &ch, 1, 1, &status);
+        err = hsocket_read(stream->sock, &ch, 1, 1, &status);
 
         if (err != H_OK)
         {
@@ -298,9 +297,9 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
         }
         if (counter-- == 0)
         {
-          stream->err = herror_new ("_http_input_stream_chunked_read",
-                                    STREAM_ERROR_WRONG_CHUNK_SIZE,
-                                    "Wrong chunk-size");
+          stream->err = herror_new("_http_input_stream_chunked_read",
+                                   STREAM_ERROR_WRONG_CHUNK_SIZE,
+                                   "Wrong chunk-size");
           return -1;
         }
       }
@@ -309,8 +308,7 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
     if (remain == 0)
     {
       /* receive new chunk size */
-      stream->chunk_size =
-        _http_input_stream_chunked_read_chunk_size (stream);
+      stream->chunk_size = _http_input_stream_chunked_read_chunk_size(stream);
       stream->received = 0;
 
       if (stream->chunk_size < 0)
@@ -329,7 +327,7 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
     if (remain < size)
     {
       /* read from socket */
-      err = hsocket_read (stream->sock, &(dest[read]), remain, 1, &status);
+      err = hsocket_read(stream->sock, &(dest[read]), remain, 1, &status);
       if (err != H_OK)
       {
         stream->err = err;
@@ -337,23 +335,23 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
       }
       if (status != remain)
       {
-        stream->err = herror_new ("_http_input_stream_chunked_read",
-                                  GENERAL_INVALID_PARAM,
-                                  "This should never happens(remain=%d)(status=%d)!",
-                                  remain, status);
+        stream->err = herror_new("_http_input_stream_chunked_read",
+                                 GENERAL_INVALID_PARAM,
+                                 "This should never happens(remain=%d)(status=%d)!",
+                                 remain, status);
         return -1;
       }
     }
     else
     {
       /* read from socket */
-      err = hsocket_read (stream->sock, &(dest[read]), size, 1, &status);
+      err = hsocket_read(stream->sock, &(dest[read]), size, 1, &status);
       if (status != size)
       {
-        stream->err = herror_new ("_http_input_stream_chunked_read",
-                                  GENERAL_INVALID_PARAM,
-                                  "This should never happens(size=%d)(status=%d)!",
-                                  size, status);
+        stream->err = herror_new("_http_input_stream_chunked_read",
+                                 GENERAL_INVALID_PARAM,
+                                 "This should never happens(size=%d)(status=%d)!",
+                                 size, status);
         return -1;
       }
       if (err != H_OK)
@@ -373,14 +371,14 @@ _http_input_stream_chunked_read (http_input_stream_t * stream, byte_t * dest,
 
 
 static int
-_http_input_stream_connection_closed_read (http_input_stream_t * stream,
-                                           byte_t * dest, int size)
+_http_input_stream_connection_closed_read(http_input_stream_t * stream,
+                                          byte_t * dest, int size)
 {
   int status;
   herror_t err;
 
   /* read from socket */
-  err = hsocket_read (stream->sock, dest, size, 0, &status);
+  err = hsocket_read(stream->sock, dest, size, 0, &status);
   if (err != H_OK)
   {
     stream->err = err;
@@ -391,21 +389,21 @@ _http_input_stream_connection_closed_read (http_input_stream_t * stream,
     stream->connection_closed = 1;
 
   stream->received += status;
-  _log_str ("stream.in", dest, size);
+  _log_str("stream.in", dest, size);
   return status;
 }
 
 static int
-_http_input_stream_file_read (http_input_stream_t * stream, byte_t * dest,
-                              int size)
+_http_input_stream_file_read(http_input_stream_t * stream, byte_t * dest,
+                             int size)
 {
   int readed;
 
-  readed = fread (dest, 1, size, stream->fd);
+  readed = fread(dest, 1, size, stream->fd);
   if (readed == -1)
   {
-    stream->err = herror_new ("_http_input_stream_file_read",
-                              HSOCKET_ERROR_RECEIVE, "fread() returned -1");
+    stream->err = herror_new("_http_input_stream_file_read",
+                             HSOCKET_ERROR_RECEIVE, "fread() returned -1");
     return -1;
   }
 
@@ -416,7 +414,7 @@ _http_input_stream_file_read (http_input_stream_t * stream, byte_t * dest,
   Returns the actual status of the stream.
 */
 int
-http_input_stream_is_ready (http_input_stream_t * stream)
+http_input_stream_is_ready(http_input_stream_t * stream)
 {
   /* paranoya check */
   if (stream == NULL)
@@ -428,13 +426,13 @@ http_input_stream_is_ready (http_input_stream_t * stream)
   switch (stream->type)
   {
   case HTTP_TRANSFER_CONTENT_LENGTH:
-    return _http_input_stream_is_content_length_ready (stream);
+    return _http_input_stream_is_content_length_ready(stream);
   case HTTP_TRANSFER_CHUNKED:
-    return _http_input_stream_is_chunked_ready (stream);
+    return _http_input_stream_is_chunked_ready(stream);
   case HTTP_TRANSFER_CONNECTION_CLOSE:
-    return _http_input_stream_is_connection_closed_ready (stream);
+    return _http_input_stream_is_connection_closed_ready(stream);
   case HTTP_TRANSFER_FILE:
-    return _http_input_stream_is_file_ready (stream);
+    return _http_input_stream_is_file_ready(stream);
   default:
     return 0;
   }
@@ -446,7 +444,7 @@ http_input_stream_is_ready (http_input_stream_t * stream)
   <0 on error
 */
 int
-http_input_stream_read (http_input_stream_t * stream, byte_t * dest, int size)
+http_input_stream_read(http_input_stream_t * stream, byte_t * dest, int size)
 {
   int readed = 0;
   /* paranoya check */
@@ -461,21 +459,21 @@ http_input_stream_read (http_input_stream_t * stream, byte_t * dest, int size)
   switch (stream->type)
   {
   case HTTP_TRANSFER_CONTENT_LENGTH:
-    readed = _http_input_stream_content_length_read (stream, dest, size);
+    readed = _http_input_stream_content_length_read(stream, dest, size);
     break;
   case HTTP_TRANSFER_CHUNKED:
-    readed = _http_input_stream_chunked_read (stream, dest, size);
+    readed = _http_input_stream_chunked_read(stream, dest, size);
     break;
   case HTTP_TRANSFER_CONNECTION_CLOSE:
-    readed = _http_input_stream_connection_closed_read (stream, dest, size);
+    readed = _http_input_stream_connection_closed_read(stream, dest, size);
     break;
   case HTTP_TRANSFER_FILE:
-    readed = _http_input_stream_file_read (stream, dest, size);
+    readed = _http_input_stream_file_read(stream, dest, size);
     break;
   default:
-    stream->err = herror_new ("http_input_stream_read",
-                              STREAM_ERROR_INVALID_TYPE,
-                              "%d is invalid stream type", stream->type);
+    stream->err = herror_new("http_input_stream_read",
+                             STREAM_ERROR_INVALID_TYPE,
+                             "%d is invalid stream type", stream->type);
     return -1;
   }
 
@@ -497,7 +495,7 @@ HTTP OUTPUT STREAM
   Creates a new output stream. Transfer code will be found from header.
 */
 http_output_stream_t *
-http_output_stream_new (hsocket_t sock, hpair_t * header)
+http_output_stream_new(hsocket_t sock, hpair_t * header)
 {
   http_output_stream_t *result;
   char *content_length;
@@ -507,31 +505,30 @@ http_output_stream_new (hsocket_t sock, hpair_t * header)
     return NULL;
 */
   /* Create object */
-  result = (http_output_stream_t *) malloc (sizeof (http_output_stream_t));
+  result = (http_output_stream_t *) malloc(sizeof(http_output_stream_t));
   result->sock = sock;
   result->sent = 0;
 
   /* Find connection type */
 
   /* Check if Content-type */
-  if (_http_stream_is_content_length (header))
+  if (_http_stream_is_content_length(header))
   {
-    log_verbose1 ("Stream transfer with 'Content-length'");
-    content_length =
-      hpairnode_get_ignore_case (header, HEADER_CONTENT_LENGTH);
-    result->content_length = atoi (content_length);
+    log_verbose1("Stream transfer with 'Content-length'");
+    content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
+    result->content_length = atoi(content_length);
     result->type = HTTP_TRANSFER_CONTENT_LENGTH;
   }
   /* Check if Chunked */
-  else if (_http_stream_is_chunked (header))
+  else if (_http_stream_is_chunked(header))
   {
-    log_verbose1 ("Stream transfer with 'chunked'");
+    log_verbose1("Stream transfer with 'chunked'");
     result->type = HTTP_TRANSFER_CHUNKED;
   }
   /* Assume connection close */
   else
   {
-    log_verbose1 ("Stream transfer with 'Connection: close'");
+    log_verbose1("Stream transfer with 'Connection: close'");
     result->type = HTTP_TRANSFER_CONNECTION_CLOSE;
   }
 
@@ -542,9 +539,9 @@ http_output_stream_new (hsocket_t sock, hpair_t * header)
   Free output stream
 */
 void
-http_output_stream_free (http_output_stream_t * stream)
+http_output_stream_free(http_output_stream_t * stream)
 {
-  free (stream);
+  free(stream);
 }
 
 /**
@@ -552,31 +549,31 @@ http_output_stream_free (http_output_stream_t * stream)
   Returns socket error flags or H_OK.
 */
 herror_t
-http_output_stream_write (http_output_stream_t * stream,
-                          const byte_t * bytes, int size)
+http_output_stream_write(http_output_stream_t * stream,
+                         const byte_t * bytes, int size)
 {
   herror_t status;
   char chunked[15];
 
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
-    sprintf (chunked, "%x\r\n", size);
-    status = hsocket_send (stream->sock, chunked);
+    sprintf(chunked, "%x\r\n", size);
+    status = hsocket_send(stream->sock, chunked);
     if (status != H_OK)
       return status;
   }
 
   if (size > 0)
   {
-    _log_str ("stream.out", (char *) bytes, size);
-    status = hsocket_nsend (stream->sock, bytes, size);
+    _log_str("stream.out", (char *) bytes, size);
+    status = hsocket_nsend(stream->sock, bytes, size);
     if (status != H_OK)
       return status;
   }
 
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
-    status = hsocket_send (stream->sock, "\r\n");
+    status = hsocket_send(stream->sock, "\r\n");
     if (status != H_OK)
       return status;
   }
@@ -589,21 +586,21 @@ http_output_stream_write (http_output_stream_t * stream,
   Returns socket error flags or H_OK.
 */
 herror_t
-http_output_stream_write_string (http_output_stream_t * stream,
-                                 const char *str)
+http_output_stream_write_string(http_output_stream_t * stream,
+                                const char *str)
 {
-  return http_output_stream_write (stream, str, strlen (str));
+  return http_output_stream_write(stream, str, strlen(str));
 }
 
 
 herror_t
-http_output_stream_flush (http_output_stream_t * stream)
+http_output_stream_flush(http_output_stream_t * stream)
 {
   herror_t status;
 
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
-    status = hsocket_send (stream->sock, "0\r\n\r\n");
+    status = hsocket_send(stream->sock, "0\r\n\r\n");
     if (status != H_OK)
       return status;
   }

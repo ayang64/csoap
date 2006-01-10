@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -44,7 +44,7 @@
 
    @returns 1 if success, 0 otherwise
  */
-herror_t soap_server_init_args (int argc, char *argv[]);
+herror_t soap_server_init_args(int argc, char *argv[]);
 
 
 /**
@@ -61,20 +61,20 @@ herror_t soap_server_init_args (int argc, char *argv[]);
    @see soap_router_register_service
 
  */
-int soap_server_register_router (SoapRouter * router, const char *context);
+int soap_server_register_router(SoapRouter * router, const char *context);
 
 
 /**
    Enters the server loop and starts to listen to 
    http requests.
  */
-herror_t soap_server_run ();
+herror_t soap_server_run();
 
 
 /**
    Frees the soap server.
  */
-void soap_server_destroy ();
+void soap_server_destroy();
 
 
 #endif

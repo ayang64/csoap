@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.7 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.8 2006/01/10 11:29:05 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -35,9 +35,9 @@
 
 
 static hrequest_t *
-hrequest_new ()
+hrequest_new()
 {
-  hrequest_t *req = (hrequest_t *) malloc (sizeof (hrequest_t));
+  hrequest_t *req = (hrequest_t *) malloc(sizeof(hrequest_t));
 
   req->method = HTTP_REQUEST_GET;
   req->version = HTTP_1_1;
@@ -51,7 +51,7 @@ hrequest_new ()
 }
 
 static hrequest_t *
-_hrequest_parse_header (char *data)
+_hrequest_parse_header(char *data)
 {
   hrequest_t *req;
   hpair_t *hpair = NULL, *qpair = NULL, *tmppair = NULL;
@@ -67,12 +67,12 @@ _hrequest_parse_header (char *data)
   char *opt_value;
   int firstline = 1;
 
-  req = hrequest_new ();
+  req = hrequest_new();
   tmp = data;
 
   for (;;)
   {
-    result = (char *) strtok_r (tmp, "\r\n", &saveptr);
+    result = (char *) strtok_r(tmp, "\r\n", &saveptr);
     tmp = saveptr;
 
     if (result == NULL)
@@ -84,19 +84,19 @@ _hrequest_parse_header (char *data)
       tmp2 = result;
 
       /* parse [GET|POST] [PATH] [SPEC] */
-      key = (char *) strtok_r (tmp2, " ", &saveptr2);
+      key = (char *) strtok_r(tmp2, " ", &saveptr2);
 
       /* save method (get or post) */
       tmp2 = saveptr2;
       if (key != NULL)
       {
-        if (!strcmp (key, "POST"))
+        if (!strcmp(key, "POST"))
           req->method = HTTP_REQUEST_POST;
         else
           req->method = HTTP_REQUEST_GET;
       }
       /* below is key the path and tmp2 the spec */
-      key = (char *) strtok_r (tmp2, " ", &saveptr2);
+      key = (char *) strtok_r(tmp2, " ", &saveptr2);
 
       /* save version */
       tmp2 = saveptr2;
@@ -104,7 +104,7 @@ _hrequest_parse_header (char *data)
       {
         /* req->spec = (char *) malloc(strlen(tmp2) + 1); strcpy(req->spec,
            tmp2); */
-        if (!strcmp (tmp2, "HTTP/1.0"))
+        if (!strcmp(tmp2, "HTTP/1.0"))
           req->version = HTTP_1_0;
         else
           req->version = HTTP_1_1;
@@ -117,23 +117,23 @@ _hrequest_parse_header (char *data)
       if (key != NULL)
       {
         tmp2 = key;
-        key = (char *) strtok_r (tmp2, "?", &saveptr2);
+        key = (char *) strtok_r(tmp2, "?", &saveptr2);
         tmp2 = saveptr2;
 
         /* save path */
         /* req->path = (char *) malloc(strlen(key) + 1); */
-        strncpy (req->path, key, REQUEST_MAX_PATH_SIZE);
+        strncpy(req->path, key, REQUEST_MAX_PATH_SIZE);
 
         /* parse options */
         for (;;)
         {
-          key = (char *) strtok_r (tmp2, "&", &saveptr2);
+          key = (char *) strtok_r(tmp2, "&", &saveptr2);
           tmp2 = saveptr2;
 
           if (key == NULL)
             break;
 
-          opt_key = (char *) strtok_r (key, "=", &saveptr3);
+          opt_key = (char *) strtok_r(key, "=", &saveptr3);
           opt_value = saveptr3;
 
           if (opt_value == NULL)
@@ -142,7 +142,7 @@ _hrequest_parse_header (char *data)
           /* create option pair */
           if (opt_key != NULL)
           {
-            tmppair = (hpair_t *) malloc (sizeof (hpair_t));
+            tmppair = (hpair_t *) malloc(sizeof(hpair_t));
 
             if (req->query == NULL)
             {
@@ -156,11 +156,11 @@ _hrequest_parse_header (char *data)
 
             /* fill hpairnode_t struct */
             qpair->next = NULL;
-            qpair->key = (char *) malloc (strlen (opt_key) + 1);
-            qpair->value = (char *) malloc (strlen (opt_value) + 1);
+            qpair->key = (char *) malloc(strlen(opt_key) + 1);
+            qpair->value = (char *) malloc(strlen(opt_value) + 1);
 
-            strcpy (qpair->key, opt_key);
-            strcpy (qpair->value, opt_value);
+            strcpy(qpair->key, opt_key);
+            strcpy(qpair->value, opt_value);
 
           }
         }
@@ -175,7 +175,7 @@ _hrequest_parse_header (char *data)
 
       /* create pair */
 /*			tmppair = (hpair_t *) malloc(sizeof(hpair_t));*/
-      tmppair = hpairnode_parse (result, ":", NULL);
+      tmppair = hpairnode_parse(result, ":", NULL);
 
       if (req->header == NULL)
       {
@@ -197,39 +197,39 @@ _hrequest_parse_header (char *data)
   }
 
   /* Check Content-type */
-  tmp = hpairnode_get (req->header, HEADER_CONTENT_TYPE);
+  tmp = hpairnode_get(req->header, HEADER_CONTENT_TYPE);
   if (tmp != NULL)
-    req->content_type = content_type_new (tmp);
+    req->content_type = content_type_new(tmp);
 
   return req;
 }
 
 
 void
-hrequest_free (hrequest_t * req)
+hrequest_free(hrequest_t * req)
 {
   if (req == NULL)
     return;
 
 
-  hpairnode_free_deep (req->header);
-  hpairnode_free_deep (req->query);
+  hpairnode_free_deep(req->header);
+  hpairnode_free_deep(req->query);
 
   if (req->in)
-    http_input_stream_free (req->in);
+    http_input_stream_free(req->in);
 
   if (req->content_type)
-    content_type_free (req->content_type);
+    content_type_free(req->content_type);
 
   if (req->attachments)
-    attachments_free (req->attachments);
+    attachments_free(req->attachments);
 
-  free (req);
+  free(req);
 }
 
 
 herror_t
-hrequest_new_from_socket (hsocket_t sock, hrequest_t ** out)
+hrequest_new_from_socket(hsocket_t sock, hrequest_t ** out)
 {
   int i = 0, readed;
   herror_t status;
@@ -237,16 +237,16 @@ hrequest_new_from_socket (hsocket_t sock, hrequest_t ** out)
   char buffer[MAX_HEADER_SIZE + 1];
   attachments_t *mimeMessage;
 
-  memset (buffer, 0, MAX_HEADER_SIZE);
+  memset(buffer, 0, MAX_HEADER_SIZE);
   /* Read header */
   while (i < MAX_HEADER_SIZE)
   {
-    status = hsocket_read (sock, &(buffer[i]), 1, 1, &readed);
+    status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
     if (status != H_OK)
     {
-      if (herror_code (status) != HSOCKET_SSL_CLOSE)
+      if (herror_code(status) != HSOCKET_SSL_CLOSE)
       {
-        log_error1 ("Socket read error");
+        log_error1("Socket read error");
       }
       return status;
     }
@@ -255,36 +255,36 @@ hrequest_new_from_socket (hsocket_t sock, hrequest_t ** out)
 
     if (i > 3)
     {
-      if (!strcmp (&(buffer[i - 1]), "\n\n") ||
-          !strcmp (&(buffer[i - 2]), "\n\r\n"))
+      if (!strcmp(&(buffer[i - 1]), "\n\n") ||
+          !strcmp(&(buffer[i - 2]), "\n\r\n"))
         break;
     }
     i++;
   }
 
   /* Create response */
-  req = _hrequest_parse_header (buffer);
+  req = _hrequest_parse_header(buffer);
 
 
   /* Create input stream */
-  req->in = http_input_stream_new (sock, req->header);
+  req->in = http_input_stream_new(sock, req->header);
 
   /* Check for MIME message */
   if ((req->content_type &&
-       !strcmp (req->content_type->type, "multipart/related")))
+       !strcmp(req->content_type->type, "multipart/related")))
   {
-    status = mime_get_attachments (req->content_type, req->in, &mimeMessage);
+    status = mime_get_attachments(req->content_type, req->in, &mimeMessage);
     if (status != H_OK)
     {
       /* TODO (#1#): Handle error */
-      hrequest_free (req);
+      hrequest_free(req);
       return status;
     }
     else
     {
       req->attachments = mimeMessage;
       req->in =
-        http_input_stream_new_from_file (mimeMessage->root_part->filename);
+        http_input_stream_new_from_file(mimeMessage->root_part->filename);
     }
   }
 

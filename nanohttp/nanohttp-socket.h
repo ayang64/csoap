@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.19 2006/01/10 11:21:55 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.20 2006/01/10 11:29:05 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -64,14 +64,14 @@ typedef struct hsocket_t
 
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_module_init ();
+herror_t hsocket_module_init();
 
 
 /**
   Destroys the socket modul. This should be called after 
   finishing an application.
 */
-void hsocket_module_destroy ();
+void hsocket_module_destroy();
 
 
 /**
@@ -82,7 +82,7 @@ void hsocket_module_destroy ();
 
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_init (hsocket_t * sock);
+herror_t hsocket_init(hsocket_t * sock);
 
 
 /**
@@ -90,7 +90,7 @@ herror_t hsocket_init (hsocket_t * sock);
 
   @param sock the socket to destroy
 */
-void hsocket_free (hsocket_t sock);
+void hsocket_free(hsocket_t sock);
 
 
 /**
@@ -106,7 +106,7 @@ void hsocket_free (hsocket_t sock);
     <BR>HSOCKET_ERROR_GET_HOSTNAME 
     <BR>HSOCKET_ERROR_CONNECT
  */
-herror_t hsocket_open (hsocket_t * sock, const char *host, int port);
+herror_t hsocket_open(hsocket_t * sock, const char *host, int port);
 
 
 /**
@@ -114,7 +114,7 @@ herror_t hsocket_open (hsocket_t * sock, const char *host, int port);
 
   @param sock the socket to close
 */
-void hsocket_close (hsocket_t sock);
+void hsocket_close(hsocket_t sock);
 
 
 /**
@@ -130,7 +130,7 @@ void hsocket_close (hsocket_t sock);
 
   @see hsocket_listen
  */
-herror_t hsocket_bind (hsocket_t * sock, int port);
+herror_t hsocket_bind(hsocket_t * sock, int port);
 
 
 /**
@@ -144,7 +144,7 @@ herror_t hsocket_bind (hsocket_t * sock, int port);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_LISTEN
 */
-herror_t hsocket_listen (hsocket_t sock);
+herror_t hsocket_listen(hsocket_t sock);
 
 
 /**
@@ -158,7 +158,7 @@ herror_t hsocket_listen (hsocket_t sock);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_ACCEPT
 */
-herror_t hsocket_accept (hsocket_t sock, hsocket_t * dest);
+herror_t hsocket_accept(hsocket_t sock, hsocket_t * dest);
 
 
 /**
@@ -172,7 +172,7 @@ herror_t hsocket_accept (hsocket_t sock, hsocket_t * dest);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_nsend (hsocket_t sock, const byte_t * bytes, int size);
+herror_t hsocket_nsend(hsocket_t sock, const byte_t * bytes, int size);
 
 
 /**
@@ -185,7 +185,7 @@ herror_t hsocket_nsend (hsocket_t sock, const byte_t * bytes, int size);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_send (hsocket_t sock, const char *str);
+herror_t hsocket_send(hsocket_t sock, const char *str);
 
 
 /**
@@ -204,8 +204,8 @@ herror_t hsocket_send (hsocket_t sock, const char *str);
      the socket.
   
 */
-herror_t hsocket_read (hsocket_t sock, byte_t * buffer, int size, int force,
-                       int *readed);
+herror_t hsocket_read(hsocket_t sock, byte_t * buffer, int size, int force,
+                      int *readed);
 
 /**
   Sets the goven socket to non-blocking socket mode.
@@ -216,7 +216,7 @@ herror_t hsocket_read (hsocket_t sock, byte_t * buffer, int size, int force,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_IOCTL
 */
-herror_t hsocket_block (hsocket_t sock, int block);
+herror_t hsocket_block(hsocket_t sock, int block);
 
 
 #endif

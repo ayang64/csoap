@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.20 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: soap-client.c,v 1.21 2006/01/10 11:29:04 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,17 +27,17 @@
 
 /*--------------------------------- */
 static int _block_socket = 0;
-static herror_t _soap_client_build_result (hresponse_t * res, SoapEnv ** out);
+static herror_t _soap_client_build_result(hresponse_t * res, SoapEnv ** out);
 /*--------------------------------- */
 
 void
-soap_client_block_socket (int block)
+soap_client_block_socket(int block)
 {
   _block_socket = block;
 }
 
 int
-soap_client_get_blockmode ()
+soap_client_get_blockmode()
 {
   return _block_socket;
 }
@@ -45,38 +45,38 @@ soap_client_get_blockmode ()
 
 
 herror_t
-soap_client_init_args (int argc, char *argv[])
+soap_client_init_args(int argc, char *argv[])
 {
 
-  return httpc_init (argc, argv);
+  return httpc_init(argc, argv);
 
 }
 
 void
-soap_client_destroy ()
+soap_client_destroy()
 {
-  httpc_destroy ();
+  httpc_destroy();
 }
 
 static long
-_file_get_size (const char *filename)
+_file_get_size(const char *filename)
 {
-  FILE *f = fopen (filename, "r");
+  FILE *f = fopen(filename, "r");
   long size;
 
   if (!f)
     return -1;
 
-  fseek (f, 0, SEEK_END);
-  size = ftell (f);
-  fclose (f);
+  fseek(f, 0, SEEK_END);
+  size = ftell(f);
+  fclose(f);
   return size;
 }
 
 
 herror_t
-soap_client_invoke (SoapCtx * call, SoapCtx ** response, const char *url,
-                    const char *soap_action)
+soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
+                   const char *soap_action)
 {
   /* Status */
   herror_t status;
@@ -102,55 +102,55 @@ soap_client_invoke (SoapCtx * call, SoapCtx ** response, const char *url,
   char href[MAX_HREF_SIZE];
 
   /* Create buffer */
-  buffer = xmlBufferCreate ();
-  xmlNodeDump (buffer, call->env->root->doc, call->env->root, 1, 0);
-  content = (char *) xmlBufferContent (buffer);
+  buffer = xmlBufferCreate();
+  xmlNodeDump(buffer, call->env->root->doc, call->env->root, 1, 0);
+  content = (char *) xmlBufferContent(buffer);
 
   /* Transport via HTTP */
-  conn = httpc_new ();
+  conn = httpc_new();
   if (!conn)
   {
-    return herror_new ("soap_client_invoke", SOAP_ERROR_CLIENT_INIT,
-                       "Unable to create SOAP client!");
+    return herror_new("soap_client_invoke", SOAP_ERROR_CLIENT_INIT,
+                      "Unable to create SOAP client!");
   }
-  conn->block = soap_client_get_blockmode ();
+  conn->block = soap_client_get_blockmode();
 
   /* Set soap action */
   if (soap_action != NULL)
   {
-    httpc_set_header (conn, "SoapAction", soap_action);
+    httpc_set_header(conn, "SoapAction", soap_action);
   }
 
   /* check for attachments */
   if (!call->attachments)
   {
     /* content-type is always 'text/xml' */
-    httpc_set_header (conn, HEADER_CONTENT_TYPE, "text/xml");
+    httpc_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
 
-    sprintf (tmp, "%d", (int) strlen (content));
-    httpc_set_header (conn, HEADER_CONTENT_LENGTH, tmp);
-    status = httpc_post_begin (conn, url);
+    sprintf(tmp, "%d", (int) strlen(content));
+    httpc_set_header(conn, HEADER_CONTENT_LENGTH, tmp);
+    status = httpc_post_begin(conn, url);
 
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
 
-    status = http_output_stream_write_string (conn->out, content);
+    status = http_output_stream_write_string(conn->out, content);
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
 
-    status = httpc_post_end (conn, &res);
+    status = httpc_post_end(conn, &res);
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
   }
@@ -158,72 +158,72 @@ soap_client_invoke (SoapCtx * call, SoapCtx ** response, const char *url,
   {
 
     /* Use chunked transport */
-    httpc_set_header (conn, HEADER_TRANSFER_ENCODING,
-                      TRANSFER_ENCODING_CHUNKED);
+    httpc_set_header(conn, HEADER_TRANSFER_ENCODING,
+                     TRANSFER_ENCODING_CHUNKED);
 
-    sprintf (start_id, "289247829121218%d", counter++);
-    status = httpc_mime_begin (conn, url, start_id, "", "text/xml");
+    sprintf(start_id, "289247829121218%d", counter++);
+    status = httpc_mime_begin(conn, url, start_id, "", "text/xml");
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
 
-    status = httpc_mime_next (conn, start_id, "text/xml", "binary");
+    status = httpc_mime_next(conn, start_id, "text/xml", "binary");
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
 
-    status = http_output_stream_write (conn->out, content, strlen (content));
+    status = http_output_stream_write(conn->out, content, strlen(content));
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
 
 
     for (part = call->attachments->parts; part; part = part->next)
     {
-      status = httpc_mime_send_file (conn, part->id,
-                                     part->content_type,
-                                     part->transfer_encoding, part->filename);
+      status = httpc_mime_send_file(conn, part->id,
+                                    part->content_type,
+                                    part->transfer_encoding, part->filename);
       if (status != H_OK)
       {
-        log_error2 ("Send file failed. Status:%d", status);
-        httpc_close_free (conn);
-        xmlBufferFree (buffer);
+        log_error2("Send file failed. Status:%d", status);
+        httpc_close_free(conn);
+        xmlBufferFree(buffer);
         return status;
       }
     }
 
-    status = httpc_mime_end (conn, &res);
+    status = httpc_mime_end(conn, &res);
     if (status != H_OK)
     {
-      httpc_close_free (conn);
-      xmlBufferFree (buffer);
+      httpc_close_free(conn);
+      xmlBufferFree(buffer);
       return status;
     }
   }
 
   /* Free buffer */
-  xmlBufferFree (buffer);
+  xmlBufferFree(buffer);
 
   /* Build result */
-  status = _soap_client_build_result (res, &res_env);
+  status = _soap_client_build_result(res, &res_env);
   if (status != H_OK)
   {
-    hresponse_free (res);
-    httpc_close_free (conn);
+    hresponse_free(res);
+    httpc_close_free(conn);
     return status;
   }
 
   /* Create Context */
-  *response = soap_ctx_new (res_env);
+  *response = soap_ctx_new(res_env);
 /*	soap_ctx_add_files(*response, res->attachments);*/
 
   if (res->attachments != NULL)
@@ -231,7 +231,7 @@ soap_client_invoke (SoapCtx * call, SoapCtx ** response, const char *url,
     part = res->attachments->parts;
     while (part)
     {
-      soap_ctx_add_file (*response, part->filename, part->content_type, href);
+      soap_ctx_add_file(*response, part->filename, part->content_type, href);
       part->deleteOnExit = 0;
       part = part->next;
     }
@@ -244,33 +244,33 @@ soap_client_invoke (SoapCtx * call, SoapCtx ** response, const char *url,
   }
 
 
-  hresponse_free (res);
-  httpc_close_free (conn);
+  hresponse_free(res);
+  httpc_close_free(conn);
   return H_OK;
 }
 
 
 static herror_t
-_soap_client_build_result (hresponse_t * res, SoapEnv ** env)
+_soap_client_build_result(hresponse_t * res, SoapEnv ** env)
 {
   herror_t err;
 
-  log_verbose2 ("Building result (%p)", res);
+  log_verbose2("Building result (%p)", res);
 
   if (res == NULL)
-    return herror_new ("_soap_client_build_result",
-                       GENERAL_INVALID_PARAM, "hresponse_t is NULL");
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "hresponse_t is NULL");
 
 
   if (res->in == NULL)
-    return herror_new ("_soap_client_build_result",
-                       GENERAL_INVALID_PARAM, "Empty response from server");
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "Empty response from server");
 
   if (res->errcode != 200)
-    return herror_new ("_soap_client_build_result",
-                       GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
 
-  err = soap_env_new_from_stream (res->in, env);
+  err = soap_env_new_from_stream(res->in, env);
 
   if (err != H_OK)
   {

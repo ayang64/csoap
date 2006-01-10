@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.11 2006/01/10 11:21:55 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.12 2006/01/10 11:29:04 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -32,13 +32,13 @@
 /**
 	Initializes the client side soap engine
 */
-herror_t soap_client_init_args (int argc, char *argv[]);
+herror_t soap_client_init_args(int argc, char *argv[]);
 
 
 /**
 	Destroy the soap client module
 */
-void soap_client_destroy ();
+void soap_client_destroy();
 
 
 /**
@@ -53,8 +53,8 @@ void soap_client_destroy ();
 
     @returns H_OK if success 
  */
-herror_t soap_client_invoke (SoapCtx * ctx, SoapCtx ** response,
-                             const char *url, const char *soap_action);
+herror_t soap_client_invoke(SoapCtx * ctx, SoapCtx ** response,
+                            const char *url, const char *soap_action);
 
 
 
@@ -66,7 +66,7 @@ herror_t soap_client_invoke (SoapCtx * ctx, SoapCtx ** response,
   @param block 1 to creat blocked sockets, 0 to create non 
 	blocking sockets.
 */
-void soap_client_block_socket (int block);
-int soap_client_get_blockmode ();
+void soap_client_block_socket(int block);
+int soap_client_get_blockmode();
 
 #endif

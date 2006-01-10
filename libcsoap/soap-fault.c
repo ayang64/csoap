@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.7 2006/01/10 11:21:55 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.8 2006/01/10 11:29:04 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -63,9 +63,9 @@ static char *fault_client = "Client";
 static char *fault_server = "Server";
 
 xmlDocPtr
-soap_fault_build (fault_code_t fcode,
-                  const char *faultstring,
-                  const char *faultactor, const char *detail)
+soap_fault_build(fault_code_t fcode,
+                 const char *faultstring,
+                 const char *faultactor, const char *detail)
 {
 
   /* variables */
@@ -74,7 +74,7 @@ soap_fault_build (fault_code_t fcode,
   char *buffer;
   xmlDocPtr fault;              /* result */
 
-  log_verbose1 ("Build fault");
+  log_verbose1("Build fault");
 
   switch (fcode)
   {
@@ -96,33 +96,33 @@ soap_fault_build (fault_code_t fcode,
 
   /* calculate buffer length */
   if (faultstring)
-    bufferlen += strlen (faultstring);
+    bufferlen += strlen(faultstring);
   if (faultactor)
-    bufferlen += strlen (faultactor);
+    bufferlen += strlen(faultactor);
   if (detail)
-    bufferlen += strlen (detail);
+    bufferlen += strlen(detail);
 
-  log_verbose2 ("Creating buffer with %d bytes", bufferlen);
-  buffer = (char *) malloc (bufferlen);
+  log_verbose2("Creating buffer with %d bytes", bufferlen);
+  buffer = (char *) malloc(bufferlen);
 
-  sprintf (buffer, _SOAP_FAULT_TEMPLATE_,
-           soap_env_ns, soap_env_enc, soap_xsi_ns,
-           soap_xsd_ns, faultcode,
-           faultstring ? faultstring : "error",
-           faultactor ? faultactor : "", detail ? detail : "");
+  sprintf(buffer, _SOAP_FAULT_TEMPLATE_,
+          soap_env_ns, soap_env_enc, soap_xsi_ns,
+          soap_xsd_ns, faultcode,
+          faultstring ? faultstring : "error",
+          faultactor ? faultactor : "", detail ? detail : "");
 
-  fault = xmlParseDoc (BAD_CAST buffer);
-  free (buffer);
+  fault = xmlParseDoc(BAD_CAST buffer);
+  free(buffer);
 
   if (fault == NULL)
   {
-    log_error1 ("Can not create xml document!");
+    log_error1("Can not create xml document!");
 
-    return soap_fault_build (fcode, "Can not create fault object in xml",
-                             "soap_fault_build()", NULL);
+    return soap_fault_build(fcode, "Can not create fault object in xml",
+                            "soap_fault_build()", NULL);
   }
 
-  log_verbose2 ("Returning fault (%p)", fault);
+  log_verbose2("Returning fault (%p)", fault);
   return fault;
 
 }
