@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.40 2006/01/10 14:26:32 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.41 2006/01/10 21:45:20 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -464,8 +464,7 @@ httpd_session_main (void *data)
     hsocket_block (conn->sock, 0);
     if (conn->sock.ssl == NULL)
     {
-      return herror_new ("hsocket_accept", SSL_ERROR_INIT,
-                         "Unable to initialize SSL");
+      done = 1;
     }
   }
 #endif
@@ -473,7 +472,7 @@ httpd_session_main (void *data)
   /* call the service */
 /*  req = hrequest_new_from_buffer (header);*/
 
-  do
+  while (!done)
   {
     log_verbose1 ("starting HTTP request");
     rconn = httpd_new (conn->sock);
@@ -543,7 +542,6 @@ httpd_session_main (void *data)
       /* hrequest_free (req); */
     }
   }
-  while (!done);
 
   hsocket_close (conn->sock);
   log_verbose1 ("Marking connection as available");
