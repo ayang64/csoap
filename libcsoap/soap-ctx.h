@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.5 2004/11/02 23:09:26 snowdrop Exp $
+ *  $Id: soap-ctx.h,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -38,10 +38,10 @@ typedef struct _SoapCtx
 {
   SoapEnv *env;
   attachments_t *attachments;
-}SoapCtx;
+} SoapCtx;
 
 
-SoapCtx* soap_ctx_new(SoapEnv *env); /* should only be used internally */
+SoapCtx *soap_ctx_new (SoapEnv * env);  /* should only be used internally */
 
 /**
 	Returns the attached file if any found. 
@@ -51,21 +51,22 @@ SoapCtx* soap_ctx_new(SoapEnv *env); /* should only be used internally */
 	@returns a part_t object of attachment was found, NULL otherwise.
 	  
 */
-part_t *soap_ctx_get_file(SoapCtx* ctx, xmlNodePtr node);
+part_t *soap_ctx_get_file (SoapCtx * ctx, xmlNodePtr node);
 
 /**
 	Creates a new soap context object.
 */
-herror_t soap_ctx_new_with_method(const char *urn, const char *method, SoapCtx **out);
+herror_t soap_ctx_new_with_method (const char *urn, const char *method,
+                                   SoapCtx ** out);
 
 /* Size of destination dest_href should be MAX_HREF_SIZE */
-herror_t soap_ctx_add_file(SoapCtx* ctx, const char* filename, const char* content_type, char *dest_href);
+herror_t soap_ctx_add_file (SoapCtx * ctx, const char *filename,
+                            const char *content_type, char *dest_href);
 /* 
 Used internally. Will switch the deleteOnExit flag from the 
 given one to the added part.
 */
-void soap_ctx_add_files(SoapCtx* ctx, attachments_t *attachments);
-void soap_ctx_free(SoapCtx* ctx);
+void soap_ctx_add_files (SoapCtx * ctx, attachments_t * attachments);
+void soap_ctx_free (SoapCtx * ctx);
 
 #endif
-

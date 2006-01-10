@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.14 2005/07/22 13:27:26 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.15 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,7 +29,8 @@ static const char *urn = "urn:examples";
 static const char *method = "sayHello";
 
 
-herror_t say_hello(SoapCtx *req, SoapCtx* res)
+herror_t
+say_hello (SoapCtx * req, SoapCtx * res)
 {
 
   herror_t err;
@@ -37,49 +38,54 @@ herror_t say_hello(SoapCtx *req, SoapCtx* res)
 
   xmlNodePtr method, node;
 
-  err = soap_env_new_with_response(req->env, &res->env);
-  if (err != H_OK) {
-	return err;
+  err = soap_env_new_with_response (req->env, &res->env);
+  if (err != H_OK)
+  {
+    return err;
   }
 
-  method = soap_env_get_method(req->env);
-  node = soap_xml_get_children(method);
+  method = soap_env_get_method (req->env);
+  node = soap_xml_get_children (method);
 
-  while (node) {
-	name = (char*)xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
-	soap_env_add_itemf(res->env,"xsd:string", "echo", "Hello '%s'", name);
-    node = soap_xml_get_next(node);
+  while (node)
+  {
+    name =
+      (char *) xmlNodeListGetString (node->doc, node->xmlChildrenNode, 1);
+    soap_env_add_itemf (res->env, "xsd:string", "echo", "Hello '%s'", name);
+    node = soap_xml_get_next (node);
   }
 
   return H_OK;
 }
 
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
 
   herror_t err;
   SoapRouter *router;
-  
-  log_set_level(HLOG_INFO);
 
-  err = soap_server_init_args(argc, argv);
-  if (err != H_OK) {
-	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
-	herror_release(err);
-	return 1;
+  log_set_level (HLOG_INFO);
+
+  err = soap_server_init_args (argc, argv);
+  if (err != H_OK)
+  {
+    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
+                herror_code (err));
+    herror_release (err);
+    return 1;
   }
-  
-  router = soap_router_new();
-  soap_router_register_service(router, say_hello, method, urn);
-  soap_server_register_router(router, url);
 
-  log_info1("send SIGTERM to shutdown");
-  soap_server_run();
+  router = soap_router_new ();
+  soap_router_register_service (router, say_hello, method, urn);
+  soap_server_register_router (router, url);
 
-  log_info1("shutting down\n"); 
-  soap_server_destroy();
+  log_info1 ("send SIGTERM to shutdown");
+  soap_server_run ();
+
+  log_info1 ("shutting down\n");
+  soap_server_destroy ();
 
   return 0;
 }
-

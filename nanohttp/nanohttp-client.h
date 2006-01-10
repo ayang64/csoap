@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.16 2005/12/19 14:18:26 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.17 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,8 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_CLIENT_H 
-#define NANO_HTTP_CLIENT_H 
+#ifndef NANO_HTTP_CLIENT_H
+#define NANO_HTTP_CLIENT_H
 
 
 #include <nanohttp/nanohttp-common.h>
@@ -36,19 +36,16 @@ typedef struct httpc_conn
   hpair_t *header;
   hurl_t url;
   http_version_t version;
-  /*
-    -1  : last dime package 
-    0   : no dime connection
-    >0  : dime package number
-  */
+  /* 
+     -1 : last dime package 0 : no dime connection >0 : dime package number */
   int _dime_package_nr;
-  long _dime_sent_bytes; 
+  long _dime_sent_bytes;
   int errcode;
   char errmsg[150];
   http_output_stream_t *out;
-  int id; /* uniq id */
+  int id;                       /* uniq id */
   int block;
-}httpc_conn_t;
+} httpc_conn_t;
 
 
 /* --------------------------------------------------------------
@@ -58,56 +55,57 @@ typedef struct httpc_conn
 /**
   initialize the httpc_* module
 */
-herror_t httpc_init(int argc, char *argv[]);
- 
+herror_t httpc_init (int argc, char *argv[]);
+
 /**
   Destroy the httpc_* module
 */
-void  httpc_destroy();
+void httpc_destroy ();
 
 /**
   Creates a new connection
 */
-httpc_conn_t* httpc_new();
+httpc_conn_t *httpc_new ();
 
 /**
   Close and release a connection
 */
-void httpc_close_free(httpc_conn_t* conn);
+void httpc_close_free (httpc_conn_t * conn);
 
 /**
   Release a connection
   (use httpc_close_free() instead)
 */
-void httpc_free(httpc_conn_t* conn);
+void httpc_free (httpc_conn_t * conn);
 
 /**
  * Close and release a connection
  */
-void httpc_close_free(httpc_conn_t* conn);
+void httpc_close_free (httpc_conn_t * conn);
 
 /**
   Set header element (key,value) pair.
 */
-int httpc_set_header(httpc_conn_t *conn, const char* key, const char* value);
+int httpc_set_header (httpc_conn_t * conn, const char *key,
+                      const char *value);
 
 /**
   Invoke a "GET" method request and receive the response
 */
 herror_t
-httpc_get(httpc_conn_t *conn, hresponse_t** out, const char *urlstr);
+httpc_get (httpc_conn_t * conn, hresponse_t ** out, const char *urlstr);
 
 /**
   Start a "POST" method request
   Returns: HSOCKET_OK  or error flag
 */
-herror_t httpc_post_begin(httpc_conn_t *conn, const char *url);
+herror_t httpc_post_begin (httpc_conn_t * conn, const char *url);
 
 /**
   End a "POST" method and receive the response.
   You MUST call httpc_post_end() before!
 */
-herror_t httpc_post_end(httpc_conn_t *conn, hresponse_t **out);
+herror_t httpc_post_end (httpc_conn_t * conn, hresponse_t ** out);
 
 
 /* --------------------------------------------------------------
@@ -136,24 +134,24 @@ hresponse_t* httpc_dime_end(httpc_conn_t *conn);
   Begin MIME multipart/related POST request
   Returns: HSOCKET_OK  or error flag
 */
-herror_t httpc_mime_begin(httpc_conn_t *conn, const char *url,
-  const char* related_start, 
-  const char* related_start_info, 
-  const char* related_type);
+herror_t httpc_mime_begin (httpc_conn_t * conn, const char *url,
+                           const char *related_start,
+                           const char *related_start_info,
+                           const char *related_type);
 
 /**
   Send boundary and part header and continue 
   with next part
 */
-herror_t httpc_mime_next(httpc_conn_t *conn, 
-  const char* content_id,
-  const char* content_type, 
-  const char* transfer_encoding);
+herror_t httpc_mime_next (httpc_conn_t * conn,
+                          const char *content_id,
+                          const char *content_type,
+                          const char *transfer_encoding);
 
 /**
   Finish MIME request and get the response
 */
-herror_t httpc_mime_end(httpc_conn_t *conn, hresponse_t** out);
+herror_t httpc_mime_end (httpc_conn_t * conn, hresponse_t ** out);
 
 /**
   Send boundary and part header and continue 
@@ -161,11 +159,9 @@ herror_t httpc_mime_end(httpc_conn_t *conn, hresponse_t** out);
 */
 
 herror_t httpc_mime_send_file (httpc_conn_t * conn,
-                      const char *content_id,
-                      const char *content_type,
-                      const char *transfer_encoding, 
-                      const char *filename);
+                               const char *content_id,
+                               const char *content_type,
+                               const char *transfer_encoding,
+                               const char *filename);
 
 #endif
-
-

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.9 2004/11/02 23:09:19 snowdrop Exp $
+ * $Id: simpleclient.c,v 1.10 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,44 +29,51 @@ static const char *urn = "urn:examples";
 static const char *method = "sayHello";
 
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
   SoapCtx *ctx, *ctx2;
   herror_t err;
- 
-  /*log_set_level(HLOG_VERBOSE);*/
-  err = soap_client_init_args(argc, argv);
-  if (err != H_OK) {
-	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
-	herror_release(err);
-	return 1;
+
+  /* log_set_level(HLOG_VERBOSE); */
+  err = soap_client_init_args (argc, argv);
+  if (err != H_OK)
+  {
+    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
+                herror_code (err));
+    herror_release (err);
+    return 1;
   }
 
-  err = soap_ctx_new_with_method(urn, method, &ctx);
-  if (err != H_OK) {
-	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
-	herror_release(err);
-	return 1;
+  err = soap_ctx_new_with_method (urn, method, &ctx);
+  if (err != H_OK)
+  {
+    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
+                herror_code (err));
+    herror_release (err);
+    return 1;
   }
 
-  soap_env_add_item(ctx->env, "xsd:string", "name", "Jonny B. Good");
-  
+  soap_env_add_item (ctx->env, "xsd:string", "name", "Jonny B. Good");
+
   if (argc > 1)
-    err = soap_client_invoke(ctx, &ctx2, argv[1], "");
+    err = soap_client_invoke (ctx, &ctx2, argv[1], "");
   else
-    err = soap_client_invoke(ctx, &ctx2, url, "");
+    err = soap_client_invoke (ctx, &ctx2, url, "");
 
-  if (err != H_OK) {
-	log_error4("[%d] %s(): %s ", herror_code(err), herror_func(err), herror_message(err));
-	herror_release(err);
-	  soap_ctx_free(ctx);
-	  return 1;
+  if (err != H_OK)
+  {
+    log_error4 ("[%d] %s(): %s ", herror_code (err), herror_func (err),
+                herror_message (err));
+    herror_release (err);
+    soap_ctx_free (ctx);
+    return 1;
   }
 
-  soap_xml_doc_print(ctx2->env->root->doc);
-  soap_ctx_free(ctx2);
-  soap_ctx_free(ctx);
+  soap_xml_doc_print (ctx2->env->root->doc);
+  soap_ctx_free (ctx2);
+  soap_ctx_free (ctx);
 
-  soap_client_destroy();
+  soap_client_destroy ();
   return 0;
 }

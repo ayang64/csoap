@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.8 2004/11/02 23:09:19 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.9 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -31,66 +31,79 @@ static const char *url = "http://localhost:10000/echoattachments";
 static const char *method = "echo";
 
 
-void compareFiles(const char* received, const char *sent)
+void
+compareFiles (const char *received, const char *sent)
 {
   FILE *f1, *f2;
   char c1, c2;
-  long s1,s2;
+  long s1, s2;
 
-  printf("Opening received file to compare: '%s'\n", received);
-  f1 = fopen(received, "r");
-  if (!f1) {
-    fprintf(stderr, "Can not open '%s'\n", received);
+  printf ("Opening received file to compare: '%s'\n", received);
+  f1 = fopen (received, "r");
+  if (!f1)
+  {
+    fprintf (stderr, "Can not open '%s'\n", received);
     return;
   }
 
-  printf("Opening sent file to compare: '%s'\n", sent);
-  f2 = fopen(sent, "r");
-  if (!f2) {
-    fprintf(stderr, "Can not open '%s'\n", sent);
-    fclose(f1);
+  printf ("Opening sent file to compare: '%s'\n", sent);
+  f2 = fopen (sent, "r");
+  if (!f2)
+  {
+    fprintf (stderr, "Can not open '%s'\n", sent);
+    fclose (f1);
     return;
   }
 
-  fseek(f1, 0, SEEK_END);
-  fseek(f2, 0, SEEK_END);
+  fseek (f1, 0, SEEK_END);
+  fseek (f2, 0, SEEK_END);
 
-  s1 = ftell(f1);
-  s2 = ftell(f2);
+  s1 = ftell (f1);
+  s2 = ftell (f2);
 
-  fseek(f1, 0, SEEK_SET);
-  fseek(f2, 0, SEEK_SET);
+  fseek (f1, 0, SEEK_SET);
+  fseek (f2, 0, SEEK_SET);
 
-  if (s1 > s2) {
+  if (s1 > s2)
+  {
 
-      printf("ERROR: files are not equal! Received file is bigger\n");
-      fclose(f1); fclose(f2);
-      return;
+    printf ("ERROR: files are not equal! Received file is bigger\n");
+    fclose (f1);
+    fclose (f2);
+    return;
 
-  } else if (s2 > s1) {
+  }
+  else if (s2 > s1)
+  {
 
-      printf("ERROR: files are not equal! Sent file is bigger\n");
-      fclose(f1); fclose(f2);
-      return;
+    printf ("ERROR: files are not equal! Sent file is bigger\n");
+    fclose (f1);
+    fclose (f2);
+    return;
   }
 
-  while (feof(f1)) {
-    
-    c1= fgetc(f1);
-    c2= fgetc(f2);
-    if (c1 != c2){
-      printf("ERROR: files are not equal! Byte compare failed\n");
-      fclose(f1); fclose(f2);
+  while (feof (f1))
+  {
+
+    c1 = fgetc (f1);
+    c2 = fgetc (f2);
+    if (c1 != c2)
+    {
+      printf ("ERROR: files are not equal! Byte compare failed\n");
+      fclose (f1);
+      fclose (f2);
       break;
     }
   }
-  
-  printf("OK: files are equal!\n");
-  fclose(f1); fclose(f2);
-  
+
+  printf ("OK: files are equal!\n");
+  fclose (f1);
+  fclose (f2);
+
 }
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
   SoapCtx *ctx, *ctx2;
   char href[MAX_HREF_SIZE];
@@ -98,86 +111,88 @@ int main(int argc, char *argv[])
   herror_t err;
 
 
-  if (argc < 2) {
-    fprintf(stderr, "usage: %s <filename> [url]\n", argv[0]);
-    exit(1);
+  if (argc < 2)
+  {
+    fprintf (stderr, "usage: %s <filename> [url]\n", argv[0]);
+    exit (1);
   }
 
-  /*
-	Initialize soap client
-  */
-  err = soap_client_init_args(argc, argv);
-  if (err != H_OK) {
-	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
-	herror_release(err);
-	return 1;
+  /* 
+     Initialize soap client */
+  err = soap_client_init_args (argc, argv);
+  if (err != H_OK)
+  {
+    log_error4 ("[%d] %s():%s ", herror_code (err), herror_func (err),
+                herror_message (err));
+    herror_release (err);
+    return 1;
   }
 
-  /*
-	Create a context object
-  */
-  err = soap_ctx_new_with_method(urn, method, &ctx);
-  if (err != H_OK) {
-	log_error4("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
-	herror_release(err);
-	return 1;
+  /* 
+     Create a context object */
+  err = soap_ctx_new_with_method (urn, method, &ctx);
+  if (err != H_OK)
+  {
+    log_error4 ("[%d] %s():%s ", herror_code (err), herror_func (err),
+                herror_message (err));
+    herror_release (err);
+    return 1;
   }
-	
-  /*
-	Add file to the context
-  */
-	err = soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href);
-	if (err != H_OK) {
-		log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
-		herror_release(err);
-		return 1;
-	}
 
-	/*
-		Add file reference to the envelope
-	*/
-  soap_env_add_attachment(ctx->env,"source", href);
+  /* 
+     Add file to the context */
+  err = soap_ctx_add_file (ctx, argv[1], "application/octet-stream", href);
+  if (err != H_OK)
+  {
+    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
+                herror_code (err));
+    herror_release (err);
+    return 1;
+  }
 
-  /*
-	Send soap request to the server
-  */
-  printf("sending request ...\n");  
+  /* 
+     Add file reference to the envelope */
+  soap_env_add_attachment (ctx->env, "source", href);
+
+  /* 
+     Send soap request to the server */
+  printf ("sending request ...\n");
   if (argc > 2)
-    err = soap_client_invoke(ctx, &ctx2, argv[2], "");
+    err = soap_client_invoke (ctx, &ctx2, argv[2], "");
   else
-    err = soap_client_invoke(ctx, &ctx2, url, "");
+    err = soap_client_invoke (ctx, &ctx2, url, "");
 
-  if (err != H_OK) {
-	log_error4("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
-	herror_release(err);
-	return 1;
+  if (err != H_OK)
+  {
+    log_error4 ("%s():%s [%d]", herror_func (err), herror_message (err),
+                herror_code (err));
+    herror_release (err);
+    return 1;
   }
 
-  /*
-	Handle response (just print to the screen)
-  */
-  fault = soap_env_get_fault(ctx2->env);
-  if (fault) {
-    soap_xml_doc_print(ctx2->env->root->doc);
-  } else if (ctx2->attachments) {
-    compareFiles(ctx2->attachments->parts->filename, argv[1]);
-  } else {
-    printf("No attachments!");
-    soap_xml_doc_print(ctx2->env->root->doc);
+  /* 
+     Handle response (just print to the screen) */
+  fault = soap_env_get_fault (ctx2->env);
+  if (fault)
+  {
+    soap_xml_doc_print (ctx2->env->root->doc);
+  }
+  else if (ctx2->attachments)
+  {
+    compareFiles (ctx2->attachments->parts->filename, argv[1]);
+  }
+  else
+  {
+    printf ("No attachments!");
+    soap_xml_doc_print (ctx2->env->root->doc);
   }
 
-  /*
-	Clean up
-  */
-  soap_ctx_free(ctx2);
-  soap_ctx_free(ctx);
+  /* 
+     Clean up */
+  soap_ctx_free (ctx2);
+  soap_ctx_free (ctx);
 
-  soap_client_destroy();
+  soap_client_destroy ();
 
   return 0;
 }
-
-
-
-
-

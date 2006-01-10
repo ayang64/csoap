@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.6 2005/12/19 14:06:16 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.7 2006/01/10 11:21:55 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -62,67 +62,67 @@ static char *fault_mu = "MustUnderstand";
 static char *fault_client = "Client";
 static char *fault_server = "Server";
 
-xmlDocPtr soap_fault_build(fault_code_t fcode, 
-						   const char *faultstring,
-						   const char *faultactor,
-						   const char *detail)
+xmlDocPtr
+soap_fault_build (fault_code_t fcode,
+                  const char *faultstring,
+                  const char *faultactor, const char *detail)
 {
 
-	/* variables */
-	char *faultcode;
-	int bufferlen = 2000;
-	char *buffer;
-	xmlDocPtr fault; /* result */
+  /* variables */
+  char *faultcode;
+  int bufferlen = 2000;
+  char *buffer;
+  xmlDocPtr fault;              /* result */
 
-	log_verbose1("Build fault");
+  log_verbose1 ("Build fault");
 
-	switch (fcode) {
+  switch (fcode)
+  {
   case Fault_VersionMismatch:
-	  faultcode = fault_vm;
-	  break;
+    faultcode = fault_vm;
+    break;
   case Fault_MustUnderstand:
-	  faultcode = fault_mu;
-	  break;
+    faultcode = fault_mu;
+    break;
   case Fault_Client:
-	  faultcode = fault_client;
-	  break;
+    faultcode = fault_client;
+    break;
   case Fault_Server:
-	  faultcode = fault_server;
-	  break;
+    faultcode = fault_server;
+    break;
   default:
-	  faultcode = fault_client;
-	}
+    faultcode = fault_client;
+  }
 
-	/* calculate buffer length */
-	if (faultstring) bufferlen += strlen(faultstring);
-	if (faultactor) bufferlen += strlen(faultactor);
-	if (detail) bufferlen += strlen(detail);
+  /* calculate buffer length */
+  if (faultstring)
+    bufferlen += strlen (faultstring);
+  if (faultactor)
+    bufferlen += strlen (faultactor);
+  if (detail)
+    bufferlen += strlen (detail);
 
-	log_verbose2("Creating buffer with %d bytes", bufferlen);
-	buffer = (char*)malloc(bufferlen);
+  log_verbose2 ("Creating buffer with %d bytes", bufferlen);
+  buffer = (char *) malloc (bufferlen);
 
-	sprintf(buffer,  _SOAP_FAULT_TEMPLATE_,
-		soap_env_ns, soap_env_enc, soap_xsi_ns, 
-		soap_xsd_ns, faultcode,
-		faultstring?faultstring:"error",
-		faultactor?faultactor:"",
-		detail?detail:"");
+  sprintf (buffer, _SOAP_FAULT_TEMPLATE_,
+           soap_env_ns, soap_env_enc, soap_xsi_ns,
+           soap_xsd_ns, faultcode,
+           faultstring ? faultstring : "error",
+           faultactor ? faultactor : "", detail ? detail : "");
 
-	fault = xmlParseDoc(BAD_CAST buffer);
-	free(buffer);
+  fault = xmlParseDoc (BAD_CAST buffer);
+  free (buffer);
 
-	if (fault == NULL) {
-		log_error1("Can not create xml document!");
+  if (fault == NULL)
+  {
+    log_error1 ("Can not create xml document!");
 
-		return soap_fault_build(fcode, "Can not create fault object in xml",
-			"soap_fault_build()", NULL);
-	} 
+    return soap_fault_build (fcode, "Can not create fault object in xml",
+                             "soap_fault_build()", NULL);
+  }
 
-	log_verbose2("Returning fault (%p)", fault);
-	return fault;
+  log_verbose2 ("Returning fault (%p)", fault);
+  return fault;
 
-} 
-
-
-
-
+}

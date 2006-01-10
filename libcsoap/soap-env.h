@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.9 2004/11/02 23:09:26 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.10 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -33,10 +33,10 @@
    The SOAP envelope object. 
  */
 typedef struct _SoapEnv
-{ 
+{
   xmlNodePtr root; /** Pointer to the firts xml element (envelope) */
   xmlNodePtr cur; /** Pointer to the current xml element. (stack) */
-}SoapEnv;
+} SoapEnv;
 
 
 /* -------------------------------------------------------------- */
@@ -73,10 +73,10 @@ typedef struct _SoapEnv
 
  */
 herror_t
-soap_env_new_with_fault(fault_code_t faultcode, 
-				 const char *faultstring,
-				 const char *faultactor,
-				 const char *detail, SoapEnv **out);
+soap_env_new_with_fault (fault_code_t faultcode,
+                         const char *faultstring,
+                         const char *faultactor,
+                         const char *detail, SoapEnv ** out);
 
 /**
    Creates an envelope with a method to invoke a soap service.
@@ -104,7 +104,8 @@ soap_env_new_with_fault(fault_code_t faultcode,
 
  */
 herror_t
-soap_env_new_with_method(const char *urn, const char *method, SoapEnv **out);
+soap_env_new_with_method (const char *urn, const char *method,
+                          SoapEnv ** out);
 
 
 /**
@@ -137,7 +138,7 @@ soap_env_new_with_method(const char *urn, const char *method, SoapEnv **out);
 
 
  */
-herror_t soap_env_new_with_response(SoapEnv *req,SoapEnv **out);
+herror_t soap_env_new_with_response (SoapEnv * req, SoapEnv ** out);
 
 
 /**
@@ -149,7 +150,7 @@ herror_t soap_env_new_with_response(SoapEnv *req,SoapEnv **out);
    @returns H_OK if success
     
  */
-herror_t soap_env_new_from_doc(xmlDocPtr doc, SoapEnv **out);
+herror_t soap_env_new_from_doc (xmlDocPtr doc, SoapEnv ** out);
 
 
 /**
@@ -160,7 +161,7 @@ herror_t soap_env_new_from_doc(xmlDocPtr doc, SoapEnv **out);
    @param out the output envelope object
    @returns H_OK if success
  */
-herror_t soap_env_new_from_buffer(const char* buffer,SoapEnv **out);
+herror_t soap_env_new_from_buffer (const char *buffer, SoapEnv ** out);
 
 
 /**
@@ -170,18 +171,21 @@ herror_t soap_env_new_from_buffer(const char* buffer,SoapEnv **out);
    @param out the output envelope object
    @returns H_OK if success
 */
-herror_t soap_env_new_from_stream(http_input_stream_t *in, SoapEnv **out);
+herror_t soap_env_new_from_stream (http_input_stream_t * in, SoapEnv ** out);
 
 /* --------------------------------------------------- */
 /*      XML Serializer functions  and typedefs         */
 /* --------------------------------------------------- */
 
 typedef void (*XmlSerializerCallback)
-    (void* /*obj*/, const xmlChar * /*root_element_name*/,
-     void (*OnStartElement)(const xmlChar* element_name, int attr_count, xmlChar **keys, xmlChar **values, void* userData),
-		 void (*OnCharacters)(const xmlChar* element_name, const xmlChar* chars, void* userData),
-		 void (*OnEndElement)(const xmlChar* element_name, void* userData),
-		 void* /* userdata*/);
+  (void * /* obj */ , const xmlChar * /* root_element_name */ ,
+   void (*OnStartElement) (const xmlChar * element_name, int attr_count,
+                           xmlChar ** keys, xmlChar ** values,
+                           void *userData),
+   void (*OnCharacters) (const xmlChar * element_name, const xmlChar * chars,
+                         void *userData),
+   void (*OnEndElement) (const xmlChar * element_name, void *userData),
+   void * /* userdata */ );
 
 
 /* ------------------------------------------------------ */
@@ -206,9 +210,9 @@ typedef void (*XmlSerializerCallback)
    
    @see tutorial 
  */
-xmlNodePtr 
-soap_env_add_item(SoapEnv* env, const char *type, 
-		  const char *name, const char *value);
+xmlNodePtr
+soap_env_add_item (SoapEnv * env, const char *type,
+                   const char *name, const char *value);
 
 
 /**
@@ -227,8 +231,8 @@ soap_env_add_item(SoapEnv* env, const char *type,
    
    @see soap_ctx_add_file tutorial 
  */
-xmlNodePtr 
-soap_env_add_attachment(SoapEnv* env, const char *name, const char *href);
+xmlNodePtr
+soap_env_add_attachment (SoapEnv * env, const char *name, const char *href);
 
 
 /**
@@ -239,8 +243,8 @@ soap_env_add_attachment(SoapEnv* env, const char *name, const char *href);
 
  */
 void
-soap_env_add_custom(SoapEnv* env, void *obj, XmlSerializerCallback cb, 
-      const char *type,  const char *name);
+soap_env_add_custom (SoapEnv * env, void *obj, XmlSerializerCallback cb,
+                     const char *type, const char *name);
 
 /**
    Same as soap_env_add_item() with c style arguments
@@ -251,9 +255,9 @@ soap_env_add_custom(SoapEnv* env, void *obj, XmlSerializerCallback cb,
 
    @see soap_env_add_item
  */
-xmlNodePtr 
-soap_env_add_itemf(SoapEnv* env, const char *type, 
-		  const char *name, const char *value, ...);
+xmlNodePtr
+soap_env_add_itemf (SoapEnv * env, const char *type,
+                    const char *name, const char *value, ...);
 
 
 /**
@@ -280,9 +284,8 @@ soap_env_add_itemf(SoapEnv* env, const char *type,
    
    @see tutorial 
  */
-xmlNodePtr 
-soap_env_push_item(SoapEnv *env, const char *type,
-		   const char *name);
+xmlNodePtr
+soap_env_push_item (SoapEnv * env, const char *type, const char *name);
 
 /**
    Sets the xml pointer 1 level higher. 
@@ -290,16 +293,14 @@ soap_env_push_item(SoapEnv *env, const char *type,
    @param env The envelope object
    @see soap_env_push_item
  */
-void
-soap_env_pop_item(SoapEnv* env);
+void soap_env_pop_item (SoapEnv * env);
 
 /**
    Free the envelope. 
 
    @param env The envelope object
  */
-void
-soap_env_free(SoapEnv *env);
+void soap_env_free (SoapEnv * env);
 
 
 /* --------------------------------------------------- */
@@ -310,33 +311,29 @@ soap_env_free(SoapEnv *env);
 /**
    Gets the xml node pointing to SOAP Body.
  */
-xmlNodePtr
-soap_env_get_body(SoapEnv* env);
+xmlNodePtr soap_env_get_body (SoapEnv * env);
 
 
 /**
    Get the xml node pointing to SOAP method (call)
  */
-xmlNodePtr
-soap_env_get_method(SoapEnv* env);
+xmlNodePtr soap_env_get_method (SoapEnv * env);
 
 
 /**
    Get the xml node pointing to SOAP Fault
  */
-xmlNodePtr
-soap_env_get_fault(SoapEnv* env);
+xmlNodePtr soap_env_get_fault (SoapEnv * env);
 
 
 /**
    Get the xml node pointing to SOAP Header
  */
-xmlNodePtr
-soap_env_get_header(SoapEnv* env);
+xmlNodePtr soap_env_get_header (SoapEnv * env);
 
 
-int soap_env_find_urn(SoapEnv *env, char *urn);
-int soap_env_find_methodname(SoapEnv *env, char *methodname);
+int soap_env_find_urn (SoapEnv * env, char *urn);
+int soap_env_find_methodname (SoapEnv * env, char *methodname);
 
 
 
@@ -344,5 +341,3 @@ int soap_env_find_methodname(SoapEnv *env, char *methodname);
 
 
 #endif
-
-

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.2 2004/10/28 10:30:46 snowdrop Exp $
+ *  $Id: nanohttp-request.h,v 1.3 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,8 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_REQUEST_H 
-#define NANO_HTTP_REQUEST_H  
+#ifndef NANO_HTTP_REQUEST_H
+#define NANO_HTTP_REQUEST_H
 
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-mime.h>
@@ -43,15 +43,9 @@ typedef struct hrequest
   content_type_t *content_type;
   attachments_t *attachments;
   char root_part_id[150];
-}hrequest_t;
+} hrequest_t;
 
-herror_t hrequest_new_from_socket(hsocket_t sock, hrequest_t **out);
-void hrequest_free(hrequest_t *req);
+herror_t hrequest_new_from_socket (hsocket_t sock, hrequest_t ** out);
+void hrequest_free (hrequest_t * req);
 
 #endif
-
-
-
-
-
-

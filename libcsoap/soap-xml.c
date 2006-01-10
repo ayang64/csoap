@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.6 2004/10/15 13:34:02 snowdrop Exp $
+*  $Id: soap-xml.c,v 1.7 2006/01/10 11:21:55 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,111 +23,125 @@
 ******************************************************************/
 #include <libcsoap/soap-xml.h>
 
-static const char* soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
+static const char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 
-xmlNodePtr soap_xml_get_children(xmlNodePtr param)
+xmlNodePtr
+soap_xml_get_children (xmlNodePtr param)
 {
-	xmlNodePtr children;
+  xmlNodePtr children;
 
-	if (param == NULL) {
-		log_error1("Invalid parameter 'param' (null)");
-		return NULL;
-	}
+  if (param == NULL)
+  {
+    log_error1 ("Invalid parameter 'param' (null)");
+    return NULL;
+  }
 
-	children = param->xmlChildrenNode;
-	while (children != NULL) {
-		if (children->type != XML_ELEMENT_NODE)
-			children = children->next;
-		else break;
-	}
+  children = param->xmlChildrenNode;
+  while (children != NULL)
+  {
+    if (children->type != XML_ELEMENT_NODE)
+      children = children->next;
+    else
+      break;
+  }
 
-	return children;
+  return children;
 }
 
-xmlNodePtr soap_xml_get_next(xmlNodePtr param)
+xmlNodePtr
+soap_xml_get_next (xmlNodePtr param)
 {
 
-	xmlNodePtr node = param->next;
+  xmlNodePtr node = param->next;
 
-	while (node != NULL) {
-		if (node->type != XML_ELEMENT_NODE)
-			node = node->next;
-		else break;
-	}
+  while (node != NULL)
+  {
+    if (node->type != XML_ELEMENT_NODE)
+      node = node->next;
+    else
+      break;
+  }
 
-	return node;
+  return node;
 }
 
 
-xmlXPathObjectPtr 
-soap_xpath_eval(xmlDocPtr doc, const char *xpath)
+xmlXPathObjectPtr
+soap_xpath_eval (xmlDocPtr doc, const char *xpath)
 {
-	xmlXPathContextPtr context;
-	xmlXPathObjectPtr result;
+  xmlXPathContextPtr context;
+  xmlXPathObjectPtr result;
 
-	context = xmlXPathNewContext(doc);
-	result = xmlXPathEvalExpression(BAD_CAST xpath, context);
-	if(xmlXPathNodeSetIsEmpty(result->nodesetval)){
-		/* no result */
-		return NULL;
-	}
+  context = xmlXPathNewContext (doc);
+  result = xmlXPathEvalExpression (BAD_CAST xpath, context);
+  if (xmlXPathNodeSetIsEmpty (result->nodesetval))
+  {
+    /* no result */
+    return NULL;
+  }
 
-	xmlXPathFreeContext(context);
-	return result;  
+  xmlXPathFreeContext (context);
+  return result;
 }
 
 
 int
-soap_xpath_foreach(xmlDocPtr doc, const char *xpath, 
-				   soap_xmlnode_callback cb, void *userdata)
+soap_xpath_foreach (xmlDocPtr doc, const char *xpath,
+                    soap_xmlnode_callback cb, void *userdata)
 {
-	int i = 0;
-	xmlNodeSetPtr nodeset; 
-	xmlXPathObjectPtr xpathobj;
+  int i = 0;
+  xmlNodeSetPtr nodeset;
+  xmlXPathObjectPtr xpathobj;
 
-	xpathobj = soap_xpath_eval(doc, xpath);
+  xpathobj = soap_xpath_eval (doc, xpath);
 
-	if (!xpathobj) return 0;
+  if (!xpathobj)
+    return 0;
 
-	nodeset = xpathobj->nodesetval;
-	if (!nodeset) return 0;
+  nodeset = xpathobj->nodesetval;
+  if (!nodeset)
+    return 0;
 
-	for (i=0;i < nodeset->nodeNr; i++) {
-		if (!cb(nodeset->nodeTab[i], userdata))
-			break;
-	}
+  for (i = 0; i < nodeset->nodeNr; i++)
+  {
+    if (!cb (nodeset->nodeTab[i], userdata))
+      break;
+  }
 
-	xmlXPathFreeObject((xmlXPathObjectPtr)nodeset);
-	return i;
+  xmlXPathFreeObject ((xmlXPathObjectPtr) nodeset);
+  return i;
 }
 
 
-void soap_xml_doc_print(xmlDocPtr doc)
+void
+soap_xml_doc_print (xmlDocPtr doc)
 {
-	xmlBufferPtr buffer;
-	xmlNodePtr root;
+  xmlBufferPtr buffer;
+  xmlNodePtr root;
 
-	if (doc == NULL) {
-		puts("xmlDocPtr is NULL!");
-		return;
-	}
+  if (doc == NULL)
+  {
+    puts ("xmlDocPtr is NULL!");
+    return;
+  }
 
-	root = xmlDocGetRootElement(doc);
-	if (root == NULL) {
-		puts("Empty document!");
-		return;
-	}
+  root = xmlDocGetRootElement (doc);
+  if (root == NULL)
+  {
+    puts ("Empty document!");
+    return;
+  }
 
 
-	buffer = xmlBufferCreate();
-	xmlNodeDump(buffer, doc, root, 1 ,0);
-	puts( (const char*)xmlBufferContent(buffer));
-	xmlBufferFree(buffer);  
+  buffer = xmlBufferCreate ();
+  xmlNodeDump (buffer, doc, root, 1, 0);
+  puts ((const char *) xmlBufferContent (buffer));
+  xmlBufferFree (buffer);
 
 }
 
-char *soap_xml_get_text(xmlNodePtr node)
+char *
+soap_xml_get_text (xmlNodePtr node)
 {
- return (char*)xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
+  return (char *) xmlNodeListGetString (node->doc, node->xmlChildrenNode, 1);
 }
-

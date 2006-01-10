@@ -23,7 +23,7 @@
  */
 
 /* Do enter only if --with-ssl was specified by the configure script */
-#ifdef HAVE_SSL 
+#ifdef HAVE_SSL
 
 #ifdef TRU64
 #include <arpa/inet.h>
@@ -47,9 +47,10 @@ typedef unsigned int uint32_t;
 #define CERT_SUBJECT	0
 #define CERT_ISSUER		1
 
-typedef struct Con {
-	SSL* ssl;
-	int sock;
+typedef struct Con
+{
+  SSL *ssl;
+  int sock;
 } Con;
 
 /*
@@ -62,7 +63,7 @@ typedef struct Con {
  * Initialize the context
  */
 
-SSL_CTX *initialize_ctx(char *keyfile, char *password, char* calist);
+SSL_CTX *initialize_ctx (char *keyfile, char *password, char *calist);
 
 /*
  * Quick function for verifying a portion of the cert
@@ -70,7 +71,7 @@ SSL_CTX *initialize_ctx(char *keyfile, char *password, char* calist);
  * returns non-zero if everything went ok
  */
 
-int verify_sn(X509* cert, int who, int nid, char* str);
+int verify_sn (X509 * cert, int who, int nid, char *str);
 
 /*
  * Called by framework for verify
@@ -82,22 +83,21 @@ int verify_sn(X509* cert, int who, int nid, char* str);
  * This function MUST be implemented by user client/server code somewhere
  */
 
-int user_verify(X509* cert);
+int user_verify (X509 * cert);
 
 /*
  * Create the ssl socket and return it
  * pass in the context and an open socket
  */
 
-SSL* init_ssl(SSL_CTX* ctx, int sock, int type);
+SSL *init_ssl (SSL_CTX * ctx, int sock, int type);
 
 /*
  * Close the ssl connection (socket is still left open)
  */
 
-void ssl_cleanup();
+void ssl_cleanup ();
 
 #endif
 
 #endif /* HAVE_SSL */
-

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.20 2005/12/19 14:06:16 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.21 2006/01/10 11:21:55 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,8 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_COMMON_H 
-#define NANO_HTTP_COMMON_H 
+#ifndef NANO_HTTP_COMMON_H
+#define NANO_HTTP_COMMON_H
 
 #include <stdlib.h>
 #include <time.h>
@@ -85,7 +85,7 @@
 /* TODO (#1#): find proper ports */
 #define URL_DEFAULT_PORT_HTTP 80
 #define URL_DEFAULT_PORT_HTTPS 81
-#define URL_DEFAULT_PORT_FTP 120 
+#define URL_DEFAULT_PORT_FTP 120
 
 /* Success flag */
 #define H_OK 0
@@ -123,7 +123,7 @@
 #define MIME_ERROR_NO_BOUNDARY_PARAM   1301
 #define MIME_ERROR_NO_START_PARAM      1302
 #define MIME_ERROR_PARSE_ERROR         1303
-#define MIME_ERROR_NO_ROOT_PART        1304 
+#define MIME_ERROR_NO_ROOT_PART        1304
 #define MIME_ERROR_NOT_MIME_MESSAGE    1305
 
 
@@ -145,19 +145,19 @@
 Set Sleep function platform depended
 */
 #ifdef WIN32
-  #define system_sleep(seconds) Sleep(seconds*1000);
+#define system_sleep(seconds) Sleep(seconds*1000);
 #else
-  #define system_sleep(seconds) sleep(seconds);
+#define system_sleep(seconds) sleep(seconds);
 #endif
 
 #ifdef WIN32
 #include <string.h>
-char* strtok_r(char *s, const char *delim, char **save_ptr);
-struct tm *localtime_r(const time_t *const timep, struct tm *p_tm);
+char *strtok_r (char *s, const char *delim, char **save_ptr);
+struct tm *localtime_r (const time_t * const timep, struct tm *p_tm);
 #endif
 
 typedef unsigned char byte_t;
-typedef void* herror_t;
+typedef void *herror_t;
 
 
 
@@ -165,35 +165,35 @@ typedef void* herror_t;
   Indicates the version of the 
   used HTTP protocol.
 */
-typedef enum _http_version { 
-  HTTP_1_0, 
-  HTTP_1_1 /* default */
-}http_version_t;
+typedef enum _http_version
+{
+  HTTP_1_0,
+  HTTP_1_1                      /* default */
+} http_version_t;
 
 
 /**
   Indicates the used method
 */
-typedef enum _hreq_method 
+typedef enum _hreq_method
 {
   HTTP_REQUEST_POST,
   HTTP_REQUEST_GET
-}hreq_method_t ;
+} hreq_method_t;
 
 
-herror_t herror_new(const char* func, 
-					int errcode, const char* format, ...);
-int herror_code(herror_t err);
-char* herror_func(herror_t err);
-char* herror_message(herror_t err);
-void herror_release(herror_t err);
+herror_t herror_new (const char *func, int errcode, const char *format, ...);
+int herror_code (herror_t err);
+char *herror_func (herror_t err);
+char *herror_message (herror_t err);
+void herror_release (herror_t err);
 
 
 /*
   string function to compare strings ignoring case
   Returns 1 if s1 equals s2 and 0 otherwise.  
  */
-int strcmpigcase(const char *s1, const char *s2);
+int strcmpigcase (const char *s1, const char *s2);
 
 
 
@@ -221,7 +221,7 @@ struct hpair
   @returns A newly crated hpair_t object. Use hpair_free() 
     or hpair_free_deep() to free the pair.
 */
-hpair_t  *hpairnode_new(const char* key, const char* value, hpair_t* next);
+hpair_t *hpairnode_new (const char *key, const char *value, hpair_t * next);
 
 
 /**
@@ -239,7 +239,7 @@ hpair_t  *hpairnode_new(const char* key, const char* value, hpair_t* next);
   @returns A newly crated hpair_t object. Use hpair_free() 
     or hpair_free_deep() to free the pair.
 */
-hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t * next);
+hpair_t *hpairnode_parse (const char *str, const char *delim, hpair_t * next);
 
 
 /**
@@ -247,7 +247,7 @@ hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t * next);
 
   @param pair the pair to free
 */
-void hpairnode_free(hpair_t *pair);
+void hpairnode_free (hpair_t * pair);
 
 
 /**
@@ -257,7 +257,7 @@ void hpairnode_free(hpair_t *pair);
 
   @param pair the pair to start to free the linked list
 */
-void hpairnode_free_deep(hpair_t * pair);
+void hpairnode_free_deep (hpair_t * pair);
 
 
 /**
@@ -270,7 +270,7 @@ void hpairnode_free_deep(hpair_t * pair);
     return the value (do not free this string) or NULL
     if no pair was found with the key 'key'.
 */
-char *hpairnode_get(hpair_t *pair, const char* key);
+char *hpairnode_get (hpair_t * pair, const char *key);
 
 
 /**
@@ -284,7 +284,7 @@ char *hpairnode_get(hpair_t *pair, const char* key);
     return the value (do not free this string) or NULL
     if no pair was found with the key 'key'.
 */
-char *hpairnode_get_ignore_case(hpair_t *pair, const char* key);
+char *hpairnode_get_ignore_case (hpair_t * pair, const char *key);
 
 
 /**
@@ -300,7 +300,7 @@ char *hpairnode_get_ignore_case(hpair_t *pair, const char* key);
 
   @see hpairnode_copy_deep
 */
-hpair_t* hpairnode_copy(const hpair_t *src);
+hpair_t *hpairnode_copy (const hpair_t * src);
 
 
 /**
@@ -312,11 +312,11 @@ hpair_t* hpairnode_copy(const hpair_t *src);
 
   @see hpairnode_copy
 */
-hpair_t* hpairnode_copy_deep(const hpair_t *src);
+hpair_t *hpairnode_copy_deep (const hpair_t * src);
 
 /* Debug functions */
-void hpairnode_dump_deep(hpair_t *pair);
-void hpairnode_dump(hpair_t *pair);
+void hpairnode_dump_deep (hpair_t * pair);
+void hpairnode_dump (hpair_t * pair);
 
 /**
   The protocol types in enumeration 
@@ -330,7 +330,7 @@ typedef enum _hprotocol
   PROTOCOL_HTTP,
   PROTOCOL_HTTPS,
   PROTOCOL_FTP
-}hprotocol_t;
+} hprotocol_t;
 
 
 
@@ -355,7 +355,7 @@ typedef struct _hurl
     URL_HTTP_DEFAULT_PORT    
     URL_HTTPS_DEFAULT_PORT   
     URL_FTP_DEFAULT_PORT    
-  */ 
+  */
   int port;
 
   /** The hostname */
@@ -363,7 +363,7 @@ typedef struct _hurl
 
   /** The string after the hostname. */
   char context[URL_MAX_CONTEXT_SIZE];
-}hurl_t;
+} hurl_t;
 
 
 /**
@@ -378,7 +378,7 @@ typedef struct _hurl
     URL_ERROR_NO_PROTOCOL 
     URL_ERROR_NO_HOST 
 */
-herror_t hurl_parse(hurl_t *obj, const char* url);
+herror_t hurl_parse (hurl_t * obj, const char *url);
 
 /*
   Object representation of the content-type field 
@@ -392,7 +392,7 @@ typedef struct _content_type
 {
   char type[128];
   hpair_t *params;
-}content_type_t;
+} content_type_t;
 
 
 /**
@@ -407,13 +407,13 @@ typedef struct _content_type
 
   @see content_type_free
 */
-content_type_t *content_type_new(const char* content_type_str);
+content_type_t *content_type_new (const char *content_type_str);
 
 
 /**
   Frees the given content_type_t object
 */
-void content_type_free(content_type_t *ct);
+void content_type_free (content_type_t * ct);
 
 
 
@@ -429,13 +429,14 @@ typedef struct _part
   char transfer_encoding[128];
   char filename[250];
   struct _part *next;
-  int deleteOnExit; /* default is 0 */
-}part_t;
+  int deleteOnExit;             /* default is 0 */
+} part_t;
 
 
-part_t *part_new(const char *id, const char* filename, 
-  const char* content_type, const char* transfer_encoding, part_t *next);
-void part_free(part_t *part);
+part_t *part_new (const char *id, const char *filename,
+                  const char *content_type, const char *transfer_encoding,
+                  part_t * next);
+void part_free (part_t * part);
 
 
 
@@ -448,9 +449,9 @@ typedef struct _attachments
   part_t *parts;
   part_t *last;
   part_t *root_part;
-}attachments_t;
+} attachments_t;
 
-attachments_t *attachments_new(); /* should be used internally */
+attachments_t *attachments_new ();      /* should be used internally */
 
 /*
   Free a attachment. Create attachments with MIME
@@ -458,15 +459,15 @@ attachments_t *attachments_new(); /* should be used internally */
 
   @see mime_get_attachments
 */
-void attachments_free(attachments_t *message);
-void attachments_add_part(attachments_t *attachments, part_t *part);
+void attachments_free (attachments_t * message);
+void attachments_add_part (attachments_t * attachments, part_t * part);
 
 
 /* tmp directory for multipart/related stuff */
 #define HOPTION_TMP_DIR 2
-void hoption_init_args(int argc, char* argv[]);
-void hoption_set(int opt, const char* value);
-char *hoption_get(int opt);
+void hoption_init_args (int argc, char *argv[]);
+void hoption_set (int opt, const char *value);
+char *hoption_get (int opt);
 
 /* logging stuff */
 typedef enum log_level
@@ -477,21 +478,21 @@ typedef enum log_level
   HLOG_WARN,
   HLOG_ERROR,
   HLOG_FATAL
-}log_level_t;
+} log_level_t;
 
 
 
-log_level_t log_set_level(log_level_t level);
-log_level_t log_get_level();
+log_level_t log_set_level (log_level_t level);
+log_level_t log_get_level ();
 
-void log_set_file(const char *filename);
-char *log_get_file();
+void log_set_file (const char *filename);
+char *log_get_file ();
 
 #ifdef WIN32
-  #if defined(_MSC_VER) && _MSC_VER <= 1200 
-	char *VisualC_funcname(const char* file, int line); /* not thread safe!*/
-    #define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
-  #endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+char *VisualC_funcname (const char *file, int line);    /* not thread safe! */
+#define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
+#endif
 #endif
 
 #define log_verbose1(a1) log_verbose(__FUNCTION__, a1)
@@ -524,18 +525,12 @@ char *log_get_file();
 #define log_error4(a1,a2,a3,a4) log_error(__FUNCTION__, a1,a2,a3,a4)
 #define log_error5(a1,a2,a3,a4,a5) log_error(__FUNCTION__, a1,a2,a3,a4,a5)
 
-void log_verbose(const char* FUNC, const char *format, ...);
-void log_debug(const char* FUNC, const char *format, ...);
-void log_info(const char* FUNC, const char *format, ...);
-void log_warn(const char* FUNC, const char *format, ...);
-void log_error(const char* FUNC, const char *format, ...);
+void log_verbose (const char *FUNC, const char *format, ...);
+void log_debug (const char *FUNC, const char *format, ...);
+void log_info (const char *FUNC, const char *format, ...);
+void log_warn (const char *FUNC, const char *format, ...);
+void log_error (const char *FUNC, const char *format, ...);
 
 
 
 #endif
-
-
-
-
-
-

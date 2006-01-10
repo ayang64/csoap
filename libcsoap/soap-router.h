@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.2 2004/02/10 09:51:10 snowdrop Exp $
+ *  $Id: soap-router.h,v 1.3 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -35,7 +35,7 @@ typedef struct _SoapRouter
 {
   SoapServiceNode *service_head;
   SoapServiceNode *service_tail;
-}SoapRouter;
+} SoapRouter;
 
 
 /**
@@ -47,7 +47,7 @@ typedef struct _SoapRouter
    @returns Soap router 
    @see soap_router_free
  */
-SoapRouter *soap_router_new();
+SoapRouter *soap_router_new ();
 
 
 /**
@@ -60,10 +60,9 @@ SoapRouter *soap_router_new();
     the client side.
    @param urn The urn for this service
  */
-void soap_router_register_service(SoapRouter *router,
-				  SoapServiceFunc func,
-				  const char* method,
-				  const char* urn);
+void soap_router_register_service (SoapRouter * router,
+                                   SoapServiceFunc func,
+                                   const char *method, const char *urn);
 
 
 /**
@@ -75,9 +74,8 @@ void soap_router_register_service(SoapRouter *router,
 
    @return The service if found, NULL otherwise.
  */
-SoapService* soap_router_find_service(SoapRouter *router, 
-				      const char* urn,
-				      const char* method);
+SoapService *soap_router_find_service (SoapRouter * router,
+                                       const char *urn, const char *method);
 
 
 /**
@@ -85,6 +83,6 @@ SoapService* soap_router_find_service(SoapRouter *router,
 
    @param router The router object to free
  */
-void soap_router_free(SoapRouter *router);
+void soap_router_free (SoapRouter * router);
 
 #endif

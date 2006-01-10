@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.5 2004/11/02 23:09:27 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.6 2006/01/10 11:21:55 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,11 +21,11 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_STREAM_H 
-#define NANO_HTTP_STREAM_H 
+#ifndef NANO_HTTP_STREAM_H
+#define NANO_HTTP_STREAM_H
 #include <stdio.h>
 
-void _log_str(char *fn, char *str, int size);
+void _log_str (char *fn, char *str, int size);
 
 /*
   HTTP Stream modul:
@@ -77,8 +77,7 @@ typedef enum http_transfer_type
   /** This transfer style will be used by MIME support 
     and for debug purposes.*/
   HTTP_TRANSFER_FILE
-
-}http_transfer_type_t;
+} http_transfer_type_t;
 
 
 /**
@@ -87,9 +86,9 @@ typedef enum http_transfer_type
 */
 typedef struct http_input_stream
 {
-  hsocket_t sock; 
+  hsocket_t sock;
   herror_t err;
-  http_transfer_type_t type; 
+  http_transfer_type_t type;
   int received;
   int content_length;
   int chunk_size;
@@ -98,8 +97,8 @@ typedef struct http_input_stream
   /* file handling */
   FILE *fd;
   char filename[255];
-  int deleteOnExit; /* default is 0 */
-}http_input_stream_t;
+  int deleteOnExit;             /* default is 0 */
+} http_input_stream_t;
 
 
 /**
@@ -109,10 +108,10 @@ typedef struct http_input_stream
 typedef struct http_output_stream
 {
   hsocket_t sock;
-  http_transfer_type_t type; 
+  http_transfer_type_t type;
   int content_length;
   int sent;
-}http_output_stream_t;
+} http_output_stream_t;
 
 
 /*
@@ -135,7 +134,7 @@ typedef struct http_output_stream
 
   @see http_input_stream_free
 */
-http_input_stream_t *http_input_stream_new(hsocket_t sock, hpair_t *header);
+http_input_stream_t *http_input_stream_new (hsocket_t sock, hpair_t * header);
 
 
 /**
@@ -151,7 +150,7 @@ http_input_stream_t *http_input_stream_new(hsocket_t sock, hpair_t *header);
 
   @see   http_input_stream_free
 */
-http_input_stream_t *http_input_stream_new_from_file(const char* filename);
+http_input_stream_t *http_input_stream_new_from_file (const char *filename);
 
 
 /**
@@ -160,7 +159,7 @@ http_input_stream_t *http_input_stream_new_from_file(const char* filename);
 
   @param stream the input stream to free.
 */
-void http_input_stream_free(http_input_stream_t *stream);
+void http_input_stream_free (http_input_stream_t * stream);
 
 
 /**
@@ -170,7 +169,7 @@ void http_input_stream_free(http_input_stream_t *stream);
   @returns <br>1 if there are still data to read. 
            <br>0 if no more data exists.
 */
-int http_input_stream_is_ready(http_input_stream_t *stream);
+int http_input_stream_is_ready (http_input_stream_t * stream);
 
 
 /**
@@ -194,8 +193,8 @@ int http_input_stream_is_ready(http_input_stream_t *stream);
 
   @returns the actual readed bytes or -1 on error.
 */
-int http_input_stream_read(http_input_stream_t *stream, 
-                           byte_t *dest, int size);
+int http_input_stream_read (http_input_stream_t * stream,
+                            byte_t * dest, int size);
 
 
 /*
@@ -217,7 +216,8 @@ int http_input_stream_read(http_input_stream_t *stream,
 
   @see http_output_stream_free
 */
-http_output_stream_t *http_output_stream_new(hsocket_t sock, hpair_t *header);
+http_output_stream_t *http_output_stream_new (hsocket_t sock,
+                                              hpair_t * header);
 
 
 /**
@@ -226,7 +226,7 @@ http_output_stream_t *http_output_stream_new(hsocket_t sock, hpair_t *header);
 
   @param stream the stream to free.
 */
-void http_output_stream_free(http_output_stream_t *stream);
+void http_output_stream_free (http_output_stream_t * stream);
 
 
 /**
@@ -240,8 +240,8 @@ void http_output_stream_free(http_output_stream_t *stream);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t http_output_stream_write(http_output_stream_t *stream, 
-                           const byte_t *bytes, int size);
+herror_t http_output_stream_write (http_output_stream_t * stream,
+                                   const byte_t * bytes, int size);
 
 /**
   Writes a null terminated string to the stream.
@@ -253,8 +253,8 @@ herror_t http_output_stream_write(http_output_stream_t *stream,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t http_output_stream_write_string(http_output_stream_t *stream, 
-                           const char *str);
+herror_t http_output_stream_write_string (http_output_stream_t * stream,
+                                          const char *str);
 
 
 /**
@@ -267,12 +267,6 @@ herror_t http_output_stream_write_string(http_output_stream_t *stream,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t http_output_stream_flush(http_output_stream_t *stream);
+herror_t http_output_stream_flush (http_output_stream_t * stream);
 
 #endif
-
-
-
-
-
-
