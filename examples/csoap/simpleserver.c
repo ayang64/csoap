@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.16 2006/01/10 11:29:04 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.17 2006/01/11 09:18:17 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
   soap_router_register_service(router, say_hello, method, urn);
   soap_server_register_router(router, url);
 
-  log_info1("send SIGTERM to shutdown");
+  log_info1("press ctrl-c to shutdown");
   soap_server_run();
 
   log_info1("shutting down\n");
