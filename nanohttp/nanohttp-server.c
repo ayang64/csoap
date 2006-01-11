@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.41 2006/01/10 21:45:20 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.42 2006/01/11 09:22:21 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -91,7 +91,7 @@ static int _httpd_run = 1;
 #ifdef WIN32
 static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
 #else
-static int _httpd_terminate_signal = SIGTERM;
+static int _httpd_terminate_signal = SIGINT;
 #endif
 static conndata_t *_httpd_connection;
 
