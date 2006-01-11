@@ -167,7 +167,7 @@ user_verify (X509 * cert)
 #endif
 
 SSL_CTX *
-initialize_ctx (char *keyfile, char *password, char *calist)
+initialize_ctx (const char *keyfile, const char *password, const char *calist)
 {
   SSL_CTX *ctx = NULL;
 

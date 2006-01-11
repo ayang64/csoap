@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.43 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.44 2006/01/11 10:54:43 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -78,11 +78,11 @@ typedef int ssize_t;
 
 
 #ifdef HAVE_SSL
-SSL_CTX *SSLctx = NULL;
+/*SSL_CTX *SSLctx = NULL;
 char *SSLCert = NULL;
 char *SSLPass = NULL;
 char *SSLCA = NULL;
-int SSLCertLess = 0;
+int SSLCertLess = 0;*/
 #endif
 
 /*--------------------------------------------------
@@ -126,21 +126,40 @@ hsocket_init(hsocket_t * sock)
   log_verbose1("Starting hsocket init");
   /* just set the descriptor to -1 */
   sock->sock = -1;
+
 #ifdef HAVE_SSL
   sock->ssl = NULL;
-  if (SSLCert || SSLCertLess)
-  {
-    log_verbose1("calling init ctx");
-    SSLctx = initialize_ctx(SSLCert, SSLPass, SSLCA);
-    if (SSLctx == NULL)
-    {
-      return herror_new("hsocket_init", HSOCKET_ERROR_CONNECT,
-                        "Unable to initialize SSL CTX");
-    }
-  }
+  sock->sslCtx = NULL;
 #endif
+
   return H_OK;
 }
+
+/*--------------------------------------------------
+FUNCTION: hsocket_init_ssl
+----------------------------------------------------*/
+#ifdef HAVE_SSL
+herror_t
+hsocket_init_ssl(hsocket_t * sock, 
+		 const char* sslCert, 
+		 const char* sslPass,
+		 const char* sslCA)
+{
+  hsocket_init(sock);
+
+  log_verbose1("calling initialize_ctx()");
+  sock->sslCtx = initialize_ctx(sslCert, sslPass, sslCA);
+  if (sock->sslCtx == NULL)
+  {
+    return herror_new("hsocket_init_ctx", HSOCKET_ERROR_SSLCTX,
+		      "Unable to initialize SSL CTX");
+  }
+
+  return H_OK;
+}
+
+#endif
+
 
 /*--------------------------------------------------
 FUNCTION: hsocket_free
@@ -186,7 +205,7 @@ hsocket_open(hsocket_t * dsock, const char *hostname, int port)
                       "Socket error: %d", errno);
 
 #ifdef HAVE_SSL
-  if (!SSLctx)
+  if (!dsock->sslCtx)
   {
 #endif
     log_verbose1("Using HTTP");
@@ -196,7 +215,7 @@ hsocket_open(hsocket_t * dsock, const char *hostname, int port)
   else
   {
     log_verbose1("Using HTTPS");
-    dsock->ssl = init_ssl(SSLctx, sock.sock, SSL_CLIENT);
+    dsock->ssl = init_ssl(dsock->sslCtx, sock.sock, SSL_CLIENT);
   }
 #endif
   return H_OK;
@@ -434,7 +453,7 @@ hsocket_nsend(hsocket_t sock, const byte_t * bytes, int n)
     return herror_new("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED,
                       "Called hsocket_listen() before initializing!");
 
-  // log_verbose2( "SENDING %s", bytes );
+  /* log_verbose2( "SENDING %s", bytes );*/
 
   /* TODO (#1#): check return value and send again until n bytes sent */
   while (1)
@@ -513,7 +532,7 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
     if (sock.ssl)
     {
       struct timeval timeout;
-      int i = 0;
+      /*int i = 0;*/
       fd_set fds;
       FD_ZERO(&fds);
       FD_SET(sock.sock, &fds);
@@ -523,14 +542,14 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
 #else
       fcntl(sock.sock, F_SETFL, O_NONBLOCK);
 #endif
-      // log_verbose1("START READ LOOP");
-      // do{
-      // log_verbose2("DEBUG A %d",i);
+      /* log_verbose1("START READ LOOP");
+       do{
+       log_verbose2("DEBUG A %d",i); */
       status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
       if (status < 1)
       {
         int ret = select(sock.sock + 1, &fds, NULL, NULL, &timeout);
-        // log_verbose2("DEBUG %d",ret);
+        /* log_verbose2("DEBUG %d",ret);*/
 #ifdef WIN32
         if (ret == SOCKET_ERROR)
         {
@@ -544,17 +563,17 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
         if (ret == 0)
         {
           log_verbose1("Socket timeout");
-          return herror_new("hsocket_read", HSOCKET_SSL_CLOSE, "Timeout");
+          return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "Timeout");
         }
         else
         {
-          // log_verbose1("DEBUG C");
+          /* log_verbose1("DEBUG C"); */
           status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
         }
-        // log_verbose3("DEBUG D char: %d status: %d", 
-        // buffer[totalRead], SSL_get_error(sock.ssl, status));
+        /* log_verbose3("DEBUG D char: %d status: %d", 
+         buffer[totalRead], SSL_get_error(sock.ssl, status));*/
       }
-      // } while( SSL_get_error(sock.ssl, status) == SSL_ERROR_WANT_READ);
+      /* } while( SSL_get_error(sock.ssl, status) == SSL_ERROR_WANT_READ); */
 #ifdef WIN32
 #else
       fcntl(sock.sock, F_SETFL, 0);
@@ -562,9 +581,9 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
     }
     else
     {
-#else // HAVE_SSL
+#else /* HAVE_SSL */
     {
-#endif // HAVE_SSL
+#endif /* HAVE_SSL */
       status = recv(sock.sock, &buffer[totalRead], total - totalRead, 0);
 
 #ifdef WIN32
@@ -598,12 +617,12 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
     if (sock.ssl && status < 1)
     {
 
-      // XXX I'm not sure this err_syscall is right here...
+      /* XXX I'm not sure this err_syscall is right here... */
       if (SSL_get_shutdown(sock.ssl) == SSL_RECEIVED_SHUTDOWN ||
           SSL_get_error(sock.ssl, status) == SSL_ERROR_SYSCALL)
       {
         *received = NULL;;
-        return herror_new("hsocket_read", HSOCKET_SSL_CLOSE, "SSL Closed");
+        return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "SSL Closed");
       }
       log_error2("Read error (%d)", status);
       log_ssl_error(sock.ssl, status);

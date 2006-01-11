@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.22 2006/01/10 11:29:05 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.23 2006/01/11 10:54:43 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -105,7 +105,8 @@
 #define HSOCKET_ERROR_ACCEPT 1008
 #define HSOCKET_ERROR_NOT_INITIALIZED 1009
 #define HSOCKET_ERROR_IOCTL 1010
-#define HSOCKET_SSL_CLOSE 1011
+#define HSOCKET_ERROR_SSLCLOSE 1011
+#define HSOCKET_ERROR_SSLCTX 1011
 
 /* URL errors */
 #define URL_ERROR_UNKNOWN_PROTOCOL 1101
@@ -139,7 +140,7 @@
 #define XML_ERROR_PARSE 1601
 
 /* SSL Errors */
-#define SSL_ERROR_INIT 1700
+/*#define SSL_ERROR_INIT 1700*/
 
 /*
 Set Sleep function platform depended

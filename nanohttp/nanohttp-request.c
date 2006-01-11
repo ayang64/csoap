@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.8 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.9 2006/01/11 10:54:43 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -244,7 +244,7 @@ hrequest_new_from_socket(hsocket_t sock, hrequest_t ** out)
     status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
     if (status != H_OK)
     {
-      if (herror_code(status) != HSOCKET_SSL_CLOSE)
+      if (herror_code(status) != HSOCKET_ERROR_SSLCLOSE)
       {
         log_error1("Socket read error");
       }

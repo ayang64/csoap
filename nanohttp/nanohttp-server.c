@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.42 2006/01/11 09:22:21 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.43 2006/01/11 10:54:43 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -103,7 +103,7 @@ sigset_t thrsigset;
 #endif
 
 #ifdef HAVE_SSL
-extern SSL_CTX *SSLctx;
+/*extern SSL_CTX *SSLctx;*/
 #endif
 
 
@@ -326,7 +326,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
 }
 
 
-int
+herror_t
 httpd_send_internal_error (httpd_conn_t * conn, const char *errmsg)
 {
   const char *template1 =
@@ -444,7 +444,7 @@ httpd_session_main (void *data)
   char buffer[256];             /* temp buffer for recv() */
   char header[4064];            /* received header */
   hrequest_t *req = NULL;       /* only for test */
-  httpd_conn_t *rconn;
+  httpd_conn_t *rconn = NULL;
   hservice_t *service = NULL;
   herror_t status;
 
@@ -453,14 +453,14 @@ httpd_session_main (void *data)
 
   log_verbose1 ("starting httpd_session_main()");
 #ifdef HAVE_SSL
-  if (!SSLctx)
+  if (!conn->sock.sslCtx)
   {
     log_verbose1 ("Using HTTP");
   }
   else
   {
     log_verbose1 ("Using HTTPS");
-    conn->sock.ssl = init_ssl (SSLctx, conn->sock.sock, SSL_SERVER);
+    conn->sock.ssl = init_ssl (conn->sock.sslCtx, conn->sock.sock, SSL_SERVER);
     hsocket_block (conn->sock, 0);
     if (conn->sock.ssl == NULL)
     {
@@ -481,7 +481,7 @@ httpd_session_main (void *data)
 
     if (status != H_OK)
     {
-      if (herror_code (status) != HSOCKET_SSL_CLOSE)
+      if (herror_code (status) != HSOCKET_ERROR_SSLCLOSE)
       {
         httpd_send_internal_error (rconn, herror_message (status)       /* "Request
                                                                            parse
@@ -799,7 +799,10 @@ httpd_run ()
 
     /* Accept a socket */
     err = hsocket_accept (_httpd_socket, &(conn->sock));
-    if (err != H_OK && herror_code (err) == SSL_ERROR_INIT)
+    if (err != H_OK 
+	/* TODO (#1#) is this check neccessary?
+	   && herror_code (err) == SSL_ERROR_INIT*/
+	)
     {
       hsocket_close (conn->sock);
       conn->sock.sock = -1;

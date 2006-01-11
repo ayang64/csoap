@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.22 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.23 2006/01/11 10:54:43 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -42,10 +42,11 @@
 static char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
 
 #ifdef HAVE_SSL
-extern char *SSLCert;
+/*extern char *SSLCert;
 extern char *SSLPass;
 extern char *SSLCA;
 extern int SSLCertLess;
+*/
 #endif
 
 /* option stuff */
@@ -100,7 +101,8 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CERT);
 #else
-      SSLCert = argv[i + 1];
+      /* TODO (#1#) handle ssl arguments */
+      /* SSLCert = argv[i + 1];*/
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_CERTPASS) && i < argc - 1)
@@ -110,7 +112,8 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CERTPASS);
 #else
-      SSLPass = argv[i + 1];
+      /* TODO (#1#) handle ssl arguments */
+      /* SSLPass = argv[i + 1];*/
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_CA) && i < argc - 1)
@@ -120,7 +123,8 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CA);
 #else
-      SSLCA = argv[i + 1];
+      /* TODO (#1#) handle ssl arguments */
+      /*SSLCA = argv[i + 1];*/
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_HTTPS))
@@ -130,7 +134,8 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_HTTPS);
 #else
-      SSLCertLess = 1;
+      /* TODO (#1#) handle ssl arguments */
+      /*SSLCertLess = 1;*/
 #endif
     }
   }

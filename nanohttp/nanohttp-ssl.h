@@ -63,7 +63,9 @@ typedef struct Con
  * Initialize the context
  */
 
-SSL_CTX *initialize_ctx(char *keyfile, char *password, char *calist);
+SSL_CTX *initialize_ctx(const char *keyfile, 
+			const char *password, 
+			const char *calist);
 
 /*
  * Quick function for verifying a portion of the cert
@@ -97,6 +99,14 @@ SSL *init_ssl(SSL_CTX * ctx, int sock, int type);
  */
 
 void ssl_cleanup();
+
+/**
+   Log funtion to report ssl failures
+   @param ssl
+   @param ret
+ */
+void
+log_ssl_error (SSL * ssl, int ret);
 
 #endif
 

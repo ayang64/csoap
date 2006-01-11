@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.20 2006/01/10 11:29:05 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.21 2006/01/11 10:54:43 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,24 +37,29 @@
 #endif
 
 
+/*
+  Socket definition
+*/
+typedef struct hsocket_t
+{
+
+#ifdef HAVE_SSL
+  SSL *ssl;
+  SSL_CTX *sslCtx;
+#endif
+
 #ifdef WIN32
-typedef struct hsocket_t
-{
-#ifdef HAVE_SSL
-  SSL *ssl;
-#endif
   SOCKET sock;
-} hsocket_t;
-typedef int socklen_t;
 #else
-typedef struct hsocket_t
-{
-#ifdef HAVE_SSL
-  SSL *ssl;
-#endif
   int sock;
-} hsocket_t;
 #endif
+
+} hsocket_t; /* end of socket definition */
+
+#ifdef WIN32
+typedef int socklen_t;
+#endif
+
 
 
 
@@ -75,15 +80,36 @@ void hsocket_module_destroy();
 
 
 /**
-  Initializes a given socket object. This function should
+  Initializes a given socket object. This function (or 
+  hsokcet_init_ssl) should
   be called for every socket before using it.
 
   @param sock the destination socket to initialize.
 
+  @see hsocket_init_ssl
   @returns This function should always return H_OK. 
  */
 herror_t hsocket_init(hsocket_t * sock);
 
+
+/**
+   Initializes a given socket object with ssl context.
+   To initialize the socket without ssl, you should use
+   hsocket_init()
+
+   @param sock  the destination socket to initialize.
+   @param sslCert keyfile
+   @param sslPass passwort
+   @param sslCA calist
+
+   @see hsocket_init
+   @returns HSOCKET_ERROR_SSLCTX if failed. H_OK otherwise
+ */
+herror_t
+hsocket_init_ssl(hsocket_t * sock, 
+		 const char* sslCert, 
+		 const char* sslPass,
+		 const char* sslCA);
 
 /**
   Destroys and releases a given socket.
