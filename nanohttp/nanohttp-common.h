@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.23 2006/01/11 10:54:43 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.24 2006/01/18 16:28:24 mrcsys Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -466,6 +466,9 @@ void attachments_add_part(attachments_t * attachments, part_t * part);
 
 /* tmp directory for multipart/related stuff */
 #define HOPTION_TMP_DIR 2
+#define HOPTION_SSL_CERT 3
+#define HOPTION_SSL_PASS 4
+#define HOPTION_SSL_CA 5
 void hoption_init_args(int argc, char *argv[]);
 void hoption_set(int opt, const char *value);
 char *hoption_get(int opt);

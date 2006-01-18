@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.44 2006/01/18 14:53:13 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.45 2006/01/18 16:28:24 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -118,6 +118,9 @@ httpd_init (int argc, char *argv[])
 {
   int i;
   herror_t status;
+#ifdef HAVE_SSL
+  char *SSLCert = NULL, *SSLPass = NULL, *SSLCA = NULL;
+#endif
 
   hoption_init_args (argc, argv);
 
@@ -172,7 +175,19 @@ httpd_init (int argc, char *argv[])
 #endif
 
   /* create socket */
-  status = hsocket_init (&_httpd_socket);
+#ifdef HAVE_SSL
+  SSLCert = hoption_get(HOPTION_SSL_CERT);
+  SSLPass = hoption_get(HOPTION_SSL_PASS);
+  SSLCA = hoption_get(HOPTION_SSL_CA);
+  log_verbose3("SSL: %s %s", SSLCert, SSLCA);
+  if(SSLCert[0] != NULL){
+	  status = hsocket_init_ssl(&_httpd_socket, SSLCert, SSLPass, SSLCA);
+  } else
+#endif
+  {
+    status = hsocket_init (&_httpd_socket);
+  }
+
   if (status != H_OK)
   {
     return status;
@@ -457,14 +472,14 @@ httpd_session_main (void *data)
 
   log_verbose1 ("starting httpd_session_main()");
 #ifdef HAVE_SSL
-  if (!conn->sock.sslCtx)
+  if (!_httpd_socket.sslCtx)
   {
     log_verbose1 ("Using HTTP");
   }
   else
   {
     log_verbose1 ("Using HTTPS");
-    conn->sock.ssl = init_ssl (conn->sock.sslCtx, conn->sock.sock, SSL_SERVER);
+    conn->sock.ssl = init_ssl (_httpd_socket.sslCtx, conn->sock.sock, SSL_SERVER);
     hsocket_block (conn->sock, 0);
     if (conn->sock.ssl == NULL)
     {

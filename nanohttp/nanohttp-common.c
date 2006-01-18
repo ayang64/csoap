@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.23 2006/01/11 10:54:43 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.24 2006/01/18 16:28:24 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -82,6 +82,9 @@ hoption_init_args(int argc, char *argv[])
   int i;
 
   hoption_set(HOPTION_TMP_DIR, ".");    /* default value */
+  hoption_set(HOPTION_SSL_CERT, "");
+  hoption_set(HOPTION_SSL_PASS, "");
+  hoption_set(HOPTION_SSL_CA, "");
 
   /* initialize from arguments */
   for (i = 0; i < argc; i++)
@@ -101,8 +104,7 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CERT);
 #else
-      /* TODO (#1#) handle ssl arguments */
-      /* SSLCert = argv[i + 1];*/
+      hoption_set(HOPTION_SSL_CERT, argv[i + 1]);
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_CERTPASS) && i < argc - 1)
@@ -112,8 +114,7 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CERTPASS);
 #else
-      /* TODO (#1#) handle ssl arguments */
-      /* SSLPass = argv[i + 1];*/
+      hoption_set(HOPTION_SSL_PASS, argv[i + 1]);
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_CA) && i < argc - 1)
@@ -123,8 +124,7 @@ hoption_init_args(int argc, char *argv[])
               "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
               NHTTP_ARG_CA);
 #else
-      /* TODO (#1#) handle ssl arguments */
-      /*SSLCA = argv[i + 1];*/
+     hoption_set(HOPTION_SSL_CA, argv[i + 1]);
 #endif
     }
     else if (!strcmp(argv[i], NHTTP_ARG_HTTPS))
