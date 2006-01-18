@@ -166,6 +166,16 @@ user_verify (X509 * cert)
 }
 #endif
 
+void
+start_ssl( void ){
+  /* Global system initialization */
+  log_verbose1 ("Initializing library");
+  SSL_library_init ();
+  SSL_load_error_strings ();
+  ERR_load_crypto_strings ();
+  OpenSSL_add_ssl_algorithms ();
+}
+
 SSL_CTX *
 initialize_ctx (const char *keyfile, const char *password, const char *calist)
 {
@@ -173,15 +183,7 @@ initialize_ctx (const char *keyfile, const char *password, const char *calist)
 
   if (password == NULL)
     password = "";
-
-
-  /* Global system initialization */
-  log_verbose1 ("Initializing library");
-  SSL_library_init ();
-  SSL_load_error_strings ();
-  ERR_load_crypto_strings ();
-  OpenSSL_add_ssl_algorithms ();
-
+ 
   /* Create our context */
   ctx = SSL_CTX_new (SSLv23_method ());
 

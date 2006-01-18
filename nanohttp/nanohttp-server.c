@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.43 2006/01/11 10:54:43 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.44 2006/01/18 14:53:13 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -165,6 +165,10 @@ httpd_init (int argc, char *argv[])
      reaper thread failed to start"); return herror_new("httpd_init",
      THREAD_BEGIN_ERROR, "_beginthread() failed while starting WSAReaper"); } 
    */
+#endif
+
+#ifdef HAVE_SSL
+  start_ssl();
 #endif
 
   /* create socket */

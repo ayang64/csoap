@@ -60,6 +60,10 @@ typedef struct Con
 //static int pw_cb(char* buf, int num, int rwflag, void *userdata);
 
 /*
+ * Start the ssl library
+ */
+void start_ssl( void );
+/*
  * Initialize the context
  */
 

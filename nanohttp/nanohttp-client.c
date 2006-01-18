@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.33 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.34 2006/01/18 14:53:13 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -55,6 +55,9 @@ httpc_init(int argc, char *argv[])
 {
   hoption_init_args(argc, argv);
   hsocket_module_init();
+#ifdef HAVE_SSL
+  start_ssl();
+#endif
   return H_OK;
 }
 
