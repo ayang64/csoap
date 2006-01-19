@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.45 2006/01/18 16:28:24 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.46 2006/01/19 18:00:19 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -415,6 +415,8 @@ httpd_new (hsocket_t sock)
 void
 httpd_free (httpd_conn_t * conn)
 {
+  if(!conn)
+	return;
   if (conn->out != NULL)
     http_output_stream_free (conn->out);
 

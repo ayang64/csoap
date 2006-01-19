@@ -25,10 +25,10 @@
 #ifdef HAVE_SSL
 
 #include <sys/types.h>
-#ifndef WIN32
-#include <netinet/in.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#ifndef WIN32
+#include <netinet/in.h>
 #endif
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
