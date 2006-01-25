@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.12 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-env.c,v 1.13 2006/01/25 18:12:06 mrcsys Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -591,7 +591,8 @@ soap_env_find_urn(SoapEnv * env, char *urn)
     return 0;
   }
 
-  if (node->ns && node->ns->prefix)
+  /* if (node->ns && node->ns->prefix) MRC 1/25/2006 */
+  if (node->ns)
   {
     ns = xmlSearchNs(body->doc, node, node->ns->prefix);
     if (ns != NULL)
