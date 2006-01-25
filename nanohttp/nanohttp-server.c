@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.46 2006/01/19 18:00:19 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.47 2006/01/25 19:15:18 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -306,7 +306,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   /* set date */
   nw = time (NULL);
   localtime_r (&nw, &stm);
-  strftime (buffer, 255, "Date: %a, %d %b %Y %T GMT", &stm);
+  strftime (buffer, 255, "Date: %a, %d %b %Y %H:%M:%S GMT", &stm);
   strcat (header, buffer);
   strcat (header, "\r\n");
 
