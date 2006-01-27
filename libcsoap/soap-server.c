@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.14 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-server.c,v 1.15 2006/01/27 20:23:40 mrcsys Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -115,8 +115,8 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 {
   hpair_t *header = NULL;
   char buffer[1054];
-  char urn[150];
-  char method[150];
+  char *urn;
+  char *method;
   SoapCtx *ctx, *ctxres;
   SoapRouter *router;
   SoapService *service;
@@ -181,7 +181,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
       else
       {
 
-        if (!soap_env_find_urn(ctx->env, urn))
+        if (!(urn=soap_env_find_urn(ctx->env)))
         {
 
           _soap_server_send_fault(conn, header, "No URN found!");
@@ -193,7 +193,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
           log_verbose2("urn: '%s'", urn);
         }
 
-        if (!soap_env_find_methodname(ctx->env, method))
+        if (!(method=soap_env_find_methodname(ctx->env)))
         {
 
           _soap_server_send_fault(conn, header, "No method found!");

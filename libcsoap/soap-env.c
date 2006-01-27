@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.13 2006/01/25 18:12:06 mrcsys Exp $
+*  $Id: soap-env.c,v 1.14 2006/01/27 20:23:39 mrcsys Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -195,9 +195,9 @@ soap_env_new_with_fault(fault_code_t faultcode,
 herror_t
 soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
 {
-  char urn[100];
-  char methodname[150];
-  char methodname2[150];
+  char *urn;
+  char *methodname;
+  char *methodname2;
 
   if (request == NULL)
   {
@@ -212,7 +212,7 @@ soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
                       "request (first param) has no xml structure");
   }
 
-  if (!soap_env_find_methodname(request, methodname))
+  if (!(methodname = soap_env_find_methodname(request)))
   {
     return herror_new("soap_env_new_with_response",
                       GENERAL_INVALID_PARAM,
@@ -220,14 +220,15 @@ soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
                       SAVE_STR(methodname));
   }
 
-  if (!soap_env_find_urn(request, urn))
+  if (!(urn = soap_env_find_urn(request)))
   {
 
     /* here we have no chance to find out the namespace */
     /* try to continue without namespace (urn) */
-    urn[0] = '\0';
+    urn = "";
   }
 
+  methodname2 = malloc(strlen(methodname)+9);
   sprintf(methodname2, "%sResponse", methodname);
   return soap_env_new_with_method(urn, methodname2, out);
 }
@@ -569,8 +570,8 @@ _soap_env_get_body(SoapEnv * env)
 }
 
 
-int
-soap_env_find_urn(SoapEnv * env, char *urn)
+char *
+soap_env_find_urn(SoapEnv * env)
 {
   xmlNsPtr ns;
   xmlNodePtr body, node;
@@ -597,23 +598,22 @@ soap_env_find_urn(SoapEnv * env, char *urn)
     ns = xmlSearchNs(body->doc, node, node->ns->prefix);
     if (ns != NULL)
     {
-      strcpy(urn, (char *) ns->href);
-      return 1;                 /* namespace found! */
+      return((char *) ns->href); /* namespace found! */
     }
   }
   else
   {
-    strcpy(urn, "");
+    static char *empty = "";
     log_warn1("No namespace found");
-    return 1;
+    return(empty);
   }
 
   return 0;
 }
 
 
-int
-soap_env_find_methodname(SoapEnv * env, char *method)
+char *
+soap_env_find_methodname(SoapEnv * env)
 {
   xmlNodePtr body, node;
 
@@ -636,9 +636,8 @@ soap_env_find_methodname(SoapEnv * env, char *method)
 
   }
 
-  strcpy(method, (const char *) node->name);
+  return((char *) node->name);
 
-  return 1;
 }
 
 

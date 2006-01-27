@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.11 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.12 2006/01/27 20:23:40 mrcsys Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -326,8 +326,8 @@ xmlNodePtr soap_env_get_fault(SoapEnv * env);
 xmlNodePtr soap_env_get_header(SoapEnv * env);
 
 
-int soap_env_find_urn(SoapEnv * env, char *urn);
-int soap_env_find_methodname(SoapEnv * env, char *methodname);
+char * soap_env_find_urn(SoapEnv * env);
+char * soap_env_find_methodname(SoapEnv * env);
 
 
 
