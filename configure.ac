@@ -66,6 +66,8 @@ VERSION=$GENERIC_VERSION
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 
+
+
 dnl --------------------------------
 dnl Package name and version number (nanohttp)
 dnl --------------------------------
@@ -289,4 +291,5 @@ wsdl2c/Makefile
 examples/Makefile
 examples/nanohttp/Makefile
 examples/csoap/Makefile
-libcsoap.pc)
+libcsoap.pc
+csoap-config)
