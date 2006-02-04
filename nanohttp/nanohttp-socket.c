@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.45 2006/01/31 18:33:05 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.46 2006/02/04 01:25:13 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -48,6 +48,10 @@ typedef int ssize_t;
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+
+#ifndef WIN32
+#include <netinet/in.h>
 #endif
 
 #ifdef HAVE_ARPA_INET_H
