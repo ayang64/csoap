@@ -1,4 +1,5 @@
 ## top directory
+bin_SCRIPTS=csoap-config
 
 #Build in these directories:
 SUBDIRS= $(NANOHTTP_LIBRARY_NAME) $(GENERIC_LIBRARY_NAME) examples
