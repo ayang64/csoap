@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.14 2006/01/27 20:23:39 mrcsys Exp $
+*  $Id: soap-env.c,v 1.15 2006/02/04 01:24:10 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -49,7 +49,7 @@ Parameters:
 5- method name(again)
 */
 #define _SOAP_MSG_TEMPLATE_ \
-	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encoding=\"%s\"" \
+	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
 	" <SOAP-ENV:Body>"\
@@ -70,7 +70,7 @@ Parameters:
 5- method name(again)
 */
 #define _SOAP_MSG_TEMPLATE_EMPTY_TARGET_ \
-	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encoding=\"%s\"" \
+	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
 	" <SOAP-ENV:Body>"\
