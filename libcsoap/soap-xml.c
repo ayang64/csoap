@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.8 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-xml.c,v 1.9 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -22,8 +22,6 @@
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
 #include <libcsoap/soap-xml.h>
-
-static const char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 
 xmlNodePtr
 soap_xml_get_children(xmlNodePtr param)

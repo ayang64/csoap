@@ -104,7 +104,7 @@ AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
 
- Checks for library functions.
+dnl Checks for library functions.
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([gethostbyname socket])

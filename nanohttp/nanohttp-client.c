@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.36 2006/01/25 19:18:42 mrcsys Exp $
+*  $Id: nanohttp-client.c,v 1.37 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -145,7 +145,35 @@ httpc_close_free(httpc_conn_t * conn)
   httpc_free(conn);
 }
 
+int
+httpc_add_header(httpc_conn_t *conn, const char *key, const char *value)
+{
+  if (!conn)
+  {
+    log_warn1("Connection object is NULL");
+    return -1;
+  }
 
+  conn->header = hpairnode_new(key, value, conn->header);
+
+  return 0;
+}
+
+void
+httpc_add_headers(httpc_conn_t *conn, const hpair_t *values)
+{
+  if (conn == NULL)
+  {
+    log_warn1("Connection object is NULL");
+    return;
+  }
+
+  for(;values; values=values->next)
+    httpc_add_header(conn, values->key, values->value);
+
+  return;
+}
+ 
 /*--------------------------------------------------
 FUNCTION: httpc_set_header
 DESC: Adds a new (key, value) pair to the header
@@ -153,7 +181,7 @@ or modifies the old pair if this function will
 finds another pair with the same 'key' value.
 ----------------------------------------------------*/
 int
-httpc_set_header(httpc_conn_t * conn, const char *key, const char *value)
+httpc_set_header(httpc_conn_t *conn, const char *key, const char *value)
 {
   hpair_t *p;
 
@@ -182,12 +210,11 @@ httpc_set_header(httpc_conn_t * conn, const char *key, const char *value)
   return 0;
 }
 
-
 /*--------------------------------------------------
 FUNCTION: httpc_header_add_date
 DESC: Adds the current date to the header.
 ----------------------------------------------------*/
-static void
+/* static void
 _httpc_set_error(httpc_conn_t * conn, int errcode, const char *format, ...)
 {
   va_list ap;
@@ -197,7 +224,7 @@ _httpc_set_error(httpc_conn_t * conn, int errcode, const char *format, ...)
   va_start(ap, format);
   vsprintf(conn->errmsg, format, ap);
   va_end(ap);
-}
+} */
 
 /*--------------------------------------------------
 FUNCTION: httpc_header_add_date

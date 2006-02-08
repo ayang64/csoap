@@ -129,20 +129,18 @@ verify_sn (X509 * cert, int who, int nid, char *str)
 static int
 verify_cb (int prev_ok, X509_STORE_CTX * ctx)
 {
-  X509 *cert = X509_STORE_CTX_get_current_cert (ctx);
-  int depth = X509_STORE_CTX_get_error_depth (ctx);
-  int err = X509_STORE_CTX_get_error (ctx);
 /*
-    if( err = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ){
+    if ((X509_STORE_CTX_get_error(ctx) = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN))
+    {
         log_verbose1("Self signed cert in chain");
         return 1;
     }
 */
 #ifdef NOUSER_VERIFY            /* ifdef's added by Ferhat. because of
                                    unresolved reference while compiling */
-  if (depth == 0)
+  if (X509_STORE_CTX_get_error_depth(ctx) == 0)
   {
-    return user_verify (cert);
+    return user_verify (X509_STORE_CTX_get_current_cert(ctx));
   }
   else
   {
@@ -207,7 +205,7 @@ initialize_ctx (const char *keyfile, const char *password, const char *calist)
 
     log_verbose1 ("Certificate file read ok");
 
-    pass = password;
+    pass = strdup(password);
     SSL_CTX_set_default_passwd_cb (ctx, pw_cb);
 
     if (!(SSL_CTX_use_PrivateKey_file (ctx, keyfile, SSL_FILETYPE_PEM)))
@@ -299,7 +297,7 @@ log_ssl_error (SSL * ssl, int ret)
     break;
   case SSL_ERROR_SSL:
     strcat (errorbuf, "SSL library");
-    while (errqueue = ERR_get_error ())
+    while ((errqueue = ERR_get_error()))
     {
       log_error2 ("SSL %s", ERR_error_string (errqueue, NULL));
     }
@@ -313,7 +311,6 @@ SSL *
 init_ssl (SSL_CTX * ctx, int sock, int type)
 {
   int ret;
-  int status;
   SSL *ssl;
 #if 0
 #ifdef WIN32

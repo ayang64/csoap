@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.47 2006/01/25 19:15:18 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.48 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -85,6 +85,7 @@ static int _httpd_max_connections = 20;
 static int _httpd_max_idle = 120;
 #endif
 static hsocket_t _httpd_socket;
+static hservice_t *_httpd_services_default = NULL;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
@@ -180,7 +181,7 @@ httpd_init (int argc, char *argv[])
   SSLPass = hoption_get(HOPTION_SSL_PASS);
   SSLCA = hoption_get(HOPTION_SSL_CA);
   log_verbose3("SSL: %s %s", SSLCert, SSLCA);
-  if(SSLCert[0] != NULL){
+  if(SSLCert[0] != '\0'){
 	  status = hsocket_init_ssl(&_httpd_socket, SSLCert, SSLPass, SSLCA);
   } else
 #endif
@@ -227,6 +228,24 @@ httpd_register (const char *ctx, httpd_service func)
   return 1;
 }
 
+int
+httpd_register_default (const char *ctx, httpd_service func)
+{
+  int ret;
+
+  ret = httpd_register(ctx, func);
+
+  /* this is broken, but working */
+  _httpd_services_default = _httpd_services_tail;
+
+  return ret;
+}
+
+int
+httpd_get_port(void)
+{
+  return _httpd_port;
+}
 
 /*
  * -----------------------------------------------------
@@ -269,7 +288,7 @@ httpd_find_service (const char *ctx)
     cur = cur->next;
   }
 
-  return NULL;
+  return _httpd_services_default;
 }
 
 
@@ -609,7 +628,6 @@ httpd_set_header (httpd_conn_t * conn, const char *key, const char *value)
   return 0;
 }
 
-
 void
 httpd_set_headers (httpd_conn_t * conn, hpair_t * header)
 {
@@ -618,6 +636,37 @@ httpd_set_headers (httpd_conn_t * conn, hpair_t * header)
     httpd_set_header (conn, header->key, header->value);
     header = header->next;
   }
+}
+
+int
+httpd_add_header (httpd_conn_t *conn, const char *key, const char *value)
+{
+  if (!conn)
+  {
+    log_warn1("Connection object is NULL");
+    return 0;
+  }
+
+  conn->header = hpairnode_new(key, value, conn->header);
+
+  return 1;
+}
+
+void
+httpd_add_headers (httpd_conn_t *conn, const hpair_t *values)
+{
+  if (!conn)
+  {
+    log_warn1("Connection object is NULL");
+    return;
+  }
+
+  while (values)
+  {
+    httpd_add_header(conn, values->key, values->value);
+    values = values->next;
+  }
+  return;
 }
 
 /*

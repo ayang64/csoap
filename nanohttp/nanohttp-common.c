@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.24 2006/01/18 16:28:24 mrcsys Exp $
+*  $Id: nanohttp-common.c,v 1.25 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -30,6 +30,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+
+#include <pthread.h>
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
@@ -283,7 +285,7 @@ log_write(log_level_t level, const char *prefix,
 #ifdef WIN32
     sprintf(buffer, "*%s*: [%s] %s\n", prefix, func, format);
 #else
-    sprintf(buffer, "*%s*:(%d) [%s] %s\n",
+    sprintf(buffer, "*%s*:(%ld) [%s] %s\n",
             prefix, pthread_self(), func, format);
 #endif
     vsprintf(buffer2, buffer, ap);

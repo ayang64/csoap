@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.21 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-client.c,v 1.22 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -42,8 +42,6 @@ soap_client_get_blockmode()
   return _block_socket;
 }
 
-
-
 herror_t
 soap_client_init_args(int argc, char *argv[])
 {
@@ -57,22 +55,6 @@ soap_client_destroy()
 {
   httpc_destroy();
 }
-
-static long
-_file_get_size(const char *filename)
-{
-  FILE *f = fopen(filename, "r");
-  long size;
-
-  if (!f)
-    return -1;
-
-  fseek(f, 0, SEEK_END);
-  size = ftell(f);
-  fclose(f);
-  return size;
-}
-
 
 herror_t
 soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.15 2006/01/27 20:23:40 mrcsys Exp $
+*  $Id: soap-server.c,v 1.16 2006/02/08 11:13:14 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,15 +37,9 @@ typedef struct _SoapRouterNode
 SoapRouterNode *head = NULL;
 SoapRouterNode *tail = NULL;
 
-static
-  SoapRouterNode *router_node_new(SoapRouter * router,
-                                  const char *context, SoapRouterNode * next);
-
-static SoapRouter *router_find(const char *context);
-
+/*---------------------------------*/
 static void _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctxres);
 
-/*---------------------------------*/
 void soap_server_entry(httpd_conn_t * conn, hrequest_t * req);
 static void _soap_server_send_env(http_output_stream_t * out, SoapEnv * env);
 static
@@ -53,6 +47,46 @@ static
                                const char *errmsg);
 /*---------------------------------*/
 
+static SoapRouterNode *
+router_node_new(SoapRouter * router,
+                const char *context, SoapRouterNode * next)
+{
+  SoapRouterNode *node;
+  const char *noname = "/lost_found";
+
+  node = (SoapRouterNode *) malloc(sizeof(SoapRouterNode));
+  if (context)
+  {
+    node->context = (char *) malloc(strlen(context) + 1);
+    strcpy(node->context, context);
+  }
+  else
+  {
+    log_warn2("context is null. Using '%s'", noname);
+    node->context = (char *) malloc(strlen(noname) + 1);
+    strcpy(node->context, noname);
+  }
+
+  node->router = router;
+  node->next = next;
+
+  return node;
+}
+
+static SoapRouter *
+router_find(const char *context)
+{
+  SoapRouterNode *node = head;
+
+  while (node != NULL)
+  {
+    if (!strcmp(node->context, context))
+      return node->router;
+    node = node->next;
+  }
+
+  return NULL;
+}
 
 herror_t
 soap_server_init_args(int argc, char *argv[])
@@ -90,6 +124,11 @@ soap_server_run()
   return httpd_run();
 }
 
+int
+soap_server_get_port(void)
+{
+  return httpd_get_port();
+}
 
 void
 soap_server_destroy()
@@ -390,44 +429,3 @@ _soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
 
 
 
-static SoapRouterNode *
-router_node_new(SoapRouter * router,
-                const char *context, SoapRouterNode * next)
-{
-  SoapRouterNode *node;
-  const char *noname = "/lost_found";
-
-  node = (SoapRouterNode *) malloc(sizeof(SoapRouterNode));
-  if (context)
-  {
-    node->context = (char *) malloc(strlen(context) + 1);
-    strcpy(node->context, context);
-  }
-  else
-  {
-    log_warn2("context is null. Using '%s'", noname);
-    node->context = (char *) malloc(strlen(noname) + 1);
-    strcpy(node->context, noname);
-  }
-
-  node->router = router;
-  node->next = next;
-
-  return node;
-}
-
-
-static SoapRouter *
-router_find(const char *context)
-{
-  SoapRouterNode *node = head;
-
-  while (node != NULL)
-  {
-    if (!strcmp(node->context, context))
-      return node->router;
-    node = node->next;
-  }
-
-  return NULL;
-}

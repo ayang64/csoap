@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.18 2006/01/10 11:29:05 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.19 2006/02/08 11:13:14 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -88,11 +88,13 @@ void httpc_close_free(httpc_conn_t * conn);
 */
 int httpc_set_header(httpc_conn_t * conn, const char *key, const char *value);
 
+int httpc_add_header(httpc_conn_t *conn, const char *key, const char *value);
+void httpc_add_headers(httpc_conn_t *conn, const hpair_t *values);
+
 /**
   Invoke a "GET" method request and receive the response
 */
-herror_t
-httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr);
+herror_t httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr);
 
 /**
   Start a "POST" method request

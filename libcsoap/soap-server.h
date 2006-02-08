@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.8 2006/02/08 11:13:14 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -70,6 +70,7 @@ int soap_server_register_router(SoapRouter * router, const char *context);
  */
 herror_t soap_server_run();
 
+int soap_server_get_port(void);
 
 /**
    Frees the soap server.

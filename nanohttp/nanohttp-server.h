@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.11 2006/01/10 11:29:05 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.12 2006/02/08 11:13:14 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -67,12 +67,17 @@ int httpd_register(const char *ctx, httpd_service service);
 herror_t httpd_run();
 void httpd_destroy();
 
+int httpd_get_port(void);
+
 hservice_t *httpd_services();
 
 herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
 
 int httpd_set_header(httpd_conn_t * conn, const char *key, const char *value);
 void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
+
+int httpd_add_header(httpd_conn_t * conn, const char *key, const char *value);
+void httpd_add_headers(httpd_conn_t * conn, const hpair_t *values);
 
 /*
 unsigned char *httpd_get_postdata(httpd_conn_t *conn, 

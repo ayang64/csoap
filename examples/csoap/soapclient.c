@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <libcsoap/soap-client.h>
 
 #define MAX_LINE_LENGTH 65535
@@ -200,7 +201,7 @@ main(int argc, char *argv[])
 
   // create buffer
   char Buffer[MAX_LINE_LENGTH];
-  int bytes_read, bytes_left;
+  long bytes_read, bytes_left;
 
   // read from stdin until EOF
   while (!feof(stdin))
@@ -209,7 +210,7 @@ main(int argc, char *argv[])
 
     // pass each line into ParseLine
     char *EndLinePos;
-    while (EndLinePos = strchr(Buffer, '\n'))
+    while ((EndLinePos = strchr(Buffer, '\n')))
     {
       ParseLine(ctx, Buffer, EndLinePos - Buffer);
       memmove(Buffer, EndLinePos + 1, bytes_read - (EndLinePos - Buffer + 1));
@@ -217,7 +218,7 @@ main(int argc, char *argv[])
     }
 
     // no '\n' found in the whole Buffer, that means line's too 
-    long bytes_left = strlen(Buffer);
+    bytes_left = strlen(Buffer);
     if (bytes_left == MAX_LINE_LENGTH)
     {
       log_error1("The parameter line is too long.");
