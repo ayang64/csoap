@@ -1,6 +1,7 @@
-// soapclient.c
+/* soapclient.c
 // compile with
 // gcc soapclient.c -o soapclient -lcsoap
+*/
 /* Author: Adrianus Warmenhoven */
 
 #include <stdio.h>
@@ -10,7 +11,7 @@
 
 #define MAX_LINE_LENGTH 65535
 
-// stripcslashes - unescapes the string
+/* stripcslashes - unescapes the string */
 void
 stripcslashes(char *str, int *len)
 {
@@ -106,42 +107,46 @@ stripcslashes(char *str, int *len)
   *len = nlen;
 }
 
-// ParseLine - gets a line, finds the commas, unescapes the value and adds it
+/* ParseLine - gets a line, finds the commas, unescapes the value and adds it
 //   to the SOAP request
+*/
 void
 ParseLine(SoapCtx * ctx, char *Buffer, int LineLen)
 {
-  // if wrong line length, return
+  char *Line, *FirstCommaPos, *SecondCommaPos;
+  int len;
+
+  /* if wrong line length, return */
   if (LineLen <= 0)
     return;
 
-  // alloc buffer for the line, copy it
-  char *Line = (char *) malloc(LineLen + 1);
+  /* alloc buffer for the line, copy it */
+  Line = (char *) malloc(LineLen + 1);
   memcpy(Line, Buffer, LineLen);
   Line[LineLen] = '\0';
 
-  // find first comma
-  char *FirstCommaPos = strchr(Line, ',');
+  /* find first comma */
+  FirstCommaPos = strchr(Line, ',');
   if (!FirstCommaPos)
     return;
 
-  // find second comma
-  char *SecondCommaPos = strchr(FirstCommaPos + 1, ',');
+  /* find second comma */
+  SecondCommaPos = strchr(FirstCommaPos + 1, ',');
   if (!SecondCommaPos)
     return;
 
-  // separate the three strings
+  /* separate the three strings */
   FirstCommaPos[0] = '\0';
   SecondCommaPos[0] = '\0';
 
-  // unescape
-  int len = strlen(SecondCommaPos + 1);
+  /* unescape */
+  len = strlen(SecondCommaPos + 1);
   stripcslashes(SecondCommaPos + 1, &len);
 
-  // add to the request
+  /* add to the request */
   soap_env_add_item(ctx->env, Line, FirstCommaPos + 1, SecondCommaPos + 1);
 
-  // free the buffer
+  /* free the buffer */
   free(Line);
 }
 
@@ -172,14 +177,20 @@ main(int argc, char *argv[])
   SoapCtx *ctx, *ctx2;
   herror_t err;
 
-  // check the parameter count
+  /* create buffer */
+  char Buffer[MAX_LINE_LENGTH];
+  long bytes_read, bytes_left;
+
+  char *EndLinePos;
+
+  /* check the parameter count */
   if (argc != 4)
   {
     printusage(argv[0]);
     return 1;
   }
 
-  // init cSOAP client
+  /* init cSOAP client */
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
@@ -189,7 +200,7 @@ main(int argc, char *argv[])
     return 1;
   }
 
-  // create a SoapCtx object
+  /* create a SoapCtx object */
   err = soap_ctx_new_with_method(argv[2], argv[3], &ctx);
   if (err != H_OK)
   {
@@ -199,17 +210,12 @@ main(int argc, char *argv[])
     return 1;
   }
 
-  // create buffer
-  char Buffer[MAX_LINE_LENGTH];
-  long bytes_read, bytes_left;
-
-  // read from stdin until EOF
+  /* read from stdin until EOF */
   while (!feof(stdin))
   {
     bytes_read = fread(Buffer, 1, MAX_LINE_LENGTH, stdin);
 
-    // pass each line into ParseLine
-    char *EndLinePos;
+    /* pass each line into ParseLine */
     while ((EndLinePos = strchr(Buffer, '\n')))
     {
       ParseLine(ctx, Buffer, EndLinePos - Buffer);
@@ -217,7 +223,7 @@ main(int argc, char *argv[])
       Buffer[bytes_read - (EndLinePos - Buffer + 1)] = '\0';
     }
 
-    // no '\n' found in the whole Buffer, that means line's too 
+    /* no '\n' found in the whole Buffer, that means line's too */ 
     bytes_left = strlen(Buffer);
     if (bytes_left == MAX_LINE_LENGTH)
     {
@@ -228,7 +234,7 @@ main(int argc, char *argv[])
     }
   }
 
-  // invoke
+  /* invoke */
   err = soap_client_invoke(ctx, &ctx2, argv[1], "");
   if (err != H_OK)
   {
@@ -239,14 +245,14 @@ main(int argc, char *argv[])
     return 1;
   }
 
-  // print the result
+  /* print the result */
   soap_xml_doc_print(ctx2->env->root->doc);
 
-  // free the objects
+  /* free the objects */
   soap_ctx_free(ctx2);
   soap_ctx_free(ctx);
 
-  // destroy the cSOAP client
+  /* destroy the cSOAP client */
   soap_client_destroy();
 
   return 0;
