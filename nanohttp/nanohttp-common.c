@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.25 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.26 2006/02/09 13:43:49 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -31,7 +31,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifndef WIN32
 #include <pthread.h>
+#endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
