@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.47 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.48 2006/02/09 13:47:21 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -551,7 +551,11 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
        log_verbose2("DEBUG A %d",i); */
       status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
 	  log_verbose2("DEBUG SSL_read %d",status);
-	  if (SSL_get_error(sock.ssl, status) == SSL_ERROR_ZERO_RETURN)
+	  if (SSL_get_error(sock.ssl, status) == SSL_ERROR_ZERO_RETURN ||
+		  SSL_get_error(sock.ssl, status) == SSL_ERROR_SSL ||
+		  SSL_get_error(sock.ssl, status) == SSL_ERROR_SYSCALL ||
+		  SSL_get_error(sock.ssl, status) == SSL_ERROR_SSL ||
+		  SSL_get_shutdown(sock.ssl) == SSL_RECEIVED_SHUTDOWN )
       {
         log_verbose1("SSL Error");
         return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "SSL Error");
