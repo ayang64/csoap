@@ -1,4 +1,4 @@
-bin_PROGRAMS=http_server
+noinst_PROGRAMS=http_server
 #bin_PROGRAMS=http_server  httpget httpgetcb httppost httpcpost postserver
 
 INCLUDES=-I$(top_srcdir)/ 
