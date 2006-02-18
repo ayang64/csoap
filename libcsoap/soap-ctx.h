@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-ctx.h,v 1.8 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,10 +24,10 @@
 #ifndef cSOAP_CTX_H
 #define cSOAP_CTX_H
 
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-server.h>
 
 #include <libcsoap/soap-env.h>
-#include <nanohttp/nanohttp-common.h>
-
 
 #define SOAP_ERROR_NO_FILE_ATTACHED 4001
 #define SOAP_ERROR_EMPTY_ATTACHMENT 4002
@@ -37,6 +37,8 @@
 typedef struct _SoapCtx
 {
   SoapEnv *env;
+  char *action;
+  hrequest_t *http;
   attachments_t *attachments;
 } SoapCtx;
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.4 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-router.h,v 1.5 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,6 @@
 #ifndef cSOAP_ROUTER_H
 #define cSOAP_ROUTER_H
 
-
 #include <libcsoap/soap-service.h>
 
 /**
@@ -35,6 +34,7 @@ typedef struct _SoapRouter
 {
   SoapServiceNode *service_head;
   SoapServiceNode *service_tail;
+  SoapService *default_service;
 } SoapRouter;
 
 
@@ -47,7 +47,7 @@ typedef struct _SoapRouter
    @returns Soap router 
    @see soap_router_free
  */
-SoapRouter *soap_router_new();
+SoapRouter *soap_router_new(void);
 
 
 /**
@@ -63,6 +63,8 @@ SoapRouter *soap_router_new();
 void soap_router_register_service(SoapRouter * router,
                                   SoapServiceFunc func,
                                   const char *method, const char *urn);
+
+void soap_router_register_default_service(SoapRouter * router, SoapServiceFunc func, const char *method, const char *urn);
 
 
 /**

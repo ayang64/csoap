@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.16 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: soap-server.c,v 1.17 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,10 +21,11 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-server.h>
-#include <nanohttp/nanohttp-server.h>
 #include <string.h>
 
+#include <nanohttp/nanohttp-server.h>
+
+#include <libcsoap/soap-server.h>
 
 typedef struct _SoapRouterNode
 {
@@ -34,22 +35,139 @@ typedef struct _SoapRouterNode
 
 } SoapRouterNode;
 
-SoapRouterNode *head = NULL;
-SoapRouterNode *tail = NULL;
+static SoapRouterNode *head = NULL;
+static SoapRouterNode *tail = NULL;
 
-/*---------------------------------*/
-static void _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctxres);
+static void
+_soap_server_send_env(http_output_stream_t * out, SoapEnv * env)
+{
+  xmlBufferPtr buffer;
+  if (env == NULL || env->root == NULL)
+    return;
 
-void soap_server_entry(httpd_conn_t * conn, hrequest_t * req);
-static void _soap_server_send_env(http_output_stream_t * out, SoapEnv * env);
-static
-  void _soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
-                               const char *errmsg);
-/*---------------------------------*/
+  buffer = xmlBufferCreate();
+  xmlNodeDump(buffer, env->root->doc, env->root, 1, 1);
+  http_output_stream_write_string(out,
+                                  (const char *) xmlBufferContent(buffer));
+  xmlBufferFree(buffer);
+
+}
+
+static void
+_soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
+                        const char *errmsg)
+{
+  SoapEnv *envres;
+  herror_t err;
+  char buffer[45];
+
+  httpd_set_headers(conn, header);
+
+  if ((err = httpd_send_header(conn, 500, "FAILED")) != H_OK)
+  {
+    /* WARNING: unhandled exception ! */
+    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
+               herror_code(err));
+
+    herror_release(err);
+    return;
+  }
+
+  err = soap_env_new_with_fault(Fault_Server,
+                                errmsg ? errmsg : "General error",
+                                "cSOAP_Server", NULL, &envres);
+  if (err != H_OK)
+  {
+    log_error1(herror_message(err));
+    http_output_stream_write_string(conn->out, "<html><head></head><body>");
+    http_output_stream_write_string(conn->out, "<h1>Error</h1><hr/>");
+    http_output_stream_write_string(conn->out,
+                                    "Error while sending fault object:<br>Message: ");
+    http_output_stream_write_string(conn->out, herror_message(err));
+    http_output_stream_write_string(conn->out, "<br />Function: ");
+    http_output_stream_write_string(conn->out, herror_func(err));
+    http_output_stream_write_string(conn->out, "<br />Error code: ");
+    sprintf(buffer, "%d", herror_code(err));
+    http_output_stream_write_string(conn->out, buffer);
+    http_output_stream_write_string(conn->out, "</body></html>");
+
+    herror_release(err);
+    return;
+  }
+  else
+  {
+    _soap_server_send_env(conn->out, envres);
+  }
+  return;
+}
+
+static void
+_soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
+{
+  xmlBufferPtr buffer;
+  static int counter = 1;
+  char strbuffer[150];
+  part_t *part;
+
+  if (ctx->env == NULL || ctx->env->root == NULL)
+    return;
+
+  buffer = xmlBufferCreate();
+/*	xmlIndentTreeOutput = 1;*/
+  xmlThrDefIndentTreeOutput(1);
+/*  xmlKeepBlanksDefault(0);*/
+  xmlNodeDump(buffer, ctx->env->root->doc, ctx->env->root, 1, 1);
+
+  if (ctx->attachments)
+  {
+    sprintf(strbuffer, "000128590350940924234%d", counter++);
+    httpd_mime_send_header(conn, strbuffer, "", "text/xml", 200, "OK");
+    httpd_mime_next(conn, strbuffer, "text/xml", "binary");
+    http_output_stream_write_string(conn->out,
+                                    (const char *) xmlBufferContent(buffer));
+    part = ctx->attachments->parts;
+    while (part)
+    {
+      httpd_mime_send_file(conn, part->id, part->content_type,
+                           part->transfer_encoding, part->filename);
+      part = part->next;
+    }
+    httpd_mime_end(conn);
+  }
+  else
+  {
+    char buflen[100];
+    xmlXPathContextPtr xpathCtx;
+    xmlXPathObjectPtr xpathObj;
+    xpathCtx = xmlXPathNewContext(ctx->env->root->doc);
+    xpathObj = xmlXPathEvalExpression("//Fault", xpathCtx);
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
+    snprintf(buflen, 100, "%d",
+             strlen((const char *) xmlBufferContent(buffer)));
+    httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
+    if ((xpathObj->nodesetval) ? xpathObj->nodesetval->nodeNr : 0)
+    {
+      httpd_send_header(conn, 500, "FAILED");
+    }
+    else
+    {
+      httpd_send_header(conn, 200, "OK");
+    }
+
+    http_output_stream_write_string(conn->out,
+                                    (const char *) xmlBufferContent(buffer));
+    xmlXPathFreeObject(xpathObj);
+    xmlXPathFreeContext(xpathCtx);
+
+  }
+  xmlBufferFree(buffer);
+
+}
 
 static SoapRouterNode *
-router_node_new(SoapRouter * router,
-                const char *context, SoapRouterNode * next)
+router_node_new(SoapRouter * router, const char *context, SoapRouterNode * next)
 {
   SoapRouterNode *node;
   const char *noname = "/lost_found";
@@ -88,68 +206,7 @@ router_find(const char *context)
   return NULL;
 }
 
-herror_t
-soap_server_init_args(int argc, char *argv[])
-{
-  return httpd_init(argc, argv);
-}
-
-
-int
-soap_server_register_router(SoapRouter * router, const char *context)
-{
-
-  if (!httpd_register(context, soap_server_entry))
-  {
-    return 0;
-  }
-
-  if (tail == NULL)
-  {
-    head = tail = router_node_new(router, context, NULL);
-  }
-  else
-  {
-    tail->next = router_node_new(router, context, NULL);
-    tail = tail->next;
-  }
-
-  return 1;
-}
-
-
-herror_t
-soap_server_run()
-{
-  return httpd_run();
-}
-
-int
-soap_server_get_port(void)
-{
-  return httpd_get_port();
-}
-
-void
-soap_server_destroy()
-{
-  SoapRouterNode *node = head;
-  SoapRouterNode *tmp;
-
-  while (node != NULL)
-  {
-    tmp = node->next;
-    log_verbose2("soap_router_free(%p)", node->router);
-    soap_router_free(node->router);
-    free(node->context);
-    free(node);
-    node = tmp;
-  }
-  httpd_destroy();
-}
-
-
-void
+static void
 soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 {
   hpair_t *header = NULL;
@@ -167,7 +224,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 
     httpd_send_header(conn, 200, "OK");
     http_output_stream_write_string(conn->out, "<html><head></head><body>");
-    http_output_stream_write_string(conn->out, "<h1>Sorry! </h1><hr>");
+    http_output_stream_write_string(conn->out, "<h1>Sorry!</h1><hr />");
     http_output_stream_write_string(conn->out,
                                     "I only speak with 'POST' method");
     http_output_stream_write_string(conn->out, "</body></html>");
@@ -196,6 +253,8 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   {
 
     ctx = soap_ctx_new(env);
+    ctx->action = hpairnode_get_ignore_case(req->header, "SoapAction");
+    ctx->http = req;
     soap_ctx_add_files(ctx, req->attachments);
 
     if (ctx->env == NULL)
@@ -285,8 +344,8 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
           else
           {
 
-/*						httpd_send_header(conn, 200, "OK");
-						_soap_server_send_env(conn->out, ctxres->env);
+/*           httpd_send_header(conn, 200, "OK");
+             _soap_server_send_env(conn->out, ctxres->env);
 */
             _soap_server_send_ctx(conn, ctxres);
             /* free envctx */
@@ -301,131 +360,63 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   }
 }
 
-
-static void
-_soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
+herror_t
+soap_server_init_args(int argc, char *argv[])
 {
-  xmlBufferPtr buffer;
-  static int counter = 1;
-  char strbuffer[150];
-  part_t *part;
+  return httpd_init(argc, argv);
+}
 
-  if (ctx->env == NULL || ctx->env->root == NULL)
-    return;
+int
+soap_server_register_router(SoapRouter * router, const char *context)
+{
 
-  buffer = xmlBufferCreate();
-/*	xmlIndentTreeOutput = 1;*/
-  xmlThrDefIndentTreeOutput(1);
-/*  xmlKeepBlanksDefault(0);*/
-  xmlNodeDump(buffer, ctx->env->root->doc, ctx->env->root, 1, 1);
-
-  if (ctx->attachments)
+  if (!httpd_register(context, soap_server_entry))
   {
-    sprintf(strbuffer, "000128590350940924234%d", counter++);
-    httpd_mime_send_header(conn, strbuffer, "", "text/xml", 200, "OK");
-    httpd_mime_next(conn, strbuffer, "text/xml", "binary");
-    http_output_stream_write_string(conn->out,
-                                    (const char *) xmlBufferContent(buffer));
-    part = ctx->attachments->parts;
-    while (part)
-    {
-      httpd_mime_send_file(conn, part->id, part->content_type,
-                           part->transfer_encoding, part->filename);
-      part = part->next;
-    }
-    httpd_mime_end(conn);
+    return 0;
+  }
+
+  if (tail == NULL)
+  {
+    head = tail = router_node_new(router, context, NULL);
   }
   else
   {
-    char buflen[100];
-    xmlXPathContextPtr xpathCtx;
-    xmlXPathObjectPtr xpathObj;
-    xpathCtx = xmlXPathNewContext(ctx->env->root->doc);
-    xpathObj = xmlXPathEvalExpression("//Fault", xpathCtx);
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
-    snprintf(buflen, 100, "%d",
-             strlen((const char *) xmlBufferContent(buffer)));
-    httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
-    if ((xpathObj->nodesetval) ? xpathObj->nodesetval->nodeNr : 0)
-    {
-      httpd_send_header(conn, 500, "FAILED");
-    }
-    else
-    {
-      httpd_send_header(conn, 200, "OK");
-    }
-
-    http_output_stream_write_string(conn->out,
-                                    (const char *) xmlBufferContent(buffer));
-    xmlXPathFreeObject(xpathObj);
-    xmlXPathFreeContext(xpathCtx);
-
+    tail->next = router_node_new(router, context, NULL);
+    tail = tail->next;
   }
-  xmlBufferFree(buffer);
 
+  return 1;
 }
 
-static void
-_soap_server_send_env(http_output_stream_t * out, SoapEnv * env)
+
+herror_t
+soap_server_run()
 {
-  xmlBufferPtr buffer;
-  if (env == NULL || env->root == NULL)
-    return;
-
-  buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, env->root->doc, env->root, 1, 1);
-  http_output_stream_write_string(out,
-                                  (const char *) xmlBufferContent(buffer));
-  xmlBufferFree(buffer);
-
+  return httpd_run();
 }
 
-static void
-_soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
-                        const char *errmsg)
+int
+soap_server_get_port(void)
 {
-  SoapEnv *envres;
-  herror_t err;
-  char buffer[45];
-  httpd_set_headers(conn, header);
-  err = httpd_send_header(conn, 500, "FAILED");
-  if (err != H_OK)
-  {
-    /* WARNING: unhandled exception ! */
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
-    return;
-  }
-
-  err = soap_env_new_with_fault(Fault_Server,
-                                errmsg ? errmsg : "General error",
-                                "cSOAP_Server", NULL, &envres);
-  if (err != H_OK)
-  {
-    log_error1(herror_message(err));
-    http_output_stream_write_string(conn->out, "<html><head></head><body>");
-    http_output_stream_write_string(conn->out, "<h1>Error</h1><hr>");
-    http_output_stream_write_string(conn->out,
-                                    "Error while sending fault object:<br>Message: ");
-    http_output_stream_write_string(conn->out, herror_message(err));
-    http_output_stream_write_string(conn->out, "<br>Function: ");
-    http_output_stream_write_string(conn->out, herror_func(err));
-    http_output_stream_write_string(conn->out, "<br>Error code: ");
-    sprintf(buffer, "%d", herror_code(err));
-    http_output_stream_write_string(conn->out, buffer);
-    http_output_stream_write_string(conn->out, "</body></html>");
-    return;
-
-    herror_release(err);
-  }
-  else
-  {
-    _soap_server_send_env(conn->out, envres);
-  }
-
+  return httpd_get_port();
 }
 
+void
+soap_server_destroy()
+{
+  SoapRouterNode *node = head;
+  SoapRouterNode *tmp;
+
+  while (node != NULL)
+  {
+    tmp = node->next;
+    log_verbose2("soap_router_free(%p)", node->router);
+    soap_router_free(node->router);
+    free(node->context);
+    free(node);
+    node = tmp;
+  }
+  httpd_destroy();
+}
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.9 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.10 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,14 +21,20 @@
 *
 * Email: ferhatayaz@yahoo.com
 ******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <nanohttp/nanohttp-stream.h>
-
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
+
+#include "nanohttp-stream.h"
+
 void
 _log_str(char *fn, char *str, int size)
 {
@@ -416,7 +422,7 @@ _http_input_stream_file_read(http_input_stream_t * stream, byte_t * dest,
 int
 http_input_stream_is_ready(http_input_stream_t * stream)
 {
-  /* paranoya check */
+  /* paranoia check */
   if (stream == NULL)
     return 0;
 

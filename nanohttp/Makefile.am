@@ -9,6 +9,7 @@ nanohttp-stream.h\
 nanohttp-mime.h\
 nanohttp-request.h\
 nanohttp-response.h\
+nanohttp-base64.h\
 nanohttp-ssl.h
 
 
@@ -20,6 +21,7 @@ nanohttp-stream.c\
 nanohttp-mime.c\
 nanohttp-request.c\
 nanohttp-response.c\
+nanohttp-base64.c\
 nanohttp-ssl.c
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.12 2006/02/08 11:13:14 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.13 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -45,7 +45,7 @@ typedef struct httpd_conn
   Service callback
  */
 typedef void (*httpd_service) (httpd_conn_t *, hrequest_t *);
-
+typedef int (*httpd_auth) (const char *user, const char *password);
 
 /*
  * Service representation object
@@ -54,6 +54,7 @@ typedef struct tag_hservice
 {
   char ctx[255];
   httpd_service func;
+  httpd_auth auth;
   struct tag_hservice *next;
 } hservice_t;
 
@@ -63,7 +64,13 @@ typedef struct tag_hservice
   Begin  httpd_* function set
  */
 herror_t httpd_init(int argc, char *argv[]);
+
 int httpd_register(const char *ctx, httpd_service service);
+int httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
+
+int httpd_register_default(const char *ctx, httpd_service service);
+int httpd_register_secure_default(const char *ctx, httpd_service service, httpd_auth auth);
+
 herror_t httpd_run();
 void httpd_destroy();
 

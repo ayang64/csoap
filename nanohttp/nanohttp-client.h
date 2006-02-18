@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.19 2006/02/08 11:13:14 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.20 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -44,7 +44,6 @@ typedef struct httpc_conn
   char errmsg[150];
   http_output_stream_t *out;
   int id;                       /* uniq id */
-  int block;
 } httpc_conn_t;
 
 

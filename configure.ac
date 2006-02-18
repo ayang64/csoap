@@ -83,7 +83,6 @@ AC_SUBST(NANOHTTP_RELEASE)
 AC_SUBST(NANOHTTP_VERSION)
 
 
-
 # Process this file with autoconf to produce a configure script.
 #AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
 #AC_INIT(src/csoap.c)
@@ -93,23 +92,25 @@ AC_SUBST(NANOHTTP_VERSION)
 AC_PROG_CC
 AM_PROG_LIBTOOL
 
-# Checks for libraries.
-
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h netdb.h string.h sys/socket.h])
+AC_HEADER_TIME
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/rand.h openssl/err.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_HEADER_TIME
 AC_STRUCT_TM
 
-dnl Checks for library functions.
-#AC_FUNC_MALLOC
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([gethostbyname socket])
+AC_TYPE_SIGNAL
 
+AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
+
+AC_FUNC_MALLOC
+AC_FUNC_VPRINTF
+AC_FUNC_STRFTIME
+AC_FUNC_SELECT_ARGTYPES
+AC_CHECK_FUNCS([gethostbyname inet_ntoa localtime_r memmove memset mkdir select socket strchr strdup strncasecmp strpbrk strspn strstr strtol])
 
 # ------------------------------------------
 dnl Check socket library (for Solaris)

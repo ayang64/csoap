@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.24 2006/01/18 16:28:24 mrcsys Exp $
+ *  $Id: nanohttp-common.h,v 1.25 2006/02/18 20:14:36 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -39,6 +39,8 @@
 #define HEADER_DATE "Date"
 #define HEADER_ACCEPT "Accept"
 
+#define HEADER_AUTHORIZATION		"Authorization"
+#define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
 
 #define NHTTPD_ARG_PORT "-NHTTPport"
 #define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
@@ -188,15 +190,6 @@ int herror_code(herror_t err);
 char *herror_func(herror_t err);
 char *herror_message(herror_t err);
 void herror_release(herror_t err);
-
-
-/*
-  string function to compare strings ignoring case
-  Returns 1 if s1 equals s2 and 0 otherwise.  
- */
-int strcmpigcase(const char *s1, const char *s2);
-
-
 
 /*
   hpairnode_t represents a pair (key, value) pair.

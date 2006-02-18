@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.9 2006/01/11 10:54:43 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.10 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,15 +21,20 @@
 *
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-request.h>
-
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
+
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-request.h>
 
 /* request stuff */
 
@@ -197,7 +202,7 @@ _hrequest_parse_header(char *data)
   }
 
   /* Check Content-type */
-  tmp = hpairnode_get(req->header, HEADER_CONTENT_TYPE);
+  tmp = hpairnode_get_ignore_case(req->header, HEADER_CONTENT_TYPE);
   if (tmp != NULL)
     req->content_type = content_type_new(tmp);
 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.8 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,9 +21,9 @@
  * 
  * Email: ferhatayaz@jprogrammer.net
  ******************************************************************/
-#include <libcsoap/soap-ctx.h>
-
 #include <string.h>
+
+#include <libcsoap/soap-ctx.h>
 
 SoapCtx *
 soap_ctx_new(SoapEnv * env)     /* should only be used internally */
@@ -31,6 +31,7 @@ soap_ctx_new(SoapEnv * env)     /* should only be used internally */
   SoapCtx *ctx = (SoapCtx *) malloc(sizeof(SoapCtx));
   ctx->env = env;
   ctx->attachments = NULL;
+  ctx->action = NULL;
 
   return ctx;
 }
@@ -133,6 +134,8 @@ soap_ctx_free(SoapCtx * ctx)
     attachments_free(ctx->attachments);
   if (ctx->env)
     soap_env_free(ctx->env);
+  if (ctx->action)
+    free(ctx->action);
 
   free(ctx);
 }

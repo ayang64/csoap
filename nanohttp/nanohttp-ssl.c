@@ -24,12 +24,18 @@
 /* Enter only if --with-ssl was specified to the configure script */
 #ifdef HAVE_SSL
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <openssl/rand.h>
-#include <openssl/err.h>
-#ifndef WIN32
+#endif
+
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
 #else
@@ -40,23 +46,43 @@ typedef unsigned int uint32_t;
 # endif
 #endif
 
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_TIME_H
 #include <time.h>
+#endif
 
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 
-#include "nanohttp-ssl.h"
-#include "nanohttp-common.h"
-#include "nanohttp-socket.h"
-
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifdef WIN32
 #include <io.h>
 typedef unsigned int uint32_t;
 #else
-#include <unistd.h>
 #endif
+
+#ifdef HAVE_OPENSSL_RAND_H
+#include <openssl/rand.h>
+#endif
+
+#ifdef HAVE_OPENSSL_ERR_H
+#include <openssl/err.h>
+#endif
+
+#include "nanohttp-common.h"
+#include "nanohttp-socket.h"
+#include "nanohttp-ssl.h"
 
 #define MAXCHUNK 1024
 #define HEADER_LEN 5
@@ -126,6 +152,18 @@ verify_sn (X509 * cert, int who, int nid, char *str)
   }
 }
 
+#ifdef NOUSER_VERIFY
+static int
+user_verify (X509 * cert)
+{
+  // TODO: Make sure that the client is providing a client cert,
+  // or that the Module is providing the Module cert
+  /* connect to anyone */
+  log_verbose1 ("Validating certificate.");
+  return 1;
+}
+#endif
+
 static int
 verify_cb (int prev_ok, X509_STORE_CTX * ctx)
 {
@@ -152,26 +190,17 @@ verify_cb (int prev_ok, X509_STORE_CTX * ctx)
 #endif
 }
 
-#ifdef NOUSER_VERIFY
-int
-user_verify (X509 * cert)
-{
-  // TODO: Make sure that the client is providing a client cert,
-  // or that the Module is providing the Module cert
-  /* connect to anyone */
-  log_verbose1 ("Validating certificate.");
-  return 1;
-}
-#endif
-
 void
-start_ssl( void ){
+start_ssl( void )
+{
   /* Global system initialization */
   log_verbose1 ("Initializing library");
   SSL_library_init ();
   SSL_load_error_strings ();
   ERR_load_crypto_strings ();
   OpenSSL_add_ssl_algorithms ();
+
+  return;
 }
 
 SSL_CTX *

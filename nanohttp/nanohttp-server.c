@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.48 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.49 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,44 +21,62 @@
 *
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <nanohttp/nanohttp-server.h>
-#include <nanohttp/nanohttp-ssl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#ifndef WIN32
-
-/* According to POSIX 1003.1-2001 */
+#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
 
-/* According to earlier standards */
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
+#ifdef HAVE_PTHREAD_H
 #include <pthread.h>
+#endif
 
-#ifdef HAVE_SOCKET
+#ifdef HAVE_SOCKET_H
 #include <sys/socket.h>
 #endif
 
-#else
-
+#ifdef WIN32
 #include <process.h>
-
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
 
+#include "nanohttp-server.h"
+#include "nanohttp-base64.h"
+#include "nanohttp-ssl.h"
 
 typedef struct _conndata
 {
@@ -81,26 +99,21 @@ conndata_t;
  */
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
-#ifdef WIN32
-static int _httpd_max_idle = 120;
-#endif
 static hsocket_t _httpd_socket;
 static hservice_t *_httpd_services_default = NULL;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 static int _httpd_run = 1;
-#ifdef WIN32
-static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
-#else
-static int _httpd_terminate_signal = SIGINT;
-#endif
 static conndata_t *_httpd_connection;
 
-
 #ifdef WIN32
+static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
+static int _httpd_max_idle = 120;
 static void WSAReaper (void *x);
+#define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
 #else
-sigset_t thrsigset;
+static int _httpd_terminate_signal = SIGINT;
+static sigset_t thrsigset;
 #endif
 
 #ifdef HAVE_SSL
@@ -125,8 +138,7 @@ httpd_init (int argc, char *argv[])
 
   hoption_init_args (argc, argv);
 
-  status = hsocket_module_init ();
-  if (status != H_OK)
+  if ((status = hsocket_module_init()) != H_OK)
     return status;
 
   /* write argument information */
@@ -171,19 +183,18 @@ httpd_init (int argc, char *argv[])
    */
 #endif
 
-#ifdef HAVE_SSL
-  start_ssl();
-#endif
-
   /* create socket */
 #ifdef HAVE_SSL
   SSLCert = hoption_get(HOPTION_SSL_CERT);
   SSLPass = hoption_get(HOPTION_SSL_PASS);
   SSLCA = hoption_get(HOPTION_SSL_CA);
   log_verbose3("SSL: %s %s", SSLCert, SSLCA);
-  if(SSLCert[0] != '\0'){
-	  status = hsocket_init_ssl(&_httpd_socket, SSLCert, SSLPass, SSLCA);
-  } else
+  if (SSLCert[0] != '\0'){
+
+    start_ssl();
+    status = hsocket_init_ssl(&_httpd_socket, SSLCert, SSLPass, SSLCA);
+  }
+  else
 #endif
   {
     status = hsocket_init (&_httpd_socket);
@@ -193,9 +204,8 @@ httpd_init (int argc, char *argv[])
   {
     return status;
   }
-  status = hsocket_bind (&_httpd_socket, _httpd_port);
 
-  return status;
+  return hsocket_bind (&_httpd_socket, _httpd_port);
 }
 
 /*
@@ -205,12 +215,18 @@ httpd_init (int argc, char *argv[])
  */
 
 int
-httpd_register (const char *ctx, httpd_service func)
+httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
 {
   hservice_t *service;
 
-  service = (hservice_t *) malloc (sizeof (hservice_t));
+  if (!(service = (hservice_t *) malloc (sizeof (hservice_t))))
+  {
+    log_error1("malloc failed");
+    return -1;
+  }
+
   service->next = NULL;
+  service->auth = auth;
   service->func = func;
   strcpy (service->ctx, ctx);
 
@@ -229,16 +245,28 @@ httpd_register (const char *ctx, httpd_service func)
 }
 
 int
-httpd_register_default (const char *ctx, httpd_service func)
+httpd_register(const char *ctx, httpd_service service)
+{
+  return httpd_register_secure(ctx, service, NULL);
+}
+
+int
+httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth)
 {
   int ret;
 
-  ret = httpd_register(ctx, func);
+  ret = httpd_register_secure(ctx, service, auth);
 
   /* this is broken, but working */
   _httpd_services_default = _httpd_services_tail;
 
   return ret;
+}
+
+int
+httpd_register_default(const char *ctx, httpd_service service)
+{
+  return httpd_register_default_secure(ctx, service, NULL);
 }
 
 int
@@ -325,9 +353,8 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   /* set date */
   nw = time (NULL);
   localtime_r (&nw, &stm);
-  strftime (buffer, 255, "Date: %a, %d %b %Y %H:%M:%S GMT", &stm);
+  strftime (buffer, 255, "Date: %a, %d %b %Y %H:%M:%S GMT\r\n", &stm);
   strcat (header, buffer);
-  strcat (header, "\r\n");
 
   /* set content-type */
   /* 
@@ -343,20 +370,17 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   // strcat (header, "Connection: close\r\n");
 
   /* add pairs */
-  cur = res->header;
-  while (cur != NULL)
+  for(cur = res->header; cur; cur = cur->next)
   {
     sprintf (buffer, "%s: %s\r\n", cur->key, cur->value);
     strcat (header, buffer);
-    cur = cur->next;
   }
 
   /* set end of header */
   strcat (header, "\r\n");
 
   /* send header */
-  status = hsocket_nsend (res->sock, header, strlen (header));
-  if (status != H_OK)
+  if ((status = hsocket_nsend (res->sock, header, strlen (header))) != H_OK)
     return status;
 
   res->out = http_output_stream_new (res->sock, res->header);
@@ -373,9 +397,6 @@ httpd_send_internal_error (httpd_conn_t * conn, const char *errmsg)
   char buffer[4064];
   char buflen[5];
   sprintf (buffer, template1, errmsg);
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
   snprintf (buflen, 5, "%d", strlen (buffer));
   httpd_set_header (conn, HEADER_CONTENT_LENGTH, buflen);
   httpd_send_header (conn, 500, "INTERNAL");
@@ -435,7 +456,7 @@ void
 httpd_free (httpd_conn_t * conn)
 {
   if(!conn)
-	return;
+  return;
   if (conn->out != NULL)
     http_output_stream_free (conn->out);
 
@@ -462,6 +483,61 @@ do_req_timeout (int signum)
 #else
   pthread_exit (0);
 #endif
+}
+
+static int httpd_decode_authorization(const char *value, char **user, char **pass)
+{
+
+  unsigned char *tmp, *tmp2;
+
+  tmp = malloc(strlen(value) * 2);
+  bzero(tmp, strlen(value) * 2);
+
+  value = index(value, ' ');
+  value++;
+  log_debug2("Authorization (base64) = \"%s\"", value);
+
+  base64_decode(value, tmp);
+
+  log_debug2("Authorization (ascii) = \"%s\"", tmp);
+
+  tmp2 = index(tmp, ':');
+  *tmp2++ = '\0';
+
+  *pass = strdup(tmp2);
+  *user = strdup(tmp);
+
+  free(tmp);
+
+  return 1;
+}
+
+static int httpd_authenticate_request(hrequest_t *req, httpd_auth auth)
+{
+  char *user, *pass;
+  char *authorization;
+  int ret;
+
+  if (!auth)
+    return 1;
+
+  if (!(authorization = hpairnode_get_ignore_case(req->header, HEADER_AUTHORIZATION))) {
+    return 0;
+  }
+
+  if (!httpd_decode_authorization(authorization, &user, &pass))
+  {
+    log_error1("httpd_base64_decode_failed");
+    return 0;
+  }
+
+  if (!(ret = auth(user, pass)))
+    log_info1("Authentication failed");
+
+  free(user);
+  free(pass);
+
+  return ret;
 }
 
 /*
@@ -515,28 +591,22 @@ httpd_session_main (void *data)
   while (!done)
   {
     log_verbose1 ("starting HTTP request");
+
     rconn = httpd_new (conn->sock);
 
-    status = hrequest_new_from_socket (conn->sock, &req);
-
-    if (status != H_OK)
+    if ((status = hrequest_new_from_socket (conn->sock, &req)) != H_OK)
     {
+      /* "Request parse error!" */
       if (herror_code (status) != HSOCKET_ERROR_SSLCLOSE)
       {
-        httpd_send_internal_error (rconn, herror_message (status)       /* "Request
-                                                                           parse
-                                                                           error!" */ );
+        httpd_send_internal_error (rconn, herror_message (status));
         herror_release (status);
       }
       done = 1;
     }
     else
     {
-      char *conn_str =
-        hpairnode_get_ignore_case (req->header, HEADER_CONNECTION);
-#ifdef WIN32
-#define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
-#endif
+      char *conn_str = hpairnode_get_ignore_case (req->header, HEADER_CONNECTION);
       if (conn_str && strncasecmp (conn_str, "close", 5) == 0)
       {
         done = 1;
@@ -547,29 +617,34 @@ httpd_session_main (void *data)
       }
       httpd_request_print (req);
 
-
       service = httpd_find_service (req->path);
       if (service != NULL)
       {
-        log_verbose2 ("service '%s' found", req->path);
-        if (service->func != NULL)
-        {
-          service->func (rconn, req);
-          if (rconn->out
-              && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
+        log_verbose3 ("service '%s' for '%s' found", service->ctx, req->path);
+
+        if (httpd_authenticate_request(req, service->auth)) {
+
+          if (service->func != NULL)
           {
-            log_verbose1 ("Connection close requested");
-            done = 1;
+            service->func (rconn, req);
+            if (rconn->out && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE) {
+              log_verbose1 ("Connection close requested");
+              done = 1;
+            }
+          }
+          else
+          {
+            sprintf (buffer, "service '%s' not registered properly (func == NULL)", req->path);
+            log_verbose1 (buffer);
+            httpd_send_internal_error (rconn, buffer);
           }
         }
-        else
-        {
-          sprintf (buffer,
-                   "service '%s' not registered properly (func == NULL)",
-                   req->path);
-          log_verbose1 (buffer);
-          httpd_send_internal_error (rconn, buffer);
-        }
+	else {
+
+          httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE, "Basic realm=\"nanoHTTP\"");
+          httpd_send_header(rconn, 401, "Unauthorized");
+          hsocket_send(conn->sock, "<html><head><title>Unauthorized</title></header><body><h1>Unauthorized</h1></body></html>");
+	}
       }
       else
       {
@@ -577,9 +652,6 @@ httpd_session_main (void *data)
         log_verbose1 (buffer);
         httpd_send_internal_error (rconn, buffer);
       }
-
-      /* httpd_response_free(res); */
-      /* hrequest_free (req); */
     }
   }
 
@@ -588,13 +660,14 @@ httpd_session_main (void *data)
   conn->sock.sock = 0;
   hrequest_free (req);
   httpd_free (rconn);
+
 #ifdef WIN32
   CloseHandle ((HANDLE) conn->tid);
   _endthread ();
   return 0;
 #else
-  pthread_exit (NULL);
-  return service;
+  /* pthread_exits automagically */
+  return NULL;
 #endif
 }
 
@@ -696,14 +769,13 @@ httpd_term (int sig)
 
 #endif
 
-
 /*
  * -----------------------------------------------------
  * FUNCTION: _httpd_register_signal_handler
  * -----------------------------------------------------
  */
 static void
-_httpd_register_signal_handler ()
+_httpd_register_signal_handler (void)
 {
   log_verbose2 ("registering termination signal handler (SIGNAL:%d)",
                 _httpd_terminate_signal);
@@ -716,16 +788,15 @@ _httpd_register_signal_handler ()
 #else
   signal (_httpd_terminate_signal, httpd_term);
 #endif
+
+  return;
 }
-
-
-
 
 /*--------------------------------------------------
 FUNCTION: _httpd_wait_for_empty_conn
 ----------------------------------------------------*/
 static conndata_t *
-_httpd_wait_for_empty_conn ()
+_httpd_wait_for_empty_conn (void)
 {
   int i;
   for (i = 0;; i++)
@@ -758,23 +829,20 @@ _httpd_start_thread (conndata_t * conn)
   int err;
 
 #ifdef WIN32
-  conn->tid =
-    (HANDLE) _beginthreadex (NULL, 65535, httpd_session_main, conn, 0, &err);
+  conn->tid = (HANDLE) _beginthreadex (NULL, 65535, httpd_session_main, conn, 0, &err);
 #else
   pthread_attr_init (&(conn->attr));
+
 #ifdef PTHREAD_CREATE_DETACHED
   pthread_attr_setdetachstate (&(conn->attr), PTHREAD_CREATE_DETACHED);
 #endif
+
   pthread_sigmask (SIG_BLOCK, &thrsigset, NULL);
-  err =
-    pthread_create (&(conn->tid), &(conn->attr), httpd_session_main, conn);
+  err = pthread_create (&(conn->tid), &(conn->attr), httpd_session_main, conn);
   if (err)
-  {
     log_error2 ("Error creating thread: ('%d')", err);
-  }
 #endif
 }
-
 
 
 /*
@@ -784,28 +852,25 @@ _httpd_start_thread (conndata_t * conn)
  */
 
 herror_t
-httpd_run ()
+httpd_run (void)
 {
   herror_t err;
   conndata_t *conn;
   fd_set fds;
   struct timeval timeout;
 
-
   log_verbose1 ("starting run routine");
 
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
-#ifdef WIN32
-#else
+
+#ifndef WIN32
   sigemptyset (&thrsigset);
   sigaddset (&thrsigset, SIGALRM);
 #endif
 
-
   /* listen to port */
-  err = hsocket_listen (_httpd_socket);
-  if (err != H_OK)
+  if ((err = hsocket_listen (_httpd_socket)) != H_OK)
   {
     log_error2 ("httpd_run(): '%d'", herror_message (err));
     return err;
@@ -816,13 +881,11 @@ httpd_run ()
   _httpd_register_signal_handler ();
 
   /* make the socket non blocking */
-  err = hsocket_block (_httpd_socket, 0);
-  if (err != H_OK)
+  if ((err = hsocket_block (_httpd_socket, 0)) != H_OK)
   {
     log_error2 ("httpd_run(): '%s'", herror_message (err));
     return err;
   }
-
 
   while (_httpd_run)
   {
@@ -870,15 +933,14 @@ httpd_run ()
     /* Accept a socket */
     err = hsocket_accept (_httpd_socket, &(conn->sock));
     if (err != H_OK 
-	/* TODO (#1#) is this check neccessary?
-	   && herror_code (err) == SSL_ERROR_INIT*/
-	)
+  /* TODO (#1#) is this check neccessary?
+     && herror_code (err) == SSL_ERROR_INIT*/
+  )
     {
       hsocket_close (conn->sock);
-      conn->sock.sock = -1;
-#ifdef HAVE_SSL
-      conn->sock.ssl = NULL;
-#endif
+
+      hsocket_init(&(conn->sock));
+
       log_error1 (herror_message (err));
       continue;
     }
@@ -896,7 +958,7 @@ httpd_run ()
 }
 
 void
-httpd_destroy ()
+httpd_destroy (void)
 {
   hservice_t *tmp, *cur = _httpd_services_head;
 
@@ -908,6 +970,8 @@ httpd_destroy ()
   }
 
   hsocket_module_destroy ();
+
+  return;
 }
 
 #ifdef WIN32
@@ -969,8 +1033,7 @@ httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
   if (req->method == HTTP_REQUEST_POST)
   {
 
-    content_length_str =
-      hpairnode_get_ignore_case (req->header, HEADER_CONTENT_LENGTH);
+    content_length_str = hpairnode_get_ignore_case (req->header, HEADER_CONTENT_LENGTH);
 
     if (content_length_str != NULL)
       content_length = atol (content_length_str);
@@ -1020,6 +1083,8 @@ _httpd_mime_get_boundary (httpd_conn_t * conn, char *dest)
 {
   sprintf (dest, "---=.Part_NH_%p", conn);
   log_verbose2 ("boundary= \"%s\"", dest);
+
+  return;
 }
 
 
@@ -1028,23 +1093,14 @@ _httpd_mime_get_boundary (httpd_conn_t * conn, char *dest)
   Returns: H_OK  or error flag
 */
 herror_t
-httpd_mime_send_header (httpd_conn_t * conn,
-                        const char *related_start,
-                        const char *related_start_info,
-                        const char *related_type, int code, const char *text)
+httpd_mime_send_header (httpd_conn_t * conn, const char *related_start, const char *related_start_info, const char *related_type, int code, const char *text)
 {
   char buffer[300];
   char temp[250];
   char boundary[250];
 
-  /* 
-     Set Content-type Set multipart/related parameter type=..; start=.. ;
-     start-info= ..; boundary=...
-
-   */
-  /* 
-     using sprintf instead of snprintf because visual c does not support
-     snprintf */
+  /* Set Content-type Set multipart/related parameter type=..; start=.. ; start-info= ..; boundary=...  
+  using sprintf instead of snprintf because visual c does not support snprintf */
 
   sprintf (buffer, "multipart/related;");
 
@@ -1081,9 +1137,7 @@ httpd_mime_send_header (httpd_conn_t * conn,
   with next part
 */
 herror_t
-httpd_mime_next (httpd_conn_t * conn,
-                 const char *content_id,
-                 const char *content_type, const char *transfer_encoding)
+httpd_mime_next (httpd_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding)
 {
   herror_t status;
   char buffer[512];
@@ -1094,9 +1148,7 @@ httpd_mime_next (httpd_conn_t * conn,
   sprintf (buffer, "\r\n--%s\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write (conn->out, (const byte_t *) buffer, strlen (buffer));
 
   if (status != H_OK)
     return status;
@@ -1109,9 +1161,7 @@ httpd_mime_next (httpd_conn_t * conn,
            HEADER_CONTENT_ID,
            content_id ? content_id : "<content-id-not-set>");
 
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write (conn->out, (const byte_t *) buffer, strlen (buffer));
 
   return status;
 }
@@ -1121,22 +1171,17 @@ httpd_mime_next (httpd_conn_t * conn,
   with next part
 */
 herror_t
-httpd_mime_send_file (httpd_conn_t * conn,
-                      const char *content_id,
-                      const char *content_type,
-                      const char *transfer_encoding, const char *filename)
+httpd_mime_send_file (httpd_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding, const char *filename)
 {
-  herror_t status;
-  FILE *fd = fopen (filename, "rb");
   byte_t buffer[MAX_FILE_BUFFER_SIZE];
+  herror_t status;
+  FILE *fd;
   size_t size;
 
-  if (fd == NULL)
-    return herror_new ("httpd_mime_send_file", FILE_ERROR_OPEN,
-                       "Can not open file '%d'", filename);
+  if ((fd = fopen (filename, "rb")) == NULL)
+    return herror_new ("httpd_mime_send_file", FILE_ERROR_OPEN, "Can not open file '%d'", filename);
 
-  status =
-    httpd_mime_next (conn, content_id, content_type, transfer_encoding);
+  status = httpd_mime_next (conn, content_id, content_type, transfer_encoding);
   if (status != H_OK)
   {
     fclose (fd);
@@ -1149,8 +1194,7 @@ httpd_mime_send_file (httpd_conn_t * conn,
     if (size == -1)
     {
       fclose (fd);
-      return herror_new ("httpd_mime_send_file", FILE_ERROR_READ,
-                         "Can not read from file '%d'", filename);
+      return herror_new ("httpd_mime_send_file", FILE_ERROR_READ, "Can not read from file '%d'", filename);
     }
 
     status = http_output_stream_write (conn->out, buffer, size);
@@ -1181,9 +1225,7 @@ httpd_mime_end (httpd_conn_t * conn)
   sprintf (buffer, "\r\n--%s--\r\n\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write (conn->out,
-                                     (const byte_t *) buffer,
-                                     strlen (buffer));
+  status = http_output_stream_write (conn->out, (const byte_t *) buffer, strlen (buffer));
 
   if (status != H_OK)
     return status;

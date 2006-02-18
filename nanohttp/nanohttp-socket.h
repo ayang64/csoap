@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.21 2006/01/11 10:54:43 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.22 2006/02/18 20:14:36 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -53,6 +53,7 @@ typedef struct hsocket_t
 #else
   int sock;
 #endif
+  int block;
 
 } hsocket_t; /* end of socket definition */
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.37 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.38 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,30 +21,37 @@
 *
 * Email: ferhatayaz@yahoo.com
 ******************************************************************/
-#include <nanohttp/nanohttp-client.h>
-#include <nanohttp/nanohttp-ssl.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#ifdef HAVE_TIME_H
 #include <time.h>
+#endif
+
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
 
-#if 0
-static int
-httpc_send_data(httpc_conn_t * conn, const unsigned char *data, size_t size)
-{
-  return -1;
-}
-#endif
+#include "nanohttp-client.h"
+#include "nanohttp-socket.h"
+
 /*--------------------------------------------------
 FUNCTION: httpc_init
 DESC: Initialize http client connection
@@ -54,24 +61,21 @@ herror_t
 httpc_init(int argc, char *argv[])
 {
   hoption_init_args(argc, argv);
-  hsocket_module_init();
-#ifdef HAVE_SSL
-  start_ssl();
-#endif
-  return H_OK;
-}
 
+  return hsocket_module_init();
+}
 
 /*--------------------------------------------------
 FUNCTION: httpc_destroy
 DESC: Destroy the http client module
 ----------------------------------------------------*/
 void
-httpc_destroy()
+httpc_destroy(void)
 {
   hsocket_module_destroy();
-}
 
+  return;
+}
 
 /*--------------------------------------------------
 FUNCTION: httpc_new
@@ -80,25 +84,26 @@ You need to create at least 1 http client connection
 to communicate via http.
 ----------------------------------------------------*/
 httpc_conn_t *
-httpc_new()
+httpc_new(void)
 {
   static int counter = 10000;
-  httpc_conn_t *res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t));
+  httpc_conn_t *res;
+ 
+  if (!(res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t))))
+    return NULL;
 
   if (hsocket_init(&res->sock) != H_OK)
-  {
     return NULL;
-  }
+
   res->header = NULL;
   res->version = HTTP_1_1;
   res->out = NULL;
   res->_dime_package_nr = 0;
   res->_dime_sent_bytes = 0;
   res->id = counter++;
-  res->block = 0;
+
   return res;
 }
-
 
 /*--------------------------------------------------
 FUNCTION: httpc_free
@@ -129,6 +134,7 @@ httpc_free(httpc_conn_t * conn)
   hsocket_free(conn->sock);
   free(conn);
 
+  return;
 }
 
 /*--------------------------------------------------
@@ -143,6 +149,8 @@ httpc_close_free(httpc_conn_t * conn)
 
   hsocket_close(conn->sock);
   httpc_free(conn);
+
+  return;
 }
 
 int
@@ -168,7 +176,7 @@ httpc_add_headers(httpc_conn_t *conn, const hpair_t *values)
     return;
   }
 
-  for(;values; values=values->next)
+  for ( ;values; values=values->next)
     httpc_add_header(conn, values->key, values->value);
 
   return;
@@ -190,59 +198,40 @@ httpc_set_header(httpc_conn_t *conn, const char *key, const char *value)
     log_warn1("Connection object is NULL");
     return 0;
   }
-  p = conn->header;
-  while (p != NULL)
+
+  for (p = conn->header; p; p = p->next)
   {
-    if (p->key != NULL)
+    if (p->key && !strcmp(p->key, key))
     {
-      if (!strcmp(p->key, key))
-      {
-        free(p->value);
-        p->value = (char *) malloc(strlen(value) + 1);
-        strcpy(p->value, value);
-        return 1;
-      }
+      free(p->value);
+      p->value = strdup(value);
+      return 1;
     }
-    p = p->next;
   }
 
   conn->header = hpairnode_new(key, value, conn->header);
+
   return 0;
 }
 
 /*--------------------------------------------------
-FUNCTION: httpc_header_add_date
-DESC: Adds the current date to the header.
-----------------------------------------------------*/
-/* static void
-_httpc_set_error(httpc_conn_t * conn, int errcode, const char *format, ...)
-{
-  va_list ap;
-
-  conn->errcode = errcode;
-
-  va_start(ap, format);
-  vsprintf(conn->errmsg, format, ap);
-  va_end(ap);
-} */
-
-/*--------------------------------------------------
-FUNCTION: httpc_header_add_date
+FUNCTION: httpc_header_set_date
 DESC: Adds the current date to the header.
 ----------------------------------------------------*/
 static void
-httpc_header_add_date(httpc_conn_t * conn)
+httpc_header_set_date(httpc_conn_t * conn)
 {
-  char buffer[255];
-  time_t nw;
+  char buffer[32];
+  time_t ts;
   struct tm stm;
 
-  /* Set date */
-  nw = time(NULL);
-  localtime_r(&nw, &stm);
-  strftime(buffer, 255, "%a, %d %b %Y %H:%M:%S GMT", &stm);
+  ts = time(NULL);
+  localtime_r(&ts, &stm);
+  strftime(buffer, 32, "%a, %d %b %Y %H:%M:%S GMT", &stm);
+
   httpc_set_header(conn, HEADER_DATE, buffer);
 
+  return;
 }
 
 
@@ -254,25 +243,21 @@ in conn through conn->sock.
 herror_t
 httpc_send_header(httpc_conn_t * conn)
 {
-  hpair_t *p;
+  hpair_t *walker;
   herror_t status;
   char buffer[1024];
 
-  p = conn->header;
-  while (p != NULL)
+  for (walker = conn->header; walker; walker = walker->next)
   {
-    if (p->key && p->value)
+    if (walker->key && walker->value)
     {
-      sprintf(buffer, "%s: %s\r\n", p->key, p->value);
-      status = hsocket_send(conn->sock, buffer);
-      if (status != H_OK)
+      sprintf(buffer, "%s: %s\r\n", walker->key, walker->value);
+      if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
         return status;
     }
-    p = p->next;
   }
 
-  status = hsocket_send(conn->sock, "\r\n");
-  return status;
+  return hsocket_send(conn->sock, "\r\n");
 }
 
 /*--------------------------------------------------
@@ -335,11 +320,9 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
                       GENERAL_INVALID_PARAM, "httpc_conn_t param is NULL");
   }
   /* Build request header */
-  httpc_header_add_date(conn);
+  httpc_header_set_date(conn);
 
-  /* Create url */
-  status = hurl_parse(&url, urlstr);
-  if (status != H_OK)
+  if ((status = hurl_parse(&url, urlstr)) != H_OK)
   {
     log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
     return status;
@@ -350,61 +333,42 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   httpc_set_header(conn, HEADER_HOST, url.host);
 
   /* Open connection */
-  status = hsocket_open(&conn->sock, url.host, url.port);
-  if (status != H_OK)
-  {
+  if ((status = hsocket_open(&conn->sock, url.host, url.port)) != H_OK)
     return status;
-  }
-#ifdef HAVE_SSL
-  /* TODO XXX XXX this is probably not right -- matt */
-  if (!&conn->sock.ssl)
+
+  switch(method)
   {
-    status = hsocket_block(conn->sock, conn->block);
-    if (status != H_OK)
-    {
-      log_error1("Cannot make socket non-blocking");
-      return status;
-    }
-  }
-#endif
-  /* check method */
-  if (method == HTTP_REQUEST_GET)
-  {
+    case HTTP_REQUEST_GET:
 
-    /* Set GET Header */
-    sprintf(buffer, "GET %s HTTP/%s\r\n",
-            (url.context[0] != '\0') ? url.context : ("/"),
-            (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+      sprintf(buffer, "GET %s HTTP/%s\r\n",
+        (url.context[0] != '\0') ? url.context : ("/"),
+        (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+      break;
 
-  }
-  else if (method == HTTP_REQUEST_POST)
-  {
+    case HTTP_REQUEST_POST:
 
-    /* Set POST Header */
-    sprintf(buffer, "POST %s HTTP/%s\r\n",
-            (url.context[0] != '\0') ? url.context : ("/"),
-            (conn->version == HTTP_1_0) ? "1.0" : "1.1");
-  }
-  else
-  {
+      sprintf(buffer, "POST %s HTTP/%s\r\n",
+        (url.context[0] != '\0') ? url.context : ("/"),
+        (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+      break;
 
-    log_error1("Unknown method type!");
-    return herror_new("httpc_talk_to_server",
-                      GENERAL_INVALID_PARAM,
-                      "hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
+    default:
+      log_error1("Unknown method type!");
+      return herror_new("httpc_talk_to_server",
+        GENERAL_INVALID_PARAM,
+        "hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
   }
 
-  log_verbose1("Sending header...");
-  status = hsocket_send(conn->sock, buffer);
-  if (status != H_OK)
+  log_verbose1("Sending request...");
+  if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
   {
     log_error2("Can not send request (status:%d)", status);
     hsocket_close(conn->sock);
     return status;
   }
-  /* Send Header */
-  status = httpc_send_header(conn);
-  if (status != H_OK)
+
+  log_verbose1("Sending header...");
+  if ((status = httpc_send_header(conn)) != H_OK)
   {
     log_error2("Can not send header (status:%d)", status);
     hsocket_close(conn->sock);
@@ -412,7 +376,6 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   }
 
   return H_OK;
-
 }
 
 /*--------------------------------------------------
@@ -424,19 +387,11 @@ httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
 {
   herror_t status;
 
-  status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr);
-
-  if (status != H_OK)
-  {
+  if ((status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
     return status;
-  }
 
-  status = hresponse_new_from_socket(conn->sock, out);
-  if (status != H_OK)
-  {
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
-  }
-
 
   return H_OK;
 }
@@ -449,11 +404,9 @@ DESC: Returns H_OK if success
 herror_t
 httpc_post_begin(httpc_conn_t * conn, const char *url)
 {
-
   herror_t status;
 
-  status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url);
-  if (status != H_OK)
+  if ((status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
     return status;
 
   conn->out = http_output_stream_new(conn->sock, conn->header);
@@ -472,171 +425,15 @@ httpc_post_end(httpc_conn_t * conn, hresponse_t ** out)
 {
   herror_t status;
 
-  status = http_output_stream_flush(conn->out);
-
-  if (status != H_OK)
-  {
+  if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
-  }
 
-  status = hresponse_new_from_socket(conn->sock, out);
-  if (status != H_OK)
-  {
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
-  }
 
   return H_OK;
 }
 
-
-
-/* ---------------------------------------------------
-  DIME support functions httpc_dime_* function set
------------------------------------------------------*/
-/*
-int httpc_dime_begin(httpc_conn_t *conn, const char *url)
-{
-  int status;
-
-	httpc_set_header(conn, HEADER_CONTENT_TYPE, "application/dime");
-
-	status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url);
-	if (status != H_OK)
-	 return status;
-
-  conn->out = http_output_stream_new(conn->sock, conn->header);
-	
-  return H_OK;
-} 
-
-static _print_binary_ascii(int n)
-{
-  int i,c=0;
-  char ascii[36];
-
-  for (i=0;i<32;i++) {
-    ascii[34-i-c] = (n & (1<<i))?'1':'0';
-    if ((i+1)%8 == 0) {
-        c++;
-        ascii[i+c] = ' ';
-    }
-  }
-
-  ascii[35]='\0';
-
-  log_verbose2("%s", ascii);
-}
-
-static 
-void _get_binary_ascii8(unsigned char n, char* ascii)
-{
-  int i;
-  for (i=0;i<8;i++)
-    ascii[7-i] = (n & (1<<i))?'1':'0';
-
-  ascii[8]='\0';
-}
-
-static
-void _print_binary_ascii32(unsigned char b1, unsigned char b2,
-                           unsigned char b3, unsigned char b4)
-{
-  char ascii[4][9];
-  _get_binary_ascii8(b1, ascii[0]);
-  _get_binary_ascii8(b2, ascii[1]);
-  _get_binary_ascii8(b3, ascii[2]);
-  _get_binary_ascii8(b4, ascii[3]);
-
-  log_verbose5("%s %s %s %s", ascii[0], ascii[1], ascii[2], ascii[3]);
-}
-
-int httpc_dime_next(httpc_conn_t* conn, long content_length, 
-                    const char *content_type, const char *id,
-                    const char *dime_options, int last)
-{
-  int status, tmp;
-  byte_t header[12];
-
-  for (tmp=0;tmp<12;tmp++)
-    header[tmp]=0;
-
-  header[0] |= DIME_VERSION_1;
-
-  if (conn->_dime_package_nr == 0)
-    header[0] |= DIME_FIRST_PACKAGE;
-
-  if (last)
-    header[0] |= DIME_LAST_PACKAGE;
-
-  header[1] = DIME_TYPE_URI;
-
-  tmp = strlen(dime_options);
-  header[2] = tmp >> 8;
-  header[3] = tmp;
-
-  tmp = strlen(id);
-  header[4] = tmp >> 8;
-  header[5] = tmp;
-
-  tmp = strlen(content_type);
-  header[6] = tmp >> 8;
-  header[7] = tmp;
-
-  header[8] = (byte_t)content_length >> 24;
-  header[9] = (byte_t)content_length >> 16;
-  header[10] = (byte_t)content_length >> 8;
-  header[11] = (byte_t)content_length;
-
-
-  _print_binary_ascii32(header[0], header[1], header[2], header[3]);
-  _print_binary_ascii32(header[4], header[5], header[6], header[7]);
-  _print_binary_ascii32(header[8], header[9], header[10], header[11]);
-
-	status = http_output_stream_write(conn->out, header, 12);
-	if (status != H_OK)
-		return status;
-  
-	status = http_output_stream_write(conn->out, (const byte_t*)dime_options, strlen(dime_options));
-	if (status != H_OK)
-		return status;
-  
-	status = http_output_stream_write(conn->out, (const byte_t*)id, strlen(id));
-	if (status != H_OK)
-		return status;
-  
-	status = http_output_stream_write(conn->out, (const byte_t*)content_type, strlen(content_type));
-	if (status != H_OK)
-		return status;
-  
-  return status;
-}
-
-
-hresponse_t* httpc_dime_end(httpc_conn_t *conn)
-{
-	int             status;
-	hresponse_t    *res;
-
-   Flush put stream 
-  status = http_output_stream_flush(conn->out);
-
-  if (status != H_OK)
-  {
-    _httpc_set_error(conn, status, "Can not flush output stream");
-    return NULL;
-  }
-
-	res = hresponse_new_from_socket(conn->sock);
-	if (res == NULL)
-	{
-  	_httpc_set_error(conn, -1, "Can not get response ");
-  	return NULL;
-	}
-		
-	return res;
-}
-
-*/
 /* ---------------------------------------------------
   MIME support functions httpc_mime_* function set
 -----------------------------------------------------*/
@@ -699,7 +496,6 @@ httpc_mime_begin(httpc_conn_t * conn, const char *url,
   return status;
 }
 
-
 herror_t
 httpc_mime_next(httpc_conn_t * conn,
                 const char *content_id,
@@ -726,10 +522,8 @@ httpc_mime_next(httpc_conn_t * conn,
           HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
           HEADER_CONTENT_ID, content_id);
 
-  status = http_output_stream_write(conn->out,
+  return http_output_stream_write(conn->out,
                                     (const byte_t *) buffer, strlen(buffer));
-
-  return status;
 }
 
 
@@ -751,22 +545,13 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   if (status != H_OK)
     return status;
 
-  /* Flush put stream */
-  status = http_output_stream_flush(conn->out);
-
-  if (status != H_OK)
-  {
+  if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
-  }
 
-  status = hresponse_new_from_socket(conn->sock, out);
-  if (status != H_OK)
-  {
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
-  }
 
   return H_OK;
-
 }
 
 

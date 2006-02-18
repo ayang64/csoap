@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.7 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-response.c,v 1.8 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,15 +21,20 @@
 *
 * Email: ferhatayaz@yahoo.com
 ******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-response.h>
-
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
+
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-response.h>
 
 static hresponse_t *
 hresponse_new()

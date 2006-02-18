@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.5 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-router.c,v 1.6 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,21 +21,22 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-router.h>
 #include <string.h>
 
+#include <libcsoap/soap-router.h>
+
 SoapRouter *
-soap_router_new()
+soap_router_new(void)
 {
   SoapRouter *router;
 
   router = (SoapRouter *) malloc(sizeof(SoapRouter));
   router->service_head = NULL;
   router->service_tail = NULL;
+  router->default_service = NULL;
 
   return router;
 }
-
 
 void
 soap_router_register_service(SoapRouter * router,
@@ -56,8 +57,31 @@ soap_router_register_service(SoapRouter * router,
     router->service_tail->next = soap_service_node_new(service, NULL);
     router->service_tail = router->service_tail->next;
   }
+
+  return;
 }
 
+void
+soap_router_register_default_service(SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn) {
+
+  SoapService *service;
+
+  service = soap_service_new(urn, method, func);
+
+  if (router->service_tail == NULL)
+  {
+    router->service_head = router->service_tail = soap_service_node_new(service, NULL);
+  }
+  else
+  {
+    router->service_tail->next = soap_service_node_new(service, NULL);
+    router->service_tail = router->service_tail->next;
+  }
+
+  router->default_service = service;
+
+  return;
+}
 
 SoapService *
 soap_router_find_service(SoapRouter * router,
@@ -84,7 +108,7 @@ soap_router_find_service(SoapRouter * router,
     node = node->next;
   }
 
-  return NULL;
+  return router->default_service;
 }
 
 

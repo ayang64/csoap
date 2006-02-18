@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.22 2006/02/08 11:13:14 snowdrop Exp $
+*  $Id: soap-client.c,v 1.23 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -95,7 +95,7 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
     return herror_new("soap_client_invoke", SOAP_ERROR_CLIENT_INIT,
                       "Unable to create SOAP client!");
   }
-  conn->block = soap_client_get_blockmode();
+  conn->sock.block = soap_client_get_blockmode();
 
   /* Set soap action */
   if (soap_action != NULL)

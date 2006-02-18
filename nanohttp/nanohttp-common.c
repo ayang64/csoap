@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.26 2006/02/09 13:43:49 mrcsys Exp $
+*  $Id: nanohttp-common.c,v 1.27 2006/02/18 20:14:36 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,17 +21,31 @@
 *
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <nanohttp/nanohttp-common.h>
-
-
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <ctype.h>
+#endif
 
-#ifndef WIN32
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+
+#ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
 
@@ -39,19 +53,35 @@
 #include <utils/alloc.h>
 #endif
 
+#include <nanohttp/nanohttp-common.h>
 
 #define MAX_OPTION_SIZE 50
 #define MAX_OPTION_VALUE_SIZE 150
 
 static char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
 
-#ifdef HAVE_SSL
-/*extern char *SSLCert;
-extern char *SSLPass;
-extern char *SSLCA;
-extern int SSLCertLess;
-*/
-#endif
+static int
+strcmpigcase(const char *s1, const char *s2)
+{
+  int l1, l2, i;
+
+  if (s1 == NULL && s2 == NULL)
+    return 1;
+  if (s1 == NULL || s2 == NULL)
+    return 0;
+
+  l1 = strlen(s1);
+  l2 = strlen(s2);
+
+  if (l1 != l2)
+    return 0;
+
+  for (i = 0; i < l1; i++)
+    if (toupper(s1[i]) != toupper(s2[i]))
+      return 0;
+
+  return 1;
+}
 
 /* option stuff */
 void
@@ -64,6 +94,8 @@ hoption_set(int opt, const char *value)
   }
 
   strncpy(_hoption_table[opt], value, MAX_OPTION_VALUE_SIZE);
+
+  return;
 }
 
 
@@ -172,7 +204,6 @@ typedef struct _herror_impl_t
   char message[250];
   char func[100];
 } herror_impl_t;
-
 
 herror_t
 herror_new(const char *func, int errcode, const char *format, ...)
@@ -362,32 +393,6 @@ log_error(const char *FUNC, const char *format, ...)
   va_end(ap);
 }
 
-
-/* ----------------------------------------- 
-  FUNCTION: strcmpigcase
- ------------------------------------------*/
-int
-strcmpigcase(const char *s1, const char *s2)
-{
-  int l1, l2, i;
-
-  if (s1 == NULL && s2 == NULL)
-    return 1;
-  if (s1 == NULL || s2 == NULL)
-    return 0;
-
-  l1 = strlen(s1);
-  l2 = strlen(s2);
-
-  if (l1 != l2)
-    return 0;
-
-  for (i = 0; i < l1; i++)
-    if (toupper(s1[i]) != toupper(s2[i]))
-      return 0;
-
-  return 1;
-}
 
 
 hpair_t *
@@ -606,7 +611,6 @@ hurl_dump(const hurl_t * url)
   log_verbose2("    PORT : %d", url->port);
   log_verbose2(" CONTEXT : %s", url->context);
 }
-
 
 herror_t
 hurl_parse(hurl_t * url, const char *urlstr)
