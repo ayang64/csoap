@@ -435,4 +435,17 @@ ssl_cleanup (SSL * ssl)
   }
 }
 
+int
+ssl_checkFatal( SSL *ssl, int status ){
+  switch (SSL_get_error(ssl, status)) {
+	case SSL_ERROR_ZERO_RETURN:
+	case SSL_ERROR_SSL:
+	case SSL_ERROR_SYSCALL:
+        return 1;
+        break;
+    default:
+        return 0;
+  }
+}
+
 #endif /* end of ifdef HAVE_SSL */

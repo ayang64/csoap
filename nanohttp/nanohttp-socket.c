@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.51 2006/02/21 16:41:13 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.52 2006/02/21 21:26:58 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -494,16 +494,9 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
 #ifndef WIN32
       fcntl(sock.sock, F_SETFL, O_NONBLOCK);
 #endif
-      /* log_verbose1("START READ LOOP");
-       do{
-       log_verbose2("DEBUG A %d",i); */
       status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
-      /*log_verbose2("DEBUG SSL_read %d",status);*/
 
-      switch (SSL_get_error(sock.ssl, status)) {
-	case SSL_ERROR_ZERO_RETURN:
-	case SSL_ERROR_SSL:
-	case SSL_ERROR_SYSCALL:
+      if(ssl_checkFatal( sock.ssl, status )){
           log_verbose1("SSL Error");
           return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "SSL Error");
       }
@@ -515,7 +508,6 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
       if (status < 1)
       {
         int ret = select(sock.sock + 1, &fds, NULL, NULL, &timeout);
-        /*log_verbose2("DEBUG select %d",ret);*/
 #ifdef WIN32
         if (ret == SOCKET_ERROR)
         {
@@ -533,13 +525,13 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
         }
         else
         {
-          /* log_verbose1("DEBUG C"); */
           status = SSL_read(sock.ssl, &buffer[totalRead], total - totalRead);
+          if(ssl_checkFatal( sock.ssl, status )){
+              log_verbose1("SSL Error");
+              return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "SSL Error");
+          }
         }
-        /* log_verbose3("DEBUG D char: %d status: %d", 
-         buffer[totalRead], SSL_get_error(sock.ssl, status));*/
       }
-      /* } while( SSL_get_error(sock.ssl, status) == SSL_ERROR_WANT_READ); */
 #ifndef WIN32
       fcntl(sock.sock, F_SETFL, 0);
 #endif
@@ -570,22 +562,6 @@ hsocket_read(hsocket_t sock, byte_t * buffer, int total, int force,
 #else
     }
 
-#ifdef HAVE_SSL
-    if (sock.ssl && status < 1)
-    {
-
-      /* XXX I'm not sure this err_syscall is right here... */
-      if (SSL_get_shutdown(sock.ssl) == SSL_RECEIVED_SHUTDOWN ||
-          SSL_get_error(sock.ssl, status) == SSL_ERROR_SYSCALL)
-      {
-        *received = 0;
-        return herror_new("hsocket_read", HSOCKET_ERROR_SSLCLOSE, "SSL Closed");
-      }
-      log_error2("Read error (%d)", status);
-      log_ssl_error(sock.ssl, status);
-      return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "SSL Error");
-    }
-#endif
     if (status == -1)
       return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE,
                         "Socket error: %d", errno);

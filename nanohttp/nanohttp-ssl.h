@@ -112,6 +112,8 @@ void ssl_cleanup();
 void
 log_ssl_error (SSL * ssl, int ret);
 
+int ssl_checkFatal( SSL *ssl, int status );
+
 #endif
 
 #endif /* HAVE_SSL */
