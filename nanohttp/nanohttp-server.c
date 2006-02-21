@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.49 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.50 2006/02/21 16:40:47 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -491,9 +491,15 @@ static int httpd_decode_authorization(const char *value, char **user, char **pas
   unsigned char *tmp, *tmp2;
 
   tmp = malloc(strlen(value) * 2);
+#ifdef WIN32
+  memset(tmp, 0, strlen(value)*2);
+  value = strstr(value, ' ');
+#else
   bzero(tmp, strlen(value) * 2);
-
   value = index(value, ' ');
+#endif
+
+  
   value++;
   log_debug2("Authorization (base64) = \"%s\"", value);
 
@@ -501,7 +507,11 @@ static int httpd_decode_authorization(const char *value, char **user, char **pas
 
   log_debug2("Authorization (ascii) = \"%s\"", tmp);
 
+#ifdef WIN32
+  tmp2 = strstr(tmp, ':');
+#else
   tmp2 = index(tmp, ':');
+#endif
   *tmp2++ = '\0';
 
   *pass = strdup(tmp2);

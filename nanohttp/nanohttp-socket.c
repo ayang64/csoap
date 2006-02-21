@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.50 2006/02/21 16:14:51 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.51 2006/02/21 16:41:13 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -136,7 +136,11 @@ hsocket_init(hsocket_t * sock)
 {
   log_verbose1("Starting hsocket init");
 
+#ifdef WIN32
+  memset(sock, 0, sizeof(hsocket_t));
+#else
   bzero(sock, sizeof(hsocket_t));
+#endif
   sock->sock = -1;
 
   return H_OK;
