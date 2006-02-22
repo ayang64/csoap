@@ -246,7 +246,7 @@ initialize_ctx (const char *keyfile, const char *password, const char *calist)
 
     log_verbose1 ("Keyfile read ok");
   }
-  if (calist != NULL)
+  if (calist != NULL && *calist != '\0')
   {
 
     /* Load the CAs we trust */
