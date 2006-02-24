@@ -3,8 +3,11 @@
 #---------------------------------------------------------
 # LIBXML2
 #---------------------------------------------------------
-LIBXML2_DIR=../../../libxml2-2.6.23.win32
-ICONV_DIR=../../../iconv-1.9.1.win32
+# This should be set as
+# mingw32-make LIBXML2_DIR=<path> ICONV_DIR=<path>
+# 
+#LIBXML2_DIR=../../../libxml2-2.6.23.win32
+#ICONV_DIR=../../../iconv-1.9.1.win32
 
 #---------------------------------------------------------
 # LIBSOAP
