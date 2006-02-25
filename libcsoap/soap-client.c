@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.23 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: soap-client.c,v 1.24 2006/02/25 10:09:28 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,24 +21,57 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-client.h>
-#include <nanohttp/nanohttp-client.h>
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-/*--------------------------------- */
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+#include <nanohttp/nanohttp-client.h>
+
+#include "soap-client.h"
+
 static int _block_socket = 0;
-static herror_t _soap_client_build_result(hresponse_t * res, SoapEnv ** out);
-/*--------------------------------- */
+
+static herror_t
+_soap_client_build_result(hresponse_t * res, SoapEnv ** env)
+{
+  log_verbose2("Building result (%p)", res);
+
+  if (res == NULL)
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "hresponse_t is NULL");
+
+
+  if (res->in == NULL)
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "Empty response from server");
+
+  if (res->errcode != 200)
+    return herror_new("_soap_client_build_result",
+                      GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
+
+  return soap_env_new_from_stream(res->in, env);
+}
 
 void
 soap_client_block_socket(int block)
 {
   _block_socket = block;
+
+  return;
 }
 
 int
-soap_client_get_blockmode()
+soap_client_get_blockmode(void)
 {
+
   return _block_socket;
 }
 
@@ -47,13 +80,14 @@ soap_client_init_args(int argc, char *argv[])
 {
 
   return httpc_init(argc, argv);
-
 }
 
 void
-soap_client_destroy()
+soap_client_destroy(void)
 {
   httpc_destroy();
+
+  return;
 }
 
 herror_t
@@ -89,8 +123,7 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
   content = (char *) xmlBufferContent(buffer);
 
   /* Transport via HTTP */
-  conn = httpc_new();
-  if (!conn)
+  if (!(conn = httpc_new()))
   {
     return herror_new("soap_client_invoke", SOAP_ERROR_CLIENT_INIT,
                       "Unable to create SOAP client!");
@@ -99,9 +132,9 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
 
   /* Set soap action */
   if (soap_action != NULL)
-  {
     httpc_set_header(conn, "SoapAction", soap_action);
-  }
+
+  httpc_set_header(conn, HEADER_CONNECTION, "Close");
 
   /* check for attachments */
   if (!call->attachments)
@@ -111,25 +144,22 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
 
     sprintf(tmp, "%d", (int) strlen(content));
     httpc_set_header(conn, HEADER_CONTENT_LENGTH, tmp);
-    status = httpc_post_begin(conn, url);
 
-    if (status != H_OK)
+    if ((status = httpc_post_begin(conn, url)) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
       return status;
     }
 
-    status = http_output_stream_write_string(conn->out, content);
-    if (status != H_OK)
+    if ((status = http_output_stream_write_string(conn->out, content)) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
       return status;
     }
 
-    status = httpc_post_end(conn, &res);
-    if (status != H_OK)
+    if ((status = httpc_post_end(conn, &res)) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
@@ -144,24 +174,21 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
                      TRANSFER_ENCODING_CHUNKED);
 
     sprintf(start_id, "289247829121218%d", counter++);
-    status = httpc_mime_begin(conn, url, start_id, "", "text/xml");
-    if (status != H_OK)
+    if ((status = httpc_mime_begin(conn, url, start_id, "", "text/xml")) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
       return status;
     }
 
-    status = httpc_mime_next(conn, start_id, "text/xml", "binary");
-    if (status != H_OK)
+    if ((status = httpc_mime_next(conn, start_id, "text/xml", "binary")) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
       return status;
     }
 
-    status = http_output_stream_write(conn->out, content, strlen(content));
-    if (status != H_OK)
+    if ((status = http_output_stream_write(conn->out, content, strlen(content))) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
@@ -183,8 +210,7 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
       }
     }
 
-    status = httpc_mime_end(conn, &res);
-    if (status != H_OK)
+    if ((status = httpc_mime_end(conn, &res)) != H_OK)
     {
       httpc_close_free(conn);
       xmlBufferFree(buffer);
@@ -196,8 +222,7 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
   xmlBufferFree(buffer);
 
   /* Build result */
-  status = _soap_client_build_result(res, &res_env);
-  if (status != H_OK)
+  if ((status = _soap_client_build_result(res, &res_env)) != H_OK)
   {
     hresponse_free(res);
     httpc_close_free(conn);
@@ -225,39 +250,9 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
     }
   }
 
-
   hresponse_free(res);
   httpc_close_free(conn);
-  return H_OK;
-}
-
-
-static herror_t
-_soap_client_build_result(hresponse_t * res, SoapEnv ** env)
-{
-  herror_t err;
-
-  log_verbose2("Building result (%p)", res);
-
-  if (res == NULL)
-    return herror_new("_soap_client_build_result",
-                      GENERAL_INVALID_PARAM, "hresponse_t is NULL");
-
-
-  if (res->in == NULL)
-    return herror_new("_soap_client_build_result",
-                      GENERAL_INVALID_PARAM, "Empty response from server");
-
-  if (res->errcode != 200)
-    return herror_new("_soap_client_build_result",
-                      GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
-
-  err = soap_env_new_from_stream(res->in, env);
-
-  if (err != H_OK)
-  {
-    return err;
-  }
 
   return H_OK;
 }
+

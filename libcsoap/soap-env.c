@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.15 2006/02/04 01:24:10 snowdrop Exp $
+*  $Id: soap-env.c,v 1.16 2006/02/25 10:09:28 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,9 +21,11 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-env.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
+
+#include <libcsoap/soap-env.h>
 
 #ifdef WIN32
 #define USE_XMLSTRING
@@ -195,9 +197,9 @@ soap_env_new_with_fault(fault_code_t faultcode,
 herror_t
 soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
 {
+  char *method, *res_method;
+  herror_t ret;
   char *urn;
-  char *methodname;
-  char *methodname2;
 
   if (request == NULL)
   {
@@ -212,12 +214,12 @@ soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
                       "request (first param) has no xml structure");
   }
 
-  if (!(methodname = soap_env_find_methodname(request)))
+  if (!(method = soap_env_find_methodname(request)))
   {
     return herror_new("soap_env_new_with_response",
                       GENERAL_INVALID_PARAM,
                       "Method name '%s' not found in request",
-                      SAVE_STR(methodname));
+                      SAVE_STR(method));
   }
 
   if (!(urn = soap_env_find_urn(request)))
@@ -228,9 +230,14 @@ soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
     urn = "";
   }
 
-  methodname2 = malloc(strlen(methodname)+9);
-  sprintf(methodname2, "%sResponse", methodname);
-  return soap_env_new_with_method(urn, methodname2, out);
+  res_method = malloc(strlen(method)+9);
+  sprintf(res_method, "%sResponse", method);
+
+  ret = soap_env_new_with_method(urn, res_method, out);
+
+  free(res_method);
+
+  return ret;
 }
 
 
@@ -506,16 +513,14 @@ soap_env_get_method(SoapEnv * env)
 
   xmlNodePtr body;
 
-  body = soap_env_get_body(env);
-  if (body == NULL)
+  if ((body = soap_env_get_body(env)) == NULL)
   {
     log_verbose1("body is NULL");
     return NULL;
   }
 
-  /* mehtod is the first child */
+  /* method is the first child */
   return soap_xml_get_children(body);
-
 }
 
 
@@ -548,8 +553,7 @@ _soap_env_get_body(SoapEnv * env)
     return NULL;
   }
 
-  nodeset = xpathobj->nodesetval;
-  if (!nodeset)
+  if (!(nodeset = xpathobj->nodesetval))
   {
     log_error1("No Body (nodeset)!");
     xmlXPathFreeObject(xpathobj);
@@ -576,17 +580,14 @@ soap_env_find_urn(SoapEnv * env)
   xmlNsPtr ns;
   xmlNodePtr body, node;
 
-  body = soap_env_get_body(env);
-  if (body == NULL)
+  if (!(body = soap_env_get_body(env)))
   {
     log_verbose1("body is NULL");
     return 0;
   }
 
   /* node is the first child */
-  node = soap_xml_get_children(body);
-
-  if (node == NULL)
+  if (!(node = soap_xml_get_children(body)))
   {
     log_error1("No namespace found");
     return 0;
@@ -637,7 +638,6 @@ soap_env_find_methodname(SoapEnv * env)
   }
 
   return((char *) node->name);
-
 }
 
 
