@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.17 2006/01/11 09:18:17 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.18 2006/02/27 22:26:01 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -52,6 +52,7 @@ say_hello(SoapCtx * req, SoapCtx * res)
     name = (char *) xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
     soap_env_add_itemf(res->env, "xsd:string", "echo", "Hello '%s'", name);
     node = soap_xml_get_next(node);
+    xmlFree(name);
   }
 
   return H_OK;

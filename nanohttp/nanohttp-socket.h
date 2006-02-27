@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.23 2006/02/27 00:26:23 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.24 2006/02/27 22:26:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,13 +24,9 @@
 #ifndef NANO_HTTP_SOCKET_H
 #define NANO_HTTP_SOCKET_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <time.h>
 
 #include <nanohttp/nanohttp-common.h>
-
-#include <time.h>
 
 #ifdef HAVE_SSL
 #include <openssl/ssl.h>
@@ -40,6 +36,7 @@ extern "C" {
 #include <winsock2.h>
 #endif
 
+#define	HSOCKET_FREE	-1
 
 /*
   Socket definition
@@ -55,7 +52,7 @@ typedef struct hsocket_t
 #ifdef WIN32
   SOCKET sock;
 #else
-  int sock;
+  volatile int sock;
 #endif
   int block;
 
@@ -65,7 +62,9 @@ typedef struct hsocket_t
 typedef int socklen_t;
 #endif
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /**
@@ -145,7 +144,7 @@ herror_t hsocket_open(hsocket_t * sock, const char *host, int port);
 
   @param sock the socket to close
 */
-void hsocket_close(hsocket_t sock);
+void hsocket_close(hsocket_t *sock);
 
 
 /**

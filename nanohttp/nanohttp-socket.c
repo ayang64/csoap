@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.52 2006/02/21 21:26:58 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.53 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -136,12 +136,8 @@ hsocket_init(hsocket_t * sock)
 {
   log_verbose1("Starting hsocket init");
 
-#ifdef WIN32
   memset(sock, 0, sizeof(hsocket_t));
-#else
-  bzero(sock, sizeof(hsocket_t));
-#endif
-  sock->sock = -1;
+  sock->sock = HSOCKET_FREE;
 
   return H_OK;
 }
@@ -342,49 +338,50 @@ hsocket_listen(hsocket_t sock)
   return H_OK;
 }
 
+#ifdef WIN32
+static inline void
+_hsocket_sys_close(hsocket_t *sock)
+{
+  char junk[10];
+
+  /* shutdown(sock,SD_RECEIVE); */
+
+  shutdown(sock->sock, SD_SEND);
+  while (recv(sock->sock, junk, sizeof(junk), 0) > 0) ;
+    /* nothing */
+  closesocket(sock->sock);
+
+  return;
+}
+#else
+static inline void
+_hsocket_sys_close(hsocket_t *sock)
+{
+
+  shutdown(sock->sock, SHUT_RDWR);
+
+  return;
+}
+#endif
+
 /*--------------------------------------------------
 FUNCTION: hsocket_close
 ----------------------------------------------------*/
 void
-hsocket_close(hsocket_t sock)
+hsocket_close(hsocket_t *sock)
 {
-  char junk[10];
-/*  _hsocket_wait_until_receive(sock);*/
-  log_verbose2("closing socket %d...", sock.sock);
-/*  
-  struct linger _linger;
-	hsocket_block(sock,1);
-  _linger.l_onoff =1;
-  _linger.l_linger = 30000;
-  setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&_linger, sizeof(struct linger));
-*/
+  log_verbose3("closing socket %p (%d)...", sock, sock->sock);
 
-
-#ifdef WIN32
-  /* shutdown(sock,SD_RECEIVE); */
-
-  shutdown(sock.sock, SD_SEND);
-  while (recv(sock.sock, junk, sizeof(junk), 0) > 0) ;
-    /* nothing */
-  closesocket(sock.sock);
-
-#else
-  /* XXX m. campbell - It seems like the while loop here needs this */
-  fcntl(sock.sock, F_SETFL, O_NONBLOCK);
 #ifdef HAVE_SSL
-  if (sock.ssl)
+  if (sock->ssl)
   {
     log_verbose1("Closing SSL");
-    ssl_cleanup(sock.ssl);
-    sock.ssl = NULL;
+    ssl_cleanup(sock->ssl);
+    sock->ssl = NULL;
   }
 #endif
 
-  shutdown(sock.sock, SHUT_RDWR);
-  while (recv(sock.sock, junk, sizeof(junk), 0) > 0) ;
-    /* nothing */
-  close(sock.sock);
-#endif
+  _hsocket_sys_close(sock);
 
   log_verbose1("socket closed");
 
@@ -427,11 +424,17 @@ hsocket_nsend(hsocket_t sock, const byte_t * bytes, int n)
     /* size = _test_send_to_file(filename, bytes, n); */
 #ifdef WIN32
     if (size == INVALID_SOCKET)
+    {
       if (WSAGetLastError() == WSAEWOULDBLOCK)
+      {
         continue;
+      }
       else
+      {
         return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND,
                           "Socket error: %d", errno);
+      }
+    }
 #else
     if (size == -1)
     {

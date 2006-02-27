@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.10 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.11 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,7 +45,7 @@ Buffered Reader. A helper object to read bytes from a source
 #include <utils/alloc.h>
 #endif
 
-#include <nanohttp/nanohttp-mime.h>
+#include "nanohttp-mime.h"
 
 
 /* ------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.6 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: soap-router.c,v 1.7 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,9 +21,15 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <libcsoap/soap-router.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#include "soap-router.h"
 
 SoapRouter *
 soap_router_new(void)

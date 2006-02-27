@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.50 2006/02/21 16:40:47 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.51 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,10 @@
 
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
+
+#ifdef HAVE_SOCKET_H
+#include <sys/socket.h>
 #endif
 
 #ifdef HAVE_SYS_TIME_H
@@ -57,17 +61,16 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
 
-#ifdef HAVE_SOCKET_H
-#include <sys/socket.h>
-#endif
-
-#ifdef WIN32
+#ifdef HAVE_PROCESS_H
 #include <process.h>
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #endif
 
 #ifdef MEM_DEBUG
@@ -97,13 +100,15 @@ conndata_t;
  * internally globals
  * -----------------------------------------------------
  */
+static volatile int _httpd_run = 1;
+
+static hsocket_t _httpd_socket;
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
-static hsocket_t _httpd_socket;
+
 static hservice_t *_httpd_services_default = NULL;
 static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
-static int _httpd_run = 1;
 static conndata_t *_httpd_connection;
 
 #ifdef WIN32
@@ -111,15 +116,42 @@ static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
 static int _httpd_max_idle = 120;
 static void WSAReaper (void *x);
 #define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #else
 static int _httpd_terminate_signal = SIGINT;
 static sigset_t thrsigset;
 #endif
 
-#ifdef HAVE_SSL
-/*extern SSL_CTX *SSLctx;*/
-#endif
+static void
+_httpd_parse_arguments(int argc, char **argv)
+{
+  int i;
 
+  /* write argument information */
+  log_verbose1 ("Arguments:");
+  for (i = 0; i < argc; i++)
+    log_verbose3 ("argv[%i] = '%s'", i, SAVE_STR (argv[i]));
+
+  for (i = 1; i < argc; i++)
+  {
+    if (!strcmp (argv[i-1], NHTTPD_ARG_PORT))
+    {
+      _httpd_port = atoi (argv[i]);
+    }
+    else if (!strcmp (argv[i-1], NHTTPD_ARG_TERMSIG))
+    {
+      _httpd_terminate_signal = atoi (argv[i]);
+    }
+    else if (!strcmp (argv[i-1], NHTTPD_ARG_MAXCONN))
+    {
+      _httpd_max_connections = atoi (argv[i]);
+    }
+  }
+
+  log_verbose2 ("socket bind to port '%d'", _httpd_port);
+
+  return;
+}
 
 /*
  * -----------------------------------------------------
@@ -136,32 +168,13 @@ httpd_init (int argc, char *argv[])
   char *SSLCert = NULL, *SSLPass = NULL, *SSLCA = NULL;
 #endif
 
+  /* XXX: two times argument parsing... */
   hoption_init_args (argc, argv);
+
+  _httpd_parse_arguments(argc, argv);
 
   if ((status = hsocket_module_init()) != H_OK)
     return status;
-
-  /* write argument information */
-  log_verbose1 ("Arguments:");
-  for (i = 0; i < argc; i++)
-    log_verbose3 ("argv[%i] = '%s'", i, SAVE_STR (argv[i]));
-
-  /* initialize from arguments */
-  for (i = 0; i < argc; i++)
-  {
-    if (!strcmp (argv[i], NHTTPD_ARG_PORT) && i < argc - 1)
-    {
-      _httpd_port = atoi (argv[i + 1]);
-    }
-    else if (!strcmp (argv[i], NHTTPD_ARG_TERMSIG) && i < argc - 1)
-    {
-      _httpd_terminate_signal = atoi (argv[i + 1]);
-    }
-    else if (!strcmp (argv[i], NHTTPD_ARG_MAXCONN) && i < argc - 1)
-    {
-      _httpd_max_connections = atoi (argv[i + 1]);
-    }
-  }
 
   log_verbose2 ("socket bind to port '%d'", _httpd_port);
 
@@ -171,9 +184,7 @@ httpd_init (int argc, char *argv[])
 
   _httpd_connection = calloc (_httpd_max_connections, sizeof (conndata_t));
   for (i = 0; i < _httpd_max_connections; i++)
-  {
-    memset ((char *) &_httpd_connection[i], 0, sizeof (_httpd_connection[i]));
-  }
+    hsocket_init(&(_httpd_connection[i].sock));
 
 #ifdef WIN32
   /* 
@@ -183,7 +194,7 @@ httpd_init (int argc, char *argv[])
    */
 #endif
 
-  /* create socket */
+  /* XXX: move SSL stuff to nanohttp-socket.c and handle this transparently */
 #ifdef HAVE_SSL
   SSLCert = hoption_get(HOPTION_SSL_CERT);
   SSLPass = hoption_get(HOPTION_SSL_PASS);
@@ -221,7 +232,7 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
 
   if (!(service = (hservice_t *) malloc (sizeof (hservice_t))))
   {
-    log_error1("malloc failed");
+    log_error2("malloc failed (%s)", strerror(errno));
     return -1;
   }
 
@@ -396,10 +407,13 @@ httpd_send_internal_error (httpd_conn_t * conn, const char *errmsg)
 
   char buffer[4064];
   char buflen[5];
+
   sprintf (buffer, template1, errmsg);
   snprintf (buflen, 5, "%d", strlen (buffer));
+
   httpd_set_header (conn, HEADER_CONTENT_LENGTH, buflen);
   httpd_send_header (conn, 500, "INTERNAL");
+
   return hsocket_nsend (conn->sock, buffer, strlen (buffer));
 }
 
@@ -421,28 +435,29 @@ httpd_request_print (hrequest_t * req)
                 (req->version == HTTP_1_0) ? "HTTP/1.0" : "HTTP/1.1");
   log_verbose1 (" Parsed query string :");
 
-  pair = req->query;
-  while (pair != NULL)
-  {
+  for (pair = req->query; pair; pair = pair->next)
     log_verbose3 (" %s = '%s'", pair->key, pair->value);
-    pair = pair->next;
-  }
+
   log_verbose1 (" Parsed header :");
-  pair = req->header;
-  while (pair != NULL)
-  {
+  for (pair = req->header; pair; pair = pair->next)
     log_verbose3 (" %s = '%s'", pair->key, pair->value);
-    pair = pair->next;
-  }
+
   log_verbose1 ("++++++++++++++++++++++++");
 
+  return;
 }
 
 
 httpd_conn_t *
 httpd_new (hsocket_t sock)
 {
-  httpd_conn_t *conn = (httpd_conn_t *) malloc (sizeof (httpd_conn_t));
+  httpd_conn_t *conn;
+
+  if (!(conn = (httpd_conn_t *) malloc (sizeof (httpd_conn_t)))) {
+
+	log_error2("malloc failed (%s)", strerror(errno));
+	return NULL;
+  }
   conn->sock = sock;
   conn->out = NULL;
   conn->content_type[0] = '\0';
@@ -455,15 +470,18 @@ httpd_new (hsocket_t sock)
 void
 httpd_free (httpd_conn_t * conn)
 {
-  if(!conn)
-  return;
-  if (conn->out != NULL)
+  if (!conn)
+    return;
+
+  if (conn->out)
     http_output_stream_free (conn->out);
 
-  if (conn->header != NULL)
+  if (conn->header)
     hpairnode_free_deep (conn->header);
 
   free (conn);
+
+  return;
 }
 
 void
@@ -485,44 +503,44 @@ do_req_timeout (int signum)
 #endif
 }
 
-static int httpd_decode_authorization(const char *value, char **user, char **pass)
+static int _httpd_decode_authorization(const char *value, char **user, char **pass)
 {
 
   unsigned char *tmp, *tmp2;
+  size_t len;
 
-  tmp = malloc(strlen(value) * 2);
-#ifdef WIN32
-  memset(tmp, 0, strlen(value)*2);
-  value = strstr(value, ' ');
-#else
-  bzero(tmp, strlen(value) * 2);
-  value = index(value, ' ');
-#endif
+  len = strlen(value) * 2;
+  if (!(tmp = (char *)calloc(1, len))) {
 
+    log_error2("malloc failed (%s)", strerror(errno));
+    return -1;
+  }
+
+  value = strstr(value, " ") + 1;
   
-  value++;
-  log_debug2("Authorization (base64) = \"%s\"", value);
+  log_error2("Authorization (base64) = \"%s\"", value);
 
   base64_decode(value, tmp);
 
-  log_debug2("Authorization (ascii) = \"%s\"", tmp);
+  log_error2("Authorization (ascii) = \"%s\"", tmp);
 
-#ifdef WIN32
-  tmp2 = strstr(tmp, ':');
-#else
-  tmp2 = index(tmp, ':');
-#endif
-  *tmp2++ = '\0';
-
-  *pass = strdup(tmp2);
+  if ((tmp2 = strstr(tmp, ":")))
+  {
+    *tmp2++ = '\0';
+    *pass = strdup(tmp2);
+  }
+  else
+  {
+    *pass = strdup("");
+  }
   *user = strdup(tmp);
 
   free(tmp);
 
-  return 1;
+  return 0;
 }
 
-static int httpd_authenticate_request(hrequest_t *req, httpd_auth auth)
+static int _httpd_authenticate_request(hrequest_t *req, httpd_auth auth)
 {
   char *user, *pass;
   char *authorization;
@@ -532,17 +550,20 @@ static int httpd_authenticate_request(hrequest_t *req, httpd_auth auth)
     return 1;
 
   if (!(authorization = hpairnode_get_ignore_case(req->header, HEADER_AUTHORIZATION))) {
+    log_debug2("%s header not set", HEADER_AUTHORIZATION);
     return 0;
   }
 
-  if (!httpd_decode_authorization(authorization, &user, &pass))
+  if (_httpd_decode_authorization(authorization, &user, &pass))
   {
     log_error1("httpd_base64_decode_failed");
     return 0;
   }
 
-  if (!(ret = auth(user, pass)))
-    log_info1("Authentication failed");
+  if ((ret = auth(user, pass)))
+    log_info2("Access granted for user=\"%s\"", user);
+  else
+    log_info2("Authentication failed for user=\"%s\"", user);
 
   free(user);
   free(pass);
@@ -563,19 +584,20 @@ static void *
 httpd_session_main (void *data)
 #endif
 {
-  conndata_t *conn = (conndata_t *) data;
   const char *msg = "SESSION 1.0\n";
   int len = strlen (msg);
   int done = 0;
   char buffer[256];             /* temp buffer for recv() */
   char header[4064];            /* received header */
   hrequest_t *req = NULL;       /* only for test */
+  conndata_t *conn;
   httpd_conn_t *rconn = NULL;
   hservice_t *service = NULL;
   herror_t status;
 
   header[0] = '\0';
   len = 0;
+  conn = (conndata_t *) data;
 
   log_verbose1 ("starting httpd_session_main()");
 #ifdef HAVE_SSL
@@ -598,15 +620,19 @@ httpd_session_main (void *data)
   /* call the service */
 /*  req = hrequest_new_from_buffer (header);*/
 
+  rconn = httpd_new (conn->sock);
+
   while (!done)
   {
     log_verbose1 ("starting HTTP request");
 
-    rconn = httpd_new (conn->sock);
+    /* XXX: only used in WSAreaper */
+    conn->atime = time(NULL);
 
     if ((status = hrequest_new_from_socket (conn->sock, &req)) != H_OK)
     {
       /* "Request parse error!" */
+      /* XXX: may be "socket read error" */
       if (herror_code (status) != HSOCKET_ERROR_SSLCLOSE)
       {
         httpd_send_internal_error (rconn, herror_message (status));
@@ -617,7 +643,7 @@ httpd_session_main (void *data)
     else
     {
       char *conn_str = hpairnode_get_ignore_case (req->header, HEADER_CONNECTION);
-      if (conn_str && strncasecmp (conn_str, "close", 5) == 0)
+      if (conn_str && strncasecmp (conn_str, "close", 6) == 0)
       {
         done = 1;
       }
@@ -627,12 +653,11 @@ httpd_session_main (void *data)
       }
       httpd_request_print (req);
 
-      service = httpd_find_service (req->path);
-      if (service != NULL)
+      if ((service = httpd_find_service (req->path)))
       {
         log_verbose3 ("service '%s' for '%s' found", service->ctx, req->path);
 
-        if (httpd_authenticate_request(req, service->auth)) {
+        if (_httpd_authenticate_request(req, service->auth)) {
 
           if (service->func != NULL)
           {
@@ -649,33 +674,39 @@ httpd_session_main (void *data)
             httpd_send_internal_error (rconn, buffer);
           }
         }
-	else {
+  else {
 
           httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE, "Basic realm=\"nanoHTTP\"");
           httpd_send_header(rconn, 401, "Unauthorized");
-          hsocket_send(conn->sock, "<html><head><title>Unauthorized</title></header><body><h1>Unauthorized</h1></body></html>");
-	}
+          hsocket_send(conn->sock, "<html><head><title>Unauthorized</title></header><body><h1>Unauthorized request logged</h1></body></html>");
+  }
       }
       else
       {
-        sprintf (buffer, "service '%s' not found", req->path);
+        sprintf (buffer, "no service for '%s' found", req->path);
         log_verbose1 (buffer);
         httpd_send_internal_error (rconn, buffer);
       }
+      hrequest_free(req);
     }
   }
 
-  hsocket_close (conn->sock);
-  log_verbose1 ("Marking connection as available");
-  conn->sock.sock = 0;
-  hrequest_free (req);
-  httpd_free (rconn);
+  httpd_free(rconn);
+
+  hsocket_close (&(conn->sock));
 
 #ifdef WIN32
   CloseHandle ((HANDLE) conn->tid);
+#else
+  pthread_attr_destroy(&(conn->attr));
+#endif
+
+  hsocket_init(&(conn->sock));
+
+#ifdef WIN32
   _endthread ();
   return 0;
-#else
+#else 
   /* pthread_exits automagically */
   return NULL;
 #endif
@@ -809,7 +840,7 @@ static conndata_t *
 _httpd_wait_for_empty_conn (void)
 {
   int i;
-  for (i = 0;; i++)
+  for (i = 0; ; i++)
   {
     if (!_httpd_run)
       return NULL;
@@ -817,9 +848,9 @@ _httpd_wait_for_empty_conn (void)
     if (i >= _httpd_max_connections)
     {
       system_sleep (1);
-      i = 0;
+      i = -1;
     }
-    else if (_httpd_connection[i].sock.sock == 0)
+    else if (_httpd_connection[i].sock.sock == HSOCKET_FREE)
     {
       break;
     }
@@ -947,11 +978,11 @@ httpd_run (void)
      && herror_code (err) == SSL_ERROR_INIT*/
   )
     {
-      hsocket_close (conn->sock);
+      hsocket_close(&(conn->sock));
 
       hsocket_init(&(conn->sock));
 
-      log_error1 (herror_message (err));
+      log_error1(herror_message (err));
       continue;
     }
     else if (err != H_OK)
@@ -1061,14 +1092,17 @@ httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
   if (content_length == 0)
   {
     *received = 0;
-    postdata = (char *) malloc (1);
+    if (!(postdata = (char *) malloc (1))) {
+
+	    log_error2("malloc failed (%s)", strerror(errno));
+	    return NULL;
+    }
     postdata[0] = '\0';
     return postdata;
   }
-  postdata = (unsigned char *) malloc (content_length + 1);
-  if (postdata == NULL)
+  if (!(postdata = (unsigned char *) malloc (content_length + 1)))
   {
-    log_error1 ("Not enough memory");
+    log_error2 ("malloc failed (%)", strerror(errno));
     return NULL;
   }
   if (http_input_stream_read (req->in, postdata, (int) content_length) > 0)
@@ -1080,8 +1114,6 @@ httpd_get_postdata (httpd_conn_t * conn, hrequest_t * req, long *received,
   free (postdata);
   return NULL;
 }
-
-
 
 
 /*

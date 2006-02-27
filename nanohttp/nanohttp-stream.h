@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.8 2006/02/27 00:26:23 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.9 2006/02/27 22:26:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,11 +24,14 @@
 #ifndef NANO_HTTP_STREAM_H
 #define NANO_HTTP_STREAM_H
 
+#include <stdio.h>
+
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-common.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdio.h>
 
 void _log_str(char *fn, char *str, int size);
 
@@ -56,12 +59,6 @@ void _log_str(char *fn, char *str, int size);
   sending/receiving header information. (After <CF><CF>)"
   
 */
-
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-common.h>
-
-#include <stdio.h>
-
 
 /**
   Transfer types supported while 

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.5 2006/02/27 00:26:23 snowdrop Exp $
+ *  $Id: nanohttp-response.h,v 1.6 2006/02/27 22:26:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,10 +24,6 @@
 #ifndef NANO_HTTP_RESPONSE_H
 #define NANO_HTTP_RESPONSE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-mime.h>
@@ -46,6 +42,10 @@ typedef struct hresponse
   attachments_t *attachments;
   char root_part_id[150];
 } hresponse_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 herror_t hresponse_new_from_socket(hsocket_t sock, hresponse_t ** out);
 void hresponse_free(hresponse_t * res);

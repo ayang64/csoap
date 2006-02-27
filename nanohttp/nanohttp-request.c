@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.10 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.11 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,24 +25,35 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
 #endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-request.h>
-
-/* request stuff */
-
+#include "nanohttp-common.h"
+#include "nanohttp-request.h"
 
 static hrequest_t *
 hrequest_new()
 {
-  hrequest_t *req = (hrequest_t *) malloc(sizeof(hrequest_t));
+  hrequest_t *req;
+ 
+  if (!(req = (hrequest_t *) malloc(sizeof(hrequest_t)))) {
+
+	  log_error2("malloc failed (%s)", strerror(errno));
+	  return NULL;
+  }
 
   req->method = HTTP_REQUEST_GET;
   req->version = HTTP_1_1;
@@ -147,7 +158,11 @@ _hrequest_parse_header(char *data)
           /* create option pair */
           if (opt_key != NULL)
           {
-            tmppair = (hpair_t *) malloc(sizeof(hpair_t));
+            if (!(tmppair = (hpair_t *) malloc(sizeof(hpair_t))))
+            {
+              log_error2("malloc failed (%s)", strerror(errno));
+              return NULL;
+            }
 
             if (req->query == NULL)
             {
@@ -161,11 +176,8 @@ _hrequest_parse_header(char *data)
 
             /* fill hpairnode_t struct */
             qpair->next = NULL;
-            qpair->key = (char *) malloc(strlen(opt_key) + 1);
-            qpair->value = (char *) malloc(strlen(opt_value) + 1);
-
-            strcpy(qpair->key, opt_key);
-            strcpy(qpair->value, opt_value);
+            qpair->key = strdup(opt_key);
+            qpair->value = strdup(opt_value);
 
           }
         }

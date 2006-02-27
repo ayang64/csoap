@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.27 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.28 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -53,7 +53,7 @@
 #include <utils/alloc.h>
 #endif
 
-#include <nanohttp/nanohttp-common.h>
+#include "nanohttp-common.h"
 
 #define MAX_OPTION_SIZE 50
 #define MAX_OPTION_VALUE_SIZE 150

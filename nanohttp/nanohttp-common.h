@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.26 2006/02/27 00:26:23 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.27 2006/02/27 22:26:02 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,10 +23,6 @@
  ******************************************************************/
 #ifndef NANO_HTTP_COMMON_H
 #define NANO_HTTP_COMMON_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdlib.h>
 #include <time.h>
@@ -157,17 +153,6 @@ Set Sleep function platform depended
 #define system_sleep(seconds) sleep(seconds);
 #endif
 
-#ifdef WIN32
-#include <string.h>
-char *strtok_r(char *s, const char *delim, char **save_ptr);
-struct tm *localtime_r(const time_t * const timep, struct tm *p_tm);
-#endif
-
-typedef unsigned char byte_t;
-typedef void *herror_t;
-
-
-
 /**
   Indicates the version of the 
   used HTTP protocol.
@@ -188,6 +173,19 @@ typedef enum _hreq_method
   HTTP_REQUEST_GET
 } hreq_method_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef WIN32
+#include <string.h>
+char *strtok_r(char *s, const char *delim, char **save_ptr);
+struct tm *localtime_r(const time_t * const timep, struct tm *p_tm);
+#endif
+
+typedef unsigned char byte_t;
+typedef void *herror_t;
 
 herror_t herror_new(const char *func, int errcode, const char *format, ...);
 int herror_code(herror_t err);

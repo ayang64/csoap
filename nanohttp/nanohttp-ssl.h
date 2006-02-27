@@ -25,10 +25,6 @@
 /* Do enter only if --with-ssl was specified by the configure script */
 #ifdef HAVE_SSL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef TRU64
 #include <arpa/inet.h>
 typedef unsigned int uint32_t;
@@ -60,6 +56,10 @@ typedef struct Con
 /*
  * Callback for password checker
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //static int pw_cb(char* buf, int num, int rwflag, void *userdata);
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.17 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: soap-server.c,v 1.18 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,11 +21,17 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 #include <nanohttp/nanohttp-server.h>
 
-#include <libcsoap/soap-server.h>
+#include "soap-server.h"
 
 typedef struct _SoapRouterNode
 {
@@ -54,12 +60,14 @@ _soap_server_send_env(http_output_stream_t * out, SoapEnv * env)
 }
 
 static void
-_soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
-                        const char *errmsg)
+_soap_server_send_fault(httpd_conn_t * conn, const char *errmsg)
 {
   SoapEnv *envres;
+  hpair_t *header;
   herror_t err;
   char buffer[45];
+
+  header = hpairnode_new(HEADER_CONTENT_TYPE, "text/xml", NULL);
 
   httpd_set_headers(conn, header);
 
@@ -92,12 +100,14 @@ _soap_server_send_fault(httpd_conn_t * conn, hpair_t * header,
     http_output_stream_write_string(conn->out, "</body></html>");
 
     herror_release(err);
-    return;
   }
   else
   {
     _soap_server_send_env(conn->out, envres);
   }
+
+  hpairnode_free(header);
+
   return;
 }
 
@@ -209,7 +219,6 @@ router_find(const char *context)
 static void
 soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 {
-  hpair_t *header = NULL;
   char buffer[1054];
   char *urn;
   char *method;
@@ -232,12 +241,10 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   }
 
 
-  header = hpairnode_new(HEADER_CONTENT_TYPE, "text/xml", NULL);
-
   err = soap_env_new_from_stream(req->in, &env);
   if (err != H_OK)
   {
-    _soap_server_send_fault(conn, header, herror_message(err));
+    _soap_server_send_fault(conn, herror_message(err));
     herror_release(err);
     return;
   }
@@ -246,7 +253,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   if (env == NULL)
   {
 
-    _soap_server_send_fault(conn, header, "Can not receive POST data!");
+    _soap_server_send_fault(conn, "Can not receive POST data!");
 
   }
   else
@@ -254,13 +261,16 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 
     ctx = soap_ctx_new(env);
     ctx->action = hpairnode_get_ignore_case(req->header, "SoapAction");
+    if (ctx->action)
+      ctx->action = strdup(ctx->action);
+
     ctx->http = req;
     soap_ctx_add_files(ctx, req->attachments);
 
     if (ctx->env == NULL)
     {
 
-      _soap_server_send_fault(conn, header, "Can not parse POST data!");
+      _soap_server_send_fault(conn, "Can not parse POST data!");
 
     }
     else
@@ -273,7 +283,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
       if (router == NULL)
       {
 
-        _soap_server_send_fault(conn, header, "Can not find router!");
+        _soap_server_send_fault(conn, "Can not find router!");
 
       }
       else
@@ -282,7 +292,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
         if (!(urn=soap_env_find_urn(ctx->env)))
         {
 
-          _soap_server_send_fault(conn, header, "No URN found!");
+          _soap_server_send_fault(conn, "No URN found!");
           soap_ctx_free(ctx);
           return;
         }
@@ -294,7 +304,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
         if (!(method=soap_env_find_methodname(ctx->env)))
         {
 
-          _soap_server_send_fault(conn, header, "No method found!");
+          _soap_server_send_fault(conn, "No method found!");
           soap_ctx_free(ctx);
           return;
         }
@@ -309,7 +319,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
         {
 
           sprintf(buffer, "URN '%s' not found", urn);
-          _soap_server_send_fault(conn, header, buffer);
+          _soap_server_send_fault(conn, buffer);
           soap_ctx_free(ctx);
           return;
         }
@@ -327,7 +337,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
             sprintf(buffer, "Service returned following error message: '%s'",
                     herror_message(err));
             herror_release(err);
-            _soap_server_send_fault(conn, header, buffer);
+            _soap_server_send_fault(conn, buffer);
             soap_ctx_free(ctx);
             return;
           }
@@ -336,7 +346,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
           {
 
             sprintf(buffer, "Service '%s' returned no envelope", urn);
-            _soap_server_send_fault(conn, header, buffer);
+            _soap_server_send_fault(conn, buffer);
             soap_ctx_free(ctx);
             return;
 

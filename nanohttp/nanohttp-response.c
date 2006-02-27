@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.8 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-response.c,v 1.9 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,16 +25,24 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
 #endif
 
 #ifdef MEM_DEBUG
 #include <utils/alloc.h>
 #endif
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-response.h>
+#include "nanohttp-common.h"
+#include "nanohttp-response.h"
 
 static hresponse_t *
 hresponse_new()
@@ -42,7 +50,12 @@ hresponse_new()
   hresponse_t *res;
 
   /* create response object */
-  res = (hresponse_t *) malloc(sizeof(hresponse_t));
+  if (!(res = (hresponse_t *) malloc(sizeof(hresponse_t)))) {
+
+	  log_error2("malloc failed (%s)", strerror(errno));
+	  return NULL;
+  }
+
   res->version = HTTP_1_1;
   res->errcode = -1;
   res->desc[0] = '\0';

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.8 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.9 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,9 +21,16 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-fault.h>
-#include <libcsoap/soap-xml.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#include "soap-fault.h"
+#include "soap-xml.h"
 
 static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.16 2006/02/25 10:09:28 snowdrop Exp $
+*  $Id: soap-env.c,v 1.17 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,11 +21,27 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <libcsoap/soap-env.h>
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#include "soap-env.h"
 
 #ifdef WIN32
 #define USE_XMLSTRING
@@ -128,7 +144,11 @@ soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out)
                       XML_ERROR_EMPTY_DOCUMENT, "XML Document is empty!");
   }
 
-  env = (SoapEnv *) malloc(sizeof(SoapEnv));
+  if (!(env = (SoapEnv *) malloc(sizeof(SoapEnv))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return herror_new("soap_env_from_doc", GENERAL_INVALID_PARAM, "malloc failed");
+  }
 
   /* set root */
   env->root = node;

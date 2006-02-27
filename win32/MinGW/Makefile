@@ -4,10 +4,9 @@
 # LIBXML2
 #---------------------------------------------------------
 # This should be set as
-# mingw32-make LIBXML2_DIR=<path> ICONV_DIR=<path>
+# mingw32-make LIBXML2_DIR=<path> 
 # 
 #LIBXML2_DIR=../../../libxml2-2.6.23.win32
-#ICONV_DIR=../../../iconv-1.9.1.win32
 
 #---------------------------------------------------------
 # LIBSOAP
@@ -57,13 +56,13 @@ INCLUDE=-I. -I../include -I../.. -I$(LIBXML2_DIR)/include -I$(ICONV_DIR)/include
 
 all: nanohttp libsoap simpleclient simpleserver
 	echo OK
-	
+
 nanohttp: $(NANOHTTP_OBJECTS)
 	$(AR) cru libnanohttp.a $?
 
 libsoap: $(LIBSOAP_OBJECTS)
 	$(AR) cru libsoap.a $?
-	
+
 simpleclient: ../../examples/csoap/simpleclient.o
 	$(CC) -o simpleclient $? -L$(LIBXML2_DIR)/lib -L. -lsoap -lnanohttp -lxml2 -lws2_32
 

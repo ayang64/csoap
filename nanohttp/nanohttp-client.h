@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.21 2006/02/27 00:00:14 snowdrop Exp $
+ *  $Id: nanohttp-client.h,v 1.22 2006/02/27 22:26:02 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,10 +24,6 @@
 #ifndef NANO_HTTP_CLIENT_H
 #define NANO_HTTP_CLIENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-response.h>
@@ -49,6 +45,10 @@ typedef struct httpc_conn
   int id;                       /* uniq id */
 } httpc_conn_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* --------------------------------------------------------------
  HTTP CLIENT MODULE RELATED FUNCTIONS

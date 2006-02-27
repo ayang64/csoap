@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.38 2006/02/18 20:14:36 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.39 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -147,7 +147,7 @@ httpc_close_free(httpc_conn_t * conn)
   if (conn == NULL)
     return;
 
-  hsocket_close(conn->sock);
+  hsocket_close(&(conn->sock));
   httpc_free(conn);
 
   return;
@@ -363,7 +363,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
   {
     log_error2("Can not send request (status:%d)", status);
-    hsocket_close(conn->sock);
+    hsocket_close(&(conn->sock));
     return status;
   }
 
@@ -371,7 +371,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   if ((status = httpc_send_header(conn)) != H_OK)
   {
     log_error2("Can not send header (status:%d)", status);
-    hsocket_close(conn->sock);
+    hsocket_close(&(conn->sock));
     return status;
   }
 

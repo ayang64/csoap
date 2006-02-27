@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.6 2006/01/10 11:29:04 snowdrop Exp $
+*  $Id: soap-service.c,v 1.7 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,9 +21,17 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
-#include <libcsoap/soap-service.h>
-#include <nanohttp/nanohttp-common.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#include <nanohttp/nanohttp-common.h>
+
+#include "soap-service.h"
 
 SoapServiceNode *
 soap_service_node_new(SoapService * service, SoapServiceNode * next)

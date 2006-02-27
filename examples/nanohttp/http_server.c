@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.1 2006/02/19 08:45:13 snowdrop Exp $
+*  $Id: http_server.c,v 1.2 2006/02/27 22:26:02 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -22,39 +22,154 @@
 * Email: hero@persua.de
 ******************************************************************/
 #include <stdio.h>
+#include <string.h>
 
 #include <nanohttp/nanohttp-server.h>
 
 static int simple_authenticator(const char *user, const char *password)
 {
-	log_verbose3("loggin in user=\"%s\" password=\"%s\"", user, password);
+
+	log_info3("logging in user=\"%s\" password=\"%s\"", user, password);
+
+	if (strcmp(user, "bob")) {
+
+		log_warn2("user \"%s\" unkown", user);
+		return 0;
+	}
+
+	if (strcmp(password, "builder")) {
+
+		log_warn1("wrong password");
+		return 0;
+	}
 
 	return 1;
 }
 
-static void simple_service(httpd_conn_t *conn, hrequest_t *req)
+static void secure_service(httpd_conn_t *conn, hrequest_t *req)
 {
 
 	httpd_send_header(conn, 200, "OK");
-	hsocket_send(conn->sock, "<html><head><title>Success!</title></head><body><h1>Success!!!</h1></body></html>");
+	hsocket_send(conn->sock,
+		"<html>"
+			"<head>"
+				"<title>Secure ressource!</title>"
+			"</head>"
+			"<body>"
+				"<h1>Authenticated access!!!</h1>"
+			"</body>"
+		"</html>");
+
+	return;
+}
+
+static void default_service(httpd_conn_t *conn, hrequest_t *req)
+{
+
+	httpd_send_header(conn, 404, "Not found");
+	hsocket_send(conn->sock,
+		"<html>"
+			"<head>"
+				"<title>Default error page</title>"
+			"</head>"
+			"<body>"
+				"<h1>Default error page</h1>"
+				"<div>");
+
+	hsocket_send(conn->sock, req->path);
+
+	hsocket_send(conn->sock, " can not be found"
+		       		"</div>"
+			"</body>"
+		"</html>");
+
+	return;
+}	
+
+static void headers_service(httpd_conn_t *conn, hrequest_t *req)
+{
+	hpair_t *walker;
+
+	httpd_send_header(conn, 200, "OK");
+	hsocket_send(conn->sock,
+		"<html>"
+			"<head>"
+				"<title>Request headers</title>"
+			"</head>"
+			"<body>"
+				"<h1>Request headers</h1>"
+				"<ul>");
+
+	for (walker=req->header; walker; walker=walker->next)
+	{
+		hsocket_send(conn->sock, "<li>");
+		hsocket_send(conn->sock, walker->key);
+		hsocket_send(conn->sock, " = ");
+		hsocket_send(conn->sock, walker->value);
+		hsocket_send(conn->sock, "</li>");
+	}
+
+	hsocket_send(conn->sock,
+				"</ul>"
+			"</body>"
+		"</html>");
+
+	return;
+}
+
+static void root_service(httpd_conn_t *conn, hrequest_t *req)
+{
+	httpd_send_header(conn, 200, "OK");
+	hsocket_send(conn->sock,
+		"<html>"
+			"<head>"
+				"<title>nanoHTTP server examples</title>"
+			"</head>"
+			"<body>"
+				"<h1>nanoHTTP server examples</h1>"
+				"<ul>"
+					"<li><a href=\"/\">Simple service</a></li>"
+					"<li><a href=\"/secure\">Secure service</a> (try: bob/builder)</li>"
+					"<li><a href=\"/headers\">Request headers</a></li>"
+					"<li><a href=\"/not_existent\">The default service</a></li>"
+				"</ul>"
+			"</body>"
+		"</html>");
 
 	return;
 }
 
 int main(int argc, char *argv[])
 {
-	log_set_level(HLOG_VERBOSE);
+	log_set_level(HLOG_INFO);
 
 	if (httpd_init(argc, argv)) {
 
-		fprintf(stderr, "can not init httpd");
+		fprintf(stderr, "Can not init httpd");
 		return 1;
 	}
 
-	if (!httpd_register_secure("/", simple_service, simple_authenticator))
-	{
+	if (!httpd_register("/", root_service)) {
 
 		fprintf(stderr, "Can not register service");
+		return 1;
+	}
+
+	if (!httpd_register_secure("/secure", secure_service, simple_authenticator)) {
+
+		fprintf(stderr, "Can not register secure service");
+		return 1;
+	}
+
+	if (!httpd_register("/headers", headers_service)) {
+
+		fprintf(stderr, "Can not register headers service");
+		return 1;
+	}
+
+	if (!httpd_register_default("/error", default_service)) {
+
+		fprintf(stderr, "Can not register default service");
 		return 1;
 	}
 
