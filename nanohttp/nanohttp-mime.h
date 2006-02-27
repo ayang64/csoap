@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.6 2006/01/10 11:29:05 snowdrop Exp $
+*  $Id: nanohttp-mime.h,v 1.7 2006/02/27 00:26:23 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,6 +29,10 @@
 #ifndef NANO_HTTP_MIME_PARSER_H
 #define NANO_HTTP_MIME_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <stdlib.h>
@@ -44,5 +48,8 @@ herror_t mime_get_attachments(content_type_t * ctype,
                               http_input_stream_t * in,
                               attachments_t ** dest);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

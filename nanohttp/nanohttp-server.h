@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.13 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.14 2006/02/27 00:26:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,10 @@
 #ifndef NANO_HTTP_SERVER_H
 #define NANO_HTTP_SERVER_H
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
@@ -132,5 +136,9 @@ herror_t httpd_mime_send_file(httpd_conn_t * conn,
 */
 herror_t httpd_mime_end(httpd_conn_t * conn);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.25 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.26 2006/02/27 00:26:23 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,6 +23,10 @@
  ******************************************************************/
 #ifndef NANO_HTTP_COMMON_H
 #define NANO_HTTP_COMMON_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <time.h>
@@ -528,6 +532,8 @@ void log_info(const char *FUNC, const char *format, ...);
 void log_warn(const char *FUNC, const char *format, ...);
 void log_error(const char *FUNC, const char *format, ...);
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

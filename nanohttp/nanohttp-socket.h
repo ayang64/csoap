@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.22 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.23 2006/02/27 00:26:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,10 @@
  ******************************************************************/
 #ifndef NANO_HTTP_SOCKET_H
 #define NANO_HTTP_SOCKET_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <nanohttp/nanohttp-common.h>
 
@@ -245,5 +249,8 @@ herror_t hsocket_read(hsocket_t sock, byte_t * buffer, int size, int force,
 */
 herror_t hsocket_block(hsocket_t sock, int block);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

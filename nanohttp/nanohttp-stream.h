@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.7 2006/01/10 11:29:05 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.8 2006/02/27 00:26:23 snowdrop Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,6 +23,11 @@
  ******************************************************************/
 #ifndef NANO_HTTP_STREAM_H
 #define NANO_HTTP_STREAM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 
 void _log_str(char *fn, char *str, int size);
@@ -268,5 +273,9 @@ herror_t http_output_stream_write_string(http_output_stream_t * stream,
     <BR>HSOCKET_ERROR_SEND
 */
 herror_t http_output_stream_flush(http_output_stream_t * stream);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

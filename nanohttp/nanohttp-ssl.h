@@ -25,6 +25,10 @@
 /* Do enter only if --with-ssl was specified by the configure script */
 #ifdef HAVE_SSL
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef TRU64
 #include <arpa/inet.h>
 typedef unsigned int uint32_t;
@@ -114,6 +118,10 @@ log_ssl_error (SSL * ssl, int ret);
 
 int ssl_checkFatal( SSL *ssl, int status );
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* HAVE_SSL */
