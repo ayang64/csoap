@@ -4,6 +4,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 includedir=@includedir@
 libdir=@libdir@
+relcsoap=@csoap_release@
+relnanohttp=@nanohttp_release@
 
 usage()
 {
@@ -57,7 +59,7 @@ while test $# -gt 0; do
 			;;
 
 		--version)
-			echo @VERSION@
+			echo @csoap_version_dotted@
 			exit 0
 			;;
 
@@ -66,11 +68,11 @@ while test $# -gt 0; do
 			;;
 
 		--cflags)
-			echo @LIBXML_CFLAGS@ -I${includedir}/@GENERIC_LIBRARY_NAME@-@GENERIC_API_VERSION@/ -I${includedir}/@NANOHTTP_LIBRARY_NAME@-@NANOHTTP_API_VERSION@/
+			echo @XML_CPPFLAGS@ -I${includedir}/libcsoap-$relcsoap -I${includedir}/nanohttp-$relnanohttp
 		 	;;
 
 		--libs)
-			echo -L${libdir} -lcsoap-@GENERIC_API_VERSION@ -l@NANOHTTP_LIBRARY_NAME@-@NANOHTTP_API_VERSION@ @LIBXML_LIBS@
+			echo -L${libdir} -lcsoap-$relcsoap -lnanohttp-$relnanohttp @XML_LIBS@
 			;;
 		*)
 			usage
