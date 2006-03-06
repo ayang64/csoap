@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.11 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.12 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -45,7 +45,7 @@
 #include "nanohttp-request.h"
 
 static hrequest_t *
-hrequest_new()
+hrequest_new(void)
 {
   hrequest_t *req;
  
@@ -228,7 +228,6 @@ hrequest_free(hrequest_t * req)
   if (req == NULL)
     return;
 
-
   hpairnode_free_deep(req->header);
   hpairnode_free_deep(req->query);
 
@@ -242,13 +241,15 @@ hrequest_free(hrequest_t * req)
     attachments_free(req->attachments);
 
   free(req);
+
+  return;
 }
 
 
 herror_t
-hrequest_new_from_socket(hsocket_t sock, hrequest_t ** out)
+hrequest_new_from_socket(hsocket_t *sock, hrequest_t ** out)
 {
-  int i = 0, readed;
+  int i, readed;
   herror_t status;
   hrequest_t *req;
   char buffer[MAX_HEADER_SIZE + 1];
@@ -256,19 +257,17 @@ hrequest_new_from_socket(hsocket_t sock, hrequest_t ** out)
 
   memset(buffer, 0, MAX_HEADER_SIZE);
   /* Read header */
-  while (i < MAX_HEADER_SIZE)
+  for(i=0; i < MAX_HEADER_SIZE; i++)
   {
-    status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed);
-    if (status != H_OK)
+    if ((status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed)) != H_OK)
     {
-      if (herror_code(status) != HSOCKET_ERROR_SSLCLOSE)
-      {
-        log_error1("Socket read error");
-      }
+      log_error2("hsocket_read failed (%s)", herror_message(status));
       return status;
     }
 
     buffer[i + 1] = '\0';       /* for strmp */
+
+//    log_error2("buffer=\"%s\"", buffer);
 
     if (i > 3)
     {
@@ -276,12 +275,10 @@ hrequest_new_from_socket(hsocket_t sock, hrequest_t ** out)
           !strcmp(&(buffer[i - 2]), "\n\r\n"))
         break;
     }
-    i++;
   }
 
   /* Create response */
   req = _hrequest_parse_header(buffer);
-
 
   /* Create input stream */
   req->in = http_input_stream_new(sock, req->header);

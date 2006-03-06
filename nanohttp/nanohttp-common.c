@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.28 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.29 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -55,11 +55,6 @@
 
 #include "nanohttp-common.h"
 
-#define MAX_OPTION_SIZE 50
-#define MAX_OPTION_VALUE_SIZE 150
-
-static char _hoption_table[MAX_OPTION_SIZE][MAX_OPTION_VALUE_SIZE];
-
 static int
 strcmpigcase(const char *s1, const char *s2)
 {
@@ -82,103 +77,6 @@ strcmpigcase(const char *s1, const char *s2)
 
   return 1;
 }
-
-/* option stuff */
-void
-hoption_set(int opt, const char *value)
-{
-  if (opt >= MAX_OPTION_SIZE)
-  {
-    log_warn3("Option to high (%d >= %d)", opt, MAX_OPTION_SIZE);
-    return;
-  }
-
-  strncpy(_hoption_table[opt], value, MAX_OPTION_VALUE_SIZE);
-
-  return;
-}
-
-
-char *
-hoption_get(int opt)
-{
-  if (opt >= MAX_OPTION_SIZE)
-  {
-    log_warn3("Option to high (%d >= %d)", opt, MAX_OPTION_SIZE);
-    return "";
-  }
-
-  return _hoption_table[opt];
-}
-
-
-void
-hoption_init_args(int argc, char *argv[])
-{
-  int i;
-
-  hoption_set(HOPTION_TMP_DIR, ".");    /* default value */
-  hoption_set(HOPTION_SSL_CERT, "");
-  hoption_set(HOPTION_SSL_PASS, "");
-  hoption_set(HOPTION_SSL_CA, "");
-
-  /* initialize from arguments */
-  for (i = 0; i < argc; i++)
-  {
-    if (!strcmp(argv[i], NHTTP_ARG_TMPDIR) && i < argc - 1)
-    {
-      hoption_set(HOPTION_TMP_DIR, argv[i + 1]);
-    }
-    else if (!strcmp(argv[i], NHTTP_ARG_LOGFILE) && i < argc - 1)
-    {
-      log_set_file(argv[i + 1]);
-    }
-    else if (!strcmp(argv[i], NHTTP_ARG_CERT) && i < argc - 1)
-    {
-#ifndef HAVE_SSL
-      fprintf(stderr,
-              "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
-              NHTTP_ARG_CERT);
-#else
-      hoption_set(HOPTION_SSL_CERT, argv[i + 1]);
-#endif
-    }
-    else if (!strcmp(argv[i], NHTTP_ARG_CERTPASS) && i < argc - 1)
-    {
-#ifndef HAVE_SSL
-      fprintf(stderr,
-              "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
-              NHTTP_ARG_CERTPASS);
-#else
-      hoption_set(HOPTION_SSL_PASS, argv[i + 1]);
-#endif
-    }
-    else if (!strcmp(argv[i], NHTTP_ARG_CA) && i < argc - 1)
-    {
-#ifndef HAVE_SSL
-      fprintf(stderr,
-              "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
-              NHTTP_ARG_CA);
-#else
-     hoption_set(HOPTION_SSL_CA, argv[i + 1]);
-#endif
-    }
-    else if (!strcmp(argv[i], NHTTP_ARG_HTTPS))
-    {
-#ifndef HAVE_SSL
-      fprintf(stderr,
-              "WARNING: csoap compiled without '--with-ssl' flag. Parameter '%s' is disabled",
-              NHTTP_ARG_HTTPS);
-#else
-      /* TODO (#1#) handle ssl arguments */
-      /*SSLCertLess = 1;*/
-#endif
-    }
-  }
-
-
-}
-
 
 #ifdef WIN32
 #ifndef __MINGW32__

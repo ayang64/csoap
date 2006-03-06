@@ -1,4 +1,7 @@
-/*
+/*************************************************************************
+ * $Id: nanohttp-ssl.c,v 1.18 2006/03/06 13:37:38 m0gg Exp $
+ *
+ * CSOAP Project: A http client/server library in C
  * Copyright (C) 2001-2005  Rochester Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,9 +24,6 @@
  * Descrip:		SSL connection routines
  */
 
-/* Enter only if --with-ssl was specified to the configure script */
-#ifdef HAVE_SSL
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -36,22 +36,16 @@
 #include <netinet/in.h>
 #endif
 
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#else
-# if HAVE_STDINT_H
-# include <stdint.h>
-# else
-typedef unsigned int uint32_t;
-# endif
-#endif
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
 #endif
 
 #ifdef HAVE_TIME_H
@@ -66,12 +60,11 @@ typedef unsigned int uint32_t;
 #include <unistd.h>
 #endif
 
-#ifdef WIN32
+#ifdef HAVE_IO_H
 #include <io.h>
-typedef unsigned int uint32_t;
-#else
 #endif
 
+#ifdef HAVE_SSL
 #ifdef HAVE_OPENSSL_RAND_H
 #include <openssl/rand.h>
 #endif
@@ -79,24 +72,25 @@ typedef unsigned int uint32_t;
 #ifdef HAVE_OPENSSL_ERR_H
 #include <openssl/err.h>
 #endif
+#endif
 
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-ssl.h"
 
-#define MAXCHUNK 1024
-#define HEADER_LEN 5
-char HEADER[HEADER_LEN] = { 186, 84, 202, 86, 224 };
-static char *pass;
+#ifdef HAVE_SSL
 
-/*
- * superseed
- * Creates a 1k random seed and uses it to seed
- * the SSL random number generator
- */
+static char *certificate = NULL;
+static char *certpass = NULL;
+static char *ca_list = NULL;
+static SSL_CTX *context = NULL;
 
-void
-superseed ()
+static int enabled = 0;
+static int initialized = 0;
+
+
+static void
+_hssl_superseed (void)
 {
   int buf[256], i;
 
@@ -107,17 +101,46 @@ superseed ()
     buf[i] = rand ();
   }
   RAND_seed ((unsigned char *) buf, sizeof (buf));
+
+  return;
 }
+
+
+static char *
+_hssl_get_error(SSL *ssl, int ret)
+{
+  switch(SSL_get_error(ssl, ret))
+  {
+    case SSL_ERROR_NONE:
+      return "None";
+    case SSL_ERROR_ZERO_RETURN:
+      return "Zero return";
+    case SSL_ERROR_WANT_READ:
+      return "Want read";
+    case SSL_ERROR_WANT_WRITE:
+      return "Want write";
+    case SSL_ERROR_WANT_X509_LOOKUP:
+      return "Want x509 lookup";
+    case SSL_ERROR_SYSCALL:
+      return "Syscall failed";
+    case SSL_ERROR_SSL:
+      return "SSL error";
+    default:
+      return "Unkown";
+  }
+}
+
 
 static int
 pw_cb (char *buf, int num, int rwflag, void *userdata)
 {
-  if (num < (int) strlen (pass) + 1)
+  if (num < (int) strlen (certpass) + 1)
     return (0);
 
-  strcpy (buf, pass);
-  return strlen (pass);
+  strcpy(buf, certpass);
+  return strlen(certpass);
 }
+
 
 int
 verify_sn (X509 * cert, int who, int nid, char *str)
@@ -151,6 +174,7 @@ verify_sn (X509 * cert, int who, int nid, char *str)
     return 0;
   }
 }
+
 
 #ifdef NOUSER_VERIFY
 static int
@@ -190,262 +214,331 @@ verify_cb (int prev_ok, X509_STORE_CTX * ctx)
 #endif
 }
 
-void
-start_ssl( void )
+
+static void
+_hssl_parse_arguments(int argc, char **argv)
 {
-  /* Global system initialization */
-  log_verbose1 ("Initializing library");
-  SSL_library_init ();
-  SSL_load_error_strings ();
-  ERR_load_crypto_strings ();
-  OpenSSL_add_ssl_algorithms ();
+
+  int i;
+
+  for (i=1; i<argc; i++)
+  {
+    if (!strcmp(argv[i-1], NHTTP_ARG_CERT))
+    {
+      certificate = argv[i];
+    }
+    else if (!strcmp(argv[i-1], NHTTP_ARG_CERTPASS))
+    {
+      certpass = argv[i];
+    }
+    else if (!strcmp(argv[i-1], NHTTP_ARG_CA))
+    {
+      ca_list = argv[i];
+    }
+    else if (!strcmp(argv[i-1], NHTTP_ARG_HTTPS))
+    {
+      enabled = 1;
+    }
+  }
 
   return;
 }
 
-SSL_CTX *
-initialize_ctx (const char *keyfile, const char *password, const char *calist)
+
+static void
+_hssl_library_init(void)
 {
-  SSL_CTX *ctx = NULL;
+  /* Global system initialization */
+  log_verbose1 ("Initializing library");
 
-  if (password == NULL)
-    password = "";
- 
-  /* Create our context */
-  ctx = SSL_CTX_new (SSLv23_method ());
+  SSL_library_init();
 
-  if (ctx == NULL)
-  {
-    log_error1 ("Cannot create SSL context");
-    return NULL;
-  }
-  log_verbose1 ("SSL context created ok");
+  SSL_load_error_strings();
+  ERR_load_crypto_strings();
 
-  /* Load our keys and certificates */
-  if (keyfile != NULL && password != NULL)
-  {
+  OpenSSL_add_ssl_algorithms();
 
-    if (!(SSL_CTX_use_certificate_file (ctx, keyfile, SSL_FILETYPE_PEM)))
-    {
-      log_error2 ("Couldn't read certificate file: %s", keyfile);
-      SSL_CTX_free (ctx);
-      return ctx = NULL;
-    }
+  initialized = 1;
 
-    log_verbose1 ("Certificate file read ok");
-
-    pass = strdup(password);
-    SSL_CTX_set_default_passwd_cb (ctx, pw_cb);
-
-    if (!(SSL_CTX_use_PrivateKey_file (ctx, keyfile, SSL_FILETYPE_PEM)))
-    {
-      log_error2 ("Couldn't read key file: %s", keyfile);
-      SSL_CTX_free (ctx);
-      return ctx = NULL;
-    }
-
-    log_verbose1 ("Keyfile read ok");
-  }
-  if (calist != NULL && *calist != '\0')
-  {
-
-    /* Load the CAs we trust */
-    if (!(SSL_CTX_load_verify_locations (ctx, calist, NULL)))
-    {
-      log_error2 ("Couldn't read CA list: %s", calist);
-      SSL_CTX_free (ctx);
-      return ctx = NULL;
-    }
-
-    SSL_CTX_set_client_CA_list (ctx, SSL_load_client_CA_file (calist));
-    log_verbose1 ("Certificate Authority contacted");
-
-  }
-  SSL_CTX_set_verify (ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
-                      verify_cb);
-  log_verbose1 ("Verify callback registered");
-
-  SSL_CTX_set_session_cache_mode (ctx, SSL_SESS_CACHE_OFF);
-
-
-  /* Load randomness */
-  superseed ();
-
-  return ctx;
+  return;
 }
 
-void
-log_ssl_error (SSL * ssl, int ret)
+
+static herror_t
+hssl_context_init(void)
 {
-  int errqueue;
-  char errorbuf[256] = "Error: ";
+  log_verbose3("enabled=%i, certificate=%p", enabled, certificate);
 
-  if (ret == 0)
+  if (!enabled || !certificate)
+    return H_OK;
+
+  if (certpass == NULL)
+    certpass = "";
+ 
+  /* Create our context */
+  if (!(context = SSL_CTX_new(SSLv23_method())))
   {
-    log_error1 ("SSL handshake was not successful, contolled shutdown");
+    log_error1 ("Cannot create SSL context");
+    return herror_new("hssl_context_init", HSSL_ERROR_CONTEXT, "Unable to create SSL context");
   }
-  else if (ret == -1)
+
+  if (!(SSL_CTX_use_certificate_file (context, certificate, SSL_FILETYPE_PEM)))
   {
-    log_error1 ("SSL handshake was not successful, fatal error at protocol");
+    SSL_CTX_free(context);
+    log_error2 ("Cannot read certificate file: \"%s\"", certificate);
+    return herror_new("hssl_context_init", HSSL_ERROR_CERTIFICATE, "Unable to use SSL certificate \"%s\"", certificate);
   }
 
-  errqueue = SSL_get_error (ssl, ret);
+  SSL_CTX_set_default_passwd_cb(context, pw_cb);
 
-  switch (errqueue)
+  if (!(SSL_CTX_use_PrivateKey_file(context, certificate, SSL_FILETYPE_PEM)))
   {
-  case SSL_ERROR_NONE:
-    strcat (errorbuf, "None");
-    break;
-  case SSL_ERROR_ZERO_RETURN:
-    strcat (errorbuf, "Zero return");
-    break;
-  case SSL_ERROR_WANT_READ:
-    strcat (errorbuf, "Want read");
-    break;
-  case SSL_ERROR_WANT_WRITE:
-    strcat (errorbuf, "Want write");
-    break;
-  case SSL_ERROR_WANT_X509_LOOKUP:
-    strcat (errorbuf, "Want x509 lookup");
-    break;
-  case SSL_ERROR_SYSCALL:
-    strcat (errorbuf, "Syscall:");
-    if (ret == 0)
+      SSL_CTX_free(context);
+      log_error2 ("Cannot read key file: \"%s\"", certificate);
+      return herror_new("hssl_context_init", HSSL_ERROR_PEM, "Unable to use private key");
+  }
+
+  if (ca_list != NULL && *ca_list != '\0')
+  {
+    if (!(SSL_CTX_load_verify_locations(context, ca_list, NULL)))
     {
-      strcat (errorbuf, "Protocol violation");
+      SSL_CTX_free(context);
+      log_error2 ("Cannot read CA list: \"%s\"", ca_list);
+      return herror_new("hssl_context_init", HSSL_ERROR_CA_LIST, "Unable to read certification authorities \"%s\"");
     }
-    else if (ret == -1)
+
+    SSL_CTX_set_client_CA_list (context, SSL_load_client_CA_file (ca_list));
+    log_verbose1 ("Certification authority contacted");
+  }
+  SSL_CTX_set_verify(context, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_cb);
+
+  log_verbose1("Verify callback registered");
+
+  SSL_CTX_set_mode(context, SSL_MODE_AUTO_RETRY);
+
+  SSL_CTX_set_session_cache_mode(context, SSL_SESS_CACHE_OFF);
+
+  _hssl_superseed();
+
+  return H_OK;
+}
+
+
+static void
+_hssl_context_destroy(void)
+{
+  if (context)
+  {
+      SSL_CTX_free(context);
+      context = NULL;
+  }
+  return;
+}
+
+
+herror_t
+hssl_module_init(int argc, char **argv)
+{
+  _hssl_parse_arguments(argc, argv);
+
+  if (!initialized)
+  {
+    if (enabled)
     {
-      strcat (errorbuf, "BIO reported an I/O error");
+      _hssl_library_init();
+      log_verbose1("SSL enabled");
     }
     else
     {
-      strcat (errorbuf, "Unknown syscall error");
-    }                           /* if */
-
-    break;
-  case SSL_ERROR_SSL:
-    strcat (errorbuf, "SSL library");
-    while ((errqueue = ERR_get_error()))
-    {
-      log_error2 ("SSL %s", ERR_error_string (errqueue, NULL));
+      log_verbose1("SSL _not_ enabled");
     }
-    break;
-  }                             /* switch code */
+  }
 
-  log_error1 (errorbuf);
+  return hssl_context_init();
 }
 
-SSL *
-init_ssl (SSL_CTX * ctx, int sock, int type)
-{
-  int ret;
-  SSL *ssl;
-#if 0
-#ifdef WIN32
-  BIO *rbio;
-  BIO *wbio;
-#else
-  BIO *sbio;
-#endif
-#endif
-
-  log_verbose1 ("Starting SSL Initialization");
-
-  ssl = SSL_new (ctx);
-
-  if (ssl == NULL)
-  {
-    log_error1 ("Cannot create new ssl object");
-    return NULL;
-  }
-
-#if 0
-#ifdef WIN32
-  log_error1 ("Setting up BIO with socket");
-  rbio = BIO_new_socket (sock, BIO_NOCLOSE);
-  if (rbio == NULL)
-  {
-    log_error1 ("BIO_new_socket failed");
-    return NULL;
-  }
-  SSL_set_bio (ssl, rbio, rbio);
-
-#else
-  sbio = BIO_new_socket (sock, BIO_NOCLOSE);
-
-  if (sbio == NULL)
-  {
-    log_error1 ("BIO_new_socket failed");
-    return NULL;
-  }
-  SSL_set_bio (ssl, sbio, sbio);
-#endif
-#endif
-  SSL_set_fd (ssl, sock);
-
-  if (type == SSL_SERVER)
-  {
-    hsocket_t sock_t;
-    sock_t.sock = sock;
-    hsocket_block (sock_t, 1);
-    ret = SSL_accept (ssl);
-    hsocket_block (sock_t, 0);
-    if (ret <= 0)
-    {
-      log_error1 ("SSL accept error");
-      log_ssl_error (ssl, ret);
-      SSL_free (ssl);
-      return NULL;
-    }                           /* if error */
-  }
-  else
-  {                             /* client */
-    ret = SSL_connect (ssl);
-    if (ret <= 0)
-    {
-      log_error1 ("SSL connect error");
-      log_ssl_error (ssl, ret);
-      SSL_free (ssl);
-      return NULL;
-    }                           /* if error */
-    /* SSL_connect should take care of this for us.
-       if(SSL_get_peer_certificate(ssl) == NULL) { log_error1( "No
-       certificate provided"); SSL_free(ssl); return ssl = NULL; }
-       if(SSL_get_verify_result(ssl) != X509_V_OK) { log_error1( "Certificate 
-       did not verify"); SSL_free(ssl); return ssl = NULL; } */
-  }
-
-  log_verbose1 ("Completed SSL Initialization");
-  return ssl;
-}
 
 void
-ssl_cleanup (SSL * ssl)
+hssl_module_destroy(void)
 {
-  /* does nothing to context */
+  _hssl_context_destroy();
 
-  if (ssl != NULL)
+  return;
+}
+
+
+herror_t
+hssl_client_ssl(hsocket_t *sock)
+{
+  SSL *ssl;
+  int ret;
+
+  log_verbose1 ("Starting SSL client initialization");
+
+  if (!(ssl = SSL_new(context)))
   {
+    log_error1("Cannot create new SSL object");
+    return herror_new("hssl_client_ssl", HSSL_ERROR_CLIENT, "SSL_new failed");
+  }
 
-    SSL_shutdown (ssl);
-//        SSL_clear(ssl);
+  SSL_set_fd (ssl, sock->sock);
+
+  if ((ret = SSL_connect(ssl)) <= 0)
+  {
+    herror_t err;
+
+    log_error2 ("SSL connect error (%s)", _hssl_get_error(ssl, -1));
+    err = herror_new("hssl_client_ssl", HSSL_ERROR_CONNECT, "SSL_connect failed (%s)", _hssl_get_error(ssl, ret));
     SSL_free (ssl);
-    ssl = NULL;
+    return err;
   }
+
+  /* SSL_connect should take care of this for us.
+  if (SSL_get_peer_certificate(ssl) == NULL)
+  {
+    log_error1("No certificate provided");
+    SSL_free(ssl);
+    return herror_new("hssl_client_ssl", HSSL_ERROR_CERTIFICATE, "No certificate provided");
+  }
+
+  if (SSL_get_verify_result(ssl) != X509_V_OK)
+  { 
+    log_error1("Certificate did not verify");
+    SSL_free(ssl);
+    return herror_new("hssl_client_ssl", HSSL_ERROR_CERTIFICATE, "Verfiy certificate failed");
+  } */
+
+  log_verbose1 ("SSL client initialization completed");
+ 
+  /* XXX: why???
+  if ((status = hsocket_block(sock, sock->block)) != H_OK)
+  {
+    log_error2("Cannot make socket non-blocking (%s)", herror_message(status));
+    SSL_free(ssl);
+    return status;
+  } */
+
+  sock->ssl = ssl;
+  
+  return H_OK;
 }
 
-int
-ssl_checkFatal( SSL *ssl, int status ){
-  switch (SSL_get_error(ssl, status)) {
-	case SSL_ERROR_ZERO_RETURN:
-	case SSL_ERROR_SSL:
-	case SSL_ERROR_SYSCALL:
-        return 1;
-        break;
-    default:
-        return 0;
+
+herror_t
+hssl_server_ssl(hsocket_t *sock)
+{
+  SSL *ssl;
+  int ret;
+
+  if (!enabled)
+    return H_OK;
+
+  log_verbose2("Starting SSL initialization for socket %d", sock->sock);
+
+  if (!(ssl = SSL_new(context)))
+  {
+    log_warn1("SSL_new failed");
+    return herror_new("hssl_server_ssl", HSSL_ERROR_SERVER, "Cannot create SSL object");
   }
+  SSL_set_fd(ssl, sock->sock);
+
+  if ((ret = SSL_accept(ssl)) <= 0)
+  {
+    herror_t err;
+
+    log_error2 ("SSL_accept failed (%s)", _hssl_get_error(ssl, ret));
+
+    err = herror_new("hssl_server_ssl", HSSL_ERROR_SERVER, "SSL_accept failed (%s)", _hssl_get_error(ssl, ret));
+    SSL_free (ssl);
+
+    return err;
+  }
+
+  sock->ssl = ssl;
+
+  return H_OK;
 }
 
-#endif /* end of ifdef HAVE_SSL */
+
+void
+hssl_cleanup(hsocket_t *sock)
+{
+
+  if (sock->ssl)
+  {
+    SSL_shutdown (sock->ssl);
+    SSL_free (sock->ssl);
+    sock->ssl = NULL;
+  }
+
+  return;
+}
+
+
+herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
+{
+  int count;
+
+  log_verbose4("sock->sock=%d sock->ssl=%p, len=%li", sock->sock, sock->ssl, len);
+
+  if (sock->ssl)
+  {
+    if ((count = SSL_read(sock->ssl, buf, len)) == -1)
+      return herror_new("SSL_read", HSOCKET_ERROR_RECEIVE, "SSL_read failed (%s)", _hssl_get_error(sock->ssl, count));
+  }
+  else
+  {
+    if ((count = recv(sock->sock, buf, len, 0)) == -1)
+      return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)", strerror(errno));
+  }
+  *received = count;
+
+  return H_OK;
+}
+
+
+herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
+{
+  int count;
+
+  log_verbose4("sock->sock=%d, sock->ssl=%p, len=%li", sock->sock, sock->ssl, len);
+
+  if (sock->ssl)
+  {
+    if ((count = SSL_write(sock->ssl, buf, len)) == -1)
+      return herror_new("SSL_write", HSOCKET_ERROR_SEND, "SSL_write failed (%s)", _hssl_get_error(sock->ssl, count));
+  }
+  else
+  {
+    if ((count = send(sock->sock, buf, len, 0)) == -1)
+      return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)", strerror(errno));
+  }
+  *sent = count;
+
+  return H_OK;
+}
+
+#else
+
+herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
+{
+  int count;
+
+  if ((count = recv(sock->sock, buf, len, 0)) == -1)
+    return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)", strerror(errno));
+  *received = count;
+  return H_OK;
+}
+
+
+herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
+{
+  int count;
+
+  if ((count = send(sock->sock, buf, len, 0)) == -1)
+    return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)", strerror(errno));
+  *sent = count;
+  return H_OK;
+}
+
+#endif

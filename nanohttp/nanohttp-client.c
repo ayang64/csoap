@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.39 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.40 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -51,6 +51,7 @@
 
 #include "nanohttp-client.h"
 #include "nanohttp-socket.h"
+#include "nanohttp-base64.h"
 
 /*--------------------------------------------------
 FUNCTION: httpc_init
@@ -58,11 +59,9 @@ DESC: Initialize http client connection
 NOTE: This will be called from soap_client_init_args()
 ----------------------------------------------------*/
 herror_t
-httpc_init(int argc, char *argv[])
+httpc_init(int argc, char **argv)
 {
-  hoption_init_args(argc, argv);
-
-  return hsocket_module_init();
+  return hsocket_module_init(argc, argv);
 }
 
 /*--------------------------------------------------
@@ -87,13 +86,17 @@ httpc_conn_t *
 httpc_new(void)
 {
   static int counter = 10000;
+  herror_t status;
   httpc_conn_t *res;
  
   if (!(res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t))))
     return NULL;
 
-  if (hsocket_init(&res->sock) != H_OK)
+  if ((status = hsocket_init(&res->sock)) != H_OK)
+  {
+    log_warn("hsocket_init failed (%s)", herror_message(status));
     return NULL;
+  }
 
   res->header = NULL;
   res->version = HTTP_1_1;
@@ -131,7 +134,7 @@ httpc_free(httpc_conn_t * conn)
     conn->out = NULL;
   }
 
-  hsocket_free(conn->sock);
+  hsocket_free(&(conn->sock));
   free(conn);
 
   return;
@@ -214,6 +217,42 @@ httpc_set_header(httpc_conn_t *conn, const char *key, const char *value)
   return 0;
 }
 
+static int
+_httpc_set_basic_authorization_header(httpc_conn_t *conn, const char *key, const char *user, const char *password)
+{
+  /* XXX: use malloc/free */
+  char in[64], out[64];
+
+  if (!user)
+    user = "";
+
+  if (!password)
+    password = "";
+
+  memset(in, 0, 64);
+  memset(out, 0, 64);
+
+  sprintf(in, "%s:%s", user, password);
+
+  base64_encode(in, out);
+
+  sprintf(in, "Basic %s", out);
+
+  return httpc_set_header(conn, key, in);
+}
+
+int
+httpc_set_basic_authorization(httpc_conn_t *conn, const char *user, const char *password)
+{
+  return _httpc_set_basic_authorization_header(conn, HEADER_AUTHORIZATION, user, password);
+}
+
+int
+httpc_set_basic_proxy_authorization(httpc_conn_t *conn, const char *user, const char *password)
+{
+  return _httpc_set_basic_authorization_header(conn, HEADER_PROXY_AUTHORIZATION, user, password);
+}
+
 /*--------------------------------------------------
 FUNCTION: httpc_header_set_date
 DESC: Adds the current date to the header.
@@ -252,12 +291,12 @@ httpc_send_header(httpc_conn_t * conn)
     if (walker->key && walker->value)
     {
       sprintf(buffer, "%s: %s\r\n", walker->key, walker->value);
-      if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
+      if ((status = hsocket_send(&(conn->sock), buffer)) != H_OK)
         return status;
     }
   }
 
-  return hsocket_send(conn->sock, "\r\n");
+  return hsocket_send(&(conn->sock), "\r\n");
 }
 
 /*--------------------------------------------------
@@ -313,6 +352,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   hurl_t url;
   char buffer[4096];
   herror_t status;
+  int ssl;
 
   if (conn == NULL)
   {
@@ -332,8 +372,10 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   /* Set hostname */
   httpc_set_header(conn, HEADER_HOST, url.host);
 
+  ssl = url.protocol == PROTOCOL_HTTPS ? 1 : 0;
+
   /* Open connection */
-  if ((status = hsocket_open(&conn->sock, url.host, url.port)) != H_OK)
+  if ((status = hsocket_open(&conn->sock, url.host, url.port, ssl)) != H_OK)
     return status;
 
   switch(method)
@@ -360,9 +402,9 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   }
 
   log_verbose1("Sending request...");
-  if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
+  if ((status = hsocket_send(&(conn->sock), buffer)) != H_OK)
   {
-    log_error2("Can not send request (status:%d)", status);
+    log_error2("Cannot send request (%s)", herror_message(status));
     hsocket_close(&(conn->sock));
     return status;
   }
@@ -370,7 +412,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   log_verbose1("Sending header...");
   if ((status = httpc_send_header(conn)) != H_OK)
   {
-    log_error2("Can not send header (status:%d)", status);
+    log_error2("Cannot send header (%s)", herror_message(status));
     hsocket_close(&(conn->sock));
     return status;
   }
@@ -390,7 +432,7 @@ httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
   if ((status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
+  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
     return status;
 
   return H_OK;
@@ -409,7 +451,7 @@ httpc_post_begin(httpc_conn_t * conn, const char *url)
   if ((status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
     return status;
 
-  conn->out = http_output_stream_new(conn->sock, conn->header);
+  conn->out = http_output_stream_new(&(conn->sock), conn->header);
 
   return H_OK;
 }
@@ -428,7 +470,7 @@ httpc_post_end(httpc_conn_t * conn, hresponse_t ** out)
   if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
+  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
     return status;
 
   return H_OK;
@@ -548,7 +590,7 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
+  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
     return status;
 
   return H_OK;

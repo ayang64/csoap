@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.17 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: soap-env.c,v 1.18 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,6 +41,7 @@
 #include <errno.h>
 #endif
 
+#include "soap-xml.h"
 #include "soap-env.h"
 
 #ifdef WIN32
@@ -50,11 +51,6 @@
 #ifdef USE_XMLSTRING
 #include <libxml/xmlstring.h>
 #endif
-
-static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
-static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
-static char *soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";
-static char *soap_xsd_ns = "http://www.w3.org/1999/XMLSchema";
 
 /*
 Parameters:
@@ -70,6 +66,7 @@ Parameters:
 	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
+        " <SOAP-ENV:Header />" \
 	" <SOAP-ENV:Body>"\
 	"  <m:%s xmlns:m=\"%s\">"\
 	"  </m:%s>" \
@@ -91,6 +88,7 @@ Parameters:
 	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
+        " <SOAP-ENV:Header />" \
 	" <SOAP-ENV:Body>"\
 	"  <%s xmlns=\"%s\">"\
 	"  </%s>" \
@@ -106,21 +104,57 @@ struct XmlNodeHolder
   xmlNodePtr node;
 };
 
-static
-  void xmlbuilder_start_element(const xmlChar * element_name, int attr_count,
-                                xmlChar ** keys, xmlChar ** values,
-                                void *userData);
+static void
+xmlbuilder_start_element(const xmlChar * element_name, int attr_count, xmlChar ** keys, xmlChar ** values, void *userData)
+{
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
+  xmlNodePtr parent = NULL;
 
-static
-  void xmlbuilder_characters(const xmlChar * element_name,
-                             const xmlChar * chars, void *userData);
+  if (holder == NULL)
+    return;
+  parent = holder->node;
+  if (parent == NULL)
+    return;
 
-static
-  void xmlbuilder_end_element(const xmlChar * element_name, void *userData);
+  holder->node = xmlNewChild(parent, NULL, element_name, NULL);
 
-/* ---------------------------------------------------------------------------- */
+  return;
+}
 
+static void
+xmlbuilder_characters(const xmlChar * element_name, const xmlChar * chars, void *userData)
+{
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
+  xmlNodePtr parent = NULL;
 
+  if (holder == NULL)
+    return;
+  parent = holder->node;
+  if (parent == NULL)
+    return;
+
+  xmlNewTextChild(parent, NULL, element_name, chars);
+
+  return;
+}
+
+static void
+xmlbuilder_end_element(const xmlChar * element_name, void *userData)
+{
+
+  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
+  xmlNodePtr parent = NULL;
+
+  if (holder == NULL)
+    return;
+  parent = holder->node;
+  if (parent == NULL)
+    return;
+
+  holder->node = parent->parent;
+
+  return;
+}
 
 herror_t
 soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out)
@@ -136,10 +170,9 @@ soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out)
                       "XML Document (xmlDocPtr) is NULL");
   }
 
-  node = xmlDocGetRootElement(doc);
-  if (node == NULL)
+  if (!(node = xmlDocGetRootElement(doc)))
   {
-    log_error1("xml document is empty!");
+    log_error1("XML document is empty!");
     return herror_new("soap_env_new_from_doc",
                       XML_ERROR_EMPTY_DOCUMENT, "XML Document is empty!");
   }
@@ -150,19 +183,14 @@ soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out)
     return herror_new("soap_env_from_doc", GENERAL_INVALID_PARAM, "malloc failed");
   }
 
-  /* set root */
   env->root = node;
-
-  /* set method root set call->cur (current node) to <method>. xpath:
-     //Envelope/Body/ */
-  node = soap_xml_get_children(env->root);      /* Check for NULL ! */
-  env->cur = soap_xml_get_children(node);       /* Check for NULL ! */
+  env->header = soap_env_get_header(env);
+  env->cur = env->body = soap_env_get_body(env);
 
   *out = env;
+
   return H_OK;
 }
-
-
 
 
 herror_t
@@ -175,17 +203,14 @@ soap_env_new_from_buffer(const char *buffer, SoapEnv ** out)
     return herror_new("soap_env_new_from_buffer",
                       GENERAL_INVALID_PARAM, "buffer (first param) is NULL");
 
-  doc = xmlParseDoc(BAD_CAST buffer);
-  if (doc == NULL)
+  if (!(doc = xmlParseDoc(BAD_CAST buffer)))
     return herror_new("soap_env_new_from_buffer",
                       XML_ERROR_PARSE, "Can not parse xml");
 
-  err = soap_env_new_from_doc(doc, out);
-  if (err != H_OK)
+  if ((err = soap_env_new_from_doc(doc, out)) != H_OK)
   {
     xmlFreeDoc(doc);
   }
-
   return err;
 }
 
@@ -204,8 +229,7 @@ soap_env_new_with_fault(fault_code_t faultcode,
     return herror_new("soap_env_new_with_fault",
                       XML_ERROR_PARSE, "Can not parse fault xml");
 
-  err = soap_env_new_from_doc(doc, out);
-  if (err != H_OK)
+  if ((err = soap_env_new_from_doc(doc, out)) != H_OK)
   {
     xmlFreeDoc(doc);
   }
@@ -250,7 +274,9 @@ soap_env_new_with_response(SoapEnv * request, SoapEnv ** out)
     urn = "";
   }
 
-  res_method = malloc(strlen(method)+9);
+  if (!(res_method = (char *)malloc(strlen(method)+9)))
+    return herror_new("soap_env_new_with_response", GENERAL_INVALID_PARAM, "malloc failed");
+
   sprintf(res_method, "%sResponse", method);
 
   ret = soap_env_new_with_method(urn, res_method, out);
@@ -266,7 +292,6 @@ soap_env_new_with_method(const char *urn, const char *method, SoapEnv ** out)
 {
   xmlDocPtr env;
   xmlChar buffer[1054];
-
 
   log_verbose2("URN = '%s'", urn);
   log_verbose2("Method = '%s'", method);
@@ -297,21 +322,19 @@ soap_env_new_with_method(const char *urn, const char *method, SoapEnv ** out)
 
   }
 
-  env = xmlParseDoc(buffer);
-  if (!env)
+  if (!(env = xmlParseDoc(buffer)))
     return herror_new("soap_env_new_with_method",
                       XML_ERROR_PARSE, "Can not parse xml");
 
   return soap_env_new_from_doc(env, out);
-
 }
-
 
 
 static int
 _soap_env_xml_io_read(void *ctx, char *buffer, int len)
 {
   int readed;
+
   http_input_stream_t *in = (http_input_stream_t *) ctx;
   if (!http_input_stream_is_ready(in))
     return 0;
@@ -334,26 +357,24 @@ herror_t
 soap_env_new_from_stream(http_input_stream_t * in, SoapEnv ** out)
 {
   xmlDocPtr doc;
-  herror_t err;
 
   doc = xmlReadIO(_soap_env_xml_io_read,
                   _soap_env_xml_io_close, in, "", NULL, 0);
 
   if (in->err != H_OK)
     return in->err;
+
   if (doc == NULL)
     return herror_new("soap_env_new_from_stream",
                       XML_ERROR_PARSE, "Trying to parse not valid xml");
-  err = soap_env_new_from_doc(doc, out);
-  return err;
+
+  return soap_env_new_from_doc(doc, out);
 }
 
 
 xmlNodePtr
-soap_env_add_item(SoapEnv * call, const char *type,
-                  const char *name, const char *value)
+soap_env_add_item(SoapEnv * call, const char *type, const char *name, const char *value)
 {
-
   xmlNodePtr newnode;
 
   newnode = xmlNewTextChild(call->cur, NULL, BAD_CAST name, BAD_CAST value);
@@ -377,7 +398,6 @@ soap_env_add_item(SoapEnv * call, const char *type,
 }
 
 
-
 xmlNodePtr
 soap_env_add_itemf(SoapEnv * call, const char *type,
                    const char *name, const char *format, ...)
@@ -393,7 +413,6 @@ soap_env_add_itemf(SoapEnv * call, const char *type,
 
   return soap_env_add_item(call, type, name, buffer);
 }
-
 
 
 xmlNodePtr
@@ -421,9 +440,9 @@ soap_env_add_attachment(SoapEnv * call, const char *name, const char *href)
   return newnode;
 }
 
+
 void
-soap_env_add_custom(SoapEnv * call, void *obj, XmlSerializerCallback cb,
-                    const char *type, const char *name)
+soap_env_add_custom(SoapEnv * call, void *obj, XmlSerializerCallback cb, const char *type, const char *name)
 {
   struct XmlNodeHolder holder;
 
@@ -433,6 +452,7 @@ soap_env_add_custom(SoapEnv * call, void *obj, XmlSerializerCallback cb,
      xmlbuilder_start_element,
      xmlbuilder_characters, xmlbuilder_end_element, &holder);
 
+  return;
 }
 
 
@@ -442,12 +462,8 @@ soap_env_push_item(SoapEnv * call, const char *type, const char *name)
 
   xmlNodePtr node;
 
-  node = soap_env_add_item(call, type, name, "");
-
-  if (node)
-  {
+  if ((node = soap_env_add_item(call, type, name, "")))
     call->cur = node;
-  }
 
   return node;
 }
@@ -457,7 +473,10 @@ void
 soap_env_pop_item(SoapEnv * call)
 {
   call->cur = call->cur->parent;
+
+  return;
 }
+
 
 void
 soap_env_free(SoapEnv * env)
@@ -470,6 +489,8 @@ soap_env_free(SoapEnv * env)
     }
     free(env);
   }
+
+  return;
 }
 
 
@@ -490,16 +511,42 @@ soap_env_get_body(SoapEnv * env)
     return NULL;
   }
 
-  node = soap_xml_get_children(env->root);
-
-  while (node != NULL)
+  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next(node))
   {
-    if (!xmlStrcmp(node->name, BAD_CAST "Body"))
+    if (!xmlStrcmp(node->name, BAD_CAST "Body")
+     && !xmlStrcmp(node->ns->href, BAD_CAST soap_env_ns))
       return node;
-    node = soap_xml_get_next(node);
   }
 
-  log_error1("Node Body tag found!");
+  log_error1("Body tag not found!");
+  return NULL;
+}
+
+
+xmlNodePtr
+soap_env_get_header(SoapEnv *env)
+{
+  xmlNodePtr node;
+
+  if (!env)
+  {
+    log_error1("SoapEnv is NULL");
+    return NULL;
+  }
+
+  if (!env->root)
+  {
+    log_error1("SoapEnv contains no document");
+    return NULL;
+  }
+
+  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next(node))
+  {
+    if (!xmlStrcmp(node->name, BAD_CAST "Header")
+     && !xmlStrcmp(node->ns->href, BAD_CAST soap_env_ns))
+      return node;
+  }
+
   return NULL;
 }
 
@@ -508,7 +555,6 @@ xmlNodePtr
 soap_env_get_fault(SoapEnv * env)
 {
   xmlNodePtr node;
-
 
   node = soap_env_get_body(env);
 
@@ -530,12 +576,11 @@ soap_env_get_fault(SoapEnv * env)
 xmlNodePtr
 soap_env_get_method(SoapEnv * env)
 {
-
   xmlNodePtr body;
 
-  if ((body = soap_env_get_body(env)) == NULL)
+  if (!(body = soap_env_get_body(env)))
   {
-    log_verbose1("body is NULL");
+    log_verbose1("SoapEnv contains no Body");
     return NULL;
   }
 
@@ -544,6 +589,7 @@ soap_env_get_method(SoapEnv * env)
 }
 
 
+/* XXX: unused function? */
 xmlNodePtr
 _soap_env_get_body(SoapEnv * env)
 {
@@ -553,13 +599,13 @@ _soap_env_get_body(SoapEnv * env)
 
   if (env == NULL)
   {
-    log_error1("env object is NULL");
+    log_error1("SoapEnv is NULL");
     return NULL;
   }
 
   if (env->root == NULL)
   {
-    log_error1("env has no xml");
+    log_error1("SoapEnv contains no XML document");
     return NULL;
   }
 
@@ -661,57 +707,3 @@ soap_env_find_methodname(SoapEnv * env)
 }
 
 
-
-/* ------------------------------------------------------------------ */
-/*        XML serializers                                            */
-/* ------------------------------------------------------------------ */
-
-
-static void
-xmlbuilder_start_element(const xmlChar * element_name, int attr_count,
-                         xmlChar ** keys, xmlChar ** values, void *userData)
-{
-  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
-  xmlNodePtr parent = NULL;
-
-  if (holder == NULL)
-    return;
-  parent = holder->node;
-  if (parent == NULL)
-    return;
-
-  holder->node = xmlNewChild(parent, NULL, element_name, NULL);
-
-}
-
-static void
-xmlbuilder_characters(const xmlChar * element_name, const xmlChar * chars,
-                      void *userData)
-{
-  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
-  xmlNodePtr parent = NULL;
-
-  if (holder == NULL)
-    return;
-  parent = holder->node;
-  if (parent == NULL)
-    return;
-
-  xmlNewTextChild(parent, NULL, element_name, chars);
-}
-
-static void
-xmlbuilder_end_element(const xmlChar * element_name, void *userData)
-{
-
-  struct XmlNodeHolder *holder = (struct XmlNodeHolder *) userData;
-  xmlNodePtr parent = NULL;
-
-  if (holder == NULL)
-    return;
-  parent = holder->node;
-  if (parent == NULL)
-    return;
-
-  holder->node = parent->parent;
-}

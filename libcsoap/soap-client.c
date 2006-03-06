@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.24 2006/02/25 10:09:28 snowdrop Exp $
+*  $Id: soap-client.c,v 1.25 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,7 +37,7 @@
 
 #include "soap-client.h"
 
-static int _block_socket = 0;
+// static int _block_socket = 0;
 
 static herror_t
 _soap_client_build_result(hresponse_t * res, SoapEnv ** env)
@@ -55,25 +55,25 @@ _soap_client_build_result(hresponse_t * res, SoapEnv ** env)
 
   if (res->errcode != 200)
     return herror_new("_soap_client_build_result",
-                      GENERAL_INVALID_PARAM, "HTTP code is not 200 OK");
+                      GENERAL_INVALID_PARAM, "HTTP code is not OK (%i)", res->errcode);
 
   return soap_env_new_from_stream(res->in, env);
 }
 
-void
-soap_client_block_socket(int block)
-{
-  _block_socket = block;
-
-  return;
-}
-
-int
-soap_client_get_blockmode(void)
-{
-
-  return _block_socket;
-}
+// void
+// soap_client_block_socket(int block)
+// {
+//   _block_socket = block;
+// 
+//   return;
+// }
+// 
+// int
+// soap_client_get_blockmode(void)
+// {
+// 
+//   return _block_socket;
+// }
 
 herror_t
 soap_client_init_args(int argc, char *argv[])
@@ -128,7 +128,7 @@ soap_client_invoke(SoapCtx * call, SoapCtx ** response, const char *url,
     return herror_new("soap_client_invoke", SOAP_ERROR_CLIENT_INIT,
                       "Unable to create SOAP client!");
   }
-  conn->sock.block = soap_client_get_blockmode();
+//   conn->sock.block = soap_client_get_blockmode();
 
   /* Set soap action */
   if (soap_action != NULL)

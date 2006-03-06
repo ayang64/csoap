@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.7 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-xml.h,v 1.8 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -29,8 +29,16 @@
 
 #include <nanohttp/nanohttp-common.h>
 
+static const char * const soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
+static const char * const soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
+static const char * const soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";
+static const char * const soap_xsd_ns = "http://www.w3.org/1999/XMLSchema";
+
 typedef int (*soap_xmlnode_callback) (xmlNodePtr, void *);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 xmlNodePtr soap_xml_get_children(xmlNodePtr param);
 xmlNodePtr soap_xml_get_next(xmlNodePtr param);
@@ -44,5 +52,9 @@ soap_xpath_foreach(xmlDocPtr doc, const char *xpath,
 
 void soap_xml_doc_print(xmlDocPtr doc);
 char *soap_xml_get_text(xmlNodePtr node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

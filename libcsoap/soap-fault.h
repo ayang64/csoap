@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-fault.h,v 1.4 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-fault.h,v 1.5 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,10 +36,16 @@ typedef enum _fault_code
   Fault_Server
 } fault_code_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 xmlDocPtr soap_fault_build(fault_code_t faultcode,
                            const char *faultstring,
                            const char *faultactor, const char *detail);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

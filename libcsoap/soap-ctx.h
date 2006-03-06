@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.8 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: soap-ctx.h,v 1.9 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -42,6 +42,9 @@ typedef struct _SoapCtx
   attachments_t *attachments;
 } SoapCtx;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 SoapCtx *soap_ctx_new(SoapEnv * env);   /* should only be used internally */
 
@@ -70,5 +73,9 @@ given one to the added part.
 */
 void soap_ctx_add_files(SoapCtx * ctx, attachments_t * attachments);
 void soap_ctx_free(SoapCtx * ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

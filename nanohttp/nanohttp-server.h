@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.15 2006/02/27 22:26:02 snowdrop Exp $
+ *  $Id: nanohttp-server.h,v 1.16 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -34,7 +34,7 @@
 
 typedef struct httpd_conn
 {
-  hsocket_t sock;
+  hsocket_t *sock;
   char content_type[25];
   http_output_stream_t *out;
   hpair_t *header;
@@ -68,6 +68,9 @@ extern "C" {
   Begin  httpd_* function set
  */
 herror_t httpd_init(int argc, char *argv[]);
+void httpd_destroy(void);
+
+herror_t httpd_run(void);
 
 int httpd_register(const char *ctx, httpd_service service);
 int httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
@@ -75,12 +78,9 @@ int httpd_register_secure(const char *ctx, httpd_service service, httpd_auth aut
 int httpd_register_default(const char *ctx, httpd_service service);
 int httpd_register_secure_default(const char *ctx, httpd_service service, httpd_auth auth);
 
-herror_t httpd_run();
-void httpd_destroy();
-
 int httpd_get_port(void);
 
-hservice_t *httpd_services();
+hservice_t *httpd_services(void);
 
 herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
 

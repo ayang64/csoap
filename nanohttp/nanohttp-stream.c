@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.11 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.12 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -43,17 +43,6 @@
 
 #include "nanohttp-stream.h"
 
-void
-_log_str(char *fn, char *str, int size)
-{
-/*  FILE *f = fopen(fn, "ab");
-  if (!f) f=fopen(fn,"wb");
-  fwrite(str, size, 1, f);
-  fflush(f);
-  fclose(f);
-*/
-}
-
 /*
 -------------------------------------------------------------------
 
@@ -88,7 +77,7 @@ _http_stream_is_chunked(hpair_t * header)
   Creates a new input stream. 
 */
 http_input_stream_t *
-http_input_stream_new(hsocket_t sock, hpair_t * header)
+http_input_stream_new(hsocket_t *sock, hpair_t * header)
 {
   http_input_stream_t *result;
   char *content_length;
@@ -195,7 +184,6 @@ static int
 _http_input_stream_is_chunked_ready(http_input_stream_t * stream)
 {
   return stream->chunk_size != 0;
-
 }
 
 static int
@@ -312,9 +300,7 @@ _http_input_stream_chunked_read(http_input_stream_t * stream, byte_t * dest,
       counter = 100;            /* maximum for stop infinity */
       while (1)
       {
-        err = hsocket_read(stream->sock, &ch, 1, 1, &status);
-
-        if (err != H_OK)
+        if ((err = hsocket_read(stream->sock, &ch, 1, 1, &status)) != H_OK)
         {
           stream->err = err;
           return -1;
@@ -356,8 +342,7 @@ _http_input_stream_chunked_read(http_input_stream_t * stream, byte_t * dest,
     if (remain < size)
     {
       /* read from socket */
-      err = hsocket_read(stream->sock, &(dest[read]), remain, 1, &status);
-      if (err != H_OK)
+      if ((err = hsocket_read(stream->sock, &(dest[read]), remain, 1, &status)) != H_OK)
       {
         stream->err = err;
         return -1;
@@ -407,8 +392,7 @@ _http_input_stream_connection_closed_read(http_input_stream_t * stream,
   herror_t err;
 
   /* read from socket */
-  err = hsocket_read(stream->sock, dest, size, 0, &status);
-  if (err != H_OK)
+  if ((err = hsocket_read(stream->sock, dest, size, 0, &status)) != H_OK)
   {
     stream->err = err;
     return -1;
@@ -418,7 +402,6 @@ _http_input_stream_connection_closed_read(http_input_stream_t * stream,
     stream->connection_closed = 1;
 
   stream->received += status;
-  _log_str("stream.in", dest, size);
   return status;
 }
 
@@ -481,7 +464,7 @@ http_input_stream_read(http_input_stream_t * stream, byte_t * dest, int size)
     return -1;
   }
 
-  /* reset error flag */
+  /* XXX: possible memleak! reset error flag */
   stream->err = H_OK;
 
   switch (stream->type)
@@ -523,7 +506,7 @@ HTTP OUTPUT STREAM
   Creates a new output stream. Transfer code will be found from header.
 */
 http_output_stream_t *
-http_output_stream_new(hsocket_t sock, hpair_t * header)
+http_output_stream_new(hsocket_t *sock, hpair_t * header)
 {
   http_output_stream_t *result;
   char *content_length;
@@ -599,7 +582,6 @@ http_output_stream_write(http_output_stream_t * stream,
 
   if (size > 0)
   {
-    _log_str("stream.out", (char *) bytes, size);
     if ((status = hsocket_nsend(stream->sock, bytes, size)) != H_OK)
       return status;
   }

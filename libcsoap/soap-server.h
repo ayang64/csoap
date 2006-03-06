@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.8 2006/02/08 11:13:14 snowdrop Exp $
+ *  $Id: soap-server.h,v 1.9 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,6 +28,9 @@
 #include <libcsoap/soap-router.h>
 #include <libcsoap/soap-ctx.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Initializes the soap server with commandline arguments.
@@ -77,5 +80,8 @@ int soap_server_get_port(void);
  */
 void soap_server_destroy();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

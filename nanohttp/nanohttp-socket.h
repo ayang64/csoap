@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.24 2006/02/27 22:26:02 snowdrop Exp $
+ *  $Id: nanohttp-socket.h,v 1.25 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,9 +24,11 @@
 #ifndef NANO_HTTP_SOCKET_H
 #define NANO_HTTP_SOCKET_H
 
-#include <time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
-#include <nanohttp/nanohttp-common.h>
+#include <time.h>
 
 #ifdef HAVE_SSL
 #include <openssl/ssl.h>
@@ -36,6 +38,8 @@
 #include <winsock2.h>
 #endif
 
+#include <nanohttp/nanohttp-common.h>
+
 #define	HSOCKET_FREE	-1
 
 /*
@@ -43,29 +47,18 @@
 */
 typedef struct hsocket_t
 {
-
-#ifdef HAVE_SSL
-  SSL *ssl;
-  SSL_CTX *sslCtx;
-#endif
-
 #ifdef WIN32
   SOCKET sock;
 #else
-  volatile int sock;
+  int sock;
 #endif
-  int block;
-
+  struct sockaddr_in addr;
+  void *ssl;
 } hsocket_t; /* end of socket definition */
-
-#ifdef WIN32
-typedef int socklen_t;
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
   Initializes the socket modul. This should be called only 
@@ -73,14 +66,14 @@ extern "C" {
 
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_module_init();
+herror_t hsocket_module_init(int argc, char **argv);
 
 
 /**
   Destroys the socket modul. This should be called after 
   finishing an application.
 */
-void hsocket_module_destroy();
+void hsocket_module_destroy(void);
 
 
 /**
@@ -93,34 +86,14 @@ void hsocket_module_destroy();
   @see hsocket_init_ssl
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_init(hsocket_t * sock);
-
-
-/**
-   Initializes a given socket object with ssl context.
-   To initialize the socket without ssl, you should use
-   hsocket_init()
-
-   @param sock  the destination socket to initialize.
-   @param sslCert keyfile
-   @param sslPass passwort
-   @param sslCA calist
-
-   @see hsocket_init
-   @returns HSOCKET_ERROR_SSLCTX if failed. H_OK otherwise
- */
-herror_t
-hsocket_init_ssl(hsocket_t * sock, 
-		 const char* sslCert, 
-		 const char* sslPass,
-		 const char* sslCA);
+herror_t hsocket_init(hsocket_t *sock);
 
 /**
   Destroys and releases a given socket.
 
   @param sock the socket to destroy
 */
-void hsocket_free(hsocket_t sock);
+void hsocket_free(hsocket_t *sock);
 
 
 /**
@@ -130,13 +103,14 @@ void hsocket_free(hsocket_t sock);
   @param sock the destonation socket object to use
   @param host hostname 
   @param port port number to connect to
+  @param ssl  whether to open a SSL connection
 
   @returns H_OK if success. One of the followings if fails:<P>
     <BR>HSOCKET_ERROR_CREATE 
     <BR>HSOCKET_ERROR_GET_HOSTNAME 
     <BR>HSOCKET_ERROR_CONNECT
  */
-herror_t hsocket_open(hsocket_t * sock, const char *host, int port);
+herror_t hsocket_open(hsocket_t *sock, const char *host, int port, int ssl);
 
 
 /**
@@ -160,7 +134,7 @@ void hsocket_close(hsocket_t *sock);
 
   @see hsocket_listen
  */
-herror_t hsocket_bind(hsocket_t * sock, int port);
+herror_t hsocket_bind(hsocket_t *sock, int port);
 
 
 /**
@@ -174,7 +148,7 @@ herror_t hsocket_bind(hsocket_t * sock, int port);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_LISTEN
 */
-herror_t hsocket_listen(hsocket_t sock);
+herror_t hsocket_listen(hsocket_t *sock);
 
 
 /**
@@ -188,7 +162,7 @@ herror_t hsocket_listen(hsocket_t sock);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_ACCEPT
 */
-herror_t hsocket_accept(hsocket_t sock, hsocket_t * dest);
+herror_t hsocket_accept(hsocket_t *sock, hsocket_t * dest);
 
 
 /**
@@ -202,7 +176,7 @@ herror_t hsocket_accept(hsocket_t sock, hsocket_t * dest);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_nsend(hsocket_t sock, const byte_t * bytes, int size);
+herror_t hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int size);
 
 
 /**
@@ -215,7 +189,7 @@ herror_t hsocket_nsend(hsocket_t sock, const byte_t * bytes, int size);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_send(hsocket_t sock, const char *str);
+herror_t hsocket_send(hsocket_t *sock, const char *str);
 
 
 /**
@@ -234,7 +208,7 @@ herror_t hsocket_send(hsocket_t sock, const char *str);
      the socket.
   
 */
-herror_t hsocket_read(hsocket_t sock, byte_t * buffer, int size, int force,
+herror_t hsocket_read(hsocket_t *sock, byte_t * buffer, int size, int force,
                       int *readed);
 
 /**
@@ -246,7 +220,7 @@ herror_t hsocket_read(hsocket_t sock, byte_t * buffer, int size, int force,
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_IOCTL
 */
-herror_t hsocket_block(hsocket_t sock, int block);
+// herror_t hsocket_block(hsocket_t *sock, int block);
 
 #ifdef __cplusplus
 }

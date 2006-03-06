@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.5 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: soap-router.h,v 1.6 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,6 +37,10 @@ typedef struct _SoapRouter
   SoapService *default_service;
 } SoapRouter;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Creates a new router object. Create a router if
@@ -86,5 +90,9 @@ SoapService *soap_router_find_service(SoapRouter * router,
    @param router The router object to free
  */
 void soap_router_free(SoapRouter * router);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.11 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: nanohttp-mime.c,v 1.12 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -298,7 +298,6 @@ MIME_parse(MIME_read_function reader_function,
 
     /* Read 1 byte */
     status = MIME_reader_read(&reader, ch, 1);
-    _log_str("buffer.log", ch, 1);
     if (status == MIME_READ_EOF)
       return MIME_PARSER_INCOMPLETE_MESSAGE;
     else if (status == MIME_READ_ERROR)
@@ -311,7 +310,6 @@ MIME_parse(MIME_read_function reader_function,
       {
         /* Read 1 byte */
         status = MIME_reader_read(&reader, ch, 1);
-        _log_str("buffer.log", ch, 1);
         if (status == MIME_READ_EOF)
           return MIME_PARSER_INCOMPLETE_MESSAGE;
         else if (status == MIME_READ_ERROR)
@@ -334,7 +332,6 @@ MIME_parse(MIME_read_function reader_function,
 
       /* Read 1 byte */
       status = MIME_reader_read(&reader, ch, 1);
-      _log_str("buffer.log", ch, 1);
 
 
       if (status == MIME_READ_EOF)
@@ -347,7 +344,6 @@ MIME_parse(MIME_read_function reader_function,
       {
         /* Read 1 byte */
         status = MIME_reader_read(&reader, ch, 1);
-        _log_str("buffer.log", ch, 1);
 
 
         if (status == MIME_READ_EOF)
@@ -381,7 +377,6 @@ MIME_parse(MIME_read_function reader_function,
           /* Jump to marker and read bytes */
           MIME_reader_jump_marker(&reader);
           MIME_reader_read(&reader, ch, boundary_length + 2);
-          _log_str("buffer.log", ch, 1);
 
           MIME_buffer_add_bytes(&buffer, ch, boundary_length + 2);
 
@@ -404,7 +399,6 @@ MIME_parse(MIME_read_function reader_function,
         {
           /* Read 1 byte */
           status = MIME_reader_read(&reader, ch, 1);
-          _log_str("buffer.log", ch, 1);
 
           if (status == MIME_READ_EOF)
             return MIME_PARSER_INCOMPLETE_MESSAGE;
@@ -533,8 +527,6 @@ mime_streamreader_function(void *userdata, unsigned char *dest, int *size)
   *size = readed;
   if (*size != -1)
   {
-    /* 
-       _log_str("reader.log", dest, *size); */
     return MIME_READ_OK;
   }
   return MIME_READ_ERROR;
@@ -895,8 +887,6 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
   }
 }
 
-
-
 herror_t
 mime_get_attachments(content_type_t * ctype, http_input_stream_t * in,
                      attachments_t ** dest)
@@ -930,7 +920,7 @@ mime_get_attachments(content_type_t * ctype, http_input_stream_t * in,
   }
 
   mimeMessage =
-    mime_message_parse(in, root_id, boundary, hoption_get(HOPTION_TMP_DIR));
+    mime_message_parse(in, root_id, boundary, ".");
   if (mimeMessage == NULL)
   {
     /* TODO (#1#): Handle Error in http form */

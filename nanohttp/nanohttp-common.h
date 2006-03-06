@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.27 2006/02/27 22:26:02 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.28 2006/03/06 13:37:38 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -27,31 +27,33 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define HEADER_CONTENT_LENGTH "Content-Length"
-#define HEADER_CONTENT_TYPE "Content-Type"
-#define HEADER_CONTENT_ID "Content-Id"
-#define HEADER_CONTENT_LOCATION "Content-Location"
+#define HEADER_CONTENT_LENGTH		"Content-Length"
+#define HEADER_CONTENT_TYPE		"Content-Type"
+#define HEADER_CONTENT_ID		"Content-Id"
+#define HEADER_CONTENT_LOCATION		"Content-Location"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
-#define HEADER_TRANSFER_ENCODING "Transfer-Encoding"
-#define HEADER_CONNECTION "Connection"
+#define HEADER_TRANSFER_ENCODING	"Transfer-Encoding"
+#define HEADER_CONNECTION		"Connection"
 
-#define HEADER_HOST "Host"
-#define HEADER_DATE "Date"
-#define HEADER_ACCEPT "Accept"
+#define HEADER_HOST		"Host"
+#define HEADER_DATE		"Date"
+#define HEADER_ACCEPT		"Accept"
 
-#define HEADER_AUTHORIZATION		"Authorization"
 #define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
+#define HEADER_PROXY_AUTHENTICATE	"Proxy-Authenticate"
+#define HEADER_AUTHORIZATION		"Authorization"
+#define HEADER_PROXY_AUTHORIZATION	"Proxy-Authorization"
 
-#define NHTTPD_ARG_PORT "-NHTTPport"
-#define NHTTPD_ARG_TERMSIG "-NHTTPtsig"
-#define NHTTPD_ARG_MAXCONN "-NHTTPmaxconn"
-#define NHTTP_ARG_LOGFILE "-NHTTPlog"
-#define NHTTP_ARG_TMPDIR "-NHTTPtmpdir"
+#define NHTTPD_ARG_PORT		"-NHTTPport"
+#define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
+#define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
 
-#define NHTTP_ARG_CERT "-NHTTPcert"
-#define NHTTP_ARG_CERTPASS "-NHTTPcertpass"
-#define NHTTP_ARG_CA "-NHTTPCA"
-#define NHTTP_ARG_HTTPS "-NHTTPS"
+#define NHTTP_ARG_LOGFILE	"-NHTTPlog"
+
+#define NHTTP_ARG_CERT		"-NHTTPcert"
+#define NHTTP_ARG_CERTPASS	"-NHTTPcertpass"
+#define NHTTP_ARG_CA		"-NHTTPCA"
+#define NHTTP_ARG_HTTPS		"-NHTTPS"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
@@ -142,7 +144,13 @@
 #define XML_ERROR_PARSE 1601
 
 /* SSL Errors */
-/*#define SSL_ERROR_INIT 1700*/
+#define HSSL_ERROR_CA_LIST		1710
+#define HSSL_ERROR_CONTEXT		1720
+#define HSSL_ERROR_CERTIFICATE		1730
+#define HSSL_ERROR_PEM			1740
+#define HSSL_ERROR_CLIENT		1750
+#define HSSL_ERROR_SERVER		1760
+#define HSSL_ERROR_CONNECT		1770
 
 /*
 Set Sleep function platform depended
@@ -458,15 +466,6 @@ attachments_t *attachments_new();       /* should be used internally */
 void attachments_free(attachments_t * message);
 void attachments_add_part(attachments_t * attachments, part_t * part);
 
-
-/* tmp directory for multipart/related stuff */
-#define HOPTION_TMP_DIR 2
-#define HOPTION_SSL_CERT 3
-#define HOPTION_SSL_PASS 4
-#define HOPTION_SSL_CA 5
-void hoption_init_args(int argc, char *argv[]);
-void hoption_set(int opt, const char *value);
-char *hoption_get(int opt);
 
 /* logging stuff */
 typedef enum log_level

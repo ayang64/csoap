@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.13 2006/02/18 20:14:36 snowdrop Exp $
+ *  $Id: soap-env.h,v 1.14 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -29,15 +29,20 @@
 #include <libcsoap/soap-xml.h>
 #include <libcsoap/soap-fault.h>
 
-
 /**
    The SOAP envelope object. 
  */
 typedef struct _SoapEnv
 {
   xmlNodePtr root; /** Pointer to the firts xml element (envelope) */
+  xmlNodePtr header;
+  xmlNodePtr body;
   xmlNodePtr cur; /** Pointer to the current xml element. (stack) */
 } SoapEnv;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /* -------------------------------------------------------------- */
@@ -177,11 +182,7 @@ herror_t soap_env_new_from_stream(http_input_stream_t * in, SoapEnv ** out);
 /*      XML Serializer functions  and typedefs         */
 /* --------------------------------------------------- */
 
-typedef void (*XmlSerializerCallback) (void * /* obj */ , const xmlChar *       /* root_element_name 
-                                                                                 */ ,
-                                       void (*OnStartElement) (const xmlChar * element_name, int attr_count, xmlChar ** keys, xmlChar ** values, void *userData), void (*OnCharacters) (const xmlChar * element_name, const xmlChar * chars, void *userData), void (*OnEndElement) (const xmlChar * element_name, void *userData), void *       /* userdata 
-                                                                                                                                                                                                                                                                                                                                                 */ );
-
+typedef void (*XmlSerializerCallback) (void * obj, const xmlChar *root_element_name, void (*OnStartElement) (const xmlChar * element_name, int attr_count, xmlChar ** keys, xmlChar ** values, void *userData), void (*OnCharacters) (const xmlChar * element_name, const xmlChar * chars, void *userData), void (*OnEndElement) (const xmlChar * element_name, void *userData), void *userdata);
 
 /* ------------------------------------------------------ */
 /*     XML build and stack function                       */
@@ -279,8 +280,7 @@ soap_env_add_itemf(SoapEnv * env, const char *type,
    
    @see tutorial 
  */
-xmlNodePtr
-soap_env_push_item(SoapEnv * env, const char *type, const char *name);
+xmlNodePtr soap_env_push_item(SoapEnv * env, const char *type, const char *name);
 
 /**
    Sets the xml pointer 1 level higher. 
@@ -330,9 +330,8 @@ xmlNodePtr soap_env_get_header(SoapEnv * env);
 char * soap_env_find_urn(SoapEnv * env);
 char * soap_env_find_methodname(SoapEnv * env);
 
-
-
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.9 2006/02/27 22:26:02 snowdrop Exp $
+ *  $Id: nanohttp-stream.h,v 1.10 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,12 +28,6 @@
 
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-common.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void _log_str(char *fn, char *str, int size);
 
 /*
   HTTP Stream modul:
@@ -88,7 +82,7 @@ typedef enum http_transfer_type
 */
 typedef struct http_input_stream
 {
-  hsocket_t sock;
+  hsocket_t *sock;
   herror_t err;
   http_transfer_type_t type;
   int received;
@@ -109,12 +103,16 @@ typedef struct http_input_stream
 */
 typedef struct http_output_stream
 {
-  hsocket_t sock;
+  hsocket_t *sock;
   http_transfer_type_t type;
   int content_length;
   int sent;
 } http_output_stream_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
 --------------------------------------------------------------
@@ -136,7 +134,7 @@ typedef struct http_output_stream
 
   @see http_input_stream_free
 */
-http_input_stream_t *http_input_stream_new(hsocket_t sock, hpair_t * header);
+http_input_stream_t *http_input_stream_new(hsocket_t *sock, hpair_t *header);
 
 
 /**
@@ -218,7 +216,7 @@ int http_input_stream_read(http_input_stream_t * stream,
 
   @see http_output_stream_free
 */
-http_output_stream_t *http_output_stream_new(hsocket_t sock,
+http_output_stream_t *http_output_stream_new(hsocket_t *sock,
                                              hpair_t * header);
 
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.9 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.10 2006/03/06 13:37:38 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -32,11 +32,6 @@
 #include "soap-fault.h"
 #include "soap-xml.h"
 
-static char *soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
-static char *soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
-static char *soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";
-static char *soap_xsd_ns = "http://www.w3.org/1999/XMLSchema";
-
 /*
 Parameters:
 1- soap_env_ns
@@ -52,7 +47,8 @@ Parameters:
 	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encoding=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
-	" <SOAP-ENV:Body>"\
+        " <SOAP-ENV:Header />" \
+	" <SOAP-ENV:Body>" \
 	"  <SOAP-ENV:Fault>"\
 	"   <faultcode>%s</faultcode>"\
 	"   <faultstring>%s</faultstring>"\

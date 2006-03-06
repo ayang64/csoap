@@ -18,68 +18,53 @@
 
 /*
  * Author:		Matt Campbell
- * Contrib:		
- * Descrip:		Common ssl routines
  */
-
-/* Do enter only if --with-ssl was specified by the configure script */
-#ifdef HAVE_SSL
-
-#ifdef TRU64
-#include <arpa/inet.h>
-typedef unsigned int uint32_t;
-#endif
-
 #ifndef __NANOHTTP_SSL_H_
 #define __NANOHTTP_SSL_H_
 
-#include <openssl/ssl.h>
-
-#ifdef WIN32
-typedef unsigned int uint32_t;
-#else
-#include <unistd.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-#define SSL_SERVER	0
-#define SSL_CLIENT	1
+#ifdef HAVE_SSL
 
-#define CERT_SUBJECT	0
-#define CERT_ISSUER		1
-
-typedef struct Con
-{
-  SSL *ssl;
-  int sock;
-} Con;
-
-/*
- * Callback for password checker
- */
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ *
+ * Initialization and shutdown of the SSL module
+ *
+ */
+herror_t hssl_module_init(int argc, char **argv);
+void hssl_module_destroy(void);
+
+/**
+ *
+ * Socket initialization and shutdown
+ *
+ */
+herror_t hssl_client_ssl(hsocket_t *sock);
+herror_t hssl_server_ssl(hsocket_t *sock);
+
+void hssl_cleanup(hsocket_t *sock);
+
+/*
+ * Callback for password checker
+ */
 //static int pw_cb(char* buf, int num, int rwflag, void *userdata);
-
-/*
- * Start the ssl library
- */
-void start_ssl( void );
-/*
- * Initialize the context
- */
-
-SSL_CTX *initialize_ctx(const char *keyfile, 
-			const char *password, 
-			const char *calist);
 
 /*
  * Quick function for verifying a portion of the cert
  * nid is any NID_ defined in <openssl/objects.h>
  * returns non-zero if everything went ok
  */
+#define CERT_SUBJECT	1
 
 int verify_sn(X509 * cert, int who, int nid, char *str);
 
@@ -95,33 +80,31 @@ int verify_sn(X509 * cert, int who, int nid, char *str);
 
 int user_verify(X509 * cert);
 
-/*
- * Create the ssl socket and return it
- * pass in the context and an open socket
- */
-
-SSL *init_ssl(SSL_CTX * ctx, int sock, int type);
-
-/*
- * Close the ssl connection (socket is still left open)
- */
-
-void ssl_cleanup();
-
-/**
-   Log funtion to report ssl failures
-   @param ssl
-   @param ret
- */
-void
-log_ssl_error (SSL * ssl, int ret);
-
-int ssl_checkFatal( SSL *ssl, int status );
-
+#ifdef __cplusplus
+}
 #endif
+
+#else /* HAVE_SSL */
+
+static inline herror_t hssl_module_init(int argc, char **argv) { return H_OK; }
+static inline void hssl_module_destroy(void) { return; }
+
+static inline herror_t hssl_client_ssl(hsocket_t *sock) { return H_OK; }
+static inline herror_t hssl_server_ssl(hsocket_t *sock) { return H_OK; }
+
+static inline void hssl_cleanup(hsocket_t *sock) { return; }
+
+#endif /* HAVE_SSL */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received);
+herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* HAVE_SSL */
+#endif

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.12 2006/01/10 11:29:04 snowdrop Exp $
+ *  $Id: soap-client.h,v 1.13 2006/03/06 13:37:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,6 +28,10 @@
 #include <libcsoap/soap-ctx.h>
 
 #define SOAP_ERROR_CLIENT_INIT 5001
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 	Initializes the client side soap engine
@@ -68,5 +72,9 @@ herror_t soap_client_invoke(SoapCtx * ctx, SoapCtx ** response,
 */
 void soap_client_block_socket(int block);
 int soap_client_get_blockmode();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
