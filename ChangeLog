@@ -1,3 +1,19 @@
+2006/03/06
+  - build system cleanup
+    - "make dist" is working now
+    - libcsoap.m4 will be installed
+    - configure.ac cleanup
+      - using libxml2.m4 macro for libxml2 detection
+      - CFLAGS fixes for Solaris2.8 (-D_REENTRANT)
+
+- nanohttp-ssl cleanup
+  - SSL related code moved to nanohttp-{ssl,socket}
+  - removed all (un-)blocking related stuff
+  - #ifdef HAVE_SSL in hsocket_t removed
+  - HAVE_SSL is now in config.h via ./configure
+
+- nanohttp conndata_t race condition fixed
+
 2004/11/03
 	Added MIME support. (attachments). Implemented stream objects
 	to receive and send HTTP data. Added some new objects 
