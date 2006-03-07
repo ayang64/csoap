@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.11 2006/03/07 11:32:42 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.12 2006/03/07 16:20:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -59,7 +59,7 @@ void hssl_cleanup(hsocket_t *sock);
 /*
  * Callback for password checker
  */
-//static int pw_cb(char* buf, int num, int rwflag, void *userdata);
+/* static int pw_cb(char* buf, int num, int rwflag, void *userdata); */
 
 /*
  * Quick function for verifying a portion of the cert
@@ -74,7 +74,7 @@ int verify_sn(X509 * cert, int who, int nid, char *str);
  * Called by framework for verify
  */
 
-//static int verify_cb(int prev_ok, X509_STORE_CTX* ctx);
+/* static int verify_cb(int prev_ok, X509_STORE_CTX* ctx); */
 
 /*
  * This function MUST be implemented by user client/server code somewhere

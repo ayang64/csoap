@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.52 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.53 2006/03/07 16:20:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -175,10 +175,10 @@ _httpd_register_builtin_services(void)
 {
 
   if (_httpd_enable_service_list)
-;//	  httpd_register("/httpd/services", _httpd_list_services);
+;/*	  httpd_register("/httpd/services", _httpd_list_services); */
 
   if (_httpd_enable_statistics)
-;//	  httpd_register("/httpd/statistics", _httpd_statistics);
+;/*	  httpd_register("/httpd/statistics", _httpd_statistics); */
 
   return;
 }
@@ -384,7 +384,7 @@ httpd_send_header (httpd_conn_t * res, int code, const char *text)
   strcat (header, "Server: Nano HTTPD library\r\n");
 
   /* set _httpd_connection status */
-  // strcat (header, "Connection: close\r\n");
+  /* strcat (header, "Connection: close\r\n"); */
 
   /* add pairs */
   for(cur = res->header; cur; cur = cur->next)
@@ -500,7 +500,7 @@ do_req_timeout (int signum)
     sigaction(SIGALRM, &req_timeout, NULL);
 */
 
-  // XXX this is not real pretty, is there a better way?
+  /* XXX this is not real pretty, is there a better way? */
   log_verbose1 ("Thread timeout.");
 #ifdef WIN32
   _endthread ();
@@ -790,7 +790,7 @@ httpd_add_headers (httpd_conn_t *conn, const hpair_t *values)
 BOOL WINAPI
 httpd_term (DWORD sig)
 {
-  // log_debug2 ("Got signal %d", sig);
+  /* log_debug2 ("Got signal %d", sig); */
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.19 2006/03/07 11:32:42 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.20 2006/03/07 16:20:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -177,9 +177,11 @@ verify_sn (X509 * cert, int who, int nid, char *str)
 static int
 user_verify (X509 * cert)
 {
-  // TODO: Make sure that the client is providing a client cert,
-  // or that the Module is providing the Module cert
+  /* TODO: Make sure that the client is providing a client cert,
+     or that the Module is providing the Module cert */
+
   /* connect to anyone */
+
   log_verbose1 ("Validating certificate.");
   return 1;
 }

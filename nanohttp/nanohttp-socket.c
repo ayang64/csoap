@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.54 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.55 2006/03/07 16:20:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -428,7 +428,7 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
   size_t totalRead;
   size_t count;
 
-// log_verbose3("Entering hsocket_read(total=%d,force=%d)", total, force);
+/* log_verbose3("Entering hsocket_read(total=%d,force=%d)", total, force); */
 
   totalRead = 0;
   do
@@ -463,33 +463,3 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
   while (1);
 }
 
-
-// #ifdef WIN32
-// herror_t
-// hsocket_block(hsocket_t *sock, int block)
-// {
-//   unsigned long iMode;
-// 
-//   if (sock->sock < 0)
-//     return herror_new("hsocket_block", HSOCKET_ERROR_NOT_INITIALIZED,
-//                       "Called hsocket_listen() before initializing!");
-// 
-//   iMode = (block == 0) ? 1 : 0; /* Non block mode */
-//   if (ioctlsocket(sock.sock, FIONBIO, (u_long FAR *) & iMode) ==
-//       INVALID_SOCKET)
-//   {
-//     int err = WSAGetLastError();
-//     log_error2("ioctlsocket error %d", err);
-//     return herror_new("hsocket_block", HSOCKET_ERROR_IOCTL,
-//                       "Socket error %d", err);
-//   }
-// 
-//   return H_OK;
-// }
-// #else
-// herror_t
-// hsocket_block(hsocket_t *sock, int block)
-// {
-//   return H_OK;
-// }
-// #endif

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.12 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.13 2006/03/07 16:20:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -267,7 +267,7 @@ hrequest_new_from_socket(hsocket_t *sock, hrequest_t ** out)
 
     buffer[i + 1] = '\0';       /* for strmp */
 
-//    log_error2("buffer=\"%s\"", buffer);
+/*    log_error2("buffer=\"%s\"", buffer); */
 
     if (i > 3)
     {

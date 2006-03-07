@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.25 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.26 2006/03/07 16:20:37 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -210,17 +210,6 @@ herror_t hsocket_send(hsocket_t *sock, const char *str);
 */
 herror_t hsocket_read(hsocket_t *sock, byte_t * buffer, int size, int force,
                       int *readed);
-
-/**
-  Sets the goven socket to non-blocking socket mode.
-
-  @param sock the socket to set into the non-blocking mode
-
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_NOT_INITIALIZED
-    <BR>HSOCKET_ERROR_IOCTL
-*/
-// herror_t hsocket_block(hsocket_t *sock, int block);
 
 #ifdef __cplusplus
 }
