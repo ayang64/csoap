@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.6 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-router.h,v 1.7 2006/03/07 16:22:24 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -35,6 +35,7 @@ typedef struct _SoapRouter
   SoapServiceNode *service_head;
   SoapServiceNode *service_tail;
   SoapService *default_service;
+  xmlDocPtr wsdl;
 } SoapRouter;
 
 
@@ -70,6 +71,8 @@ void soap_router_register_service(SoapRouter * router,
 
 void soap_router_register_default_service(SoapRouter * router, SoapServiceFunc func, const char *method, const char *urn);
 
+
+void soap_router_register_description(SoapRouter *router, xmlDocPtr doc);
 
 /**
    Searches for a registered soap service.

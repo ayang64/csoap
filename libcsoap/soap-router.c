@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.7 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: soap-router.c,v 1.8 2006/03/07 16:22:24 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,6 +29,10 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #include "soap-router.h"
 
 SoapRouter *
@@ -36,10 +40,12 @@ soap_router_new(void)
 {
   SoapRouter *router;
 
-  router = (SoapRouter *) malloc(sizeof(SoapRouter));
-  router->service_head = NULL;
-  router->service_tail = NULL;
-  router->default_service = NULL;
+  if (!(router = (SoapRouter *) malloc(sizeof(SoapRouter))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
+  memset(router, 0, sizeof(SoapRouter));
 
   return router;
 }
@@ -63,6 +69,17 @@ soap_router_register_service(SoapRouter * router,
     router->service_tail->next = soap_service_node_new(service, NULL);
     router->service_tail = router->service_tail->next;
   }
+
+  return;
+}
+
+void
+soap_router_register_description(SoapRouter * router, xmlDocPtr wsdl)
+{
+  if (router->wsdl)
+    xmlFreeDoc(router->wsdl);
+
+  router->wsdl = xmlCopyDoc(wsdl, 1);
 
   return;
 }
@@ -123,7 +140,8 @@ soap_router_free(SoapRouter * router)
 {
   SoapServiceNode *node;
   log_verbose2("enter: router=%p", router);
-  if (router == NULL)
+
+  if (!router)
     return;
 
   while (router->service_head)
@@ -135,7 +153,11 @@ soap_router_free(SoapRouter * router)
     free(router->service_head);
     router->service_head = node;
   }
+  if (router->wsdl)
+    xmlFreeDoc(router->wsdl);
 
   free(router);
   log_verbose1("leave with success");
+
+  return;
 }

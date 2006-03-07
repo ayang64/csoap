@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.19 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: soap-server.c,v 1.20 2006/03/07 16:22:24 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -162,7 +162,7 @@ _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
     xpathCtx = xmlXPathNewContext(ctx->env->root->doc);
     xpathObj = xmlXPathEvalExpression("//Fault", xpathCtx);
 
-    snprintf(buflen, 100, "%d", strlen((const char *) xmlBufferContent(buffer)));
+    snprintf(buflen, 100, "%d", xmlBufferLength(buffer));
     httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
     if ((xpathObj->nodesetval) ? xpathObj->nodesetval->nodeNr : 0)
     {
@@ -180,6 +180,26 @@ _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
 
   }
   xmlBufferFree(buffer);
+
+  return;
+}
+
+static void
+_soap_server_send_description(httpd_conn_t *conn, xmlDocPtr wsdl)
+{
+  char length[16];
+  xmlBufferPtr buf;
+
+  buf = xmlBufferCreate();
+  xmlNodeDump(buf, wsdl, xmlDocGetRootElement(wsdl), 0, 0);
+
+  sprintf(length, "%d", xmlBufferLength(buf));
+  httpd_set_header(conn, HEADER_CONTENT_LENGTH, length);
+  httpd_send_header(conn, 200, "OK");
+
+  http_output_stream_write_string(conn->out, xmlBufferContent(buf));
+
+  xmlBufferFree(buf);
 
   return;
 }
@@ -238,9 +258,19 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   SoapEnv *env;
   herror_t err;
 
+  if (!(router = router_find(req->path)))
+  {
+    _soap_server_send_fault(conn, "Cannot find router");
+    return;
+  }
+  else if (req->method == HTTP_REQUEST_GET && router->wsdl)
+  {
+    _soap_server_send_description(conn, router->wsdl);
+    return;
+  }
+
   if (req->method != HTTP_REQUEST_POST)
   {
-
     httpd_send_header(conn, 200, "OK");
     http_output_stream_write_string(conn->out,
               "<html>"
@@ -286,44 +316,61 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 
       /* soap_xml_doc_print(env->root->doc); */
 
-      router = router_find(req->path);
-
-      if (router == NULL)
+      if (!(urn=soap_env_find_urn(ctx->env)))
       {
-        _soap_server_send_fault(conn, "Can not find router!");
+
+        _soap_server_send_fault(conn, "No URN found!");
+        soap_ctx_free(ctx);
+        return;
+      }
+      else
+      {
+        log_verbose2("urn: '%s'", urn);
+      }
+
+      if (!(method=soap_env_find_methodname(ctx->env)))
+      {
+        _soap_server_send_fault(conn, "No method found!");
+        soap_ctx_free(ctx);
+        return;
+      }
+      else
+      {
+        log_verbose2("method: '%s'", method);
+      }
+
+      service = soap_router_find_service(router, urn, method);
+
+      if (service == NULL)
+      {
+
+        sprintf(buffer, "URN '%s' not found", urn);
+        _soap_server_send_fault(conn, buffer);
+        soap_ctx_free(ctx);
+        return;
       }
       else
       {
 
-        if (!(urn=soap_env_find_urn(ctx->env)))
+        log_verbose2("func: %p", service->func);
+        ctxres = soap_ctx_new(NULL);
+        /* ===================================== */
+        /* CALL SERVICE FUNCTION */
+        /* ===================================== */
+        if ((err = service->func(ctx, ctxres)) != H_OK)
         {
-
-          _soap_server_send_fault(conn, "No URN found!");
+          sprintf(buffer, "Service returned following error message: '%s'",
+                  herror_message(err));
+          herror_release(err);
+          _soap_server_send_fault(conn, buffer);
           soap_ctx_free(ctx);
           return;
         }
-        else
-        {
-          log_verbose2("urn: '%s'", urn);
-        }
 
-        if (!(method=soap_env_find_methodname(ctx->env)))
-        {
-          _soap_server_send_fault(conn, "No method found!");
-          soap_ctx_free(ctx);
-          return;
-        }
-        else
-        {
-          log_verbose2("method: '%s'", method);
-        }
-
-        service = soap_router_find_service(router, urn, method);
-
-        if (service == NULL)
+        if (ctxres->env == NULL)
         {
 
-          sprintf(buffer, "URN '%s' not found", urn);
+          sprintf(buffer, "Service '%s' returned no envelope", urn);
           _soap_server_send_fault(conn, buffer);
           soap_ctx_free(ctx);
           return;
@@ -331,44 +378,13 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
         else
         {
 
-          log_verbose2("func: %p", service->func);
-          ctxres = soap_ctx_new(NULL);
-          /* ===================================== */
-          /* CALL SERVICE FUNCTION */
-          /* ===================================== */
-          err = service->func(ctx, ctxres);
-          if (err != H_OK)
-          {
-            sprintf(buffer, "Service returned following error message: '%s'",
-                    herror_message(err));
-            herror_release(err);
-            _soap_server_send_fault(conn, buffer);
-            soap_ctx_free(ctx);
-            return;
-          }
-
-          if (ctxres->env == NULL)
-          {
-
-            sprintf(buffer, "Service '%s' returned no envelope", urn);
-            _soap_server_send_fault(conn, buffer);
-            soap_ctx_free(ctx);
-            return;
-
-          }
-          else
-          {
-
-/*           httpd_send_header(conn, 200, "OK");
-             _soap_server_send_env(conn->out, ctxres->env);
+/*         httpd_send_header(conn, 200, "OK");
+           _soap_server_send_env(conn->out, ctxres->env);
 */
-            _soap_server_send_ctx(conn, ctxres);
-            /* free envctx */
-            soap_ctx_free(ctxres);
-          }
-
+          _soap_server_send_ctx(conn, ctxres);
+          /* free envctx */
+          soap_ctx_free(ctxres);
         }
-
       }
     }
     soap_ctx_free(ctx);
