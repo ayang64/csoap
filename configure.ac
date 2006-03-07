@@ -13,13 +13,13 @@ AC_CONFIG_SRCDIR([nanohttp/nanohttp-server.c])
 AC_CONFIG_SRCDIR([libcsoap/soap-server.c])
 AM_INIT_AUTOMAKE
 
-csoap_release=AC_PACKAGE_VERSION
+csoap_release=`echo $VERSION | awk -F. '{print $1"."$2}'`
 AC_SUBST(csoap_release)
 AC_SUBST(csoap_version)
 csoap_version_dotted=`echo $csoap_version | sed 's/:/./g'`
 AC_SUBST(csoap_version_dotted)
 
-nanohttp_release=AC_PACKAGE_VERSION
+nanohttp_release=$csoap_release
 AC_SUBST(nanohttp_release)
 AC_SUBST(nanohttp_version)
 
@@ -27,6 +27,7 @@ AM_CONFIG_HEADER(config.h)
 
 AC_LANG_C
 AC_PROG_CC
+AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
 AC_HEADER_STDC
