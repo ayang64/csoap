@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.18 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: soap-env.c,v 1.19 2006/03/15 15:11:47 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -185,7 +185,8 @@ soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out)
 
   env->root = node;
   env->header = soap_env_get_header(env);
-  env->cur = env->body = soap_env_get_body(env);
+  env->body = soap_env_get_body(env);
+  env->cur = soap_env_get_method(env);
 
   *out = env;
 
