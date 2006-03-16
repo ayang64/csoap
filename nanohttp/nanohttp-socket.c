@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.55 2006/03/07 16:20:37 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.56 2006/03/16 08:48:55 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -302,7 +302,7 @@ hsocket_accept(hsocket_t *sock, hsocket_t *dest)
 
   if ((status = hssl_server_ssl(dest)) != H_OK)
   {
-    log_warn("hsocket_accept", "SSL startup failed (%s)", herror_message(status));
+    log_warn2("SSL startup failed (%s)", herror_message(status));
     return status;
   }
 
@@ -399,7 +399,7 @@ hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int n)
 
     if ((status = hssl_write(sock, bytes + total, n, &size)) != H_OK)
     {
-      log_warn("hssl_write failed (%s)", herror_message(status));
+      log_warn2("hssl_write failed (%s)", herror_message(status));
       return status;
     }
 
@@ -436,7 +436,7 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
 
     if ((status = hssl_read(sock, &buffer[totalRead], (size_t)total - totalRead, &count)) != H_OK)
     {
-      log_warn("hssl_read failed (%s)", herror_message(status));
+      log_warn2("hssl_read failed (%s)", herror_message(status));
       return status;
     }
 
