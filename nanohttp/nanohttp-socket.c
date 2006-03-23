@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.56 2006/03/16 08:48:55 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.57 2006/03/23 13:03:34 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -183,7 +183,7 @@ hsocket_open(hsocket_t * dsock, const char *hostname, int port, int ssl)
   address.sin_family = host->h_addrtype;
   address.sin_port = htons((unsigned short) port);
 
-  log_debug4("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
+  log_verbose4("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
 
   /* connect to the server */
   if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) != 0)
