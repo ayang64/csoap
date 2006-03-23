@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.17 2006/03/23 12:58:24 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.18 2006/03/23 13:51:06 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -76,7 +76,7 @@ int httpd_register(const char *ctx, httpd_service service);
 int httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
 int httpd_register_default(const char *ctx, httpd_service service);
-int httpd_register_secure_default(const char *ctx, httpd_service service, httpd_auth auth);
+int httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
 int httpd_get_port(void);
 const char *httpd_get_protocol(void);
