@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.53 2006/03/07 16:20:37 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.54 2006/03/23 12:58:24 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -286,6 +286,12 @@ int
 httpd_get_port(void)
 {
   return _httpd_port;
+}
+
+const char *
+httpd_get_protocol(void)
+{
+  return hssl_enabled() ? "https" : "http";
 }
 
 /*
