@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.12 2006/03/07 16:20:37 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.13 2006/03/27 12:53:19 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -46,6 +46,8 @@ extern "C" {
 herror_t hssl_module_init(int argc, char **argv);
 void hssl_module_destroy(void);
 
+int hssl_enabled(void);
+
 /**
  *
  * Socket initialization and shutdown
@@ -90,6 +92,8 @@ int user_verify(X509 * cert);
 
 static inline herror_t hssl_module_init(int argc, char **argv) { return H_OK; }
 static inline void hssl_module_destroy(void) { return; }
+
+static inline int hssl_enabled(void) { return 0; }
 
 static inline herror_t hssl_client_ssl(hsocket_t *sock) { return H_OK; }
 static inline herror_t hssl_server_ssl(hsocket_t *sock) { return H_OK; }

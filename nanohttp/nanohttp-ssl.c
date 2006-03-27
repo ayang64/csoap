@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.20 2006/03/07 16:20:37 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.21 2006/03/27 12:53:19 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -78,13 +78,11 @@
 #ifdef HAVE_SSL
 
 static char *certificate = NULL;
-static char *certpass = NULL;
+static char *certpass = "";
 static char *ca_list = NULL;
 static SSL_CTX *context = NULL;
 
 static int enabled = 0;
-static int initialized = 0;
-
 
 static void
 _hssl_superseed (void)
@@ -106,7 +104,7 @@ _hssl_superseed (void)
 static char *
 _hssl_get_error(SSL *ssl, int ret)
 {
-  switch(SSL_get_error(ssl, ret))
+  switch (SSL_get_error(ssl, ret))
   {
     case SSL_ERROR_NONE:
       return "None";
@@ -123,19 +121,23 @@ _hssl_get_error(SSL *ssl, int ret)
     case SSL_ERROR_SSL:
       return "SSL error";
     default:
-      return "Unkown";
+      return "Unkown error";
   }
 }
 
 
 static int
-pw_cb (char *buf, int num, int rwflag, void *userdata)
+_hssl_password_callback(char *buf, int num, int rwflag, void *userdata)
 {
-  if (num < (int) strlen (certpass) + 1)
-    return (0);
+  int ret;
+
+  ret = strlen(certpass);
+
+  if (num < ret + 1)
+    return 0;
 
   strcpy(buf, certpass);
-  return strlen(certpass);
+  return ret;
 }
 
 
@@ -162,14 +164,7 @@ verify_sn (X509 * cert, int who, int nid, char *str)
   strcat (buf, "=");
   strcat (buf, str);
 
-  if (strstr (name, buf))
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return strstr(name, buf) ? 1 : 0;
 }
 
 
@@ -188,7 +183,7 @@ user_verify (X509 * cert)
 #endif
 
 static int
-verify_cb (int prev_ok, X509_STORE_CTX * ctx)
+_hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
 {
 /*
     if ((X509_STORE_CTX_get_error(ctx) = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN))
@@ -247,54 +242,54 @@ _hssl_parse_arguments(int argc, char **argv)
 static void
 _hssl_library_init(void)
 {
-  /* Global system initialization */
-  log_verbose1 ("Initializing library");
+  static int initialized = 0;
 
-  SSL_library_init();
+  if (!initialized)
+  {
+    log_verbose1 ("Initializing library");
 
-  SSL_load_error_strings();
-  ERR_load_crypto_strings();
+    SSL_library_init();
 
-  OpenSSL_add_ssl_algorithms();
+    SSL_load_error_strings();
+    ERR_load_crypto_strings();
 
-  initialized = 1;
+    OpenSSL_add_ssl_algorithms();
+
+    initialized = 1;
+  }
 
   return;
 }
 
 
 static herror_t
-hssl_context_init(void)
+_hssl_server_context_init(void)
 {
   log_verbose3("enabled=%i, certificate=%p", enabled, certificate);
 
   if (!enabled || !certificate)
     return H_OK;
 
-  if (certpass == NULL)
-    certpass = "";
- 
-  /* Create our context */
   if (!(context = SSL_CTX_new(SSLv23_method())))
   {
     log_error1 ("Cannot create SSL context");
-    return herror_new("hssl_context_init", HSSL_ERROR_CONTEXT, "Unable to create SSL context");
+    return herror_new("_hssl_server_context_init", HSSL_ERROR_CONTEXT, "Unable to create SSL context");
   }
 
   if (!(SSL_CTX_use_certificate_file (context, certificate, SSL_FILETYPE_PEM)))
   {
-    SSL_CTX_free(context);
     log_error2 ("Cannot read certificate file: \"%s\"", certificate);
-    return herror_new("hssl_context_init", HSSL_ERROR_CERTIFICATE, "Unable to use SSL certificate \"%s\"", certificate);
+    SSL_CTX_free(context);
+    return herror_new("_hssl_server_context_init", HSSL_ERROR_CERTIFICATE, "Unable to use SSL certificate \"%s\"", certificate);
   }
 
-  SSL_CTX_set_default_passwd_cb(context, pw_cb);
+  SSL_CTX_set_default_passwd_cb(context, _hssl_password_callback);
 
   if (!(SSL_CTX_use_PrivateKey_file(context, certificate, SSL_FILETYPE_PEM)))
   {
-      SSL_CTX_free(context);
       log_error2 ("Cannot read key file: \"%s\"", certificate);
-      return herror_new("hssl_context_init", HSSL_ERROR_PEM, "Unable to use private key");
+      SSL_CTX_free(context);
+      return herror_new("_hssl_server_context_init", HSSL_ERROR_PEM, "Unable to use private key");
   }
 
   if (ca_list != NULL && *ca_list != '\0')
@@ -303,15 +298,15 @@ hssl_context_init(void)
     {
       SSL_CTX_free(context);
       log_error2 ("Cannot read CA list: \"%s\"", ca_list);
-      return herror_new("hssl_context_init", HSSL_ERROR_CA_LIST, "Unable to read certification authorities \"%s\"");
+      return herror_new("_hssl_server_context_init", HSSL_ERROR_CA_LIST, "Unable to read certification authorities \"%s\"");
     }
 
     SSL_CTX_set_client_CA_list (context, SSL_load_client_CA_file (ca_list));
     log_verbose1 ("Certification authority contacted");
   }
-  SSL_CTX_set_verify(context, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_cb);
 
-  log_verbose1("Verify callback registered");
+  SSL_CTX_set_verify(context, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, _hssl_cert_verify_callback);
+  log_verbose1("Certificate verification callback registered");
 
   SSL_CTX_set_mode(context, SSL_MODE_AUTO_RETRY);
 
@@ -324,12 +319,12 @@ hssl_context_init(void)
 
 
 static void
-_hssl_context_destroy(void)
+_hssl_server_context_destroy(void)
 {
   if (context)
   {
-      SSL_CTX_free(context);
-      context = NULL;
+    SSL_CTX_free(context);
+    context = NULL;
   }
   return;
 }
@@ -340,29 +335,33 @@ hssl_module_init(int argc, char **argv)
 {
   _hssl_parse_arguments(argc, argv);
 
-  if (!initialized)
+  if (enabled)
   {
-    if (enabled)
-    {
-      _hssl_library_init();
-      log_verbose1("SSL enabled");
-    }
-    else
-    {
-      log_verbose1("SSL _not_ enabled");
-    }
+    _hssl_library_init();
+    log_verbose1("SSL enabled");
+  }
+  else
+  {
+    log_verbose1("SSL _not_ enabled");
   }
 
-  return hssl_context_init();
+  return _hssl_server_context_init();
 }
 
 
 void
 hssl_module_destroy(void)
 {
-  _hssl_context_destroy();
+  _hssl_server_context_destroy();
 
   return;
+}
+
+
+int
+hssl_enabled(void)
+{
+  return enabled;
 }
 
 
@@ -409,14 +408,6 @@ hssl_client_ssl(hsocket_t *sock)
 
   log_verbose1 ("SSL client initialization completed");
  
-  /* XXX: why???
-  if ((status = hsocket_block(sock, sock->block)) != H_OK)
-  {
-    log_error2("Cannot make socket non-blocking (%s)", herror_message(status));
-    SSL_free(ssl);
-    return status;
-  } */
-
   sock->ssl = ssl;
   
   return H_OK;
@@ -462,7 +453,6 @@ hssl_server_ssl(hsocket_t *sock)
 void
 hssl_cleanup(hsocket_t *sock)
 {
-
   if (sock->ssl)
   {
     SSL_shutdown (sock->ssl);
@@ -474,11 +464,12 @@ hssl_cleanup(hsocket_t *sock)
 }
 
 
-herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
+herror_t
+hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
 {
   int count;
 
-  log_verbose4("sock->sock=%d sock->ssl=%p, len=%li", sock->sock, sock->ssl, len);
+/* log_verbose4("sock->sock=%d sock->ssl=%p, len=%li", sock->sock, sock->ssl, len); */
 
   if (sock->ssl)
   {
@@ -496,11 +487,12 @@ herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
 }
 
 
-herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
+herror_t
+hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
 {
   int count;
 
-  log_verbose4("sock->sock=%d, sock->ssl=%p, len=%li", sock->sock, sock->ssl, len);
+/*  log_verbose4("sock->sock=%d, sock->ssl=%p, len=%li", sock->sock, sock->ssl, len); */
 
   if (sock->ssl)
   {
@@ -519,7 +511,8 @@ herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
 
 #else
 
-herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
+herror_t
+hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
 {
   int count;
 
@@ -530,7 +523,8 @@ herror_t hssl_read(hsocket_t *sock, char *buf, size_t len, size_t *received)
 }
 
 
-herror_t hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
+herror_t
+hssl_write(hsocket_t *sock, const char *buf, size_t len, size_t *sent)
 {
   int count;
 
