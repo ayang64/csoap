@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.20 2006/03/07 16:22:24 m0gg Exp $
+*  $Id: soap-server.c,v 1.21 2006/03/27 12:14:12 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -51,6 +51,11 @@ typedef struct _SoapRouterNode
 
 static SoapRouterNode *head = NULL;
 static SoapRouterNode *tail = NULL;
+
+static SoapRouter *router_find(const char *context);
+
+/* Include soap-admin functions */
+#include "soap-admin.c"
 
 static void
 _soap_server_send_env(http_output_stream_t * out, SoapEnv * env)
@@ -258,6 +263,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   SoapEnv *env;
   herror_t err;
 
+  
   if (!(router = router_find(req->path)))
   {
     _soap_server_send_fault(conn, "Cannot find router");
@@ -394,7 +400,10 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 herror_t
 soap_server_init_args(int argc, char *argv[])
 {
-  return httpd_init(argc, argv);
+  herror_t err = httpd_init(argc, argv);
+  
+  httpd_register("/csoap", _soap_admin_entry);
+  return err;
 }
 
 int
