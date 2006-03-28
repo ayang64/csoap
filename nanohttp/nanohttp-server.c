@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.54 2006/03/23 12:58:24 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.55 2006/03/28 08:02:29 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -694,6 +694,7 @@ httpd_session_main (void *data)
         sprintf (buffer, "no service for '%s' found", req->path);
         log_verbose1 (buffer);
         httpd_send_internal_error (rconn, buffer);
+	done = 1;
       }
       hrequest_free(req);
     }
