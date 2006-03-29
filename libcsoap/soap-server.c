@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.21 2006/03/27 12:14:12 snowdrop Exp $
+*  $Id: soap-server.c,v 1.22 2006/03/29 08:35:55 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -39,23 +39,13 @@
 
 #include <nanohttp/nanohttp-server.h>
 
+#include "soap-admin.h"
 #include "soap-server.h"
-
-typedef struct _SoapRouterNode
-{
-  char *context;
-  SoapRouter *router;
-  struct _SoapRouterNode *next;
-
-} SoapRouterNode;
 
 static SoapRouterNode *head = NULL;
 static SoapRouterNode *tail = NULL;
 
-static SoapRouter *router_find(const char *context);
-
-/* Include soap-admin functions */
-#include "soap-admin.c"
+// static SoapRouter *router_find(const char *context);
 
 static void
 _soap_server_send_env(http_output_stream_t * out, SoapEnv * env)
@@ -199,6 +189,7 @@ _soap_server_send_description(httpd_conn_t *conn, xmlDocPtr wsdl)
   xmlNodeDump(buf, wsdl, xmlDocGetRootElement(wsdl), 0, 0);
 
   sprintf(length, "%d", xmlBufferLength(buf));
+  httpd_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
   httpd_set_header(conn, HEADER_CONTENT_LENGTH, length);
   httpd_send_header(conn, 200, "OK");
 
@@ -237,8 +228,8 @@ router_node_new(SoapRouter * router, const char *context, SoapRouterNode * next)
   return node;
 }
 
-static SoapRouter *
-router_find(const char *context)
+SoapRouter *
+soap_server_find_router(const char *context)
 {
   SoapRouterNode *node;
 
@@ -264,7 +255,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   herror_t err;
 
   
-  if (!(router = router_find(req->path)))
+  if (!(router = soap_server_find_router(req->path)))
   {
     _soap_server_send_fault(conn, "Cannot find router");
     return;
@@ -400,10 +391,12 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 herror_t
 soap_server_init_args(int argc, char *argv[])
 {
-  herror_t err = httpd_init(argc, argv);
+  herror_t err;
+ 
+  if ((err = httpd_init(argc, argv)) != H_OK)
+    return err;
   
-  httpd_register("/csoap", _soap_admin_entry);
-  return err;
+  return soap_admin_init_args(argc, argv);
 }
 
 int
@@ -428,6 +421,12 @@ soap_server_register_router(SoapRouter * router, const char *context)
   return 1;
 }
 
+SoapRouterNode *
+soap_server_get_routers(void)
+{
+  return head;
+}
+
 herror_t
 soap_server_run(void)
 {
@@ -438,6 +437,12 @@ int
 soap_server_get_port(void)
 {
   return httpd_get_port();
+}
+
+const char *
+soap_server_get_protocol(void)
+{
+  return httpd_get_protocol();
 }
 
 void

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.9 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-server.h,v 1.10 2006/03/29 08:35:56 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,14 @@
 #include <libcsoap/soap-env.h>
 #include <libcsoap/soap-router.h>
 #include <libcsoap/soap-ctx.h>
+
+typedef struct _SoapRouterNode
+{
+  char *context;
+  SoapRouter *router;
+  struct _SoapRouterNode *next;
+
+} SoapRouterNode;
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +74,9 @@ herror_t soap_server_init_args(int argc, char *argv[]);
  */
 int soap_server_register_router(SoapRouter * router, const char *context);
 
+SoapRouter *soap_server_find_router(const char *context);
+
+SoapRouterNode * soap_server_get_routers(void);
 
 /**
    Enters the server loop and starts to listen to 

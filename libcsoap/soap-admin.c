@@ -1,9 +1,39 @@
+/******************************************************************
+*  $Id: soap-admin.c,v 1.2 2006/03/29 08:35:55 m0gg Exp $
+*
+* CSOAP Project:  A SOAP client/server library in C
+* Copyright (C) 2003  Ferhat Ayaz
+*
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Library General Public
+* License as published by the Free Software Foundation; either
+* version 2 of the License, or (at your option) any later version.
+*
+* This library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Library General Public License for more details.
+*
+* You should have received a copy of the GNU Library General Public
+* License along with this library; if not, write to the
+* Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* Boston, MA  02111-1307, USA.
+* 
+* Email: ayaz@jprogrammer.net
+******************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include <nanohttp/nanohttp-server.h>
 
-#define SOAP_ADMIN_QUERY_ROUTERS "routers"
-#define SOAP_ADMIN_QUERY_ROUTER "router"
-#define SOAP_ADMIN_QUERY_SERVICES "services"
+#include "soap-router.h"
+#include "soap-server.h"
+#include "soap-admin.h"
 
+#define SOAP_ADMIN_QUERY_ROUTERS	"routers"
+#define SOAP_ADMIN_QUERY_ROUTER		"router"
+#define SOAP_ADMIN_QUERY_SERVICES	"services"
 
 static void
 _soap_admin_send_title(httpd_conn_t* conn, const char* title)
@@ -33,15 +63,16 @@ _soap_admin_list_routers(httpd_conn_t* conn)
 
   _soap_admin_send_title(conn, "Available routers");
 
-  for (node = head; node; node = node->next)
+  for (node = soap_server_get_routers(); node; node = node->next)
   {
-    sprintf(buffer, "<li /> <a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\"> %s",
+    sprintf(buffer, "<li> <a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\"> %s </li>",
 	    node->context, node->context);
     http_output_stream_write_string(conn->out, buffer);
   }
   
   http_output_stream_write_string(conn->out, "</body></html>");
 }
+
 
 static void
 _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
@@ -53,8 +84,9 @@ _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
   sprintf(buffer, "Listing Services for Router <b>%s</b>", routername);
   _soap_admin_send_title(conn, buffer);
 
-  router = router_find(routername);
-  if (!router) {
+  router = soap_server_find_router(routername);
+  if (!router)
+  {
     http_output_stream_write_string(conn->out, "Router not found!");
     http_output_stream_write_string(conn->out, "</body></html>");
     return;
@@ -62,8 +94,9 @@ _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
 
   node = router->service_head;
 
-  while (node) {
-    sprintf(buffer, "<li /> [%s] (%s)",
+  while (node)
+  {
+    sprintf(buffer, "<li> [%s] (%s) </li>",
 	    node->service->urn,
 	    node->service->method);
     http_output_stream_write_string(conn->out, buffer);
@@ -74,17 +107,21 @@ _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
 }
 
 
-
 static void
 _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
 {
   char *param;
 
-  if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTERS))) {
+  if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTERS)))
+  {
     _soap_admin_list_routers(conn);
-  } else if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTER))) {
+  }
+  else if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTER)))
+  {
     _soap_admin_list_services(conn, param);
-  } else {
+  }
+  else
+  {
     _soap_admin_send_title(conn, "Welcome to the admin site");
     http_output_stream_write_string(conn->out,
      "<li /> <a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\"> Routers </a>");
@@ -93,12 +130,16 @@ _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
   }
 }
 
+
 static void
 _soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
 {
-  if (req->method == HTTP_REQUEST_GET) {
+  if (req->method == HTTP_REQUEST_GET)
+  {
     _soap_admin_handle_get(conn, req);
-  } else {
+  }
+  else
+  {
     httpd_send_header(conn, 200, "OK");
     http_output_stream_write_string(conn->out,
               "<html>"
@@ -111,4 +152,13 @@ _soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
                   "</body>"
               "</html>");
   }
+}
+
+
+herror_t soap_admin_init_args(int argc, char **argv)
+{
+
+  httpd_register("/csoap", _soap_admin_entry);
+
+  return H_OK;
 }
