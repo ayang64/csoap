@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.2 2006/03/29 08:35:55 m0gg Exp $
+*  $Id: soap-admin.c,v 1.3 2006/03/29 08:49:59 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -36,7 +36,7 @@
 #define SOAP_ADMIN_QUERY_SERVICES	"services"
 
 static void
-_soap_admin_send_title(httpd_conn_t* conn, const char* title)
+_soap_admin_send_title(httpd_conn_t *conn, const char *title)
 {
   httpd_send_header(conn, 200, "OK");
   http_output_stream_write_string(conn->out,
@@ -56,26 +56,28 @@ _soap_admin_send_title(httpd_conn_t* conn, const char* title)
 
 
 static void
-_soap_admin_list_routers(httpd_conn_t* conn)
+_soap_admin_list_routers(httpd_conn_t *conn)
 {
   SoapRouterNode *node;
   char buffer[1024];
 
   _soap_admin_send_title(conn, "Available routers");
 
+  http_output_stream_write_string(conn->out, "<ul>");
   for (node = soap_server_get_routers(); node; node = node->next)
   {
-    sprintf(buffer, "<li> <a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\"> %s </li>",
-	    node->context, node->context);
+    sprintf(buffer, "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\">%s</a> - <a href=\"%s\">[Service Description]</a></li>",
+	    node->context, node->context, node->context);
     http_output_stream_write_string(conn->out, buffer);
   }
+  http_output_stream_write_string(conn->out, "</ul>");
   
   http_output_stream_write_string(conn->out, "</body></html>");
 }
 
 
 static void
-_soap_admin_list_services(httpd_conn_t* conn, const char* routername)
+_soap_admin_list_services(httpd_conn_t *conn, const char *routername)
 {
   SoapRouter *router;
   SoapServiceNode *node;
@@ -94,6 +96,7 @@ _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
 
   node = router->service_head;
 
+  http_output_stream_write_string(conn->out, "<ul>");
   while (node)
   {
     sprintf(buffer, "<li> [%s] (%s) </li>",
@@ -102,6 +105,7 @@ _soap_admin_list_services(httpd_conn_t* conn, const char* routername)
     http_output_stream_write_string(conn->out, buffer);
     node = node->next;
   }
+  http_output_stream_write_string(conn->out, "</ul>");
 
   http_output_stream_write_string(conn->out, "</body></html>");
 }
@@ -123,10 +127,13 @@ _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
   else
   {
     _soap_admin_send_title(conn, "Welcome to the admin site");
+
+    http_output_stream_write_string(conn->out, "<ul>");
     http_output_stream_write_string(conn->out,
-     "<li /> <a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\"> Routers </a>");
-    http_output_stream_write_string(conn->out,
-     "</body></html>");
+     "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>");
+    http_output_stream_write_string(conn->out, "</ul>");
+
+    http_output_stream_write_string(conn->out, "</body></html>");
   }
 }
 
