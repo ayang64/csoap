@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.57 2006/03/23 13:03:34 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.58 2006/04/13 06:25:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -306,7 +306,7 @@ hsocket_accept(hsocket_t *sock, hsocket_t *dest)
     return status;
   }
 
-  log_debug3("accepting connection from '%s' socket=%d",
+  log_verbose3("accepting connection from '%s' socket=%d",
                SAVE_STR(((char *) inet_ntoa(dest->addr.sin_addr))), dest->sock);
 
   return H_OK;
