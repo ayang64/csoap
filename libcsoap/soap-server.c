@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.22 2006/03/29 08:35:55 m0gg Exp $
+*  $Id: soap-server.c,v 1.23 2006/04/13 06:22:29 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -159,6 +159,8 @@ _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
 
     snprintf(buflen, 100, "%d", xmlBufferLength(buffer));
     httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
+    httpd_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
+
     if ((xpathObj->nodesetval) ? xpathObj->nodesetval->nodeNr : 0)
     {
       httpd_send_header(conn, 500, "FAILED");
