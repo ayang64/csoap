@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.21 2006/03/27 12:53:19 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.22 2006/04/13 20:00:32 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -84,6 +84,8 @@ static SSL_CTX *context = NULL;
 
 static int enabled = 0;
 
+int (*user_verify) (X509 * cert) = simple_user_verify;
+
 static void
 _hssl_superseed (void)
 {
@@ -167,10 +169,13 @@ verify_sn (X509 * cert, int who, int nid, char *str)
   return strstr(name, buf) ? 1 : 0;
 }
 
+void
+set_user_verify( int func(X509 * cert) ){
+    user_verify = func;
+}
 
-#ifdef NOUSER_VERIFY
 static int
-user_verify (X509 * cert)
+simple_user_verify (X509 * cert)
 {
   /* TODO: Make sure that the client is providing a client cert,
      or that the Module is providing the Module cert */
@@ -180,7 +185,6 @@ user_verify (X509 * cert)
   log_verbose1 ("Validating certificate.");
   return 1;
 }
-#endif
 
 static int
 _hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
@@ -192,20 +196,16 @@ _hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
         return 1;
     }
 */
-#ifdef NOUSER_VERIFY            /* ifdef's added by Ferhat. because of
-                                   unresolved reference while compiling */
+  log_verbose2 ("Cert dept = %d", X509_STORE_CTX_get_error_depth(ctx) );
   if (X509_STORE_CTX_get_error_depth(ctx) == 0)
   {
-    return user_verify (X509_STORE_CTX_get_current_cert(ctx));
+    return user_verify(X509_STORE_CTX_get_current_cert(ctx));
   }
   else
   {
-#endif
     log_verbose1 ("Cert ok (prev)");
     return prev_ok;
-#ifdef NOUSER_VERIFY
   }
-#endif
 }
 
 
