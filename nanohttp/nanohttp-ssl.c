@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.22 2006/04/13 20:00:32 mrcsys Exp $
+*  $Id: nanohttp-ssl.c,v 1.23 2006/04/14 14:44:40 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -170,7 +170,7 @@ verify_sn (X509 * cert, int who, int nid, char *str)
 }
 
 void
-set_user_verify( int func(X509 * cert) ){
+hssl_set_user_verify( int func(X509 * cert) ){
     user_verify = func;
 }
 
