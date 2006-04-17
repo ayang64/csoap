@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.23 2006/04/14 14:44:40 mrcsys Exp $
+*  $Id: nanohttp-ssl.c,v 1.24 2006/04/17 12:26:17 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -84,7 +84,7 @@ static SSL_CTX *context = NULL;
 
 static int enabled = 0;
 
-int (*user_verify) (X509 * cert) = simple_user_verify;
+int (*_hssl_verify_cert) (X509 * cert) = _hssl_dummy_verify_cert;
 
 static void
 _hssl_superseed (void)
@@ -170,12 +170,12 @@ verify_sn (X509 * cert, int who, int nid, char *str)
 }
 
 void
-hssl_set_user_verify( int func(X509 * cert) ){
-    user_verify = func;
+hssl_set_hssl_verify_cert( int func(X509 * cert) ){
+    _hssl_verify_cert = func;
 }
 
 static int
-simple_user_verify (X509 * cert)
+_hssl_dummy_verify_cert(X509 * cert)
 {
   /* TODO: Make sure that the client is providing a client cert,
      or that the Module is providing the Module cert */
@@ -196,10 +196,10 @@ _hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
         return 1;
     }
 */
-  log_verbose2 ("Cert dept = %d", X509_STORE_CTX_get_error_depth(ctx) );
+  log_verbose2 ("Cert depth = %d", X509_STORE_CTX_get_error_depth(ctx) );
   if (X509_STORE_CTX_get_error_depth(ctx) == 0)
   {
-    return user_verify(X509_STORE_CTX_get_current_cert(ctx));
+    return _hssl_verify_cert(X509_STORE_CTX_get_current_cert(ctx));
   }
   else
   {
