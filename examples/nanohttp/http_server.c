@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.2 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: http_server.c,v 1.3 2006/04/21 08:40:37 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,7 +26,7 @@
 
 #include <nanohttp/nanohttp-server.h>
 
-static int simple_authenticator(const char *user, const char *password)
+static int simple_authenticator(hrequest_t *req, const char *user, const char *password)
 {
 
 	log_info3("logging in user=\"%s\" password=\"%s\"", user, password);

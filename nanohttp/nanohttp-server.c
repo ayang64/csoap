@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.55 2006/03/28 08:02:29 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.56 2006/04/21 08:39:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -572,7 +572,7 @@ static int _httpd_authenticate_request(hrequest_t *req, httpd_auth auth)
     return 0;
   }
 
-  if ((ret = auth(user, pass)))
+  if ((ret = auth(req, user, pass)))
     log_info2("Access granted for user=\"%s\"", user);
   else
     log_info2("Authentication failed for user=\"%s\"", user);
