@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.26 2006/03/07 16:20:37 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.27 2006/04/26 17:48:30 mrcsys Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -54,10 +54,12 @@ typedef struct hsocket_t
 #endif
   struct sockaddr_in addr;
   void *ssl;
-} hsocket_t; /* end of socket definition */
+}
+hsocket_t;                      /* end of socket definition */
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /**
@@ -66,14 +68,14 @@ extern "C" {
 
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_module_init(int argc, char **argv);
+  herror_t hsocket_module_init(int argc, char **argv);
 
 
 /**
   Destroys the socket modul. This should be called after 
   finishing an application.
 */
-void hsocket_module_destroy(void);
+  void hsocket_module_destroy(void);
 
 
 /**
@@ -86,14 +88,14 @@ void hsocket_module_destroy(void);
   @see hsocket_init_ssl
   @returns This function should always return H_OK. 
  */
-herror_t hsocket_init(hsocket_t *sock);
+  herror_t hsocket_init(hsocket_t * sock);
 
 /**
   Destroys and releases a given socket.
 
   @param sock the socket to destroy
 */
-void hsocket_free(hsocket_t *sock);
+  void hsocket_free(hsocket_t * sock);
 
 
 /**
@@ -110,7 +112,8 @@ void hsocket_free(hsocket_t *sock);
     <BR>HSOCKET_ERROR_GET_HOSTNAME 
     <BR>HSOCKET_ERROR_CONNECT
  */
-herror_t hsocket_open(hsocket_t *sock, const char *host, int port, int ssl);
+  herror_t hsocket_open(hsocket_t * sock, const char *host, int port,
+                        int ssl);
 
 
 /**
@@ -118,7 +121,7 @@ herror_t hsocket_open(hsocket_t *sock, const char *host, int port, int ssl);
 
   @param sock the socket to close
 */
-void hsocket_close(hsocket_t *sock);
+  void hsocket_close(hsocket_t * sock);
 
 
 /**
@@ -134,7 +137,7 @@ void hsocket_close(hsocket_t *sock);
 
   @see hsocket_listen
  */
-herror_t hsocket_bind(hsocket_t *sock, int port);
+  herror_t hsocket_bind(hsocket_t * sock, int port);
 
 
 /**
@@ -148,7 +151,7 @@ herror_t hsocket_bind(hsocket_t *sock, int port);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_LISTEN
 */
-herror_t hsocket_listen(hsocket_t *sock);
+  herror_t hsocket_listen(hsocket_t * sock);
 
 
 /**
@@ -162,7 +165,7 @@ herror_t hsocket_listen(hsocket_t *sock);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_ACCEPT
 */
-herror_t hsocket_accept(hsocket_t *sock, hsocket_t * dest);
+  herror_t hsocket_accept(hsocket_t * sock, hsocket_t * dest);
 
 
 /**
@@ -176,7 +179,7 @@ herror_t hsocket_accept(hsocket_t *sock, hsocket_t * dest);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int size);
+  herror_t hsocket_nsend(hsocket_t * sock, const byte_t * bytes, int size);
 
 
 /**
@@ -189,9 +192,10 @@ herror_t hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int size);
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-herror_t hsocket_send(hsocket_t *sock, const char *str);
+  herror_t hsocket_send(hsocket_t * sock, const char *str);
 
 
+  int hsocket_select_read(int sock, char *buf, size_t len);
 /**
   Reads data from the socket.
 
@@ -208,8 +212,8 @@ herror_t hsocket_send(hsocket_t *sock, const char *str);
      the socket.
   
 */
-herror_t hsocket_read(hsocket_t *sock, byte_t * buffer, int size, int force,
-                      int *readed);
+  herror_t hsocket_read(hsocket_t * sock, byte_t * buffer, int size,
+                        int force, int *readed);
 
 #ifdef __cplusplus
 }

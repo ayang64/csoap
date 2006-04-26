@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.58 2006/04/13 06:25:11 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.59 2006/04/26 17:48:29 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -105,8 +105,16 @@ _hsocket_module_sys_destroy(void)
   return;
 }
 #else
-static inline void _hsocket_module_sys_init(int argc, char **argv) { return; }
-static inline void _hsocket_module_sys_destroy(void) { return; }
+static inline void
+_hsocket_module_sys_init(int argc, char **argv)
+{
+  return;
+}
+static inline void
+_hsocket_module_sys_destroy(void)
+{
+  return;
+}
 #endif
 
 /*--------------------------------------------------
@@ -137,7 +145,7 @@ hsocket_module_destroy(void)
 FUNCTION: hsocket_init
 ----------------------------------------------------*/
 herror_t
-hsocket_init(hsocket_t *sock)
+hsocket_init(hsocket_t * sock)
 {
 
   memset(sock, 0, sizeof(hsocket_t));
@@ -150,7 +158,7 @@ hsocket_init(hsocket_t *sock)
 FUNCTION: hsocket_free
 ----------------------------------------------------*/
 void
-hsocket_free(hsocket_t *sock)
+hsocket_free(hsocket_t * sock)
 {
   /* nop */
 
@@ -186,7 +194,8 @@ hsocket_open(hsocket_t * dsock, const char *hostname, int port, int ssl)
   log_verbose4("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
 
   /* connect to the server */
-  if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) != 0)
+  if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) !=
+      0)
     return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT,
                       "Socket error (%s)", strerror(errno));
 
@@ -242,7 +251,7 @@ hsocket_bind(hsocket_t * dsock, int port)
 
 #ifdef WIN32
 static herror_t
-_hsocket_sys_accept(hsocket_t *sock, hsocket_t *dest)
+_hsocket_sys_accept(hsocket_t * sock, hsocket_t * dest)
 {
   socklen_t asize;
   hsocket_t sockfd;
@@ -250,7 +259,8 @@ _hsocket_sys_accept(hsocket_t *sock, hsocket_t *dest)
   asize = sizeof(struct sockaddr_in);
   while (1)
   {
-    sockfd.sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &asize);
+    sockfd.sock =
+      accept(sock->sock, (struct sockaddr *) &(dest->addr), &asize);
     if (sockfd.sock == INVALID_SOCKET)
     {
       if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -269,16 +279,19 @@ _hsocket_sys_accept(hsocket_t *sock, hsocket_t *dest)
 }
 #else
 static herror_t
-_hsocket_sys_accept(hsocket_t *sock, hsocket_t *dest)
+_hsocket_sys_accept(hsocket_t * sock, hsocket_t * dest)
 {
   socklen_t len;
 
   len = sizeof(struct sockaddr_in);
 
-  if ((dest->sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &len)) == -1)
+  if ((dest->sock =
+       accept(sock->sock, (struct sockaddr *) &(dest->addr), &len)) == -1)
   {
     log_warn2("accept failed (%s)", strerror(errno));
-    return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Cannot accept network connection (%s)", strerror(errno));
+    return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT,
+                      "Cannot accept network connection (%s)",
+                      strerror(errno));
   }
 
   return H_OK;
@@ -289,7 +302,7 @@ _hsocket_sys_accept(hsocket_t *sock, hsocket_t *dest)
 FUNCTION: hsocket_accept
 ----------------------------------------------------------*/
 herror_t
-hsocket_accept(hsocket_t *sock, hsocket_t *dest)
+hsocket_accept(hsocket_t * sock, hsocket_t * dest)
 {
   herror_t status;
 
@@ -307,7 +320,8 @@ hsocket_accept(hsocket_t *sock, hsocket_t *dest)
   }
 
   log_verbose3("accepting connection from '%s' socket=%d",
-               SAVE_STR(((char *) inet_ntoa(dest->addr.sin_addr))), dest->sock);
+               SAVE_STR(((char *) inet_ntoa(dest->addr.sin_addr))),
+               dest->sock);
 
   return H_OK;
 }
@@ -316,7 +330,7 @@ hsocket_accept(hsocket_t *sock, hsocket_t *dest)
 FUNCTION: hsocket_listen
 ----------------------------------------------------*/
 herror_t
-hsocket_listen(hsocket_t *sock)
+hsocket_listen(hsocket_t * sock)
 {
   if (sock->sock < 0)
     return herror_new("hsocket_listen", HSOCKET_ERROR_NOT_INITIALIZED,
@@ -334,22 +348,22 @@ hsocket_listen(hsocket_t *sock)
 
 #ifdef WIN32
 static inline void
-_hsocket_sys_close(hsocket_t *sock)
+_hsocket_sys_close(hsocket_t * sock)
 {
   char junk[10];
 
   /* shutdown(sock,SD_RECEIVE); */
 
   shutdown(sock->sock, SD_SEND);
-  while (recv(sock->sock, junk, sizeof(junk), 0) > 0) ;
-    /* nothing */
+  while (recv(sock->sock, junk, sizeof(junk), 0) > 0);
+  /* nothing */
   closesocket(sock->sock);
 
   return;
 }
 #else
 static inline void
-_hsocket_sys_close(hsocket_t *sock)
+_hsocket_sys_close(hsocket_t * sock)
 {
 
   shutdown(sock->sock, SHUT_RDWR);
@@ -364,7 +378,7 @@ _hsocket_sys_close(hsocket_t *sock)
 FUNCTION: hsocket_close
 ----------------------------------------------------*/
 void
-hsocket_close(hsocket_t *sock)
+hsocket_close(hsocket_t * sock)
 {
   log_verbose3("closing socket %p (%d)...", sock, sock->sock);
 
@@ -381,7 +395,7 @@ hsocket_close(hsocket_t *sock)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 herror_t
-hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int n)
+hsocket_nsend(hsocket_t * sock, const byte_t * bytes, int n)
 {
   herror_t status;
   size_t total = 0;
@@ -392,7 +406,7 @@ hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int n)
     return herror_new("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED,
                       "hsocket not initialized");
 
-  /* log_verbose2( "SENDING %s", bytes );*/
+  /* log_verbose2( "SENDING %s", bytes ); */
 
   while (1)
   {
@@ -416,13 +430,34 @@ hsocket_nsend(hsocket_t *sock, const byte_t * bytes, int n)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 herror_t
-hsocket_send(hsocket_t *sock, const char *str)
+hsocket_send(hsocket_t * sock, const char *str)
 {
   return hsocket_nsend(sock, str, strlen(str));
 }
 
+int
+hsocket_select_read(int sock, char *buf, size_t len)
+{
+  struct timeval timeout;
+  fd_set fds;
+  int ret;
+  FD_ZERO(&fds);
+  FD_SET(sock, &fds);
+  timeout.tv_sec = httpd_get_timeout();
+  timeout.tv_usec = 0;
+  ret = select(sock + 1, &fds, NULL, NULL, &timeout);
+  if (ret == 0)
+  {
+    errno = ETIMEDOUT;
+    log_verbose2("Socket %d timeout", sock);
+    return -1;
+  }
+  return read(sock, buf, len);
+}
+
 herror_t
-hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *received)
+hsocket_read(hsocket_t * sock, byte_t * buffer, int total, int force,
+             int *received)
 {
   herror_t status;
   size_t totalRead;
@@ -434,7 +469,9 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
   do
   {
 
-    if ((status = hssl_read(sock, &buffer[totalRead], (size_t)total - totalRead, &count)) != H_OK)
+    if ((status =
+         hssl_read(sock, &buffer[totalRead], (size_t) total - totalRead,
+                   &count)) != H_OK)
     {
       log_warn2("hssl_read failed (%s)", herror_message(status));
       return status;
@@ -442,8 +479,8 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
 
     if (!force)
     {
-      /* log_verbose3("Leaving !force (received=%d)(status=%d)", *received, status);
-      */
+      /* log_verbose3("Leaving !force (received=%d)(status=%d)", *received,
+         status); */
       *received = count;
       return H_OK;
     }
@@ -462,4 +499,3 @@ hsocket_read(hsocket_t *sock, byte_t * buffer, int total, int force, int *receiv
   }
   while (1);
 }
-
