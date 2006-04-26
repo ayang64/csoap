@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.23 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.24 2006/04/26 17:30:29 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -55,45 +55,108 @@ extern "C" {
  ---------------------------------------------------------------*/
 
 /**
-  initialize the httpc_* module
-*/
+ *
+ * Initializes the httpc_* module. This is called from
+ * soap_client_init_args().
+ *
+ * @param argc		Argument count.
+ * @param argv		Argument vector.
+ *
+ * @return H_OK on succes or a herror_t struct on failure.
+ *
+ * @see httpc_destroy, herror_t, soap_client_init_args
+ */
 herror_t httpc_init(int argc, char *argv[]);
 
 /**
-  Destroy the httpc_* module
-*/
-void httpc_destroy();
+ *
+ * Destroys the httpc_* module
+ *
+ * @see httpc_init
+ *
+ */
+void httpc_destroy(void);
 
 /**
-  Creates a new connection
-*/
-httpc_conn_t *httpc_new();
+ *
+ * Creates a new connection.
+ *
+ */
+httpc_conn_t *httpc_new(void);
 
 /**
-  Close and release a connection
-*/
-void httpc_close_free(httpc_conn_t * conn);
-
-/**
-  Release a connection
-  (use httpc_close_free() instead)
-*/
+ *
+ * Release a connection
+ * (use httpc_close_free() instead)
+ *
+ * @see httpc_close_free
+ *
+ */
 void httpc_free(httpc_conn_t * conn);
 
 /**
+ *
  * Close and release a connection
+ *
+ * @see httpc_close, httpc_free
+ *
  */
 void httpc_close_free(httpc_conn_t * conn);
 
 /**
-  Set header element (key,value) pair.
-*/
+ *
+ * Sets header element (key,value) pair.
+ *
+ * @return 0 on success or failure (yeah!), 1 if a (key,value) pair was replaced.
+ *
+ * @see httpc_add_header, httpc_add_headers
+ *
+ */
 int httpc_set_header(httpc_conn_t * conn, const char *key, const char *value);
 
+/**
+ *
+ * Adds a header element (key, value) pair.
+ *
+ * @return 0 on success, -1 on failure.
+ *
+ * @see httpc_set_header, httpc_add_headers
+ *
+ */
 int httpc_add_header(httpc_conn_t *conn, const char *key, const char *value);
+
+/**
+ *
+ * Adds a list of (key, value) pairs.
+ *
+ * @see httpc_set_header, httpc_add_header
+ *
+ */
 void httpc_add_headers(httpc_conn_t *conn, const hpair_t *values);
 
+/**
+ *
+ * Sets a HEADER_AUTHORIZATION header.
+ *
+ * @param conn		The HTTP connection.
+ * @param user		The username.
+ * @param password	The password.
+ *
+ * @see httpc_set_header, HEADER_AUTHORIZATION
+ *
+ */
 int httpc_set_basic_authorization(httpc_conn_t *conn, const char *user, const char *password);
+
+/**
+ *
+ * Sets a HEADER_PROXY_AUTHORIZATION header.
+ *
+ * @param conn		The HTTP connection.
+ * @param user		The username.
+ * @param password	The password.
+ *
+ * @see httpc_set_header, HEADER_PROXY_AUTHORIZATION
+ */
 int httpc_set_basic_proxy_authorization(httpc_conn_t *conn, const char *user, const char *password);
 
 /**
