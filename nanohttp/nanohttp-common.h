@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.28 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.29 2006/04/26 18:01:24 mrcsys Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -47,6 +47,7 @@
 #define NHTTPD_ARG_PORT		"-NHTTPport"
 #define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
 #define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
+#define NHTTPD_ARG_TIMEOUT	"-NHTTPtimeout"
 
 #define NHTTP_ARG_LOGFILE	"-NHTTPlog"
 
