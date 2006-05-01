@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.29 2006/04/26 18:01:24 mrcsys Exp $
+ *  $Id: nanohttp-common.h,v 1.30 2006/05/01 07:30:34 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -27,22 +27,104 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define HEADER_CONTENT_LENGTH		"Content-Length"
-#define HEADER_CONTENT_TYPE		"Content-Type"
 #define HEADER_CONTENT_ID		"Content-Id"
-#define HEADER_CONTENT_LOCATION		"Content-Location"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
-#define HEADER_TRANSFER_ENCODING	"Transfer-Encoding"
+#define TRANSFER_ENCODING_CHUNKED "chunked"
+
+/**
+ *
+ * General Header Fields
+ *
+ * There are a few header fields which have general applicability for both
+ * request and response messages, but which do not apply to the entity being
+ * transferred. These header fields apply only to the message being transmitted. 
+ *
+ */
+#define HEADER_CACHE_CONTROL		"Cache-Control"
 #define HEADER_CONNECTION		"Connection"
+#define HEADER_DATE			"Date"
+#define HEADER_PRAGMA			"Pragma"
+#define HEADER_TRAILER			"Trailer"
+#define HEADER_TRANSFER_ENCODING	"Transfer-Encoding"
+#define HEADER_UPGRADE			"Upgrade"
+#define HEADER_VIA			"Via"
+#define HEADER_WARNING			"Warning"
 
-#define HEADER_HOST		"Host"
-#define HEADER_DATE		"Date"
-#define HEADER_ACCEPT		"Accept"
+/**
+ *
+ * Entity Header Fields
+ *
+ * Entity-header fields define metainformation about the entity-body or, if no
+ * body is present, about the resource identified by the request. Some of this
+ * metainformation is OPTIONAL; some might be REQUIRED by portions of this
+ * specification. (see RFC2616 7.1)
+ *
+ */
+#define HEADER_ALLOW			"Allow"
+#define HEADER_CONTENT_ENCODING		"Content-Encoding"
+#define HEADER_CONTENT_LANGUAGE		"Content-Language"
+#define HEADER_CONTENT_LENGTH		"Content-Length"
+#define HEADER_CONTENT_LOCATION		"Content-Location"
+#define HEADER_CONTENT_MD5		"Content-MD5"
+#define HEADER_CONTENT_RANGE		"Content-Range"
+#define HEADER_CONTENT_TYPE		"Content-Type"
+#define HEADER_EXPIRES			"Expires"
+#define HEADER_LAST_MODIFIED		"Last-Modified"
 
-#define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
+
+/**
+ *
+ * XXX: move to nanohttp-response.h
+ *
+ * Response Header Fields
+ *
+ * The response-header fields allow the server to pass additional information
+ * about the response which cannot be placed in the Status-Line. These header
+ * fields give information about the server and about further access to the
+ * resource identified by the Request-URI. (see RFC2616)
+ *
+ */
+#define HEADER_ACCEPT_RANGES		"Accept-Ranges"
+#define HEADER_AGE			"Age"
+#define HEADER_EXTENSION_TAG		"ETag"
+#define HEADER_LOCATION			"Location"
 #define HEADER_PROXY_AUTHENTICATE	"Proxy-Authenticate"
+#define HEADER_RETRY_AFTER		"Retry-After"
+#define HEADER_SERVER			"Server"
+#define HEADER_VARY			"Vary"
+#define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
+
+/**
+ *
+ * XXX: move to nanohttp-request.h
+ *
+ * Request Header Fields
+ *
+ * The request-header fields allow the client to pass additional information
+ * about the request, and about the client itself, to the server. These fields
+ * act as request modifiers, with semantics equivalent to the parameters on a
+ * programming language method invocation (see RFC2616).
+ *
+ */
+#define HEADER_ACCEPT			"Accept"
+#define HEADER_CHARSET			"Accept-Charset"
+#define HEADER_ACCEPT_ENCODING		"Accept-Encoding"
+#define HEADER_ACCEPT_LANGUAGE		"Accept-Language"
 #define HEADER_AUTHORIZATION		"Authorization"
+#define HEADER_EXPECT			"Expect"
+#define HEADER_FROM			"From"
+#define HEADER_HOST			"Host"
+#define HEADER_IF_MATCH			"If-Match"
+#define HEADER_IF_MODIFIED_SINCE	"If-Modified-Since"
+#define HEADER_IF_NONE_MATCH		"If-None-Match"
+#define HEADER_IF_RANGE			"If-Range"
+#define HEADER_IF_UNMODIFIED_SINCE	"If-Unmodified-Since"
+#define HEADER_IF_MAX_FORWARDS		"Max-Forwards"
 #define HEADER_PROXY_AUTHORIZATION	"Proxy-Authorization"
+#define HEADER_RANGE			"Range"
+#define HEADER_REFERER			"Referer"
+#define HEADER_TRANSFER_EXTENSION	"TE"
+#define HEADER_USER_AGENT		"User-Agent"
 
 #define NHTTPD_ARG_PORT		"-NHTTPport"
 #define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
@@ -59,8 +141,6 @@
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
 #endif
-
-#define TRANSFER_ENCODING_CHUNKED "chunked"
 
 #define BOUNDARY_LENGTH 18
 
