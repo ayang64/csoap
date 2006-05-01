@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.27 2006/04/26 17:48:30 mrcsys Exp $
+ *  $Id: nanohttp-socket.h,v 1.28 2006/05/01 17:51:50 mrcsys Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -25,8 +25,14 @@
 #define NANO_HTTP_SOCKET_H
 
 #include <sys/types.h>
+
+#ifdef HAVE_SOCKET_H
 #include <sys/socket.h>
+#endif
+
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
 
 #include <time.h>
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.57 2006/04/26 17:48:30 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.58 2006/05/01 17:51:50 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -116,7 +116,6 @@ static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 
 static conndata_t *_httpd_connection;
-static pthread_mutex_t _httpd_connection_lock;
 
 static int _httpd_enable_service_list = 0;
 static int _httpd_enable_statistics = 0;
@@ -125,11 +124,14 @@ static int _httpd_enable_statistics = 0;
 static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
 static int _httpd_max_idle = 120;
 static void WSAReaper(void *x);
+HANDLE _httpd_connection_lock;
+LPCTSTR _httpd_connection_lock_str;
 #define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
 #define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #else
 static int _httpd_terminate_signal = SIGINT;
 static sigset_t thrsigset;
+static pthread_mutex_t _httpd_connection_lock;
 #endif
 
 static void
@@ -168,7 +170,11 @@ _httpd_connection_slots_init(void)
 {
   int i;
 
+#ifdef WIN32
+  _httpd_connection_lock = CreateMutex( NULL, TRUE, _httpd_connection_lock_str );
+#else
   pthread_mutex_init(&_httpd_connection_lock, NULL);
+#endif
   _httpd_connection = calloc(_httpd_max_connections, sizeof(conndata_t));
   for (i = 0; i < _httpd_max_connections; i++)
     hsocket_init(&(_httpd_connection[i].sock));
@@ -879,13 +885,21 @@ _httpd_wait_for_empty_conn(void)
 {
   int i;
 
+#ifdef WIN32
+  WaitForSingleObject(_httpd_connection_lock, INFINITE);
+#else
   pthread_mutex_lock(&_httpd_connection_lock);
+#endif
   for (i = 0;; i++)
   {
     if (!_httpd_run)
     {
 
+#ifdef WIN32
+	  ReleaseMutex(_httpd_connection_lock);
+#else
       pthread_mutex_unlock(&_httpd_connection_lock);
+#endif
       return NULL;
     }
 
@@ -900,7 +914,11 @@ _httpd_wait_for_empty_conn(void)
       break;
     }
   }
-  pthread_mutex_unlock(&_httpd_connection_lock);
+#ifdef WIN32
+	  ReleaseMutex(_httpd_connection_lock);
+#else
+      pthread_mutex_unlock(&_httpd_connection_lock);
+#endif
 
   return &_httpd_connection[i];
 }

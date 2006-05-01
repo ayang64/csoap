@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.59 2006/04/26 17:48:29 mrcsys Exp $
+*  $Id: nanohttp-socket.c,v 1.60 2006/05/01 17:51:50 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -69,6 +69,8 @@
 #include "wsockcompat.h"
 #include <winsock2.h>
 #include <process.h>
+
+#define inline
 
 #ifndef __MINGW32__
 typedef int ssize_t;
@@ -253,7 +255,7 @@ hsocket_bind(hsocket_t * dsock, int port)
 static herror_t
 _hsocket_sys_accept(hsocket_t * sock, hsocket_t * dest)
 {
-  socklen_t asize;
+  int asize;
   hsocket_t sockfd;
 
   asize = sizeof(struct sockaddr_in);
@@ -452,7 +454,11 @@ hsocket_select_read(int sock, char *buf, size_t len)
     log_verbose2("Socket %d timeout", sock);
     return -1;
   }
+#ifdef WIN32
+  return recv(sock, buf, len, 0);
+#else
   return read(sock, buf, len);
+#endif
 }
 
 herror_t
