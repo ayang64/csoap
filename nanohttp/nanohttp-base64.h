@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.h,v 1.1 2006/02/19 22:22:41 snowdrop Exp $
+*  $Id: nanohttp-base64.h,v 1.2 2006/05/02 09:12:50 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -28,8 +28,28 @@
 extern "C" {
 #endif
 
+/**
+ *
+ * Base64 encodes a NUL terminated array of characters.
+ *
+ * @param instr		Pointer to the input string.
+ * @param outstr	Pointer to the output destination.
+ *
+ * @see base64_decode
+ *
+ */
 extern void base64_encode(const unsigned char *instr, unsigned char *outstr);
 
+/**
+ *
+ * Base64 decodes a NUL terminated array of characters.
+ *
+ * @param instr		Pointer to the input string.
+ * @param outstr	Pointer to the output destination.
+ *
+ * @see base64_encode
+ *
+ */
 extern void base64_decode(const unsigned char *instr, unsigned char *outstr);
 
 #ifdef __cplusplus
