@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.17 2006/04/26 17:48:30 mrcsys Exp $
+*  $Id: nanohttp-ssl.h,v 1.18 2006/05/15 06:40:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -84,12 +84,7 @@ extern "C"
 
 /* static int verify_cb(int prev_ok, X509_STORE_CTX* ctx); */
 
-/*
- * This function MUST be implemented by user client/server code somewhere
- */
   void hssl_set_user_verify(int func(X509 * cert));
-
-  static int _hssl_dummy_verify_cert(X509 * cert);
 
 #ifdef __cplusplus
 }
@@ -119,6 +114,7 @@ hssl_client_ssl(hsocket_t * sock)
 {
   return H_OK;
 }
+
 static inline herror_t
 hssl_server_ssl(hsocket_t * sock)
 {
@@ -137,7 +133,7 @@ hssl_cleanup(hsocket_t * sock)
 extern "C"
 {
 #endif
-  long hssl_bio_read(BIO * b, char *out, int outl);
+
   herror_t hssl_read(hsocket_t * sock, char *buf, size_t len,
                      size_t * received);
   herror_t hssl_write(hsocket_t * sock, const char *buf, size_t len,

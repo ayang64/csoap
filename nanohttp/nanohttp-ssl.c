@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.25 2006/04/26 17:48:30 mrcsys Exp $
+*  $Id: nanohttp-ssl.c,v 1.26 2006/05/15 06:40:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -84,6 +84,7 @@ static SSL_CTX *context = NULL;
 
 static int enabled = 0;
 
+static int _hssl_dummy_verify_cert(X509 * cert);
 int (*_hssl_verify_cert) (X509 * cert) = _hssl_dummy_verify_cert;
 
 static void
@@ -442,8 +443,8 @@ hssl_client_ssl(hsocket_t * sock)
   return H_OK;
 }
 
-long
-hssl_bio_read(BIO * b, char *out, int outl)
+static int
+_hssl_bio_read(BIO * b, char *out, int outl)
 {
 
   return hsocket_select_read(b->num, out, outl);;
@@ -477,7 +478,7 @@ hssl_server_ssl(hsocket_t * sock)
     return NULL;
   }
   // BIO_set_callback(sbio, hssl_bio_cb);
-  sbio->method->bread = hssl_bio_read;
+  sbio->method->bread = _hssl_bio_read;
   SSL_set_bio(ssl, sbio, sbio);
 
 
