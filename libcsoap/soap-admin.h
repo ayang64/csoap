@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-admin.h,v 1.1 2006/03/29 08:35:55 m0gg Exp $
+ *  $Id: soap-admin.h,v 1.2 2006/05/15 06:45:07 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,8 @@
  ******************************************************************/
 #ifndef cSOAP_ADMIN_H
 #define cSOAP_ADMIN_H
+
+#define CSOAP_ENABLE_ADMIN	"-CSOAPadmin"
 
 #ifdef __cplusplus
 extern "C" {

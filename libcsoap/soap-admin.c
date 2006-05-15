@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.3 2006/03/29 08:49:59 m0gg Exp $
+*  $Id: soap-admin.c,v 1.4 2006/05/15 06:45:07 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -162,10 +162,20 @@ _soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
 }
 
 
-herror_t soap_admin_init_args(int argc, char **argv)
+herror_t
+soap_admin_init_args(int argc, char **argv)
 {
 
-  httpd_register("/csoap", _soap_admin_entry);
+  int i;
+
+  for (i=0; i<argc; i++) {
+
+    if (!strcmp(argv[i], CSOAP_ENABLE_ADMIN)) {
+
+      httpd_register("/csoap", _soap_admin_entry);
+      break;
+    }
+  }
 
   return H_OK;
 }
