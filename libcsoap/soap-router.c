@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.8 2006/03/07 16:22:24 m0gg Exp $
+*  $Id: soap-router.c,v 1.9 2006/05/15 06:41:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -69,6 +69,14 @@ soap_router_register_service(SoapRouter * router,
     router->service_tail->next = soap_service_node_new(service, NULL);
     router->service_tail = router->service_tail->next;
   }
+
+  return;
+}
+
+void
+soap_router_register_security(SoapRouter * router, httpd_auth auth)
+{
+  router->auth = auth;
 
   return;
 }

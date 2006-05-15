@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.23 2006/04/13 06:22:29 m0gg Exp $
+*  $Id: soap-server.c,v 1.24 2006/05/15 06:41:34 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -405,7 +405,7 @@ int
 soap_server_register_router(SoapRouter * router, const char *context)
 {
 
-  if (!httpd_register(context, soap_server_entry))
+  if (!httpd_register_secure(context, soap_server_entry, router->auth))
   {
     return 0;
   }
