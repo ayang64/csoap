@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.26 2006/05/15 06:40:47 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.27 2006/05/15 13:54:25 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -524,7 +524,7 @@ hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
 
   if (sock->ssl)
   {
-    if ((count = SSL_read(sock->ssl, buf, len)) == -1)
+    if ((count = SSL_read(sock->ssl, buf, len)) < 1)
       return herror_new("SSL_read", HSOCKET_ERROR_RECEIVE,
                         "SSL_read failed (%s)", _hssl_get_error(sock->ssl,
                                                                 count));

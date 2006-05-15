@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.58 2006/05/01 17:51:50 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.59 2006/05/15 13:54:25 mrcsys Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -646,7 +646,7 @@ httpd_session_main(void *data)
   done = 0;
   while (!done)
   {
-    log_verbose2("starting HTTP request on socket %d", conn->sock);
+    log_verbose3("starting HTTP request on socket %p (%d)", conn->sock, conn->sock.sock);
 
     /* XXX: only used in WSAreaper */
     conn->atime = time(NULL);
