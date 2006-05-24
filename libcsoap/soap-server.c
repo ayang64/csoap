@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.24 2006/05/15 06:41:34 m0gg Exp $
+*  $Id: soap-server.c,v 1.25 2006/05/24 15:18:52 mrcsys Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -123,7 +123,7 @@ _soap_server_send_ctx(httpd_conn_t * conn, SoapCtx * ctx)
   char strbuffer[32];
   part_t *part;
 
-  if (ctx->env == NULL || ctx->env->root == NULL)
+  if (ctx->env == NULL || ctx->env->root == NULL || ctx->env->root->doc == NULL)
     return;
 
   xmlThrDefIndentTreeOutput(1);
