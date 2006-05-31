@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.20 2006/04/26 17:48:30 mrcsys Exp $
+ *  $Id: nanohttp-server.h,v 1.21 2006/05/31 19:39:34 mrcsys Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -89,6 +89,7 @@ extern "C"
   void httpd_set_timeout(int t);
 
   const char *httpd_get_protocol(void);
+  int httpd_get_conncount(void);
 
   hservice_t *httpd_services(void);
 
