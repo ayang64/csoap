@@ -7,15 +7,30 @@ dnl AM_PATH_CSOAP([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for CSOAP, and define CSOAP_CFLAGS and CSOAP_LIBS
 dnl
 AC_DEFUN([AM_PATH_CSOAP],[
-AC_ARG_WITH(csoap-prefix,
-            [  --with-csoap-prefix=PFX   Prefix where libcsoap is installed (optional)],
-            csoap_config_prefix="$withval", csoap_config_prefix="")
-AC_ARG_WITH(csoap-exec-prefix,
-            [  --with-csoap-exec-prefix=PFX Exec prefix where libcsoap is installed (optional)],
-            csoap_config_exec_prefix="$withval", csoap_config_exec_prefix="")
-AC_ARG_ENABLE(csoaptest,
-              [  --disable-csoaptest       Do not try to compile and run a test LIBCSOAP program],,
-              enable_csoaptest=yes)
+
+  AC_ARG_WITH(csoap-prefix,
+    AC_HELP_STRING(
+      [--with-csoap-prefix=PFX],
+      [Prefix where libcsoap is installed (optional)]
+    ),
+    csoap_config_prefix="$withval", csoap_config_prefix=""
+  )
+
+  AC_ARG_WITH(csoap-exec-prefix,
+    AC_HELP_STRING(
+      [--with-csoap-exec-prefix=PFX],
+      [Exec prefix where libcsoap is installed (optional)]
+    ),
+    csoap_config_exec_prefix="$withval", csoap_config_exec_prefix=""
+  )
+
+  AC_ARG_ENABLE(csoaptest,
+    AC_HELP_STRING(
+      [--disable-csoaptest],
+      [Do not try to compile and run a test cSOAP program]
+    ),,
+    enable_csoaptest=yes
+  )
 
   if test x$csoap_config_exec_prefix != x ; then
      csoap_config_args="$csoap_config_args --exec-prefix=$csoap_config_exec_prefix"
