@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.10 2006/02/27 22:26:02 snowdrop Exp $
+*  $Id: soap-xml.c,v 1.11 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <nanohttp/nanohttp-logging.h>
 
 #include "soap-xml.h"
 

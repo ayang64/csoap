@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.61 2006/05/31 19:39:34 mrcsys Exp $
+*  $Id: nanohttp-server.c,v 1.62 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -77,6 +77,7 @@
 #include <utils/alloc.h>
 #endif
 
+#include "nanohttp-logging.h"
 #include "nanohttp-server.h"
 #include "nanohttp-base64.h"
 #include "nanohttp-ssl.h"

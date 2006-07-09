@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.18 2006/02/27 22:26:01 snowdrop Exp $
+ * $Id: simpleserver.c,v 1.19 2006/07/09 16:24:19 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,6 +21,7 @@
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 
+#include <nanohttp/nanohttp-logging.h>
 #include <libcsoap/soap-server.h>
 
 
@@ -66,7 +67,7 @@ main(int argc, char *argv[])
   herror_t err;
   SoapRouter *router;
 
-  log_set_level(HLOG_INFO);
+  hlog_set_level(HLOG_INFO);
 
   err = soap_server_init_args(argc, argv);
   if (err != H_OK)

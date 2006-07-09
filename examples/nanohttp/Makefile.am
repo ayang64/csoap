@@ -1,4 +1,4 @@
-LDADD=../../nanohttp/libnanohttp.la -lpthread
+LDADD=../../nanohttp/libnanohttp.la
 INCLUDES=-I${top_srcdir}
 
 noinst_PROGRAMS=http_server http_client

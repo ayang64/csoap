@@ -1,4 +1,4 @@
-LDADD=../../nanohttp/libnanohttp.la ../../libcsoap/libcsoap.la -lpthread
+LDADD=../../nanohttp/libnanohttp.la ../../libcsoap/libcsoap.la
 INCLUDES=-I${top_srcdir}
 
 noinst_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server

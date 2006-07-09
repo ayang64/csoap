@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.25 2006/05/24 15:18:52 mrcsys Exp $
+*  $Id: soap-server.c,v 1.26 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,6 +37,7 @@
 #define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #endif
 
+#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-server.h>
 
 #include "soap-admin.h"

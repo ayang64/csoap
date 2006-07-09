@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.29 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.30 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -54,6 +54,7 @@
 #endif
 
 #include "nanohttp-common.h"
+#include "nanohttp-logging.h"
 
 static int
 strcmpigcase(const char *s1, const char *s2)
@@ -77,24 +78,6 @@ strcmpigcase(const char *s1, const char *s2)
 
   return 1;
 }
-
-#ifdef WIN32
-#ifndef __MINGW32__
-
-/* not thread safe!*/
-char *
-VisualC_funcname(const char *file, int line)
-{
-  static char buffer[256];
-  int i = strlen(file) - 1;
-  while (i > 0 && file[i] != '\\')
-    i--;
-  sprintf(buffer, "%s:%d", (file[i] != '\\') ? file : (file + i + 1), line);
-  return buffer;
-}
-
-#endif
-#endif
 
 typedef struct _herror_impl_t
 {
@@ -154,143 +137,6 @@ herror_release(herror_t err)
     return;
   free(impl);
 }
-
-
-
-static log_level_t loglevel = HLOG_DEBUG;
-static char logfile[75] = { '\0' };
-static int log_background = 0;
-
-log_level_t
-log_set_level(log_level_t level)
-{
-  log_level_t old = loglevel;
-  loglevel = level;
-  return old;
-}
-
-
-log_level_t
-log_get_level()
-{
-  return loglevel;
-}
-
-
-void
-log_set_file(const char *filename)
-{
-  if (filename)
-    strncpy(logfile, filename, 75);
-  else
-    logfile[0] = '\0';
-}
-
-void
-log_set_background(int state)
-{
-  log_background = state;
-}
-
-char *
-log_get_file()
-{
-  if (logfile[0] == '\0')
-    return NULL;
-  return logfile;
-}
-
-static void
-log_write(log_level_t level, const char *prefix,
-          const char *func, const char *format, va_list ap)
-{
-  char buffer[1054];
-  char buffer2[1054];
-  FILE *f;
-
-  if (level < loglevel)
-    return;
-
-  if (!log_background || log_get_file())
-  {
-#ifdef WIN32
-    sprintf(buffer, "*%s*: [%s] %s\n", prefix, func, format);
-#else
-    sprintf(buffer, "*%s*:(%ld) [%s] %s\n",
-            prefix, pthread_self(), func, format);
-#endif
-    vsprintf(buffer2, buffer, ap);
-    if (!log_background)
-    {
-      printf(buffer2);
-      fflush(stdout);
-    }
-
-    if (log_get_file())
-    {
-      f = fopen(log_get_file(), "a");
-      if (!f)
-        f = fopen(log_get_file(), "w");
-      if (f)
-      {
-        fprintf(f, buffer2);
-        fflush(f);
-        fclose(f);
-      }
-    }
-  }
-}
-
-void
-log_verbose(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  log_write(HLOG_VERBOSE, "VERBOSE", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-log_debug(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  log_write(HLOG_DEBUG, "DEBUG", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-log_info(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  log_write(HLOG_INFO, "INFO", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-log_warn(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  log_write(HLOG_WARN, "WARN", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-log_error(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  log_write(HLOG_ERROR, "ERROR", FUNC, format, ap);
-  va_end(ap);
-}
-
 
 
 hpair_t *

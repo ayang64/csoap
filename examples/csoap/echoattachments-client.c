@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.10 2006/01/10 11:29:04 snowdrop Exp $
+ * $Id: echoattachments-client.c,v 1.11 2006/07/09 16:24:19 snowdrop Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,9 +21,9 @@
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
 
+#include <nanohttp/nanohttp-logging.h>
+
 #include <libcsoap/soap-client.h>
-
-
 
 
 static const char *urn = "urn:examples";

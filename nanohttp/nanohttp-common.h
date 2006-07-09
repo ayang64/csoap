@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.30 2006/05/01 07:30:34 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.31 2006/07/09 16:24:19 snowdrop Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,7 +29,7 @@
 
 #define HEADER_CONTENT_ID		"Content-Id"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
-#define TRANSFER_ENCODING_CHUNKED "chunked"
+#define TRANSFER_ENCODING_CHUNKED	"chunked"
 
 /**
  *
@@ -38,6 +38,7 @@
  * There are a few header fields which have general applicability for both
  * request and response messages, but which do not apply to the entity being
  * transferred. These header fields apply only to the message being transmitted. 
+ * (see RFC2616)
  *
  */
 #define HEADER_CACHE_CONTROL		"Cache-Control"
@@ -126,12 +127,15 @@
 #define HEADER_TRANSFER_EXTENSION	"TE"
 #define HEADER_USER_AGENT		"User-Agent"
 
+/**
+ *
+ * nanohttp command line flags
+ *
+ */
 #define NHTTPD_ARG_PORT		"-NHTTPport"
 #define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
 #define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
 #define NHTTPD_ARG_TIMEOUT	"-NHTTPtimeout"
-
-#define NHTTP_ARG_LOGFILE	"-NHTTPlog"
 
 #define NHTTP_ARG_CERT		"-NHTTPcert"
 #define NHTTP_ARG_CERTPASS	"-NHTTPcertpass"
@@ -180,49 +184,49 @@
 #define FILE_ERROR_READ 8001
 
 /* Socket errors */
-#define HSOCKET_ERROR_CREATE 1001
-#define HSOCKET_ERROR_GET_HOSTNAME 1002
-#define HSOCKET_ERROR_CONNECT 1003
-#define HSOCKET_ERROR_SEND 1004
-#define HSOCKET_ERROR_RECEIVE 1005
-#define HSOCKET_ERROR_BIND 1006
-#define HSOCKET_ERROR_LISTEN 1007
-#define HSOCKET_ERROR_ACCEPT 1008
-#define HSOCKET_ERROR_NOT_INITIALIZED 1009
-#define HSOCKET_ERROR_IOCTL 1010
-#define HSOCKET_ERROR_SSLCLOSE 1011
-#define HSOCKET_ERROR_SSLCTX 1011
+#define HSOCKET_ERROR_CREATE		1001
+#define HSOCKET_ERROR_GET_HOSTNAME	1002
+#define HSOCKET_ERROR_CONNECT		1003
+#define HSOCKET_ERROR_SEND		1004
+#define HSOCKET_ERROR_RECEIVE		1005
+#define HSOCKET_ERROR_BIND		1006
+#define HSOCKET_ERROR_LISTEN		1007
+#define HSOCKET_ERROR_ACCEPT		1008
+#define HSOCKET_ERROR_NOT_INITIALIZED	1009
+#define HSOCKET_ERROR_IOCTL		1010
+#define HSOCKET_ERROR_SSLCLOSE		1011
+#define HSOCKET_ERROR_SSLCTX		1011
 
 /* URL errors */
-#define URL_ERROR_UNKNOWN_PROTOCOL 1101
-#define URL_ERROR_NO_PROTOCOL 1102
-#define URL_ERROR_NO_HOST 1103
+#define URL_ERROR_UNKNOWN_PROTOCOL	1101
+#define URL_ERROR_NO_PROTOCOL		1102
+#define URL_ERROR_NO_HOST		1103
 
 /* Stream errors */
-#define STREAM_ERROR_INVALID_TYPE 1201
-#define STREAM_ERROR_SOCKET_ERROR 1202
-#define STREAM_ERROR_NO_CHUNK_SIZE 1203
-#define STREAM_ERROR_WRONG_CHUNK_SIZE 1204
+#define STREAM_ERROR_INVALID_TYPE	1201
+#define STREAM_ERROR_SOCKET_ERROR	1202
+#define STREAM_ERROR_NO_CHUNK_SIZE	1203
+#define STREAM_ERROR_WRONG_CHUNK_SIZE	1204
 
 
 /* MIME errors */
-#define MIME_ERROR_NO_BOUNDARY_PARAM   1301
-#define MIME_ERROR_NO_START_PARAM      1302
-#define MIME_ERROR_PARSE_ERROR         1303
-#define MIME_ERROR_NO_ROOT_PART        1304
-#define MIME_ERROR_NOT_MIME_MESSAGE    1305
+#define MIME_ERROR_NO_BOUNDARY_PARAM	1301
+#define MIME_ERROR_NO_START_PARAM	1302
+#define MIME_ERROR_PARSE_ERROR		1303
+#define MIME_ERROR_NO_ROOT_PART		1304
+#define MIME_ERROR_NOT_MIME_MESSAGE	1305
 
 
 /* General errors */
-#define GENERAL_INVALID_PARAM	1400
+#define GENERAL_INVALID_PARAM		1400
 #define GENERAL_HEADER_PARSE_ERROR	1401
 
 /* Thread errors */
-#define THREAD_BEGIN_ERROR 1500
+#define THREAD_BEGIN_ERROR		1500
 
 /* XML Errors */
-#define XML_ERROR_EMPTY_DOCUMENT 1600
-#define XML_ERROR_PARSE 1601
+#define XML_ERROR_EMPTY_DOCUMENT	1600
+#define XML_ERROR_PARSE			1601
 
 /* SSL Errors */
 #define HSSL_ERROR_CA_LIST		1710
@@ -259,7 +263,14 @@ typedef enum _http_version
 typedef enum _hreq_method
 {
   HTTP_REQUEST_POST,
-  HTTP_REQUEST_GET
+  HTTP_REQUEST_GET,
+  HTTP_REQUEST_OPTIONS,
+  HTTP_REQUEST_HEAD,
+  HTTP_REQUEST_PUT,
+  HTTP_REQUEST_DELETE,
+  HTTP_REQUEST_TRACE,
+  HTTP_REQUEST_CONNECT,
+  HTTP_REQUEST_UNKOWN
 } hreq_method_t;
 
 
@@ -546,69 +557,6 @@ attachments_t *attachments_new();       /* should be used internally */
 */
 void attachments_free(attachments_t * message);
 void attachments_add_part(attachments_t * attachments, part_t * part);
-
-
-/* logging stuff */
-typedef enum log_level
-{
-  HLOG_VERBOSE,
-  HLOG_DEBUG,
-  HLOG_INFO,
-  HLOG_WARN,
-  HLOG_ERROR,
-  HLOG_FATAL
-} log_level_t;
-
-
-
-log_level_t log_set_level(log_level_t level);
-log_level_t log_get_level();
-
-void log_set_file(const char *filename);
-char *log_get_file();
-
-#ifdef WIN32
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-char *VisualC_funcname(const char *file, int line);     /* not thread safe! */
-#define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
-#endif
-#endif
-
-#define log_verbose1(a1) log_verbose(__FUNCTION__, a1)
-#define log_verbose2(a1,a2) log_verbose(__FUNCTION__, a1,a2)
-#define log_verbose3(a1,a2,a3) log_verbose(__FUNCTION__, a1,a2,a3)
-#define log_verbose4(a1,a2,a3,a4) log_verbose(__FUNCTION__, a1,a2,a3,a4)
-#define log_verbose5(a1,a2,a3,a4,a5) log_verbose(__FUNCTION__, a1,a2,a3,a4,a5)
-
-#define log_debug1(a1) log_debug(__FUNCTION__, a1)
-#define log_debug2(a1,a2) log_debug(__FUNCTION__, a1,a2)
-#define log_debug3(a1,a2,a3) log_debug(__FUNCTION__, a1,a2,a3)
-#define log_debug4(a1,a2,a3,a4) log_debug(__FUNCTION__, a1,a2,a3,a4)
-#define log_debug5(a1,a2,a3,a4,a5) log_debug(__FUNCTION__, a1,a2,a3,a4,a5)
-
-#define log_info1(a1) log_info(__FUNCTION__, a1)
-#define log_info2(a1,a2) log_info(__FUNCTION__, a1,a2)
-#define log_info3(a1,a2,a3) log_info(__FUNCTION__, a1,a2,a3)
-#define log_info4(a1,a2,a3,a4) log_info(__FUNCTION__, a1,a2,a3,a4)
-#define log_info5(a1,a2,a3,a4,a5) log_info(__FUNCTION__, a1,a2,a3,a4,a5)
-
-#define log_warn1(a1) log_warn(__FUNCTION__, a1)
-#define log_warn2(a1,a2) log_warn(__FUNCTION__, a1,a2)
-#define log_warn3(a1,a2,a3) log_warn(__FUNCTION__, a1,a2,a3)
-#define log_warn4(a1,a2,a3,a4) log_warn(__FUNCTION__, a1,a2,a3,a4)
-#define log_warn5(a1,a2,a3,a4,a5) log_warn(__FUNCTION__, a1,a2,a3,a4,a5)
-
-#define log_error1(a1) log_error(__FUNCTION__, a1)
-#define log_error2(a1,a2) log_error(__FUNCTION__, a1,a2)
-#define log_error3(a1,a2,a3) log_error(__FUNCTION__, a1,a2,a3)
-#define log_error4(a1,a2,a3,a4) log_error(__FUNCTION__, a1,a2,a3,a4)
-#define log_error5(a1,a2,a3,a4,a5) log_error(__FUNCTION__, a1,a2,a3,a4,a5)
-
-void log_verbose(const char *FUNC, const char *format, ...);
-void log_debug(const char *FUNC, const char *format, ...);
-void log_info(const char *FUNC, const char *format, ...);
-void log_warn(const char *FUNC, const char *format, ...);
-void log_error(const char *FUNC, const char *format, ...);
 
 #ifdef __cplusplus
 }

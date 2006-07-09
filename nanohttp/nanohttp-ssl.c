@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.27 2006/05/15 13:54:25 mrcsys Exp $
+*  $Id: nanohttp-ssl.c,v 1.28 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -71,6 +71,7 @@
 #endif
 #endif
 
+#include "nanohttp-logging.h"
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-ssl.h"

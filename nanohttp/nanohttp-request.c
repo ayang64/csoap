@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.13 2006/03/07 16:20:37 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.14 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,6 +41,7 @@
 #include <utils/alloc.h>
 #endif
 
+#include "nanohttp-logging.h"
 #include "nanohttp-common.h"
 #include "nanohttp-request.h"
 
@@ -108,8 +109,22 @@ _hrequest_parse_header(char *data)
       {
         if (!strcmp(key, "POST"))
           req->method = HTTP_REQUEST_POST;
-        else
+        else if (!strcmp(key, "GET"))
           req->method = HTTP_REQUEST_GET;
+	else if (!strcmp(key, "OPTIONS"))
+          req->method = HTTP_REQUEST_OPTIONS;
+	else if (!strcmp(key, "HEAD"))
+          req->method = HTTP_REQUEST_HEAD;
+        else if (!strcmp(key, "PUT"))
+          req->method = HTTP_REQUEST_PUT;
+        else if (!strcmp(key, "DELETE"))
+          req->method = HTTP_REQUEST_DELETE;
+        else if (!strcmp(key, "TRACE"))
+          req->method = HTTP_REQUEST_TRACE;
+        else if (!strcmp(key, "CONNECT"))
+          req->method = HTTP_REQUEST_CONNECT;
+        else
+          req->method = HTTP_REQUEST_UNKOWN;
       }
       /* below is key the path and tmp2 the spec */
       key = (char *) strtok_r(tmp2, " ", &saveptr2);

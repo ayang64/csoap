@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+
+#include <nanohttp/nanohttp-logging.h>
 #include <libcsoap/soap-client.h>
 
 #define MAX_LINE_LENGTH 65535

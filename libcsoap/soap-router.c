@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.9 2006/05/15 06:41:33 m0gg Exp $
+*  $Id: soap-router.c,v 1.10 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -32,6 +32,8 @@
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
+
+#include <nanohttp/nanohttp-logging.h>
 
 #include "soap-router.h"
 

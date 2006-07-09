@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.19 2006/03/15 15:11:47 m0gg Exp $
+*  $Id: soap-env.c,v 1.20 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,9 +41,6 @@
 #include <errno.h>
 #endif
 
-#include "soap-xml.h"
-#include "soap-env.h"
-
 #ifdef WIN32
 #define USE_XMLSTRING
 #endif
@@ -51,6 +48,11 @@
 #ifdef USE_XMLSTRING
 #include <libxml/xmlstring.h>
 #endif
+
+#include <nanohttp/nanohttp-logging.h>
+
+#include "soap-xml.h"
+#include "soap-env.h"
 
 /*
 Parameters:

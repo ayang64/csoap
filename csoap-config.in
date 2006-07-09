@@ -59,7 +59,7 @@ while test $# -gt 0; do
 			;;
 
 		--version)
-			echo @csoap_version_dotted@
+			echo @csoap_major@.@csoap_minor@.@csoap_patch@
 			exit 0
 			;;
 
@@ -68,11 +68,11 @@ while test $# -gt 0; do
 			;;
 
 		--cflags)
-			echo @XML_CPPFLAGS@ -I${includedir}/libcsoap-$relcsoap -I${includedir}/nanohttp-$relnanohttp
+			echo -I${includedir}/libcsoap-$relcsoap -I${includedir}/nanohttp-$relnanohttp @XML_CPPFLAGS@ @PTHREAD_CFLAGS@
 		 	;;
 
 		--libs)
-			echo -L${libdir} -lcsoap -lnanohttp @XML_LIBS@
+			echo -L${libdir} -lcsoap -lnanohttp @XML_LIBS@ @PTHREAD_LIBS@
 			;;
 		*)
 			usage

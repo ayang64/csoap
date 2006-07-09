@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.26 2006/03/07 16:21:47 m0gg Exp $
+*  $Id: soap-client.c,v 1.27 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,6 +33,7 @@
 #include <stdio.h>
 #endif
 
+#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-client.h>
 
 #include "soap-client.h"

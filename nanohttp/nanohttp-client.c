@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.40 2006/03/06 13:37:38 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.41 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -52,6 +52,7 @@
 #include "nanohttp-client.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-base64.h"
+#include "nanohttp-logging.h"
 
 /*--------------------------------------------------
 FUNCTION: httpc_init
@@ -94,7 +95,7 @@ httpc_new(void)
 
   if ((status = hsocket_init(&res->sock)) != H_OK)
   {
-    log_warn("hsocket_init failed (%s)", herror_message(status));
+    log_warn2("hsocket_init failed (%s)", herror_message(status));
     return NULL;
   }
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.1 2006/03/06 13:30:30 m0gg Exp $
+*  $Id: http_client.c,v 1.2 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-client.h>
 
 #define MAX_BUFFER_SIZE 1024
@@ -103,7 +104,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Set log level to see more information written by the library */
-	log_set_level(HLOG_INFO);
+	hlog_set_level(HLOG_INFO);
 
 	/* Initialize httpc module */
 	if (httpc_init(argc, argv)) {

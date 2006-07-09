@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.3 2006/04/21 08:40:37 m0gg Exp $
+*  $Id: http_server.c,v 1.4 2006/07/09 16:24:19 snowdrop Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-server.h>
 
 static int simple_authenticator(hrequest_t *req, const char *user, const char *password)
@@ -141,7 +142,7 @@ static void root_service(httpd_conn_t *conn, hrequest_t *req)
 
 int main(int argc, char *argv[])
 {
-	log_set_level(HLOG_INFO);
+	hlog_set_level(HLOG_INFO);
 
 	if (httpd_init(argc, argv)) {
 
