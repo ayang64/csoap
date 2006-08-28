@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-logging.h,v 1.1 2006/07/09 16:22:52 snowdrop Exp $
+ *  $Id: nanohttp-logging.h,v 1.2 2006/08/28 10:39:52 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -102,9 +102,5 @@ extern void hlog_error(const char *FUNC, const char *format, ...);
 #define log_error3(a1,a2,a3) hlog_error(__FUNCTION__, a1,a2,a3)
 #define log_error4(a1,a2,a3,a4) hlog_error(__FUNCTION__, a1,a2,a3,a4)
 #define log_error5(a1,a2,a3,a4,a5) hlog_error(__FUNCTION__, a1,a2,a3,a4,a5)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
