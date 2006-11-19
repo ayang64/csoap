@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.14 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-request.c,v 1.15 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -37,12 +41,14 @@
 #include <errno.h>
 #endif
 
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
 #include "nanohttp-logging.h"
 #include "nanohttp-common.h"
+#include "nanohttp-socket.h"
+#include "nanohttp-stream.h"
 #include "nanohttp-request.h"
 
 static hrequest_t *
@@ -52,9 +58,18 @@ hrequest_new(void)
  
   if (!(req = (hrequest_t *) malloc(sizeof(hrequest_t)))) {
 
-	  log_error2("malloc failed (%s)", strerror(errno));
-	  return NULL;
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
   }
+
+  if (!(req->statistics = (struct request_statistics *)malloc(sizeof(struct request_statistics)))) {
+
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(req);
+    return NULL;
+  }
+  if (gettimeofday(&(req->statistics->time), NULL) < 0)
+    log_error2("gettimeofday failed (%s)", strerror(errno));
 
   req->method = HTTP_REQUEST_GET;
   req->version = HTTP_1_1;
@@ -254,6 +269,9 @@ hrequest_free(hrequest_t * req)
 
   if (req->attachments)
     attachments_free(req->attachments);
+
+  if (req->statistics)
+    free(req->statistics);
 
   free(req);
 

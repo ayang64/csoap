@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.18 2006/05/15 06:40:47 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.19 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -21,8 +21,8 @@
 *
 * Author: Matt Campbell
 ******************************************************************/
-#ifndef __NANOHTTP_SSL_H_
-#define __NANOHTTP_SSL_H_
+#ifndef __nanohttp_ssl_h
+#define __nanohttp_ssl_h
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -50,6 +50,7 @@ extern "C"
   void hssl_set_certificate(char *c);
   void hssl_set_certpass(char *c);
   void hssl_set_ca(char *c);
+
   void hssl_enable(void);
 
   int hssl_enabled(void);

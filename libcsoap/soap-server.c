@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.26 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: soap-server.c,v 1.27 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,14 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -33,12 +41,21 @@
 #include <errno.h>
 #endif
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
 #ifdef WIN32
 #define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
 #endif
 
-#include <nanohttp/nanohttp-logging.h>
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-server.h>
+#include <nanohttp/nanohttp-logging.h>
 
 #include "soap-admin.h"
 #include "soap-server.h"

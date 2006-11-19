@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.13 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-stream.c,v 1.14 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,6 +29,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -37,20 +41,18 @@
 #include <errno.h>
 #endif
 
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
+#include "nanohttp-common.h"
+#include "nanohttp-socket.h"
 #include "nanohttp-logging.h"
 #include "nanohttp-stream.h"
 
-/*
--------------------------------------------------------------------
-
+/*------------------------------------------------------------
 HTTP INPUT STREAM
-
--------------------------------------------------------------------
-*/
+------------------------------------------------------------*/
 
 static int
 _http_stream_is_content_length(hpair_t * header)
@@ -200,8 +202,7 @@ _http_input_stream_is_file_ready(http_input_stream_t * stream)
 }
 
 static int
-_http_input_stream_content_length_read(http_input_stream_t * stream,
-                                       byte_t * dest, int size)
+_http_input_stream_content_length_read(http_input_stream_t * stream, unsigned char *dest, int size)
 {
   herror_t status;
   int read;
@@ -211,8 +212,7 @@ _http_input_stream_content_length_read(http_input_stream_t * stream,
     size = stream->content_length - stream->received;
 
   /* read from socket */
-  status = hsocket_read(stream->sock, dest, size, 1, &read);
-  if (status != H_OK)
+  if ((status = hsocket_read(stream->sock, dest, size, 1, &read)) != H_OK)
   {
     stream->err = status;
     return -1;
@@ -282,7 +282,7 @@ _http_input_stream_chunked_read_chunk_size(http_input_stream_t * stream)
 }
 
 static int
-_http_input_stream_chunked_read(http_input_stream_t * stream, byte_t * dest,
+_http_input_stream_chunked_read(http_input_stream_t * stream, unsigned char *dest,
                                 int size)
 {
   int status, counter;
@@ -387,7 +387,7 @@ _http_input_stream_chunked_read(http_input_stream_t * stream, byte_t * dest,
 
 static int
 _http_input_stream_connection_closed_read(http_input_stream_t * stream,
-                                          byte_t * dest, int size)
+                                          unsigned char *dest, int size)
 {
   int status;
   herror_t err;
@@ -407,8 +407,7 @@ _http_input_stream_connection_closed_read(http_input_stream_t * stream,
 }
 
 static int
-_http_input_stream_file_read(http_input_stream_t * stream, byte_t * dest,
-                             int size)
+_http_input_stream_file_read(http_input_stream_t * stream, unsigned char *dest, int size)
 {
   size_t len;
 
@@ -456,7 +455,7 @@ http_input_stream_is_ready(http_input_stream_t * stream)
   <0 on error
 */
 int
-http_input_stream_read(http_input_stream_t * stream, byte_t * dest, int size)
+http_input_stream_read(http_input_stream_t * stream, unsigned char *dest, int size)
 {
   int len = 0;
   /* paranoia check */
@@ -569,7 +568,7 @@ http_output_stream_free(http_output_stream_t * stream)
 */
 herror_t
 http_output_stream_write(http_output_stream_t * stream,
-                         const byte_t * bytes, int size)
+                         const unsigned char *bytes, int size)
 {
   herror_t status;
   char chunked[15];

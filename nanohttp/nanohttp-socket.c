@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.61 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-socket.c,v 1.62 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -70,8 +70,6 @@
 #include <winsock2.h>
 #include <process.h>
 
-#define inline
-
 #ifndef __MINGW32__
 typedef int ssize_t;
 #endif
@@ -81,17 +79,13 @@ typedef int ssize_t;
 
 #endif
 
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
-#endif
-
 #include "nanohttp-logging.h"
-#include "nanohttp-socket.h"
 #include "nanohttp-common.h"
+#include "nanohttp-socket.h"
 #include "nanohttp-ssl.h"
 
 #ifdef WIN32
-static inline void
+static void
 _hsocket_module_sys_init(int argc, char **argv)
 {
   struct WSAData info;
@@ -100,7 +94,7 @@ _hsocket_module_sys_init(int argc, char **argv)
   return;
 }
 
-static inline void
+static void
 _hsocket_module_sys_destroy(void)
 {
   WSACleanup();
@@ -150,7 +144,6 @@ FUNCTION: hsocket_init
 herror_t
 hsocket_init(hsocket_t * sock)
 {
-
   memset(sock, 0, sizeof(hsocket_t));
   sock->sock = HSOCKET_FREE;
 
@@ -220,7 +213,7 @@ hsocket_open(hsocket_t * dsock, const char *hostname, int port, int ssl)
 FUNCTION: hsocket_bind
 ----------------------------------------------------*/
 herror_t
-hsocket_bind(hsocket_t * dsock, int port)
+hsocket_bind(hsocket_t * dsock, unsigned short port)
 {
   hsocket_t sock;
   struct sockaddr_in addr;
@@ -237,7 +230,7 @@ hsocket_bind(hsocket_t * dsock, int port)
   setsockopt(sock.sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
   /* bind socket */
   addr.sin_family = AF_INET;
-  addr.sin_port = htons((unsigned short) port); /* short, network byte order */
+  addr.sin_port = htons(port);
   addr.sin_addr.s_addr = INADDR_ANY;
   memset(&(addr.sin_zero), '\0', 8);    /* zero the rest of the struct */
 
@@ -350,7 +343,7 @@ hsocket_listen(hsocket_t * sock)
 }
 
 #ifdef WIN32
-static inline void
+static void
 _hsocket_sys_close(hsocket_t * sock)
 {
   char junk[10];
@@ -359,7 +352,7 @@ _hsocket_sys_close(hsocket_t * sock)
 
   shutdown(sock->sock, SD_SEND);
   while (recv(sock->sock, junk, sizeof(junk), 0) > 0);
-  /* nothing */
+    /* nothing */
   closesocket(sock->sock);
 
   return;
@@ -389,6 +382,9 @@ hsocket_close(hsocket_t * sock)
 
   _hsocket_sys_close(sock);
 
+  sock->bytes_received = 0;
+  sock->bytes_transmitted = 0;
+
   log_verbose1("socket closed");
 
   return;
@@ -398,7 +394,7 @@ hsocket_close(hsocket_t * sock)
 FUNCTION: hsocket_send
 ----------------------------------------------------*/
 herror_t
-hsocket_nsend(hsocket_t * sock, const byte_t * bytes, int n)
+hsocket_nsend(hsocket_t * sock, const unsigned char * bytes, int n)
 {
   herror_t status;
   size_t total = 0;
@@ -439,31 +435,29 @@ hsocket_send(hsocket_t * sock, const char *str)
 }
 
 int
-hsocket_select_read(int sock, char *buf, size_t len)
+hsocket_select_recv(int sock, char *buf, size_t len)
 {
   struct timeval timeout;
   fd_set fds;
-  int ret;
+
   FD_ZERO(&fds);
   FD_SET(sock, &fds);
+
   timeout.tv_sec = httpd_get_timeout();
   timeout.tv_usec = 0;
-  ret = select(sock + 1, &fds, NULL, NULL, &timeout);
-  if (ret == 0)
+
+  if (select(sock + 1, &fds, NULL, NULL, &timeout) == 0)
   {
     errno = ETIMEDOUT;
     log_verbose2("Socket %d timeout", sock);
     return -1;
   }
-#ifdef WIN32
+
   return recv(sock, buf, len, 0);
-#else
-  return read(sock, buf, len);
-#endif
 }
 
 herror_t
-hsocket_read(hsocket_t * sock, byte_t * buffer, int total, int force,
+hsocket_read(hsocket_t * sock, unsigned char * buffer, int total, int force,
              int *received)
 {
   herror_t status;

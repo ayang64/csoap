@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-admin.h,v 1.2 2006/05/15 06:45:07 m0gg Exp $
+ *  $Id: soap-admin.h,v 1.3 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,10 @@
 #define cSOAP_ADMIN_H
 
 #define CSOAP_ENABLE_ADMIN	"-CSOAPadmin"
+
+#define SOAP_ADMIN_QUERY_ROUTERS	"routers"
+#define SOAP_ADMIN_QUERY_ROUTER		"router"
+#define SOAP_ADMIN_QUERY_SERVICES	"services"
 
 #ifdef __cplusplus
 extern "C" {

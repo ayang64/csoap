@@ -1,8 +1,8 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.8 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.1 2006/11/19 09:40:14 m0gg Exp $
  *
- * CSOAP Project:  A http client/server library in C
- * Copyright (C) 2003-2004  Ferhat Ayaz
+ * CSOAP Project:  A SOAP client/server library in C
+ * Copyright (C) 2003  Ferhat Ayaz
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,30 +21,29 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef __nanohttp_response_h
-#define __nanohttp_response_h
+#ifndef __nanohttp_admin_h
+#define __nanohttp_admin_h
 
-/* response object */
-typedef struct hresponse
-{
-  http_version_t version;
-  int errcode;
-  char desc[RESPONSE_MAX_DESC_SIZE];
+#define NHTTPD_ARG_ENABLE_ADMIN	"-NHTTPDadmin"
 
-  hpair_t *header;
-
-  http_input_stream_t *in;
-  content_type_t *content_type;
-  attachments_t *attachments;
-  char root_part_id[150];
-} hresponse_t;
+#define NHTTPD_ADMIN_QUERY_SERVICES	"services"
+#define NHTTPD_ADMIN_QUERY_STATISTICS	"statistics"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-herror_t hresponse_new_from_socket(hsocket_t *sock, hresponse_t ** out);
-void hresponse_free(hresponse_t * res);
+/**
+ *
+ * Initializes the nanohttp admin HTTP interface with commandline arguments.
+ *
+ * @param argc commandline arg count
+ * @param argv commandline arg vector
+ *
+ * @returns H_OK on success
+ *
+ */
+herror_t httpd_admin_init_args(int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

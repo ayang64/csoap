@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.31 2006/07/09 16:24:19 snowdrop Exp $
+ *  $Id: nanohttp-common.h,v 1.32 2006/11/19 09:40:14 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,9 +23,6 @@
  ******************************************************************/
 #ifndef NANO_HTTP_COMMON_H
 #define NANO_HTTP_COMMON_H
-
-#include <stdlib.h>
-#include <time.h>
 
 #define HEADER_CONTENT_ID		"Content-Id"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
@@ -284,7 +281,6 @@ char *strtok_r(char *s, const char *delim, char **save_ptr);
 struct tm *localtime_r(const time_t * const timep, struct tm *p_tm);
 #endif
 
-typedef unsigned char byte_t;
 typedef void *herror_t;
 
 herror_t herror_new(const char *func, int errcode, const char *format, ...);

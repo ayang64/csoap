@@ -1,5 +1,5 @@
-/******************************************************************
-*  $Id: soap-admin.c,v 1.5 2006/11/19 09:40:14 m0gg Exp $
+	/******************************************************************
+*  $Id: nanohttp-admin.c,v 1.1 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,19 +37,15 @@
 #include <netinet/in.h>
 #endif
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-server.h>
-#include <nanohttp/nanohttp-admin.h>
-
-#include "soap-router.h"
-#include "soap-server.h"
-#include "soap-admin.h"
+#include "nanohttp-common.h"
+#include "nanohttp-socket.h"
+#include "nanohttp-stream.h"
+#include "nanohttp-request.h"
+#include "nanohttp-server.h"
+#include "nanohttp-admin.h"
 
 static void
-_soap_admin_send_title(httpd_conn_t *conn, const char *title)
+_httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 {
   httpd_send_header(conn, 200, "OK");
   http_output_stream_write_string(conn->out,
@@ -62,7 +58,7 @@ _soap_admin_send_title(httpd_conn_t *conn, const char *title)
    " font-size: 36px;"
    "}");
   http_output_stream_write_string(conn->out,
-   "</style></head><body><span class=\"logo\">csoap</span> ");
+   "</style></head><body><span class=\"logo\">nhttpd</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
 
@@ -70,19 +66,17 @@ _soap_admin_send_title(httpd_conn_t *conn, const char *title)
 }
 
 
-static void
-_soap_admin_list_routers(httpd_conn_t *conn)
+_httpd_admin_list_services(httpd_conn_t *conn)
 {
-  SoapRouterNode *node;
   char buffer[1024];
+  hservice_t *node;
 
-  _soap_admin_send_title(conn, "Available routers");
+  _httpd_admin_send_title(conn, "Available services");
 
   http_output_stream_write_string(conn->out, "<ul>");
-  for (node = soap_server_get_routers(); node; node = node->next)
+  for (node = httpd_get_services(); node; node = node->next)
   {
-    sprintf(buffer, "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\">%s</a> - <a href=\"%s\">[Service Description]</a> - <a href=\"../nhttp?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>",
-	    node->context, node->context, node->context, node->context);
+    sprintf(buffer, "<li><a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">%s</a></li>", node->ctx, node->ctx);
     http_output_stream_write_string(conn->out, buffer);
   }
   http_output_stream_write_string(conn->out, "</ul>");
@@ -94,35 +88,36 @@ _soap_admin_list_routers(httpd_conn_t *conn)
 
 
 static void
-_soap_admin_list_services(httpd_conn_t *conn, const char *routername)
+_httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
 {
-  SoapRouter *router;
-  SoapServiceNode *node;
   char buffer[1024];
+  hservice_t *service;
   
-  sprintf(buffer, "Listing Services for Router <b>%s</b>", routername);
-  _soap_admin_send_title(conn, buffer);
+  sprintf(buffer, "Listing statistics for service <b>%s</b>", service_name);
+  _httpd_admin_send_title(conn, buffer);
 
-  router = soap_server_find_router(routername);
-  if (!router)
+  if (!(service = httpd_find_service(service_name)))
   {
-    http_output_stream_write_string(conn->out, "Router not found!");
+    http_output_stream_write_string(conn->out, "service not found!");
     http_output_stream_write_string(conn->out, "</body></html>");
     return;
   }
 
-  node = router->service_head;
+  pthread_rwlock_rdlock(&(service->statistics->lock));
+  sprintf(buffer, "<ul>"
+                    "<li>Requests served: %lu</li>"
+                    "<li>Bytes read: %lu</li>"
+                    "<li>Bytes sent: %lu</li>"
+                    "<li>Time used: %li.%li sec</li>"
+                  "<ul>",
+                  service->statistics->requests,
+                  service->statistics->bytes_received,
+                  service->statistics->bytes_transmitted,
+		  service->statistics->time.tv_sec,
+		  service->statistics->time.tv_usec);
+  pthread_rwlock_unlock(&(service->statistics->lock));
 
-  http_output_stream_write_string(conn->out, "<ul>");
-  while (node)
-  {
-    sprintf(buffer, "<li> [%s] (%s) </li>",
-	    node->service->urn,
-	    node->service->method);
-    http_output_stream_write_string(conn->out, buffer);
-    node = node->next;
-  }
-  http_output_stream_write_string(conn->out, "</ul>");
+  http_output_stream_write_string(conn->out, buffer);
 
   http_output_stream_write_string(conn->out, "</body></html>");
 
@@ -131,27 +126,26 @@ _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
 
 
 static void
-_soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
+_httpd_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
 {
   char *param;
 
-  if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTERS)))
+  if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_SERVICES)))
   {
-    _soap_admin_list_routers(conn);
+    _httpd_admin_list_services(conn);
   }
-  else if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTER)))
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_STATISTICS)))
   {
-    _soap_admin_list_services(conn, param);
+    _httpd_admin_list_statistics(conn, param);
   }
   else
   {
-    _soap_admin_send_title(conn, "Welcome to the admin site");
+    _httpd_admin_send_title(conn, "Welcome to the admin site");
 
+    http_output_stream_write_string(conn->out, "<ul>");
     http_output_stream_write_string(conn->out,
-      "<ul>"
-        "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>"
-        "<li><a href=\"../nhttp\">nanoHTTP</a></li>"
-      "</ul>");
+     "<li><a href=\"?" NHTTPD_ADMIN_QUERY_SERVICES "\">Services</a></li>");
+    http_output_stream_write_string(conn->out, "</ul>");
 
     http_output_stream_write_string(conn->out, "</body></html>");
   }
@@ -161,11 +155,11 @@ _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
 
 
 static void
-_soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
+_httpd_admin_entry(httpd_conn_t * conn, hrequest_t * req)
 {
   if (req->method == HTTP_REQUEST_GET)
   {
-    _soap_admin_handle_get(conn, req);
+    _httpd_admin_handle_get(conn, req);
   }
   else
   {
@@ -177,7 +171,7 @@ _soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
                   "<body>"
                       "<h1>Sorry!</h1>"
                       "<hr />"
-                      "<div>POST Service is not implemented now. Use your browser</div>"
+                      "<div>POST Service is not implemented now. Use your browser.</div>"
                   "</body>"
               "</html>");
   }
@@ -186,15 +180,15 @@ _soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
 
 
 herror_t
-soap_admin_init_args(int argc, char **argv)
+httpd_admin_init_args(int argc, char **argv)
 {
   int i;
 
   for (i=0; i<argc; i++) {
 
-    if (!strcmp(argv[i], CSOAP_ENABLE_ADMIN)) {
+    if (!strcmp(argv[i], NHTTPD_ARG_ENABLE_ADMIN)) {
 
-      httpd_register("/csoap", _soap_admin_entry);
+      httpd_register("/nhttp", _httpd_admin_entry);
       break;
     }
   }

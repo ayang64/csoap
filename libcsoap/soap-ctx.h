@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.9 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-ctx.h,v 1.10 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,9 +23,6 @@
  ******************************************************************/
 #ifndef cSOAP_CTX_H
 #define cSOAP_CTX_H
-
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-server.h>
 
 #include <libcsoap/soap-env.h>
 

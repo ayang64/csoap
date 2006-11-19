@@ -4,11 +4,21 @@
 */
 /* Author: Adrianus Warmenhoven */
 
+#include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <netinet/in.h>
+
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
+#include <nanohttp/nanohttp-client.h>
 
 #include <nanohttp/nanohttp-logging.h>
+
 #include <libcsoap/soap-client.h>
 
 #define MAX_LINE_LENGTH 65535

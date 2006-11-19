@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.10 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: nanohttp-stream.h,v 1.11 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,13 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_STREAM_H
-#define NANO_HTTP_STREAM_H
-
-#include <stdio.h>
-
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-common.h>
+#ifndef __nanohttp_stream_h
+#define __nanohttp_stream_h
 
 /*
   HTTP Stream modul:
@@ -88,7 +83,7 @@ typedef struct http_input_stream
   int received;
   int content_length;
   int chunk_size;
-  byte_t connection_closed;
+  char connection_closed;
 
   /* file handling */
   FILE *fd;
@@ -194,7 +189,7 @@ int http_input_stream_is_ready(http_input_stream_t * stream);
   @returns the actual readed bytes or -1 on error.
 */
 int http_input_stream_read(http_input_stream_t * stream,
-                           byte_t * dest, int size);
+                           unsigned char* dest, int size);
 
 
 /*
@@ -241,7 +236,7 @@ void http_output_stream_free(http_output_stream_t * stream);
     <BR>HSOCKET_ERROR_SEND
 */
 herror_t http_output_stream_write(http_output_stream_t * stream,
-                                  const byte_t * bytes, int size);
+                                  const unsigned char* bytes, int size);
 
 /**
   Writes a null terminated string to the stream.

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.2 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: http_client.c,v 1.3 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -23,9 +23,16 @@
 ******************************************************************/
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
+#include <netinet/in.h>
 
-#include <nanohttp/nanohttp-logging.h>
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-client.h>
+#include <nanohttp/nanohttp-logging.h>
 
 #define MAX_BUFFER_SIZE 1024
 
@@ -38,7 +45,7 @@ static char *password = NULL;
 
 static void show_response(hresponse_t *res) {
 
-	byte_t buffer[MAX_BUFFER_SIZE+1];
+	unsigned char buffer[MAX_BUFFER_SIZE+1];
 	int read;
 
 	if (!res) {

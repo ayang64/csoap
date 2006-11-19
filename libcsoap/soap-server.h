@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.10 2006/03/29 08:35:56 m0gg Exp $
+ *  $Id: soap-server.h,v 1.11 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -82,14 +82,14 @@ SoapRouterNode * soap_server_get_routers(void);
    Enters the server loop and starts to listen to 
    http requests.
  */
-herror_t soap_server_run();
+herror_t soap_server_run(void);
 
 int soap_server_get_port(void);
 
 /**
    Frees the soap server.
  */
-void soap_server_destroy();
+void soap_server_destroy(void);
 
 #ifdef __cplusplus
 }

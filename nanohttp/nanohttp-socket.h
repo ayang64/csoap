@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.29 2006/05/01 17:56:32 mrcsys Exp $
+ *  $Id: nanohttp-socket.h,v 1.30 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,25 +21,8 @@
  * 
  * Email: ayaz@jprogrammer.net
  ******************************************************************/
-#ifndef NANO_HTTP_SOCKET_H
-#define NANO_HTTP_SOCKET_H
-
-#include <sys/types.h>
-
-#include <time.h>
-
-#ifdef HAVE_SSL
-#include <openssl/ssl.h>
-#endif
-
-#ifdef WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#endif
-
-#include <nanohttp/nanohttp-common.h>
+#ifndef __nanohttp_socket_h
+#define __nanohttp_socket_h
 
 #define	HSOCKET_FREE	-1
 
@@ -54,6 +37,8 @@ typedef struct hsocket_t
   int sock;
 #endif
   struct sockaddr_in addr;
+  size_t bytes_transmitted;
+  size_t bytes_received;
   void *ssl;
 }
 hsocket_t;                      /* end of socket definition */
@@ -138,7 +123,7 @@ extern "C"
 
   @see hsocket_listen
  */
-  herror_t hsocket_bind(hsocket_t * sock, int port);
+  herror_t hsocket_bind(hsocket_t * sock, unsigned short port);
 
 
 /**
@@ -166,7 +151,7 @@ extern "C"
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_ACCEPT
 */
-  herror_t hsocket_accept(hsocket_t * sock, hsocket_t * dest);
+  herror_t hsocket_accept(hsocket_t *sock, hsocket_t *dest);
 
 
 /**
@@ -180,7 +165,7 @@ extern "C"
     <BR>HSOCKET_ERROR_NOT_INITIALIZED
     <BR>HSOCKET_ERROR_SEND
 */
-  herror_t hsocket_nsend(hsocket_t * sock, const byte_t * bytes, int size);
+  herror_t hsocket_nsend(hsocket_t * sock, const unsigned char *bytes, int size);
 
 
 /**
@@ -213,7 +198,7 @@ extern "C"
      the socket.
   
 */
-  herror_t hsocket_read(hsocket_t * sock, byte_t * buffer, int size,
+  herror_t hsocket_read(hsocket_t * sock, unsigned char *buffer, int size,
                         int force, int *readed);
 
 #ifdef __cplusplus

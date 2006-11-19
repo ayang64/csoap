@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.8 2006/05/15 06:41:34 m0gg Exp $
+ *  $Id: soap-router.h,v 1.9 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -38,7 +38,6 @@ typedef struct _SoapRouter
   httpd_auth auth;
   xmlDocPtr wsdl;
 } SoapRouter;
-
 
 #ifdef __cplusplus
 extern "C" {

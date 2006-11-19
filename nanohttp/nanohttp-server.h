@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.21 2006/05/31 19:39:34 mrcsys Exp $
+ *  $Id: nanohttp-server.h,v 1.22 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,15 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_SERVER_H
-#define NANO_HTTP_SERVER_H
-
-
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-stream.h>
-
+#ifndef __nanohttp_server_h
+#define __nanohttp_server_h
 
 
 typedef struct httpd_conn
@@ -49,6 +42,14 @@ typedef void (*httpd_service) (httpd_conn_t *, hrequest_t *);
 typedef int (*httpd_auth) (hrequest_t * req, const char *user,
                            const char *password);
 
+struct service_statistics {
+  unsigned long requests;
+  unsigned long bytes_transmitted;
+  unsigned long bytes_received;
+  struct timeval time;
+  pthread_rwlock_t lock;
+};
+
 /*
  * Service representation object
  */
@@ -58,6 +59,7 @@ typedef struct tag_hservice
   httpd_service func;
   httpd_auth auth;
   struct tag_hservice *next;
+  struct service_statistics *statistics;
 }
 hservice_t;
 
@@ -91,7 +93,8 @@ extern "C"
   const char *httpd_get_protocol(void);
   int httpd_get_conncount(void);
 
-  hservice_t *httpd_services(void);
+  hservice_t *httpd_get_services(void);
+  hservice_t *httpd_find_service(const char *name);
 
   herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.4 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: http_server.c,v 1.5 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,11 +21,18 @@
 * 
 * Email: hero@persua.de
 ******************************************************************/
+#include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
+#include <netinet/in.h>
 
-#include <nanohttp/nanohttp-logging.h>
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-server.h>
+#include <nanohttp/nanohttp-logging.h>
 
 static int simple_authenticator(hrequest_t *req, const char *user, const char *password)
 {
@@ -133,6 +140,7 @@ static void root_service(httpd_conn_t *conn, hrequest_t *req)
 					"<li><a href=\"/secure\">Secure service</a> (try: bob/builder)</li>"
 					"<li><a href=\"/headers\">Request headers</a></li>"
 					"<li><a href=\"/not_existent\">The default service</a></li>"
+					"<li><a href=\"/nhttp\">Admin page</a> (try -NHTTPDadmin on the command line)</li>"
 				"</ul>"
 			"</body>"
 		"</html>");
@@ -146,31 +154,31 @@ int main(int argc, char *argv[])
 
 	if (httpd_init(argc, argv)) {
 
-		fprintf(stderr, "Can not init httpd");
+		fprintf(stderr, "Cannot init httpd");
 		return 1;
 	}
 
 	if (!httpd_register("/", root_service)) {
 
-		fprintf(stderr, "Can not register service");
+		fprintf(stderr, "Cannot register service");
 		return 1;
 	}
 
 	if (!httpd_register_secure("/secure", secure_service, simple_authenticator)) {
 
-		fprintf(stderr, "Can not register secure service");
+		fprintf(stderr, "Cannot register secure service");
 		return 1;
 	}
 
 	if (!httpd_register("/headers", headers_service)) {
 
-		fprintf(stderr, "Can not register headers service");
+		fprintf(stderr, "Cannot register headers service");
 		return 1;
 	}
 
 	if (!httpd_register_default("/error", default_service)) {
 
-		fprintf(stderr, "Can not register default service");
+		fprintf(stderr, "Cannot register default service");
 		return 1;
 	}
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.28 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-ssl.c,v 1.29 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -448,7 +448,7 @@ static int
 _hssl_bio_read(BIO * b, char *out, int outl)
 {
 
-  return hsocket_select_read(b->num, out, outl);;
+  return hsocket_select_recv(b->num, out, outl);;
 }
 
 herror_t
@@ -532,10 +532,11 @@ hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
   }
   else
   {
-    if ((count = hsocket_select_read(sock->sock, buf, len)) == -1)
+    if ((count = hsocket_select_recv(sock->sock, buf, len)) == -1)
       return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE,
                         "recv failed (%s)", strerror(errno));
   }
+  sock->bytes_received += count;
   *received = count;
 
   return H_OK;
@@ -562,6 +563,7 @@ hssl_write(hsocket_t * sock, const char *buf, size_t len, size_t * sent)
       return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)",
                         strerror(errno));
   }
+  sock->bytes_transmitted += count;
   *sent = count;
 
   return H_OK;
@@ -574,10 +576,12 @@ hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
 {
   int count;
 
-  if ((count = hsocket_select_read(sock->sock, buf, len)) == -1)
+  if ((count = hsocket_select_recv(sock->sock, buf, len)) == -1)
     return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)",
                       strerror(errno));
+  sock->bytes_received += count;
   *received = count;
+
   return H_OK;
 }
 
@@ -590,7 +594,9 @@ hssl_write(hsocket_t * sock, const char *buf, size_t len, size_t * sent)
   if ((count = send(sock->sock, buf, len, 0)) == -1)
     return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)",
                       strerror(errno));
+  sock->bytes_received += count;
   *sent = count;
+
   return H_OK;
 }
 

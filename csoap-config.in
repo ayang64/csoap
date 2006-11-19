@@ -68,11 +68,11 @@ while test $# -gt 0; do
 			;;
 
 		--cflags)
-			echo -I${includedir}/libcsoap-$relcsoap -I${includedir}/nanohttp-$relnanohttp @XML_CPPFLAGS@ @PTHREAD_CFLAGS@
+			echo -I${includedir}/libcsoap-$relcsoap -I${includedir}/nanohttp-$relnanohttp @XMLSEC1_CPPFLAGS@ @XML_CPPFLAGS@ @PTHREAD_CFLAGS@
 		 	;;
 
 		--libs)
-			echo -L${libdir} -lcsoap -lnanohttp @XML_LIBS@ @PTHREAD_LIBS@
+			echo -L${libdir} -lcsoap -lnanohttp @XMLSEC1_LIBS@ @XML_LIBS@ @PTHREAD_LIBS@
 			;;
 		*)
 			usage

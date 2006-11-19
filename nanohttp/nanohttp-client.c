@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.41 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-client.c,v 1.42 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,8 +25,12 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_TIME_H
-#include <time.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 
 #ifdef HAVE_STDIO_H
@@ -45,14 +49,17 @@
 #include <string.h>
 #endif
 
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
-#include "nanohttp-client.h"
+#include "nanohttp-common.h"
 #include "nanohttp-socket.h"
+#include "nanohttp-stream.h"
+#include "nanohttp-response.h"
 #include "nanohttp-base64.h"
 #include "nanohttp-logging.h"
+#include "nanohttp-client.h"
 
 /*--------------------------------------------------
 FUNCTION: httpc_init
@@ -553,8 +560,7 @@ httpc_mime_next(httpc_conn_t * conn,
   sprintf(buffer, "\r\n--%s\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write(conn->out,
-                                    (const byte_t *) buffer, strlen(buffer));
+  status = http_output_stream_write(conn->out, buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;
@@ -565,8 +571,7 @@ httpc_mime_next(httpc_conn_t * conn,
           HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
           HEADER_CONTENT_ID, content_id);
 
-  return http_output_stream_write(conn->out,
-                                    (const byte_t *) buffer, strlen(buffer));
+  return http_output_stream_write(conn->out, buffer, strlen(buffer));
 }
 
 
@@ -582,8 +587,7 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write(conn->out,
-                                    (const byte_t *) buffer, strlen(buffer));
+  status = http_output_stream_write(conn->out, buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;
@@ -610,7 +614,7 @@ httpc_mime_send_file(httpc_conn_t * conn,
 {
   herror_t status;
   FILE *fd = fopen(filename, "rb");
-  byte_t buffer[MAX_FILE_BUFFER_SIZE];
+  unsigned char buffer[MAX_FILE_BUFFER_SIZE];
   size_t size;
 
   if (fd == NULL)

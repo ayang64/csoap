@@ -41,7 +41,7 @@ dnl checks for headers
 dnl
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/rand.h openssl/err.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h])
 
 dnl
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -363,6 +363,11 @@ AC_ARG_WITH(ssl,
 ])dnl
 
 CHECK_SSL
+
+#---------------------------------------------
+# Check xmlsec1 library
+#---------------------------------------------
+AM_PATH_XMLSEC1(1.2.10,AC_DEFINE(HAVE_XMLSEC1,1,Define to 1 if you have requested --with-xmlsec1) CFLAGS="$CFLAGS $XMLSEC1_CPPFLAGS"; LDFLAGS="$LDFLAGS $XMLSEC1_LIBS",)
 
 AC_OUTPUT(Makefile 
 libcsoap/Makefile 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.62 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-server.c,v 1.63 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,6 +41,10 @@
 #include <sys/types.h>
 #endif
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -73,14 +77,15 @@
 #include <process.h>
 #endif
 
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
-#endif
-
 #include "nanohttp-logging.h"
+#include "nanohttp-common.h"
+#include "nanohttp-socket.h"
+#include "nanohttp-stream.h"
+#include "nanohttp-request.h"
 #include "nanohttp-server.h"
 #include "nanohttp-base64.h"
 #include "nanohttp-ssl.h"
+#include "nanohttp-admin.h"
 
 typedef struct _conndata
 {
@@ -117,9 +122,6 @@ static hservice_t *_httpd_services_head = NULL;
 static hservice_t *_httpd_services_tail = NULL;
 
 static conndata_t *_httpd_connection;
-
-static int _httpd_enable_service_list = 0;
-static int _httpd_enable_statistics = 0;
 
 #ifdef WIN32
 static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
@@ -176,6 +178,7 @@ _httpd_connection_slots_init(void)
 #else
   pthread_mutex_init(&_httpd_connection_lock, NULL);
 #endif
+
   _httpd_connection = calloc(_httpd_max_connections, sizeof(conndata_t));
   for (i = 0; i < _httpd_max_connections; i++)
     hsocket_init(&(_httpd_connection[i].sock));
@@ -183,17 +186,13 @@ _httpd_connection_slots_init(void)
   return;
 }
 
-static void
-_httpd_register_builtin_services(void)
+static void 
+_httpd_register_builtin_services(int argc, char **argv)
 {
+  herror_t status;
 
-  if (_httpd_enable_service_list)
-    ;                           /* httpd_register("/httpd/services",
-                                   _httpd_list_services); */
-
-  if (_httpd_enable_statistics)
-    ;                           /* httpd_register("/httpd/statistics",
-                                   _httpd_statistics); */
+  if ((status = httpd_admin_init_args(argc, argv)) != H_OK)
+    log_error2("httpd_admin_init_args failed (%s)", herror_message(status));
 
   return;
 }
@@ -218,15 +217,7 @@ httpd_init(int argc, char *argv[])
 
   _httpd_connection_slots_init();
 
-  _httpd_register_builtin_services();
-
-#ifdef WIN32
-  /* 
-     if (_beginthread (WSAReaper, 0, NULL) == -1) { log_error1 ("Winsock
-     reaper thread failed to start"); return herror_new("httpd_init",
-     THREAD_BEGIN_ERROR, "_beginthread() failed while starting WSAReaper"); } 
-   */
-#endif
+  _httpd_register_builtin_services(argc, argv);
 
   if ((status = hsocket_init(&_httpd_socket)) != H_OK)
   {
@@ -252,6 +243,16 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
     log_error2("malloc failed (%s)", strerror(errno));
     return -1;
   }
+
+  if (!(service->statistics = (struct service_statistics *)malloc(sizeof(struct service_statistics))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return -1;
+  }    	
+  memset(service->statistics, 0, sizeof(struct service_statistics));
+  service->statistics->time.tv_sec = 0;
+  service->statistics->time.tv_usec = 0;
+  pthread_rwlock_init(&(service->statistics->lock), NULL);
 
   service->next = NULL;
   service->auth = auth;
@@ -319,7 +320,7 @@ httpd_set_timeout(int t)
 const char *
 httpd_get_protocol(void)
 {
-  return hssl_enabled()? "https" : "http";
+  return hssl_enabled() ? "https" : "http";
 }
 
 /*--------------------------------------------------
@@ -328,28 +329,24 @@ FUNCTION: httpd_get_conncount
 int
 httpd_get_conncount(void)
 {
-  int i;
-  int c=0;
+  int i, ret;
 
-  for (i = 0;i<_httpd_max_connections; i++)
+  for (ret = i = 0; i<_httpd_max_connections; i++)
   {
-
     if (_httpd_connection[i].flag == CONNECTION_IN_USE)
-    {
-      c++;
-    }
+      ret++;
   }
 
-  return c;
+  return ret;
 }
 
 /*
  * -----------------------------------------------------
- * FUNCTION: httpd_services
+ * FUNCTION: httpd_get_services
  * -----------------------------------------------------
  */
 hservice_t *
-httpd_services(void)
+httpd_get_services(void)
 {
   return _httpd_services_head;
 }
@@ -372,18 +369,15 @@ hservice_free(hservice_t * service)
  * FUNCTION: httpd_find_service
  * -----------------------------------------------------
  */
-static hservice_t *
-httpd_find_service(const char *ctx)
+hservice_t *
+httpd_find_service(const char *context)
 {
-  hservice_t *cur = _httpd_services_head;
+  hservice_t *cur;
 
-  while (cur != NULL)
+  for (cur = _httpd_services_head; cur; cur = cur->next)
   {
-    if (!strcmp(cur->ctx, ctx))
-    {
+    if (!strcmp(cur->ctx, context))
       return cur;
-    }
-    cur = cur->next;
   }
 
   return _httpd_services_default;
@@ -546,24 +540,6 @@ httpd_free(httpd_conn_t * conn)
   return;
 }
 
-void
-do_req_timeout(int signum)
-{
-/*
-    struct sigaction req_timeout;
-    memset(&req_timeout, 0, sizeof(&req_timeout));
-    req_timeout.sa_handler=SIG_IGN;
-    sigaction(SIGALRM, &req_timeout, NULL);
-*/
-
-  /* XXX this is not real pretty, is there a better way? */
-  log_verbose1("Thread timeout.");
-#ifdef WIN32
-  _endthread();
-#else
-  pthread_exit(0);
-#endif
-}
 
 static int
 _httpd_decode_authorization(const char *value, char **user, char **pass)
@@ -657,7 +633,11 @@ httpd_session_main(void *data)
   httpd_conn_t *rconn;
   hservice_t *service;
   herror_t status;
+  struct timeval start, end, duration;
   int done;
+
+  if (gettimeofday(&start, NULL) == -1)
+    log_error2("gettimeofday failed (%s)", strerror(errno));
 
   conn = (conndata_t *) data;
 
@@ -708,13 +688,27 @@ httpd_session_main(void *data)
       {
         log_verbose3("service '%s' for '%s' found", service->ctx, req->path);
 
+        pthread_rwlock_wrlock(&(service->statistics->lock));
+        service->statistics->requests++;
+        pthread_rwlock_unlock(&(service->statistics->lock));
+
         if (_httpd_authenticate_request(req, service->auth))
         {
           if (service->func != NULL)
           {
             service->func(rconn, req);
-            if (rconn->out
-                && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
+
+            if (gettimeofday(&end, NULL) == -1)
+              log_error2("gettimeofday failed (%s)", strerror(errno));
+            timersub(&end, &start, &duration);
+
+            pthread_rwlock_wrlock(&(service->statistics->lock));
+            service->statistics->bytes_received += rconn->sock->bytes_received;
+            service->statistics->bytes_transmitted += rconn->sock->bytes_transmitted;
+            timeradd(&(service->statistics->time), &duration, &(service->statistics->time));
+            pthread_rwlock_unlock(&(service->statistics->lock));
+
+            if (rconn->out && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
             {
               log_verbose1("Connection close requested");
               done = 1;
@@ -735,11 +729,13 @@ httpd_session_main(void *data)
         {
           char *template =
             "<html>"
-            "<head>"
-            "<title>Unauthorized</title>"
+              "<head>"
+              "<title>Unauthorized</title>"
             "</head>"
             "<body>"
-            "<h1>Unauthorized request logged</h1>" "</body>" "</html>";
+              "<h1>Unauthorized request logged</h1>"
+            "</body>"
+            "</html>";
 
           httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE,
                            "Basic realm=\"nanoHTTP\"");
@@ -1259,8 +1255,7 @@ httpd_mime_next(httpd_conn_t * conn, const char *content_id,
 
   /* Send boundary */
   status =
-    http_output_stream_write(conn->out, (const byte_t *) buffer,
-                             strlen(buffer));
+    http_output_stream_write(conn->out, buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;
@@ -1274,8 +1269,7 @@ httpd_mime_next(httpd_conn_t * conn, const char *content_id,
           content_id ? content_id : "<content-id-not-set>");
 
   status =
-    http_output_stream_write(conn->out, (const byte_t *) buffer,
-                             strlen(buffer));
+    http_output_stream_write(conn->out, buffer, strlen(buffer));
 
   return status;
 }
@@ -1289,7 +1283,7 @@ httpd_mime_send_file(httpd_conn_t * conn, const char *content_id,
                      const char *content_type, const char *transfer_encoding,
                      const char *filename)
 {
-  byte_t buffer[MAX_FILE_BUFFER_SIZE];
+  unsigned char buffer[MAX_FILE_BUFFER_SIZE];
   herror_t status;
   FILE *fd;
   size_t size;
@@ -1343,8 +1337,7 @@ httpd_mime_end(httpd_conn_t * conn)
 
   /* Send boundary */
   status =
-    http_output_stream_write(conn->out, (const byte_t *) buffer,
-                             strlen(buffer));
+    http_output_stream_write(conn->out, buffer, strlen(buffer));
 
   if (status != H_OK)
     return status;

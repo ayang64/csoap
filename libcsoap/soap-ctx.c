@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.10 2006/07/09 16:24:19 snowdrop Exp $
+ *  $Id: soap-ctx.c,v 1.11 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,6 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -37,6 +41,14 @@
 #include <errno.h>
 #endif
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-ctx.h"

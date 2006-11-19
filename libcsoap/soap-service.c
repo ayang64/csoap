@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.8 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: soap-service.c,v 1.9 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,12 +25,27 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 
-#include <nanohttp/nanohttp-logging.h>
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
 #include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-logging.h>
 
 #include "soap-service.h"
 
@@ -39,66 +54,57 @@ soap_service_node_new(SoapService * service, SoapServiceNode * next)
 {
   SoapServiceNode *node;
 
-  node = (SoapServiceNode *) malloc(sizeof(SoapServiceNode));
+  if (!(node = (SoapServiceNode *) malloc(sizeof(SoapServiceNode)))) {
+
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
   node->service = service;
   node->next = next;
 
   return node;
 }
 
-
-
-
 SoapService *
 soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
 {
   SoapService *service;
 
+  if (!(service = (SoapService *) malloc(sizeof(SoapService)))) {
 
-  service = (SoapService *) malloc(sizeof(SoapService));
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
+
   service->func = f;
 
-  if (urn != NULL)
-  {
-    service->urn = (char *) malloc(strlen(urn) + 1);
-    strcpy(service->urn, urn);
-  }
-  else
-  {
-    log_warn1("urn is NULL");
-    service->urn = "";
-  }
+  if (urn == NULL) {
 
-  if (method != NULL)
-  {
-    service->method = (char *) malloc(strlen(method) + 1);
-    strcpy(service->method, method);
+    log_warn1("urn is NULL");
+    urn = "";
   }
-  else
-  {
+  service->urn = strdup(urn);
+
+  if (method == NULL) {
+
     log_warn1("method is NULL");
-    service->method = "";
+    method = "";
   }
+  service->method = strdup(method);
 
   return service;
 }
 
-
-
 void
 soap_service_free(SoapService * service)
 {
-  log_verbose2("enter: service=%p", service);
-
   if (service == NULL)
     return;
 
-  if (strcmp(service->urn, ""))
-    free(service->urn);
-
-  if (strcmp(service->method, ""))
-    free(service->method);
+  free(service->urn);
+  free(service->method);
 
   free(service);
-  log_verbose1("leave with success");
+
+  return;
 }

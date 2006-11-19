@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.8 2006/07/09 16:24:19 snowdrop Exp $
+ * $Id: echoattachments-server.c,v 1.9 2006/11/19 09:40:14 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -20,7 +20,16 @@
  *
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
+#include <sys/time.h>
+#include <stdio.h>
+#include <netinet/in.h>
 
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-socket.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
+#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-server.h>

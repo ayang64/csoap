@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.30 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: nanohttp-common.c,v 1.31 2006/11/19 09:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,16 +41,16 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_CTYPE_H
 #include <ctype.h>
 #endif
 
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
-#endif
-
-#ifdef MEM_DEBUG
-#include <utils/alloc.h>
 #endif
 
 #include "nanohttp-common.h"
@@ -90,16 +90,22 @@ herror_t
 herror_new(const char *func, int errcode, const char *format, ...)
 {
   va_list ap;
+  herror_impl_t *impl;
+ 
+  if (!(impl = (herror_impl_t *) malloc(sizeof(herror_impl_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
 
-  herror_impl_t *impl = (herror_impl_t *) malloc(sizeof(herror_impl_t));
   impl->errcode = errcode;
   strcpy(impl->func, func);
+
   va_start(ap, format);
   vsprintf(impl->message, format, ap);
   va_end(ap);
 
   return (herror_t) impl;
-
 }
 
 int
