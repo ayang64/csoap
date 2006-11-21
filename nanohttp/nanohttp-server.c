@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.63 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.64 2006/11/21 20:59:03 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -259,7 +259,7 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   service->func = func;
   strcpy(service->ctx, ctx);
 
-  log_verbose3("register service:t(%p):%s", service, SAVE_STR(ctx));
+  log_verbose3("register service (%p) for \"%s\"", service, SAVE_STR(ctx));
   if (_httpd_services_head == NULL)
   {
     _httpd_services_head = _httpd_services_tail = service;
@@ -280,8 +280,7 @@ httpd_register(const char *ctx, httpd_service service)
 }
 
 int
-httpd_register_default_secure(const char *ctx, httpd_service service,
-                              httpd_auth auth)
+httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth)
 {
   int ret;
 
@@ -648,7 +647,7 @@ httpd_session_main(void *data)
   done = 0;
   while (!done)
   {
-    log_verbose3("starting HTTP request on socket %p (%d)", conn->sock, conn->sock.sock);
+    log_verbose3("starting HTTP request on socket %d (%p)", conn->sock, conn->sock.sock);
 
     /* XXX: only used in WSAreaper */
     conn->atime = time(NULL);

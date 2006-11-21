@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.11 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: soap-server.h,v 1.12 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,12 +21,69 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef cSOAP_SERVER_H
-#define cSOAP_SERVER_H
+#ifndef __csoap_server_h
+#define __csoap_server_h
 
-#include <libcsoap/soap-env.h>
-#include <libcsoap/soap-router.h>
-#include <libcsoap/soap-ctx.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ *
+ * Initializes the soap server with commandline arguments.
+ *
+ * @param argc commandline arg count
+ * @param argv commandline arg vector
+ *
+ * @returns H_OK on success
+ *
+ * @see httpd_init_args
+ * @see udpd_init_args
+ *
+ */
+herror_t soap_server_init_args(int argc, char **argv);
+
+
+/**
+ *
+ * Register a router to the soap server. 
+ *
+ * <p><i>scheme</i>://<i>host</i>:<i>port</i>/<b>[context]</b>
+ *
+ * @param router The router to register
+ * @param context the url context 
+ *
+ * @returns H_OK on success
+ * 
+ * @see soap_router_new
+ * @see soap_router_register_service
+ *
+ */
+extern herror_t soap_server_register_router(SoapRouter * router, const char *context);
+
+extern const char *soap_server_get_name(void);
+
+/**
+ *
+ * Enters the server loop and starts to listen to incoming requests.
+ *
+ * @see httpd_run
+ * @see udpd_run
+ *
+ */
+extern herror_t soap_server_run(void);
+
+/**
+ *
+ * Frees the soap server.
+ *
+ * @see httpd_destroy
+ * @see udpd_destroy
+ *
+ */
+extern void soap_server_destroy(void);
+
+#ifdef __CSOAP_INTERNAL
 
 typedef struct _SoapRouterNode
 {
@@ -36,60 +93,13 @@ typedef struct _SoapRouterNode
 
 } SoapRouterNode;
 
-#ifdef __cplusplus
-extern "C" {
+extern SoapRouter *soap_server_find_router(const char *context);
+
+extern SoapRouterNode * soap_server_get_routers(void);
+
+extern herror_t soap_server_process(SoapCtx *request, SoapCtx **response);
+
 #endif
-
-/**
-   Initializes the soap server with commandline arguments.
-
-   <TABLE border=1>
-   <TR><TH>Argument</TH><TH>Description</TH></TR>
-   <TR><TD>-NHTTPport [port]</TD><TD>Port to listen (default: 10000)</TD></TR>
-   <TR><TD>-NHTTPmaxconn [num]</TD><TD>Maximum thread connections</TD></TR>
-   <TR><TD>-NHTTPlog [logfilename]</TD><TD>logfile</TD></TR>
-   </TABLE>
-
-   @param argc commandline arg count
-   @param argv commandline arg vector
-
-   @returns 1 if success, 0 otherwise
- */
-herror_t soap_server_init_args(int argc, char *argv[]);
-
-
-/**
-   Register a router to the soap server. 
-
-   <P>http://<I>host</I>:<I>port</I>/<B>[context]</B>
-
-
-   @param router The router to register
-   @param context the url context 
-   @returns 1 if success, 0 otherwise
-   
-   @see soap_router_new
-   @see soap_router_register_service
-
- */
-int soap_server_register_router(SoapRouter * router, const char *context);
-
-SoapRouter *soap_server_find_router(const char *context);
-
-SoapRouterNode * soap_server_get_routers(void);
-
-/**
-   Enters the server loop and starts to listen to 
-   http requests.
- */
-herror_t soap_server_run(void);
-
-int soap_server_get_port(void);
-
-/**
-   Frees the soap server.
- */
-void soap_server_destroy(void);
 
 #ifdef __cplusplus
 }

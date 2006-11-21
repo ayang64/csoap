@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.9 2006/11/19 09:40:14 m0gg Exp $
+ * $Id: echoattachments-server.c,v 1.10 2006/11/21 20:58:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -20,9 +20,11 @@
  *
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <netinet/in.h>
+
+#include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
@@ -32,15 +34,15 @@
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include <libcsoap/soap-env.h>
+#include <libcsoap/soap-ctx.h>
+#include <libcsoap/soap-service.h>
+#include <libcsoap/soap-router.h>
 #include <libcsoap/soap-server.h>
-
 
 static const char *url = "/echoattachments";
 static const char *urn = "urn:examples";
 static const char *method = "echo";
-
-
-
 
 herror_t
 echo_attachments(SoapCtx * req, SoapCtx * res)

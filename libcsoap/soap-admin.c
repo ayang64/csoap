@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.5 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: soap-admin.c,v 1.6 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,9 +33,16 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+
+#include <libxml/tree.h>
+#include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
@@ -44,6 +51,12 @@
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-admin.h>
 
+#define __CSOAP_INTERNAL
+
+#include "soap-fault.h"
+#include "soap-env.h"
+#include "soap-ctx.h"
+#include "soap-service.h"
 #include "soap-router.h"
 #include "soap-server.h"
 #include "soap-admin.h"

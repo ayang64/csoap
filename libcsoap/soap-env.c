@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.22 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: soap-env.c,v 1.23 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -49,20 +49,14 @@
 #include <netinet/in.h>
 #endif
 
-#ifdef WIN32
-#define USE_XMLSTRING
-#endif
-
-#ifdef USE_XMLSTRING
+#include <libxml/tree.h>
 #include <libxml/xmlstring.h>
-#endif
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-xml.h"
+#include "soap-fault.h"
 #include "soap-env.h"
 
 /*
@@ -230,23 +224,16 @@ soap_env_new_from_buffer(const char *buffer, SoapEnv ** out)
 
 
 herror_t
-soap_env_new_with_fault(fault_code_t faultcode,
-                        const char *faultstring,
-                        const char *faultactor, const char *detail,
-                        SoapEnv ** out)
+soap_env_new_with_fault(int faultcode, const char *faultstring, const char *faultactor, const char *detail, SoapEnv **out)
 {
   xmlDocPtr doc;
   herror_t err;
 
-  doc = soap_fault_build(faultcode, faultstring, faultactor, detail);
-  if (doc == NULL)
-    return herror_new("soap_env_new_with_fault",
-                      XML_ERROR_PARSE, "Can not parse fault xml");
+  if (!(doc = soap_fault_build(faultcode, faultstring, faultactor, detail)))
+    return herror_new("soap_env_new_with_fault", XML_ERROR_PARSE, "Can not parse fault xml");
 
   if ((err = soap_env_new_from_doc(doc, out)) != H_OK)
-  {
     xmlFreeDoc(doc);
-  }
 
   return err;
 }
@@ -312,28 +299,15 @@ soap_env_new_with_method(const char *urn, const char *method, SoapEnv ** out)
 
   if (!strcmp(urn, ""))
   {
-#ifdef USE_XMLSTRING
     xmlStrPrintf(buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_EMPTY_TARGET_,
                  soap_env_ns, soap_env_enc, soap_xsi_ns,
                  soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
-#else
-    sprintf(buffer, _SOAP_MSG_TEMPLATE_EMPTY_TARGET_,
-            soap_env_ns, soap_env_enc, soap_xsi_ns,
-            soap_xsd_ns, method, urn, method);
-#endif
   }
   else
   {
-#ifdef USE_XMLSTRING
     xmlStrPrintf(buffer, 1054, BAD_CAST _SOAP_MSG_TEMPLATE_,
                  soap_env_ns, soap_env_enc, soap_xsi_ns,
                  soap_xsd_ns, BAD_CAST method, BAD_CAST urn, BAD_CAST method);
-#else
-    sprintf(buffer, _SOAP_MSG_TEMPLATE_,
-            soap_env_ns, soap_env_enc, soap_xsi_ns,
-            soap_xsd_ns, method, urn, method);
-#endif
-
   }
 
   if (!(env = xmlParseDoc(buffer)))
@@ -341,48 +315,6 @@ soap_env_new_with_method(const char *urn, const char *method, SoapEnv ** out)
                       XML_ERROR_PARSE, "Can not parse xml");
 
   return soap_env_new_from_doc(env, out);
-}
-
-
-static int
-_soap_env_xml_io_read(void *ctx, char *buffer, int len)
-{
-  int readed;
-
-  http_input_stream_t *in = (http_input_stream_t *) ctx;
-  if (!http_input_stream_is_ready(in))
-    return 0;
-
-  readed = http_input_stream_read(in, buffer, len);
-  if (readed == -1)
-    return 0;
-  return readed;
-}
-
-static int
-_soap_env_xml_io_close(void *ctx)
-{
-  /* do nothing */
-  return 0;
-}
-
-
-herror_t
-soap_env_new_from_stream(http_input_stream_t * in, SoapEnv ** out)
-{
-  xmlDocPtr doc;
-
-  doc = xmlReadIO(_soap_env_xml_io_read,
-                  _soap_env_xml_io_close, in, "", NULL, 0);
-
-  if (in->err != H_OK)
-    return in->err;
-
-  if (doc == NULL)
-    return herror_new("soap_env_new_from_stream",
-                      XML_ERROR_PARSE, "Trying to parse not valid xml");
-
-  return soap_env_new_from_doc(doc, out);
 }
 
 

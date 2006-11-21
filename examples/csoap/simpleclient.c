@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.13 2006/11/19 09:40:14 m0gg Exp $
+ * $Id: simpleclient.c,v 1.14 2006/11/21 20:58:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -20,9 +20,11 @@
  *
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <netinet/in.h>
+
+#include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
@@ -34,11 +36,9 @@
 
 #include <libcsoap/soap-client.h>
 
-
-static const char *url = "http://localhost:10000/csoapserver";
-static const char *urn = "urn:examples";
-static const char *method = "sayHello";
-
+static char *url = "http://localhost:10000/csoapserver";
+static char *urn = "urn:examples";
+static char *method = "sayHello";
 
 int
 main(int argc, char *argv[])
@@ -46,45 +46,48 @@ main(int argc, char *argv[])
   SoapCtx *ctx, *ctx2;
   herror_t err;
 
-  /* log_set_level(HLOG_VERBOSE); */
+  // hlog_set_level(HLOG_VERBOSE);
+
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
-    return 1;
+    exit(1);
   }
 
   err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
-    return 1;
+    exit(1);
   }
 
   soap_env_add_item(ctx->env, "xsd:string", "name", "Jonny B. Good");
 
-  if (argc > 1)
-    err = soap_client_invoke(ctx, &ctx2, argv[1], "");
-  else
-    err = soap_client_invoke(ctx, &ctx2, url, "");
+  printf("**** sending ****\n");
+  soap_xml_doc_print(ctx->env->root->doc);
 
-  if (err != H_OK)
+  if (argc > 1)
+    url = argv[1];
+  printf("destination: \"%s\"\n", url);
+
+  if ((err = soap_client_invoke(ctx, &ctx2, url, "")) != H_OK)
   {
-    log_error4("[%d] %s(): %s ", herror_code(err), herror_func(err),
-               herror_message(err));
+    printf("[%d] %s(): %s ", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     soap_ctx_free(ctx);
-    return 1;
+    exit(1);
   }
 
+  printf("**** received ****\n");
   soap_xml_doc_print(ctx2->env->root->doc);
+
   soap_ctx_free(ctx2);
   soap_ctx_free(ctx);
 
   soap_client_destroy();
+
   return 0;
 }

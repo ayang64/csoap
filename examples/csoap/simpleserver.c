@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.20 2006/11/19 09:40:14 m0gg Exp $
+ * $Id: simpleserver.c,v 1.21 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -20,9 +20,11 @@
  *
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <netinet/in.h>
+
+#include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
@@ -32,20 +34,24 @@
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include <libcsoap/soap-xml.h>
+#include <libcsoap/soap-env.h>
+#include <libcsoap/soap-ctx.h>
+#include <libcsoap/soap-service.h>
+#include <libcsoap/soap-router.h>
 #include <libcsoap/soap-server.h>
 
-
-static const char *url = "/csoapserver";
-static const char *urn = "urn:examples";
-static const char *method = "sayHello";
-
+static const char const *url = "/csoapserver";
+static const char const *urn = "urn:examples";
+static const char const *method = "sayHello";
 
 herror_t
 say_hello(SoapCtx * req, SoapCtx * res)
 {
-
   herror_t err;
   char *name;
+
+  log_verbose1("service request");
 
   xmlNodePtr method, node;
 
@@ -69,7 +75,6 @@ say_hello(SoapCtx * req, SoapCtx * res)
   return H_OK;
 }
 
-
 int
 main(int argc, char *argv[])
 {
@@ -77,25 +82,46 @@ main(int argc, char *argv[])
   herror_t err;
   SoapRouter *router;
 
-  hlog_set_level(HLOG_INFO);
+  // hlog_set_level(HLOG_VERBOSE);
 
-  err = soap_server_init_args(argc, argv);
-  if (err != H_OK)
+  if ((err = soap_server_init_args(argc, argv)) != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
-    return 1;
+    exit(1);
   }
 
-  router = soap_router_new();
-  soap_router_register_service(router, say_hello, method, urn);
-  soap_server_register_router(router, url);
+  if (!(router = soap_router_new()))
+  {
+    printf("soap_router_new failed (%p)\n", router);
+    herror_release(err);
+    exit(1);
+  }
 
-  log_info1("press ctrl-c to shutdown");
-  soap_server_run();
+  if ((err = soap_router_register_service(router, say_hello, method, urn)) != H_OK)
+  {
+    printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
+    herror_release(err);
+    exit(1);
+  }
 
-  log_info1("shutting down\n");
+  if ((err = soap_server_register_router(router, url)))
+  {
+    printf("%s(): %s [%s]\n", herror_func(err), herror_message(err), herror_code(err));
+    herror_release(err);
+    exit(1);
+  }
+  printf("router (%p) registered for \"%s\"\n", router, url);
+
+  printf("press ctrl-c to shutdown\n");
+  if ((err = soap_server_run()) != H_OK)
+  {
+    printf("%s(): %s [%s]\n", herror_func(err), herror_message(err), herror_code(err));
+    herror_release(err);
+    exit(1);
+  }
+  
+  printf("shutting down\n");
   soap_server_destroy();
 
   return 0;

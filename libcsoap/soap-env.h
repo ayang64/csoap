@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.15 2006/11/21 08:34:34 m0gg Exp $
+ *  $Id: soap-env.h,v 1.16 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,9 +23,6 @@
  ******************************************************************/
 #ifndef cSOAP_ENV_H
 #define cSOAP_ENV_H
-
-#include <libcsoap/soap-xml.h>
-#include <libcsoap/soap-fault.h>
 
 /**
    The SOAP envelope object. 
@@ -77,7 +74,7 @@ extern "C" {
 
  */
 herror_t
-soap_env_new_with_fault(fault_code_t faultcode,
+soap_env_new_with_fault(int faultcode,
                         const char *faultstring,
                         const char *faultactor,
                         const char *detail, SoapEnv ** out);
@@ -166,15 +163,6 @@ herror_t soap_env_new_from_doc(xmlDocPtr doc, SoapEnv ** out);
  */
 herror_t soap_env_new_from_buffer(const char *buffer, SoapEnv ** out);
 
-
-/**
-  Create an envelope from input stream
-
-   @param in the input stream object to read from 
-   @param out the output envelope object
-   @returns H_OK if success
-*/
-herror_t soap_env_new_from_stream(http_input_stream_t * in, SoapEnv ** out);
 
 /* --------------------------------------------------- */
 /*      XML Serializer functions  and typedefs         */

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.5 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: http_server.c,v 1.6 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,7 +21,6 @@
 * 
 * Email: hero@persua.de
 ******************************************************************/
-#include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-router.h,v 1.9 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: soap-router.h,v 1.10 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,10 +21,8 @@
  * 
  * Email: ayaz@jprogrammer.net
  ******************************************************************/
-#ifndef cSOAP_ROUTER_H
-#define cSOAP_ROUTER_H
-
-#include <libcsoap/soap-service.h>
+#ifndef __csoap_router_h
+#define __csoap_router_h
 
 /**
    The router object. A router can store a set of 
@@ -52,7 +50,7 @@ extern "C" {
    @returns Soap router 
    @see soap_router_free
  */
-SoapRouter *soap_router_new(void);
+extern SoapRouter *soap_router_new(void);
 
 
 /**
@@ -65,16 +63,16 @@ SoapRouter *soap_router_new(void);
     the client side.
    @param urn The urn for this service
  */
-void soap_router_register_service(SoapRouter * router,
+extern herror_t soap_router_register_service(SoapRouter * router,
                                   SoapServiceFunc func,
                                   const char *method, const char *urn);
 
-void soap_router_register_default_service(SoapRouter * router, SoapServiceFunc func, const char *method, const char *urn);
+extern herror_t soap_router_register_default_service(SoapRouter * router, SoapServiceFunc func, const char *method, const char *urn);
 
 
-void soap_router_register_description(SoapRouter *router, xmlDocPtr doc);
+extern void soap_router_register_description(SoapRouter *router, xmlDocPtr doc);
 
-void soap_router_register_security(SoapRouter *router, httpd_auth auth);
+extern void soap_router_register_security(SoapRouter *router, httpd_auth auth);
 
 /**
    Searches for a registered soap service.
@@ -85,16 +83,14 @@ void soap_router_register_security(SoapRouter *router, httpd_auth auth);
 
    @return The service if found, NULL otherwise.
  */
-SoapService *soap_router_find_service(SoapRouter * router,
-                                      const char *urn, const char *method);
-
+extern SoapService *soap_router_find_service(SoapRouter * router, const char *urn, const char *method);
 
 /**
    Frees the router object.
 
    @param router The router object to free
  */
-void soap_router_free(SoapRouter * router);
+extern void soap_router_free(SoapRouter * router);
 
 #ifdef __cplusplus
 }

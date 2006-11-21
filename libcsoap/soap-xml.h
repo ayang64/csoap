@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.9 2006/11/21 08:34:34 m0gg Exp $
+ *  $Id: soap-xml.h,v 1.10 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,8 +26,6 @@
 
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-
-#include <nanohttp/nanohttp-common.h>
 
 static const char * const soap_env_ns = "http://schemas.xmlsoap.org/soap/envelope/";
 static const char * const soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";

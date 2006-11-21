@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.2 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.3 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -86,7 +86,7 @@ _httpd_admin_list_services(httpd_conn_t *conn)
   http_output_stream_write_string(conn->out, "<ul>");
   for (node = httpd_get_services(); node; node = node->next)
   {
-    sprintf(buffer, "<li><a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">%s</a></li>", node->ctx, node->ctx);
+    sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx);
     http_output_stream_write_string(conn->out, buffer);
   }
   http_output_stream_write_string(conn->out, "</ul>");

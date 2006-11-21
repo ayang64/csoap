@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.22 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.23 2006/11/21 20:59:03 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -42,6 +42,7 @@ typedef void (*httpd_service) (httpd_conn_t *, hrequest_t *);
 typedef int (*httpd_auth) (hrequest_t * req, const char *user,
                            const char *password);
 
+#ifdef __NHTTP_INTERNAL
 struct service_statistics {
   unsigned long requests;
   unsigned long bytes_transmitted;
@@ -49,6 +50,7 @@ struct service_statistics {
   struct timeval time;
   pthread_rwlock_t lock;
 };
+#endif
 
 /*
  * Service representation object

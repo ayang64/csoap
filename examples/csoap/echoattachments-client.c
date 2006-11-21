@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.12 2006/11/19 09:40:14 m0gg Exp $
+ * $Id: echoattachments-client.c,v 1.13 2006/11/21 20:58:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
+#include <libxml/tree.h>
+
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-stream.h>
@@ -32,6 +34,8 @@
 #include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include <libcsoap/soap-env.h>
+#include <libcsoap/soap-ctx.h>
 #include <libcsoap/soap-client.h>
 
 

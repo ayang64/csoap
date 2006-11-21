@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.3 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: http_client.c,v 1.4 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -22,8 +22,8 @@
 * Email: hero@persua.de
 ******************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
 #include <netinet/in.h>
 
 #include <nanohttp/nanohttp-common.h>
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 	/* Initialize httpc module */
 	if (httpc_init(argc, argv)) {
 
-		log_error1("Can not init httpc");
+		log_error1("Cannot init httpc");
 		exit(1);
 	}
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.1 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.2 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -54,15 +54,15 @@
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-xml.h"
+#include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-addressing.h"
 
-static const char *_soap_addressing_uuid_error(uint32_t status)
+static const char *
+_soap_addressing_uuid_error(uint32_t status)
 {
   switch(status)
   {
@@ -78,7 +78,8 @@ static const char *_soap_addressing_uuid_error(uint32_t status)
   }
 }
 
-static char * _soap_addressing_generate_id(void)
+static char *
+_soap_addressing_generate_id(void)
 {
   uuid_t uuid;
   uint32_t status;
@@ -100,7 +101,8 @@ static char * _soap_addressing_generate_id(void)
   return ret;
 }
 
-static xmlNsPtr _soap_addressing_get_namespace(xmlNodePtr node)
+static xmlNsPtr
+_soap_addressing_get_namespace(xmlNodePtr node)
 {
   xmlNsPtr ns;
 
@@ -111,7 +113,8 @@ static xmlNsPtr _soap_addressing_get_namespace(xmlNodePtr node)
   return ns;
 }
 
-static xmlNodePtr _soap_addressing_add_node(xmlNodePtr parent, const xmlChar *name, const xmlChar *content)
+static xmlNodePtr
+_soap_addressing_add_node(xmlNodePtr parent, const xmlChar *name, const xmlChar *content)
 {
   xmlNsPtr ns;
 
@@ -119,7 +122,8 @@ static xmlNodePtr _soap_addressing_add_node(xmlNodePtr parent, const xmlChar *na
   return xmlNewChild(parent, ns, name, content);
 }
 
-static xmlAttrPtr _soap_addressing_set_property(xmlNodePtr node, const xmlChar *name, const xmlChar *value)
+static xmlAttrPtr
+_soap_addressing_set_property(xmlNodePtr node, const xmlChar *name, const xmlChar *value)
 {
   xmlNsPtr ns;
 
@@ -127,7 +131,8 @@ static xmlAttrPtr _soap_addressing_set_property(xmlNodePtr node, const xmlChar *
   return xmlSetNsProp(node, ns, name, value);
 }
 
-static xmlAttrPtr _soap_addressing_set_property_uri(xmlNodePtr node, const xmlChar *name, xmlURI *uri)
+static xmlAttrPtr
+_soap_addressing_set_property_uri(xmlNodePtr node, const xmlChar *name, xmlURI *uri)
 {
   xmlChar *buf;
   xmlAttrPtr ret;
@@ -139,7 +144,8 @@ static xmlAttrPtr _soap_addressing_set_property_uri(xmlNodePtr node, const xmlCh
   return ret;
 }
 
-static xmlNodePtr _soap_addressing_get_child_element(xmlNodePtr parent, const xmlChar *name)
+static xmlNodePtr
+_soap_addressing_get_child_element(xmlNodePtr parent, const xmlChar *name)
 {
   xmlNodePtr walker;
 
@@ -151,7 +157,8 @@ static xmlNodePtr _soap_addressing_get_child_element(xmlNodePtr parent, const xm
   return NULL;
 }
 
-static xmlURI *_soap_addressing_extract_uri(xmlNodePtr node)
+static xmlURI *
+_soap_addressing_extract_uri(xmlNodePtr node)
 {
   xmlChar *content;
   xmlURI *uri = NULL;
@@ -164,9 +171,13 @@ static xmlURI *_soap_addressing_extract_uri(xmlNodePtr node)
   return uri;
 }
 
-static xmlNodePtr _soap_addressing_set_content_uri(xmlNodePtr node, xmlURI *uri)
+static xmlNodePtr
+_soap_addressing_set_content_uri(xmlNodePtr node, xmlURI *uri)
 {
   xmlChar *buf;
+
+  if (uri == NULL)
+    return;
 
   buf = xmlSaveUri(uri);
   xmlNodeSetContent(node, buf);
@@ -175,7 +186,8 @@ static xmlNodePtr _soap_addressing_set_content_uri(xmlNodePtr node, xmlURI *uri)
   return node;
 }
 
-xmlURI *soap_addressing_get_address(xmlNodePtr endpoint_reference)
+xmlURI *
+soap_addressing_get_address(xmlNodePtr endpoint_reference)
 {
   xmlNodePtr address;
   
@@ -186,7 +198,8 @@ xmlURI *soap_addressing_get_address(xmlNodePtr endpoint_reference)
   return _soap_addressing_extract_uri(address);
 }
 
-xmlNodePtr soap_addressing_set_address(xmlNodePtr endpoint_reference, xmlURI *address)
+xmlNodePtr
+soap_addressing_set_address(xmlNodePtr endpoint_reference, xmlURI *address)
 {
   xmlNodePtr node;
 
@@ -197,12 +210,14 @@ xmlNodePtr soap_addressing_set_address(xmlNodePtr endpoint_reference, xmlURI *ad
   return _soap_addressing_set_content_uri(node, address);  
 }
 
-xmlNodePtr soap_addressing_get_reference_properties(xmlNodePtr endpoint_reference)
+xmlNodePtr
+soap_addressing_get_reference_properties(xmlNodePtr endpoint_reference)
 {
   return _soap_addressing_get_child_element(endpoint_reference, WSA_REFERENCE_PROPERTIES);
 }
 
-xmlNodePtr soap_addressing_set_reference_properties(xmlNodePtr endpoint_reference, xmlNodePtr properties)
+xmlNodePtr
+soap_addressing_set_reference_properties(xmlNodePtr endpoint_reference, xmlNodePtr properties)
 {
   xmlNodePtr node;
 
@@ -220,12 +235,14 @@ xmlNodePtr soap_addressing_set_reference_properties(xmlNodePtr endpoint_referenc
   return node;
 }
 
-xmlNodePtr soap_addressing_get_metadata(xmlNodePtr endpoint_reference)
+xmlNodePtr
+soap_addressing_get_metadata(xmlNodePtr endpoint_reference)
 {
   return _soap_addressing_get_child_element(endpoint_reference, WSA_METADATA);
 }
 
-xmlNodePtr soap_addressing_set_metadata(xmlNodePtr endpoint_reference, xmlNodePtr metadata)
+xmlNodePtr
+soap_addressing_set_metadata(xmlNodePtr endpoint_reference, xmlNodePtr metadata)
 {
   xmlNodePtr node;
 
@@ -243,7 +260,8 @@ xmlNodePtr soap_addressing_set_metadata(xmlNodePtr endpoint_reference, xmlNodePt
   return node;
 }
 
-xmlURI *soap_addressing_get_message_id(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_message_id(SoapEnv *envelope)
 {
   xmlNodePtr id;
 
@@ -254,7 +272,8 @@ xmlURI *soap_addressing_get_message_id(SoapEnv *envelope)
   return _soap_addressing_extract_uri(id);
 }
 
-xmlNodePtr soap_addressing_set_message_id(SoapEnv *envelope, xmlURI *id)
+xmlNodePtr
+soap_addressing_set_message_id(SoapEnv *envelope, xmlURI *id)
 {
   xmlNodePtr node;
 
@@ -265,12 +284,14 @@ xmlNodePtr soap_addressing_set_message_id(SoapEnv *envelope, xmlURI *id)
   return _soap_addressing_set_content_uri(node, id);
 }
 
-xmlNodePtr soap_addressing_get_relates_to(SoapEnv *envelope)
+xmlNodePtr
+soap_addressing_get_relates_to(SoapEnv *envelope)
 {
   return _soap_addressing_get_child_element(envelope->header, WSA_RELATES_TO);
 }
 
-xmlNodePtr soap_addressing_add_relates_to(SoapEnv *envelope, xmlURI *id, xmlURI *type)
+xmlNodePtr
+soap_addressing_add_relates_to(SoapEnv *envelope, xmlURI *id, xmlURI *type)
 {
   xmlNodePtr node;
 
@@ -288,12 +309,14 @@ xmlNodePtr soap_addressing_add_relates_to(SoapEnv *envelope, xmlURI *id, xmlURI 
   return node;
 }
 
-xmlNodePtr soap_addressing_get_reply_to(SoapEnv *envelope)
+xmlNodePtr
+soap_addressing_get_reply_to(SoapEnv *envelope)
 {
   return _soap_addressing_get_child_element(envelope->header, WSA_REPLY_TO);
 }
 
-xmlNodePtr soap_addressing_set_reply_to(SoapEnv *envelope, xmlNodePtr address)
+xmlNodePtr
+soap_addressing_set_reply_to(SoapEnv *envelope, xmlNodePtr address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -313,7 +336,8 @@ xmlNodePtr soap_addressing_set_reply_to(SoapEnv *envelope, xmlNodePtr address)
   return ret;
 }
 
-xmlURI *soap_addressing_get_reply_to_address(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_reply_to_address(SoapEnv *envelope)
 {
   xmlNodePtr reply_to;
 
@@ -324,7 +348,8 @@ xmlURI *soap_addressing_get_reply_to_address(SoapEnv *envelope)
   return soap_addressing_get_address(reply_to);
 }
 
-xmlNodePtr soap_addressing_set_reply_to_address(SoapEnv *envelope, xmlURI *address)
+xmlNodePtr
+soap_addressing_set_reply_to_address(SoapEnv *envelope, xmlURI *address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -342,12 +367,14 @@ xmlNodePtr soap_addressing_set_reply_to_address(SoapEnv *envelope, xmlURI *addre
   return ret;
 }
 
-xmlNodePtr soap_addressing_get_from(SoapEnv *envelope)
+xmlNodePtr
+soap_addressing_get_from(SoapEnv *envelope)
 {
   return _soap_addressing_get_child_element(envelope->header, WSA_FROM);
 }
 
-xmlNodePtr soap_addressing_set_from(SoapEnv *envelope, xmlNodePtr address)
+xmlNodePtr
+soap_addressing_set_from(SoapEnv *envelope, xmlNodePtr address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -367,7 +394,8 @@ xmlNodePtr soap_addressing_set_from(SoapEnv *envelope, xmlNodePtr address)
   return ret;
 }
 
-xmlURI *soap_addressing_get_from_address(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_from_address(SoapEnv *envelope)
 {
   xmlNodePtr from;
 
@@ -378,7 +406,8 @@ xmlURI *soap_addressing_get_from_address(SoapEnv *envelope)
   return soap_addressing_get_address(from);
 }
 
-xmlNodePtr soap_addressing_set_from_address(SoapEnv *envelope, xmlURI *address)
+xmlNodePtr
+soap_addressing_set_from_address(SoapEnv *envelope, xmlURI *address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -396,12 +425,14 @@ xmlNodePtr soap_addressing_set_from_address(SoapEnv *envelope, xmlURI *address)
   return ret;
 }
 
-xmlNodePtr soap_addressing_get_fault_to(SoapEnv *envelope)
+xmlNodePtr
+soap_addressing_get_fault_to(SoapEnv *envelope)
 {
   return _soap_addressing_get_child_element(envelope->header, WSA_FAULT_TO);
 }
 
-xmlNodePtr soap_addressing_set_fault_to(SoapEnv *envelope, xmlNodePtr address)
+xmlNodePtr
+soap_addressing_set_fault_to(SoapEnv *envelope, xmlNodePtr address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -421,7 +452,8 @@ xmlNodePtr soap_addressing_set_fault_to(SoapEnv *envelope, xmlNodePtr address)
   return ret;
 }
 
-xmlURI *soap_addressing_get_fault_to_address(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_fault_to_address(SoapEnv *envelope)
 {
   xmlNodePtr fault_to;
 
@@ -432,7 +464,8 @@ xmlURI *soap_addressing_get_fault_to_address(SoapEnv *envelope)
   return soap_addressing_get_address(fault_to);
 }
 
-xmlNodePtr soap_addressing_set_fault_to_address(SoapEnv *envelope, xmlURI *address)
+xmlNodePtr
+soap_addressing_set_fault_to_address(SoapEnv *envelope, xmlURI *address)
 {
    xmlNodePtr ret;
   xmlNodePtr node;
@@ -450,12 +483,14 @@ xmlNodePtr soap_addressing_set_fault_to_address(SoapEnv *envelope, xmlURI *addre
   return ret;
 }
 
-xmlNodePtr soap_addressing_get_to(SoapEnv *envelope)
+xmlNodePtr
+soap_addressing_get_to(SoapEnv *envelope)
 {
   return _soap_addressing_get_child_element(envelope->header, WSA_TO);
 }
 
-xmlNodePtr soap_addressing_set_to(SoapEnv *envelope, xmlNodePtr address)
+xmlNodePtr
+soap_addressing_set_to(SoapEnv *envelope, xmlNodePtr address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -475,18 +510,49 @@ xmlNodePtr soap_addressing_set_to(SoapEnv *envelope, xmlNodePtr address)
   return ret;
 }
 
-xmlURI *soap_addressing_get_to_address(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_to_address(SoapEnv *envelope)
 {
   xmlNodePtr to;
 
-  to = soap_addressing_get_to(envelope);
-  if (to == NULL)
-     return NULL;
+  if (!(to = soap_addressing_get_to(envelope)))
+    return NULL;
 
   return soap_addressing_get_address(to);
 }
 
-xmlNodePtr soap_addressing_set_to_address(SoapEnv *envelope, xmlURI *address)
+xmlChar *
+soap_addressing_get_to_address_string(SoapEnv *envelope)
+{
+  xmlURI *uri;
+  xmlChar *ret;
+  
+  if (!(uri = soap_addressing_get_to_address(envelope)))
+    return NULL;
+
+  ret = xmlSaveUri(uri);
+  xmlFreeURI(uri);
+  
+  return ret;
+}
+
+xmlNodePtr
+soap_addressing_set_to_address_string(SoapEnv *envelope, const char *to)
+{
+  xmlURI *uri;
+  xmlNodePtr ret;
+
+  if (!(uri = xmlParseURI(to)))
+    return NULL;
+
+  ret = soap_addressing_set_to_address(envelope, uri);
+  xmlFreeURI(uri);
+
+  return ret;
+}
+
+xmlNodePtr
+soap_addressing_set_to_address(SoapEnv *envelope, xmlURI *address)
 {
   xmlNodePtr ret;
   xmlNodePtr node;
@@ -504,7 +570,8 @@ xmlNodePtr soap_addressing_set_to_address(SoapEnv *envelope, xmlURI *address)
   return ret;
 }
 
-xmlURI *soap_addressing_get_action(SoapEnv *envelope)
+xmlURI *
+soap_addressing_get_action(SoapEnv *envelope)
 {
   xmlNodePtr action;
 
@@ -515,7 +582,23 @@ xmlURI *soap_addressing_get_action(SoapEnv *envelope)
   return _soap_addressing_extract_uri(action);
 }
 
-xmlNodePtr soap_addressing_set_action(SoapEnv *envelope, xmlURI *action)
+xmlChar *
+soap_addressing_get_action_string(SoapEnv *envelope)
+{
+  xmlURI *uri;
+  xmlChar *ret;
+  
+  if (!(uri = soap_addressing_get_action(envelope)))
+    return NULL;
+
+  ret = xmlSaveUri(uri);
+  xmlFreeURI(uri);
+
+  return ret;
+}
+
+xmlNodePtr
+soap_addressing_set_action(SoapEnv *envelope, xmlURI *action)
 {
   xmlNodePtr node;
 
@@ -524,4 +607,19 @@ xmlNodePtr soap_addressing_set_action(SoapEnv *envelope, xmlURI *action)
     node = _soap_addressing_add_node(envelope->header, WSA_ACTION, NULL);
 
   return _soap_addressing_set_content_uri(node, action);
+}
+
+xmlNodePtr
+soap_addressing_set_action_string(SoapEnv *envelope, const char *action)
+{
+  xmlURI *uri;
+  xmlNodePtr ret;
+
+  if (!(uri = xmlParseURI(action)))
+    return NULL;
+
+  ret = soap_addressing_set_action(envelope, uri);
+  xmlFreeURI(uri);
+
+  return ret;
 }

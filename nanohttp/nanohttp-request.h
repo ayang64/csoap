@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.8 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.9 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,12 +24,14 @@
 #ifndef NANO_HTTP_REQUEST_H
 #define NANO_HTTP_REQUEST_H
 
+#ifdef __NHTTP_INTERNAL
 struct request_statistics
 {
   unsigned long bytes_transmitted;
   unsigned long bytes_received;
   struct timeval time;
 };
+#endif
 
 /*
   request object

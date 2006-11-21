@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.29 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.1 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,14 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -42,34 +50,49 @@
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
-#include "soap-addressing.h"
 #include "soap-service.h"
 #include "soap-router.h"
-#include "soap-transport.h"
-#include "soap-client.h"
+#include "soap-server.h"
+#include "soap-addressing.h"
 
 herror_t
-soap_client_init_args(int argc, char **argv)
+soap_nudp_server_init_args(int argc, char **argv)
 {
-  return soap_transport_client_init_args(argc, argv);
+  return H_OK;
+}
+
+herror_t
+soap_nudp_register_router(SoapRouter *router, const char *context)
+{
+  return H_OK;
+}
+
+herror_t
+soap_nudp_server_run(void)
+{
+  return H_OK;
 }
 
 void
-soap_client_destroy(void)
+soap_nudp_server_destroy(void)
 {
-  soap_transport_client_destroy();
-  
   return;
 }
 
 herror_t
-soap_client_invoke(SoapCtx *req, SoapCtx **res, const char *url, const char *action)
+soap_nudp_client_init_args(int argc, char **argv)
 {
-  log_verbose2("action = \"%s\"", action);
-  soap_addressing_set_action_string(req->env, action);
+  return H_OK;
+}
 
-  log_verbose2("url = \"%s\"", url);
-  soap_addressing_set_to_address_string(req->env, url);
+herror_t
+soap_nudp_client_invoke(SoapCtx *req, SoapCtx **res)
+{
+  return H_OK;
+}
 
-  return soap_transport_client_invoke(req, res);
+void
+soap_nudp_client_destroy(void)
+{
+  return;
 }

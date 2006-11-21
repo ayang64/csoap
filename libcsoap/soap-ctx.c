@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.11 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: soap-ctx.c,v 1.12 2006/11/21 20:59:02 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,10 +25,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -45,12 +41,13 @@
 #include <netinet/in.h>
 #endif
 
+#include <libxml/tree.h>
+
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include "soap-fault.h"
+#include "soap-env.h"
 #include "soap-ctx.h"
 
 SoapCtx *
@@ -66,7 +63,6 @@ soap_ctx_new(SoapEnv * env)     /* should only be used internally */
 
   ctx->env = env;
   ctx->attachments = NULL;
-  ctx->action = NULL;
 
   return ctx;
 }
@@ -170,9 +166,6 @@ soap_ctx_free(SoapCtx * ctx)
 
   if (ctx->env)
     soap_env_free(ctx->env);
-
-  if (ctx->action)
-    free(ctx->action);
 
   free(ctx);
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.11 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: soap-router.c,v 1.12 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,10 +25,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -45,12 +41,19 @@
 #include <errno.h>
 #endif
 
+#include <libxml/tree.h>
+
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
+
+#include "soap-fault.h"
+#include "soap-env.h"
+#include "soap-ctx.h"
+#include "soap-service.h"
 
 #include "soap-router.h"
 
@@ -69,14 +72,15 @@ soap_router_new(void)
   return router;
 }
 
-void
-soap_router_register_service(SoapRouter * router,
-                             SoapServiceFunc func,
-                             const char *method, const char *urn)
+herror_t
+soap_router_register_service(SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn)
 {
   SoapService *service;
 
-  service = soap_service_new(urn, method, func);
+  log_verbose4("registering service (router=%p, method=\"%s\", urn=\"%s\")", router, method, urn);
+
+  if (!(service = soap_service_new(urn, method, func)))
+    return herror_new("soap_router_register_service", 0, "soap_service_new failed");
 
   if (router->service_tail == NULL)
   {
@@ -89,7 +93,7 @@ soap_router_register_service(SoapRouter * router,
     router->service_tail = router->service_tail->next;
   }
 
-  return;
+  return H_OK;
 }
 
 void
@@ -111,12 +115,13 @@ soap_router_register_description(SoapRouter * router, xmlDocPtr wsdl)
   return;
 }
 
-void
+herror_t
 soap_router_register_default_service(SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn) {
 
   SoapService *service;
 
-  service = soap_service_new(urn, method, func);
+  if (!(service = soap_service_new(urn, method, func)))
+    return herror_new("soap_router_register_default_service", 0, "soap_service_new failed");
 
   if (router->service_tail == NULL)
   {
@@ -130,17 +135,34 @@ soap_router_register_default_service(SoapRouter *router, SoapServiceFunc func, c
 
   router->default_service = service;
 
-  return;
+  return H_OK;
 }
 
 SoapService *
-soap_router_find_service(SoapRouter * router,
-                         const char *urn, const char *method)
+soap_router_find_service(SoapRouter *router, const char *urn, const char *method)
 {
   SoapServiceNode *node;
 
-  if (router == NULL || urn == NULL || method == NULL)
+  if (router == NULL)
+  {
+    log_verbose1("router is null");
     return NULL;
+  }
+
+  if (urn == NULL)
+  {
+    log_verbose1("URN is null");
+    return NULL;
+  }
+
+  if (method == NULL)
+  {
+    log_verbose1("method is null"); 
+    return NULL;
+  }
+
+  log_verbose2("router = %p", router);
+  log_verbose2("router->service_head = %p", router->service_head);
 
   node = router->service_head;
 
@@ -148,19 +170,14 @@ soap_router_find_service(SoapRouter * router,
   {
     if (node->service && node->service->urn && node->service->method)
     {
-
-      if (!strcmp(node->service->urn, urn)
-          && !strcmp(node->service->method, method))
+      log_verbose4("checking service (node=%p, method=\"%s\", urn=\"%s\")", node->service, node->service->method, node->service->urn);
+      if (!strcmp(node->service->urn, urn) && !strcmp(node->service->method, method))
         return node->service;
-
     }
-
     node = node->next;
   }
-
   return router->default_service;
 }
-
 
 void
 soap_router_free(SoapRouter * router)

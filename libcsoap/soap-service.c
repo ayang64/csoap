@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.9 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: soap-service.c,v 1.10 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,8 +25,8 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 
 #ifdef HAVE_STDIO_H
@@ -37,16 +37,23 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
 
+#include <libxml/tree.h>
+#include <libxml/uri.h>
+
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include "soap-fault.h"
+#include "soap-env.h"
+#include "soap-ctx.h"
 #include "soap-service.h"
 
 SoapServiceNode *
@@ -98,11 +105,14 @@ soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
 void
 soap_service_free(SoapService * service)
 {
-  if (service == NULL)
+  if (!service)
     return;
 
-  free(service->urn);
-  free(service->method);
+  if (service->urn)
+	  free(service->urn);
+
+  if (service->method)
+	  free(service->method);
 
   free(service);
 

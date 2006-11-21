@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.11 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: soap-fault.c,v 1.12 2006/11/21 20:59:02 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,10 +29,12 @@
 #include <string.h>
 #endif
 
+#include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 
-#include "soap-fault.h"
 #include "soap-xml.h"
+// #include "soap-server.h"
+#include "soap-fault.h"
 
 /*
 Parameters:
@@ -46,7 +48,9 @@ Parameters:
 8- detail
 */
 #define  _SOAP_FAULT_TEMPLATE_ \
-	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encoding=\"%s\"" \
+	"<SOAP-ENV:Envelope" \
+        " xmlns:SOAP-ENV=\"%s\"" \
+        " SOAP-ENV:encoding=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
         " <SOAP-ENV:Header />" \
@@ -61,60 +65,64 @@ Parameters:
 	"</SOAP-ENV:Envelope>"
 
 
-
-static char *fault_vm = "VersionMismatch";
-static char *fault_mu = "MustUnderstand";
-static char *fault_client = "Client";
-static char *fault_server = "Server";
+static const char const *fault_vm = "VersionMismatch";
+static const char const *fault_mu = "MustUnderstand";
+static const char const *fault_deu = "DataEncodingUnkown";
+static const char const *fault_client = "Client";
+static const char const *fault_server = "Server";
 
 xmlDocPtr
-soap_fault_build(fault_code_t fcode,
-                 const char *faultstring,
-                 const char *faultactor, const char *detail)
+soap_fault_build(int fault_code, const char *fault_string, const char *fault_actor, const char *detail)
 {
 
   /* variables */
-  char *faultcode;
+  const char *faultcode;
   int bufferlen = 2000;
   char *buffer;
   xmlDocPtr fault;              /* result */
 
   log_verbose1("Build fault");
 
-  switch (fcode)
+  switch (fault_code)
   {
-  case Fault_VersionMismatch:
+  case SOAP_FAULT_VERSION_MISMATCH:
     faultcode = fault_vm;
     break;
-  case Fault_MustUnderstand:
+  case SOAP_FAULT_MUST_UNDERSTAND:
     faultcode = fault_mu;
     break;
-  case Fault_Client:
-    faultcode = fault_client;
+  case SOAP_FAULT_DATA_ENCODING_UNKOWN:
+    faultcode = fault_deu;
     break;
-  case Fault_Server:
+  case SOAP_FAULT_RECEIVER:
     faultcode = fault_server;
     break;
+  case SOAP_FAULT_SENDER:
   default:
     faultcode = fault_client;
+    break;
   }
 
   /* calculate buffer length */
-  if (faultstring)
-    bufferlen += strlen(faultstring);
-  if (faultactor)
-    bufferlen += strlen(faultactor);
+  if (fault_string)
+    bufferlen += strlen(fault_string);
+  if (fault_actor)
+    bufferlen += strlen(fault_actor);
   if (detail)
     bufferlen += strlen(detail);
 
   log_verbose2("Creating buffer with %d bytes", bufferlen);
-  buffer = (char *) malloc(bufferlen);
+  if (!(buffer = (char *) malloc(bufferlen)))
+  {
+    log_error2("malloc failed (%s)", errno);
+    return NULL;
+  }
 
   sprintf(buffer, _SOAP_FAULT_TEMPLATE_,
           soap_env_ns, soap_env_enc, soap_xsi_ns,
           soap_xsd_ns, faultcode,
-          faultstring ? faultstring : "error",
-          faultactor ? faultactor : "", detail ? detail : "");
+          fault_string ? fault_string : "error",
+          fault_actor ? fault_actor : "", detail ? detail : "");
 
   fault = xmlParseDoc(BAD_CAST buffer);
   free(buffer);
@@ -123,11 +131,9 @@ soap_fault_build(fault_code_t fcode,
   {
     log_error1("Can not create xml document!");
 
-    return soap_fault_build(fcode, "Can not create fault object in xml",
-                            "soap_fault_build()", NULL);
+    return soap_fault_build(fault_code, "Cannot create fault object in XML", soap_server_get_name(), NULL);
   }
 
   log_verbose2("Returning fault (%p)", fault);
   return fault;
-
 }
