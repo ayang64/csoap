@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.42 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.43 2006/11/21 08:34:34 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -47,6 +47,10 @@
 
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_TIME_H
+#include <time.h>
 #endif
 
 #ifdef HAVE_NETINET_IN_H
@@ -127,7 +131,6 @@ httpc_free(httpc_conn_t * conn)
 
   if (conn == NULL)
     return;
-
 
   while (conn->header != NULL)
   {

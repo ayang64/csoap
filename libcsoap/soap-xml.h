@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.8 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-xml.h,v 1.9 2006/11/21 08:34:34 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -33,6 +33,7 @@ static const char * const soap_env_ns = "http://schemas.xmlsoap.org/soap/envelop
 static const char * const soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
 static const char * const soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";
 static const char * const soap_xsd_ns = "http://www.w3.org/1999/XMLSchema";
+
 
 typedef int (*soap_xmlnode_callback) (xmlNodePtr, void *);
 

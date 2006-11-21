@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.12 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.13 2006/11/21 08:34:34 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,6 +29,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -45,6 +49,7 @@
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
+#include "nanohttp-mime.h"
 #include "nanohttp-response.h"
 
 static hresponse_t *

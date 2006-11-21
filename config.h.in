@@ -145,8 +145,20 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if you have the <time.h> header file. */
+#undef HAVE_TIME_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `uuid_create' function. */
+#undef HAVE_UUID_CREATE
+
+/* Define to 1 if you have the <uuid.h> header file. */
+#undef HAVE_UUID_H
+
+/* Define to 1 if you have the `uuid_to_string */
+#undef HAVE_UUID_TO_STRING
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF

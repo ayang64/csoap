@@ -1,5 +1,5 @@
-	/******************************************************************
-*  $Id: nanohttp-admin.c,v 1.1 2006/11/19 09:40:14 m0gg Exp $
+/******************************************************************
+*  $Id: nanohttp-admin.c,v 1.2 2006/11/21 08:34:34 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,6 +33,14 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -43,6 +51,7 @@
 #include "nanohttp-request.h"
 #include "nanohttp-server.h"
 #include "nanohttp-admin.h"
+
 
 static void
 _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
@@ -66,6 +75,7 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 }
 
 
+static void
 _httpd_admin_list_services(httpd_conn_t *conn)
 {
   char buffer[1024];

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.27 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: soap-server.c,v 1.28 2006/11/21 08:34:34 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -109,10 +109,13 @@ _soap_server_send_fault(httpd_conn_t * conn, const char *errmsg)
   if (err != H_OK)
   {
     log_error1(herror_message(err));
-    http_output_stream_write_string(conn->out, "<html><head></head><body>");
-    http_output_stream_write_string(conn->out, "<h1>Error</h1><hr/>");
     http_output_stream_write_string(conn->out,
-                                    "Error while sending fault object:<br>Message: ");
+      "<html>"
+        "<head></head>"
+        "<body>"
+          "<h1>Error</h1><hr/>"
+          "Error while sending fault object:"
+	  "<br />Message: ");
     http_output_stream_write_string(conn->out, herror_message(err));
     http_output_stream_write_string(conn->out, "<br />Function: ");
     http_output_stream_write_string(conn->out, herror_func(err));
@@ -226,8 +229,8 @@ router_node_new(SoapRouter * router, const char *context, SoapRouterNode * next)
   const char *noname = "/lost_found";
   SoapRouterNode *node;
 
-  if (!(node = (SoapRouterNode *) malloc(sizeof(SoapRouterNode)))) {
-
+  if (!(node = (SoapRouterNode *) malloc(sizeof(SoapRouterNode))))
+  {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
   }
@@ -274,7 +277,6 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
   SoapEnv *env;
   herror_t err;
 
-  
   if (!(router = soap_server_find_router(req->path)))
   {
     _soap_server_send_fault(conn, "Cannot find router");
@@ -296,7 +298,7 @@ soap_server_entry(httpd_conn_t * conn, hrequest_t * req)
 		  "<body>"
                       "<h1>Sorry!</h1>"
                       "<hr />"
-                      "<div>I only speak with 'POST' method </div>"
+                      "<div>I only speak with 'POST' method.</div>"
                   "</body>"
               "</html>");
     return;

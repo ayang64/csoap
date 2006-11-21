@@ -1,5 +1,5 @@
 
-AC_INIT(csoap, 1.1.0)
+AC_INIT(csoap, 1.2.0)
 
 AC_CONFIG_SRCDIR([nanohttp/nanohttp-server.c])
 AC_CONFIG_SRCDIR([libcsoap/soap-server.c])
@@ -41,7 +41,7 @@ dnl checks for headers
 dnl
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h time.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h])
 
 dnl
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -62,6 +62,14 @@ AC_FUNC_VPRINTF
 AC_FUNC_STRFTIME
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([gethostbyname inet_ntoa memmove memset mkdir select socket strchr strdup strncasecmp strpbrk strspn strstr strtol])
+
+dnl
+dnl check for uuid
+dnl
+AC_CHECK_HEADERS([uuid.h])
+AC_CHECK_LIB(uuid, uuid_create, [LIBUUID="-luuid"]) 
+AC_CHECK_FUNCS([uuid_to_string, uuid_create])
+AC_SUBST(LIBUUID)
 
 dnl @synopsis ACX_PTHREAD([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 dnl

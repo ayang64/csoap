@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.14 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-env.h,v 1.15 2006/11/21 08:34:34 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,8 +23,6 @@
  ******************************************************************/
 #ifndef cSOAP_ENV_H
 #define cSOAP_ENV_H
-
-#include <nanohttp/nanohttp-stream.h>
 
 #include <libcsoap/soap-xml.h>
 #include <libcsoap/soap-fault.h>

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.15 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.16 2006/11/21 08:34:34 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -49,7 +49,9 @@
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
+#include "nanohttp-mime.h"
 #include "nanohttp-request.h"
+
 
 static hrequest_t *
 hrequest_new(void)
