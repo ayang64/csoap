@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,18 +33,10 @@
 #include <errno.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-fault.h"
@@ -62,7 +54,7 @@ soap_nudp_server_init_args(int argc, char **argv)
 }
 
 herror_t
-soap_nudp_register_router(SoapRouter *router, const char *context)
+soap_nudp_register(const void *data)
 {
   return H_OK;
 }
@@ -86,7 +78,7 @@ soap_nudp_client_init_args(int argc, char **argv)
 }
 
 herror_t
-soap_nudp_client_invoke(SoapCtx *req, SoapCtx **res)
+soap_nudp_client_invoke(struct SoapCtx *req, struct SoapCtx **res)
 {
   return H_OK;
 }

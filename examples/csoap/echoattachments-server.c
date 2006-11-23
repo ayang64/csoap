@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.10 2006/11/21 20:58:59 m0gg Exp $
+ * $Id: echoattachments-server.c,v 1.11 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -22,16 +22,10 @@
  ******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 
 #include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-env.h>
@@ -45,7 +39,7 @@ static const char *urn = "urn:examples";
 static const char *method = "echo";
 
 herror_t
-echo_attachments(SoapCtx * req, SoapCtx * res)
+echo_attachments(struct SoapCtx * req, struct SoapCtx * res)
 {
   herror_t err;
 
@@ -70,20 +64,18 @@ echo_attachments(SoapCtx * req, SoapCtx * res)
   return H_OK;
 }
 
-
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
   herror_t err;
-  SoapRouter *router;
+  struct SoapRouter *router;
 
   hlog_set_level(HLOG_VERBOSE);
 
   err = soap_server_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }

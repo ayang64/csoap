@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.23 2006/11/21 20:59:03 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.24 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,26 +24,47 @@
 #ifndef __nanohttp_server_h
 #define __nanohttp_server_h
 
+/**
+ *
+ * nanohttp command line flags
+ *
+ */
+#define NHTTPD_ARG_PORT		"-NHTTPport"
+#define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
+#define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
+#define NHTTPD_ARG_TIMEOUT	"-NHTTPtimeout"
 
 typedef struct httpd_conn
 {
-  hsocket_t *sock;
+  struct hsocket_t *sock;
   char content_type[25];
-  http_output_stream_t *out;
+  struct http_output_stream_t *out;
   hpair_t *header;
 }
 httpd_conn_t;
 
-
-/*
-  Service callback
+/**
+ *
+ * Service callback function for a nanoHTTP service.
+ *
  */
-typedef void (*httpd_service) (httpd_conn_t *, hrequest_t *);
-typedef int (*httpd_auth) (hrequest_t * req, const char *user,
-                           const char *password);
+typedef void (*httpd_service) (httpd_conn_t *conn, struct hrequest_t *req);
+
+/**
+ *
+ * Authentication callback function for a nanoHTTP service.
+ *
+ */
+typedef int (*httpd_auth) (struct hrequest_t *req, const char *user, const char *pass);
 
 #ifdef __NHTTP_INTERNAL
-struct service_statistics {
+/**
+ *
+ * Service statistics per nanoHTTP service.
+ *
+ */
+struct service_statistics
+{
   unsigned long requests;
   unsigned long bytes_transmitted;
   unsigned long bytes_received;
@@ -52,8 +73,10 @@ struct service_statistics {
 };
 #endif
 
-/*
+/**
+ *
  * Service representation object
+ *
  */
 typedef struct tag_hservice
 {
@@ -65,7 +88,6 @@ typedef struct tag_hservice
 }
 hservice_t;
 
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -75,43 +97,35 @@ extern "C"
 /*
   Begin  httpd_* function set
  */
-  herror_t httpd_init(int argc, char *argv[]);
-  void httpd_destroy(void);
+  extern herror_t httpd_init(int argc, char *argv[]);
+  extern void httpd_destroy(void);
 
-  herror_t httpd_run(void);
+  extern herror_t httpd_run(void);
 
-  int httpd_register(const char *ctx, httpd_service service);
-  int httpd_register_secure(const char *ctx, httpd_service service,
-                            httpd_auth auth);
+  extern herror_t httpd_register(const char *ctx, httpd_service service);
+  extern herror_t httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
-  int httpd_register_default(const char *ctx, httpd_service service);
-  int httpd_register_default_secure(const char *ctx, httpd_service service,
-                                    httpd_auth auth);
+  extern herror_t httpd_register_default(const char *ctx, httpd_service service);
+  extern herror_t httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
-  int httpd_get_port(void);
-  int httpd_get_timeout(void);
-  void httpd_set_timeout(int t);
+  extern short httpd_get_port(void);
+  extern int httpd_get_timeout(void);
+  extern void httpd_set_timeout(int t);
 
-  const char *httpd_get_protocol(void);
-  int httpd_get_conncount(void);
+  extern const char *httpd_get_protocol(void);
+  extern int httpd_get_conncount(void);
 
-  hservice_t *httpd_get_services(void);
-  hservice_t *httpd_find_service(const char *name);
+  extern hservice_t *httpd_get_services(void);
+  extern hservice_t *httpd_find_service(const char *name);
 
-  herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
+  extern herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
 
-  int httpd_set_header(httpd_conn_t * conn, const char *key,
-                       const char *value);
-  void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
+  extern int httpd_set_header(httpd_conn_t * conn, const char *key, const char *value);
+  extern void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
 
-  int httpd_add_header(httpd_conn_t * conn, const char *key,
-                       const char *value);
-  void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
+  extern int httpd_add_header(httpd_conn_t * conn, const char *key, const char *value);
+  extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
 
-/*
-unsigned char *httpd_get_postdata(httpd_conn_t *conn, 
-			 hrequest_t *req, long *received, long max);
-*/
 /* --------------------------------------------------------------
  MIME RELATED FUNCTIONS
  ---------------------------------------------------------------*/
@@ -123,7 +137,7 @@ unsigned char *httpd_get_postdata(httpd_conn_t *conn,
   Begin MIME multipart/related POST 
   Returns: HSOCKET_OK  or error flag
 */
-  herror_t httpd_mime_send_header(httpd_conn_t * conn,
+  extern herror_t httpd_mime_send_header(httpd_conn_t * conn,
                                   const char *related_start,
                                   const char *related_start_info,
                                   const char *related_type, int code,
@@ -133,7 +147,7 @@ unsigned char *httpd_get_postdata(httpd_conn_t *conn,
   Send boundary and part header and continue 
   with next part
 */
-  herror_t httpd_mime_next(httpd_conn_t * conn,
+  extern herror_t httpd_mime_next(httpd_conn_t * conn,
                            const char *content_id,
                            const char *content_type,
                            const char *transfer_encoding);
@@ -142,7 +156,7 @@ unsigned char *httpd_get_postdata(httpd_conn_t *conn,
   Send boundary and part header and continue 
   with next part
 */
-  herror_t httpd_mime_send_file(httpd_conn_t * conn,
+  extern herror_t httpd_mime_send_file(httpd_conn_t * conn,
                                 const char *content_id,
                                 const char *content_type,
                                 const char *transfer_encoding,
@@ -152,7 +166,7 @@ unsigned char *httpd_get_postdata(httpd_conn_t *conn,
   Finish MIME request 
   Returns: HSOCKET_OK  or error flag
 */
-  herror_t httpd_mime_end(httpd_conn_t * conn);
+  extern herror_t httpd_mime_end(httpd_conn_t * conn);
 
 
 #ifdef __cplusplus

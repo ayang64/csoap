@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.21 2006/11/21 20:59:02 m0gg Exp $
+ * $Id: simpleserver.c,v 1.22 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -22,16 +22,11 @@
  ******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 
 #include <libxml/tree.h>
+#include <libxml/xpath.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-xml.h>
@@ -46,7 +41,7 @@ static const char const *urn = "urn:examples";
 static const char const *method = "sayHello";
 
 herror_t
-say_hello(SoapCtx * req, SoapCtx * res)
+say_hello(struct SoapCtx *req, struct SoapCtx *res)
 {
   herror_t err;
   char *name;
@@ -76,11 +71,11 @@ say_hello(SoapCtx * req, SoapCtx * res)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
 
   herror_t err;
-  SoapRouter *router;
+  struct SoapRouter *router;
 
   // hlog_set_level(HLOG_VERBOSE);
 

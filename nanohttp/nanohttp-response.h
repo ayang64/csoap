@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.8 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-response.h,v 1.9 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,6 +24,28 @@
 #ifndef __nanohttp_response_h
 #define __nanohttp_response_h
 
+/**
+ *
+ * Response Header Fields
+ *
+ * The response-header fields allow the server to pass additional information
+ * about the response which cannot be placed in the Status-Line. These header
+ * fields give information about the server and about further access to the
+ * resource identified by the Request-URI. (see RFC2616)
+ *
+ * @see	http://www.ietf.org/rfc/rfc2616.txt
+ *
+ */
+#define HEADER_ACCEPT_RANGES		"Accept-Ranges"
+#define HEADER_AGE			"Age"
+#define HEADER_EXTENSION_TAG		"ETag"
+#define HEADER_LOCATION			"Location"
+#define HEADER_PROXY_AUTHENTICATE	"Proxy-Authenticate"
+#define HEADER_RETRY_AFTER		"Retry-After"
+#define HEADER_SERVER			"Server"
+#define HEADER_VARY			"Vary"
+#define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
+
 /* response object */
 typedef struct hresponse
 {
@@ -33,7 +55,7 @@ typedef struct hresponse
 
   hpair_t *header;
 
-  http_input_stream_t *in;
+  struct http_input_stream_t *in;
   content_type_t *content_type;
   attachments_t *attachments;
   char root_part_id[150];
@@ -43,8 +65,10 @@ typedef struct hresponse
 extern "C" {
 #endif
 
-herror_t hresponse_new_from_socket(hsocket_t *sock, hresponse_t ** out);
+#ifdef __NHTTP_INTERNAL
+herror_t hresponse_new_from_socket(struct hsocket_t *sock, hresponse_t ** out);
 void hresponse_free(hresponse_t * res);
+#endif
 
 #ifdef __cplusplus
 }

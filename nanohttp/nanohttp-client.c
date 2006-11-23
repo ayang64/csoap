@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.43 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.44 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -45,6 +45,10 @@
 #include <stdarg.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -60,6 +64,7 @@
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
+#include "nanohttp-request.h"
 #include "nanohttp-response.h"
 #include "nanohttp-base64.h"
 #include "nanohttp-logging.h"
@@ -102,9 +107,19 @@ httpc_new(void)
   httpc_conn_t *res;
  
   if (!(res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
+  }
 
-  if ((status = hsocket_init(&res->sock)) != H_OK)
+  if (!(res->sock = (struct hsocket_t *)malloc(sizeof(struct hsocket_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(res);
+    return NULL;
+  }
+
+  if ((status = hsocket_init(res->sock)) != H_OK)
   {
     log_warn2("hsocket_init failed (%s)", herror_message(status));
     return NULL;
@@ -145,7 +160,8 @@ httpc_free(httpc_conn_t * conn)
     conn->out = NULL;
   }
 
-  hsocket_free(&(conn->sock));
+  hsocket_free(conn->sock);
+  free(conn->sock);
   free(conn);
 
   return;
@@ -161,7 +177,7 @@ httpc_close_free(httpc_conn_t * conn)
   if (conn == NULL)
     return;
 
-  hsocket_close(&(conn->sock));
+  hsocket_close(conn->sock);
   httpc_free(conn);
 
   return;
@@ -302,12 +318,12 @@ httpc_send_header(httpc_conn_t * conn)
     if (walker->key && walker->value)
     {
       sprintf(buffer, "%s: %s\r\n", walker->key, walker->value);
-      if ((status = hsocket_send(&(conn->sock), buffer)) != H_OK)
+      if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
         return status;
     }
   }
 
-  return hsocket_send(&(conn->sock), "\r\n");
+  return hsocket_send(conn->sock, "\r\n");
 }
 
 /*--------------------------------------------------
@@ -386,7 +402,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   ssl = url.protocol == PROTOCOL_HTTPS ? 1 : 0;
 
   /* Open connection */
-  if ((status = hsocket_open(&conn->sock, url.host, url.port, ssl)) != H_OK)
+  if ((status = hsocket_open(conn->sock, url.host, url.port, ssl)) != H_OK)
     return status;
 
   switch(method)
@@ -413,10 +429,10 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   }
 
   log_verbose1("Sending request...");
-  if ((status = hsocket_send(&(conn->sock), buffer)) != H_OK)
+  if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
   {
     log_error2("Cannot send request (%s)", herror_message(status));
-    hsocket_close(&(conn->sock));
+    hsocket_close(conn->sock);
     return status;
   }
 
@@ -424,7 +440,7 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   if ((status = httpc_send_header(conn)) != H_OK)
   {
     log_error2("Cannot send header (%s)", herror_message(status));
-    hsocket_close(&(conn->sock));
+    hsocket_close(conn->sock);
     return status;
   }
 
@@ -443,7 +459,7 @@ httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
   if ((status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
 
   return H_OK;
@@ -462,7 +478,7 @@ httpc_post_begin(httpc_conn_t * conn, const char *url)
   if ((status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
     return status;
 
-  conn->out = http_output_stream_new(&(conn->sock), conn->header);
+  conn->out = http_output_stream_new(conn->sock, conn->header);
 
   return H_OK;
 }
@@ -481,7 +497,7 @@ httpc_post_end(httpc_conn_t * conn, hresponse_t ** out)
   if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
 
   return H_OK;
@@ -598,7 +614,7 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   if ((status = http_output_stream_flush(conn->out)) != H_OK)
     return status;
 
-  if ((status = hresponse_new_from_socket(&(conn->sock), out)) != H_OK)
+  if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
     return status;
 
   return H_OK;

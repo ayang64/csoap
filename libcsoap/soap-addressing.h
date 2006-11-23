@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-addressing.h,v 1.2 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-addressing.h,v 1.3 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -35,7 +35,7 @@
  * in a transport-neutral manner.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @see		http://www.w3.org/TR/ws-addr-core/
  *
  */
@@ -196,45 +196,45 @@ xmlNodePtr soap_addressing_set_reference_properties(xmlNodePtr endpoint_referenc
 xmlNodePtr soap_addressing_get_metadata(xmlNodePtr endpoint_reference);
 xmlNodePtr soap_addressing_set_metadata(xmlNodePtr endpoint_reference, xmlNodePtr parameter);
 
-xmlURI *soap_addressing_get_message_id(SoapEnv *envelope);
-xmlNodePtr soap_addressing_set_message_id(SoapEnv *envelope, xmlURI *id);
+xmlURI *soap_addressing_get_message_id(struct SoapEnv *envelope);
+xmlNodePtr soap_addressing_set_message_id(struct SoapEnv *envelope, xmlURI *id);
 
-xmlNodePtr soap_addressing_get_relates_to(SoapEnv *envelope);
-xmlNodePtr soap_addressing_add_relates_to(SoapEnv *envelope, xmlURI *id, xmlURI *type);
+xmlNodePtr soap_addressing_get_relates_to(struct SoapEnv *envelope);
+xmlNodePtr soap_addressing_add_relates_to(struct SoapEnv *envelope, xmlURI *id, xmlURI *type);
 
-xmlNodePtr soap_addressing_get_reply_to(SoapEnv *envelope);
-xmlNodePtr soap_addressing_set_reply_to(SoapEnv *envelope, xmlNodePtr address);
+xmlNodePtr soap_addressing_get_reply_to(struct SoapEnv *envelope);
+xmlNodePtr soap_addressing_set_reply_to(struct SoapEnv *envelope, xmlNodePtr address);
 
-xmlURI *soap_addressing_get_reply_to_address(SoapEnv *envelope);
-xmlNodePtr soap_addressing_set_reply_to_address(SoapEnv *envelope, xmlURI *address);
+xmlURI *soap_addressing_get_reply_to_address(struct SoapEnv *envelope);
+xmlNodePtr soap_addressing_set_reply_to_address(struct SoapEnv *envelope, xmlURI *address);
 
-xmlNodePtr soap_addressing_get_from(SoapEnv *envelope);
-xmlURI *soap_addressing_get_from_address(SoapEnv *envelope);
+xmlNodePtr soap_addressing_get_from(struct SoapEnv *envelope);
+xmlURI *soap_addressing_get_from_address(struct SoapEnv *envelope);
 
-xmlNodePtr soap_addressing_set_from(SoapEnv *envelope, xmlNodePtr address);
-xmlNodePtr soap_addressing_set_from_address(SoapEnv *envelope, xmlURI *address);
-xmlNodePtr soap_addressing_set_from_string(SoapEnv *envelope, const char *from);
+xmlNodePtr soap_addressing_set_from(struct SoapEnv *envelope, xmlNodePtr address);
+xmlNodePtr soap_addressing_set_from_address(struct SoapEnv *envelope, xmlURI *address);
+xmlNodePtr soap_addressing_set_from_string(struct SoapEnv *envelope, const char *from);
 
-xmlNodePtr soap_addressing_get_fault_to(SoapEnv *envelope);
-xmlURI *soap_addressing_get_fault_to_address(SoapEnv *envelope);
+xmlNodePtr soap_addressing_get_fault_to(struct SoapEnv *envelope);
+xmlURI *soap_addressing_get_fault_to_address(struct SoapEnv *envelope);
 
-xmlNodePtr soap_addressing_set_fault_to(SoapEnv *envelope, xmlNodePtr address);
-xmlNodePtr soap_addressing_set_fault_to_address(SoapEnv *envelope, xmlURI *address);
-xmlNodePtr soap_addressing_set_fault_to_string(SoapEnv *envelope, const char *fault_to);
+xmlNodePtr soap_addressing_set_fault_to(struct SoapEnv *envelope, xmlNodePtr address);
+xmlNodePtr soap_addressing_set_fault_to_address(struct SoapEnv *envelope, xmlURI *address);
+xmlNodePtr soap_addressing_set_fault_to_string(struct SoapEnv *envelope, const char *fault_to);
 
-xmlNodePtr soap_addressing_get_to(SoapEnv *envelope);
-xmlURI *soap_addressing_get_to_address(SoapEnv *envelope);
-xmlChar *soap_addressing_get_to_address_string(SoapEnv *envelope);
+xmlNodePtr soap_addressing_get_to(struct SoapEnv *envelope);
+xmlURI *soap_addressing_get_to_address(struct SoapEnv *envelope);
+xmlChar *soap_addressing_get_to_address_string(struct SoapEnv *envelope);
 
-xmlNodePtr soap_addressing_set_to(SoapEnv *envelope, xmlNodePtr address);
-xmlNodePtr soap_addressing_set_to_address(SoapEnv *envelope, xmlURI *address);
-xmlNodePtr soap_addressing_set_to_address_string(SoapEnv *envelope, const char *to);
+xmlNodePtr soap_addressing_set_to(struct SoapEnv *envelope, xmlNodePtr address);
+xmlNodePtr soap_addressing_set_to_address(struct SoapEnv *envelope, xmlURI *address);
+xmlNodePtr soap_addressing_set_to_address_string(struct SoapEnv *envelope, const char *to);
 
-xmlURI *soap_addressing_get_action(SoapEnv *envelope);
-xmlChar *soap_addressing_get_action_string(SoapEnv *envelope);
+xmlURI *soap_addressing_get_action(struct SoapEnv *envelope);
+xmlChar *soap_addressing_get_action_string(struct SoapEnv *envelope);
 
-xmlNodePtr soap_addressing_set_action(SoapEnv *envelope, xmlURI *action);
-xmlNodePtr soap_addressing_set_action_string(SoapEnv *envelope, const char *action);
+xmlNodePtr soap_addressing_set_action(struct SoapEnv *envelope, xmlURI *action);
+xmlNodePtr soap_addressing_set_action_string(struct SoapEnv *envelope, const char *action);
 
 #ifdef __cplusplus
 }

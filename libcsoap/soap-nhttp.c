@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,37 +37,29 @@
 #include <errno.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
-
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
-
-#include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-stream.h>
+
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
 
 #include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-server.h>
 
-#include "soap-admin.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
-#include "soap-router.h"
-#include "soap-server.h"
 #include "soap-client.h"
+#include "soap-transport.h"
 #include "soap-addressing.h"
+
+#include "soap-admin.h"
+#include "soap-wsil.h"
 
 #include "soap-nhttp.h"
 
@@ -98,7 +90,7 @@ _soap_nhttp_send_fault(httpd_conn_t *conn, const char *message)
   xmlDocPtr doc;
   herror_t ret;
 
-  doc = soap_fault_build(SOAP_FAULT_SENDER, message, soap_server_get_name(), NULL);
+  doc = soap_fault_build(SOAP_FAULT_SENDER, message, soap_transport_get_name(), NULL);
   ret = _soap_nhttp_send_document(conn, doc);
   xmlFreeDoc(doc);
 
@@ -106,7 +98,7 @@ _soap_nhttp_send_fault(httpd_conn_t *conn, const char *message)
 }
 
 static herror_t
-_soap_nhttp_send(httpd_conn_t *conn, SoapCtx *context, SoapEnv *env)
+_soap_nhttp_send(httpd_conn_t *conn, struct SoapCtx *context, struct SoapEnv *env)
 {
   return _soap_nhttp_send_document(conn, env->root->doc);
 }
@@ -116,7 +108,7 @@ _soap_nhttp_xml_io_read(void *ctx, char *buffer, int len)
 {
   int ret;
 
-  http_input_stream_t *in = (http_input_stream_t *)ctx;
+  struct http_input_stream_t *in = (struct http_input_stream_t *)ctx;
   if (!http_input_stream_is_ready(in))
     return 0;
 
@@ -134,7 +126,7 @@ _soap_nhttp_xml_io_close(void *ctx)
 }
 
 static herror_t
-_soap_nhttp_env_new_from_stream(http_input_stream_t *in, SoapEnv **out)
+_soap_nhttp_env_new_from_stream(struct http_input_stream_t *in, struct SoapEnv **out)
 {
   xmlDocPtr doc;
 
@@ -143,18 +135,18 @@ _soap_nhttp_env_new_from_stream(http_input_stream_t *in, SoapEnv **out)
     return in->err;
 
   if (doc == NULL)
-    return herror_new("_soap_nhttp_env_new_from_stream", XML_ERROR_PARSE, "Trying to parse not valid xml");
+    return herror_new("_soap_nhttp_env_new_from_stream", XML_ERROR_PARSE, "Trying to parse invalid XML");
 
   return soap_env_new_from_doc(doc, out);
 }
 
 static void
-soap_nhttp_process(httpd_conn_t * conn, hrequest_t * req)
+soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
 {
   char *action;
-  SoapEnv *env;
-  SoapCtx *ctx;
-  SoapCtx *response;
+  struct SoapEnv *env;
+  struct SoapCtx *ctx;
+  struct SoapCtx *response;
   herror_t err;
 
 /*  if (req->method == HTTP_REQUEST_GET && router->wsdl)
@@ -203,14 +195,14 @@ soap_nhttp_process(httpd_conn_t * conn, hrequest_t * req)
     xmlFree(uri);
   }
 
-  soap_xml_doc_print(ctx->env->root->doc);
+  xmlDocDump(stdout, ctx->env->root->doc);
 
   soap_ctx_add_files(ctx, req->attachments);
 
   /* only local part is interesting... */
   soap_addressing_set_to_address_string(ctx->env, req->path);
 
-  soap_server_process(ctx, &response);
+  soap_transport_process(ctx, &response);
 
   _soap_nhttp_send_document(conn, response->env->root->doc);
 
@@ -227,13 +219,22 @@ soap_nhttp_server_init_args(int argc, char **argv)
   herror_t err;
  
   if ((err = httpd_init(argc, argv)) != H_OK)
+  {
+    log_error2("httpd_init failed (%s)", herror_message(err));
     return err;
-  
+  }
+
+  if ((err = soap_wsil_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_wsil_init_args failed (%s)", herror_message(err));
+    return err;
+  }
+
   return soap_admin_init_args(argc, argv);
 }
 
 static herror_t
-_soap_nhttp_client_build_result(hresponse_t * res, SoapEnv ** env)
+_soap_nhttp_client_build_result(hresponse_t * res, struct SoapEnv ** env)
 {
   log_verbose2("Building result (%p)", res);
 
@@ -253,7 +254,7 @@ _soap_nhttp_client_build_result(hresponse_t * res, SoapEnv ** env)
 }
 
 static herror_t
-_soap_nhttp_client_invoke(void *unused, SoapCtx *request, SoapCtx **response)
+_soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx **response)
 {
   herror_t status;
 
@@ -263,7 +264,7 @@ _soap_nhttp_client_invoke(void *unused, SoapCtx *request, SoapCtx **response)
   char tmp[15];
   char *action;
   char *url;
-  SoapEnv *res_env;
+  struct SoapEnv *res_env;
 
   /* Transport variables */
   httpc_conn_t *conn;
@@ -284,7 +285,7 @@ _soap_nhttp_client_invoke(void *unused, SoapCtx *request, SoapCtx **response)
   xmlNodeDump(buffer, request->env->root->doc, request->env->root, 1, 0);
   content = (char *) xmlBufferContent(buffer);
 
-  soap_xml_doc_print(request->env->root->doc);
+  xmlDocDump(stdout, request->env->root->doc);
 
   /* Transport via HTTP */
   if (!(conn = httpc_new()))
@@ -412,6 +413,7 @@ _soap_nhttp_client_invoke(void *unused, SoapCtx *request, SoapCtx **response)
 
   return H_OK;
 }
+
 herror_t
 soap_nhttp_client_init_args(int argc, char **argv)
 {
@@ -422,14 +424,18 @@ soap_nhttp_client_init_args(int argc, char **argv)
 }
 
 herror_t
-soap_nhttp_register_router(SoapRouter * router, const char *context)
+soap_nhttp_register(const void *data)
 {
+  herror_t status;
+  const char *context;
 
-  if (!httpd_register_secure(context, soap_nhttp_process, router->auth))
+  context = (char *)data;
+
+  if ((status = httpd_register(context, soap_nhttp_process)) != H_OK)
   {
-    return /* XXX */ H_OK;
+    log_error2("httpd_register_secure failed (%s)", herror_message(status));
+    return status;
   }
-
   return H_OK;
 }
 
@@ -446,7 +452,6 @@ soap_nhttp_server_destroy(void)
 
   return;
 }
-
 
 void
 soap_nhttp_client_destroy(void)

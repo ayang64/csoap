@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-wsil.c,v 1.1 2006/11/23 13:20:46 m0gg Exp $
+*  $Id: soap-wsil.c,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -34,14 +34,11 @@
 #endif
 
 #include <libxml/tree.h>
-#include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 
-#include "soap-fault.h"
-#include "soap-env.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
 #include "soap-router.h"
@@ -49,34 +46,36 @@
 #include "soap-wsil.h"
 
 static void
-_soap_wsil_list_services(httpd_conn_t *conn, struct SoapRouter *router)
-{
-  SoapServiceNode *node;
-
-  for (node=router->service_head; node; node=node->next)
-  {
-    http_output_stream_write_string(conn->out,
-      "<service>"
-        "<description "
-          "referencedNamespace=\"http://schemas.xmlsoap.org/wsdl/\" "
-	  "location=\"");
-    http_output_stream_write_string(conn->out, soap_transport_get_name());
-    http_output_stream_write_string(conn->out, node->service->method);
-    http_output_stream_write_string(conn->out,
-          "\" />"
-      "</service>\n");
-  }
-  return;
-}
-
-static void
 _soap_wsil_list_routers(httpd_conn_t *conn)
 {
   SoapRouterNode *node;
 
   for (node=soap_server_get_routers(); node; node=node->next)
-    _soap_wsil_list_services(conn, node->router);
+  { 
+    http_output_stream_write_string(conn->out,
+      "<service>"
+        "<description "
+	  "location=\"");
+    http_output_stream_write_string(conn->out, soap_transport_get_name());
+    http_output_stream_write_string(conn->out, node->context);
+    http_output_stream_write_string(conn->out,
+          "\" "
+          "referencedNamespace=\"");
+    if (node->router->description)
+    {
+      xmlNodePtr root;
 
+      root = xmlDocGetRootElement(node->router->description);
+      http_output_stream_write_string(conn->out, root->ns->href);
+    }
+    else
+    {
+      http_output_stream_write_string(conn->out, "http://schemas.xmlsoap.org/wsdl/");
+    }
+    http_output_stream_write_string(conn->out,
+          "\" />"
+      "</service>");
+  }
   return;
 }
 

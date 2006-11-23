@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.11 2006/07/09 16:24:19 snowdrop Exp $
+*  $Id: soap-xml.c,v 1.12 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,9 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #include <nanohttp/nanohttp-logging.h>
 
@@ -69,7 +72,6 @@ soap_xml_get_next(xmlNodePtr param)
   return node;
 }
 
-
 xmlXPathObjectPtr
 soap_xpath_eval(xmlDocPtr doc, const char *xpath)
 {
@@ -86,62 +88,6 @@ soap_xpath_eval(xmlDocPtr doc, const char *xpath)
 
   xmlXPathFreeContext(context);
   return result;
-}
-
-
-int
-soap_xpath_foreach(xmlDocPtr doc, const char *xpath,
-                   soap_xmlnode_callback cb, void *userdata)
-{
-  int i = 0;
-  xmlNodeSetPtr nodeset;
-  xmlXPathObjectPtr xpathobj;
-
-  xpathobj = soap_xpath_eval(doc, xpath);
-
-  if (!xpathobj)
-    return 0;
-
-  nodeset = xpathobj->nodesetval;
-  if (!nodeset)
-    return 0;
-
-  for (i = 0; i < nodeset->nodeNr; i++)
-  {
-    if (!cb(nodeset->nodeTab[i], userdata))
-      break;
-  }
-
-  xmlXPathFreeObject((xmlXPathObjectPtr) nodeset);
-  return i;
-}
-
-
-void
-soap_xml_doc_print(xmlDocPtr doc)
-{
-  xmlBufferPtr buffer;
-  xmlNodePtr root;
-
-  if (doc == NULL)
-  {
-    puts("xmlDocPtr is NULL!");
-    return;
-  }
-
-  root = xmlDocGetRootElement(doc);
-  if (root == NULL)
-  {
-    puts("Empty document!");
-    return;
-  }
-
-
-  buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, doc, root, 1, 0);
-  puts((const char *) xmlBufferContent(buffer));
-  xmlBufferFree(buffer);
-
 }
 
 char *

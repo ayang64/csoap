@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.19 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.20 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -34,6 +34,13 @@
 #include <openssl/ssl.h>
 #endif
 
+/**
+ *
+ * Commandline argument to enabled SSL in the nanoHTTP server.
+ *
+ */
+#define NHTTPD_ARG_HTTPS	"-NHTTPS"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -44,26 +51,26 @@ extern "C"
  * Initialization and shutdown of the SSL module
  *
  */
-  herror_t hssl_module_init(int argc, char **argv);
-  void hssl_module_destroy(void);
+extern herror_t hssl_module_init(int argc, char **argv);
+extern void hssl_module_destroy(void);
 
-  void hssl_set_certificate(char *c);
-  void hssl_set_certpass(char *c);
-  void hssl_set_ca(char *c);
+extern void hssl_set_certificate(char *c);
+extern void hssl_set_certpass(char *c);
+extern void hssl_set_ca(char *c);
 
-  void hssl_enable(void);
+extern void hssl_enable(void);
 
-  int hssl_enabled(void);
+extern int hssl_enabled(void);
 
 /**
  *
  * Socket initialization and shutdown
  *
  */
-  herror_t hssl_client_ssl(hsocket_t * sock);
-  herror_t hssl_server_ssl(hsocket_t * sock);
+extern herror_t hssl_client_ssl(struct hsocket_t * sock);
+extern herror_t hssl_server_ssl(struct hsocket_t * sock);
 
-  void hssl_cleanup(hsocket_t * sock);
+extern void hssl_cleanup(struct hsocket_t * sock);
 
 /*
  * Callback for password checker
@@ -77,7 +84,7 @@ extern "C"
  */
 #define CERT_SUBJECT	1
 
-  int verify_sn(X509 * cert, int who, int nid, char *str);
+extern int verify_sn(X509 * cert, int who, int nid, char *str);
 
 /*
  * Called by framework for verify
@@ -85,7 +92,7 @@ extern "C"
 
 /* static int verify_cb(int prev_ok, X509_STORE_CTX* ctx); */
 
-  void hssl_set_user_verify(int func(X509 * cert));
+extern void hssl_set_user_verify(int func(X509 * cert));
 
 #ifdef __cplusplus
 }
@@ -98,6 +105,7 @@ hssl_module_init(int argc, char **argv)
 {
   return H_OK;
 }
+
 static inline void
 hssl_module_destroy(void)
 {
@@ -111,19 +119,19 @@ hssl_enabled(void)
 }
 
 static inline herror_t
-hssl_client_ssl(hsocket_t * sock)
+hssl_client_ssl(struct hsocket_t *sock)
 {
   return H_OK;
 }
 
 static inline herror_t
-hssl_server_ssl(hsocket_t * sock)
+hssl_server_ssl(struct hsocket_t *sock)
 {
   return H_OK;
 }
 
 static inline void
-hssl_cleanup(hsocket_t * sock)
+hssl_cleanup(struct hsocket_t *sock)
 {
   return;
 }
@@ -135,10 +143,8 @@ extern "C"
 {
 #endif
 
-  herror_t hssl_read(hsocket_t * sock, char *buf, size_t len,
-                     size_t * received);
-  herror_t hssl_write(hsocket_t * sock, const char *buf, size_t len,
-                      size_t * sent);
+extern herror_t hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received);
+extern herror_t hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent);
 
 #ifdef __cplusplus
 }

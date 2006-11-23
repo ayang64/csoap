@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.30 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.31 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -29,7 +29,7 @@
 /*
   Socket definition
 */
-typedef struct hsocket_t
+struct hsocket_t
 {
 #ifdef WIN32
   SOCKET sock;
@@ -40,8 +40,7 @@ typedef struct hsocket_t
   size_t bytes_transmitted;
   size_t bytes_received;
   void *ssl;
-}
-hsocket_t;                      /* end of socket definition */
+};
 
 #ifdef __cplusplus
 extern "C"
@@ -49,157 +48,166 @@ extern "C"
 #endif
 
 /**
-  Initializes the socket modul. This should be called only 
-  once for an application.
-
-  @returns This function should always return H_OK. 
+ *
+ * Initializes the socket modul. This should be called only once for an
+ * application.
+ *
+ * @returns This function should always return H_OK. 
+ *
  */
-  herror_t hsocket_module_init(int argc, char **argv);
+extern herror_t hsocket_module_init(int argc, char **argv);
 
 
 /**
-  Destroys the socket modul. This should be called after 
-  finishing an application.
-*/
-  void hsocket_module_destroy(void);
-
-
-/**
-  Initializes a given socket object. This function (or 
-  hsokcet_init_ssl) should
-  be called for every socket before using it.
-
-  @param sock the destination socket to initialize.
-
-  @see hsocket_init_ssl
-  @returns This function should always return H_OK. 
+ *
+ * Destroys the socket modul. This should be called after finishing an
+ * application.
+ *
  */
-  herror_t hsocket_init(hsocket_t * sock);
+extern void hsocket_module_destroy(void);
 
 /**
-  Destroys and releases a given socket.
-
-  @param sock the socket to destroy
-*/
-  void hsocket_free(hsocket_t * sock);
-
-
-/**
-  Connects to a given host. The hostname can be an IP number 
-  or a humen readable hostname.
-  
-  @param sock the destonation socket object to use
-  @param host hostname 
-  @param port port number to connect to
-  @param ssl  whether to open a SSL connection
-
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_CREATE 
-    <BR>HSOCKET_ERROR_GET_HOSTNAME 
-    <BR>HSOCKET_ERROR_CONNECT
+ *
+ * Initializes a given socket object. This function (or hsokcet_init_ssl) should
+ * be called for every socket before using it.
+ *
+ * @param sock the destination socket to initialize.
+ *
+ * @returns This function should always return H_OK. 
+ *
+ * @see hsocket_init_ssl
+ *
  */
-  herror_t hsocket_open(hsocket_t * sock, const char *host, int port,
-                        int ssl);
-
+extern herror_t hsocket_init(struct hsocket_t * sock);
 
 /**
-  Close a socket connection.
-
-  @param sock the socket to close
-*/
-  void hsocket_close(hsocket_t * sock);
-
-
-/**
-  Binds a socket to a given port number. After bind you
-  can call hsocket_listen() to listen to the port.
-
-  @param sock socket to use.
-  @param port  port number to bind to
-  
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_CREATE
-    <BR>HSOCKET_ERROR_BIND
-
-  @see hsocket_listen
+ *
+ * Destroys and releases a given socket.
+ *
+ * @param sock the socket to destroy
+ *
  */
-  herror_t hsocket_bind(hsocket_t * sock, unsigned short port);
+extern void hsocket_free(struct hsocket_t * sock);
+
+/**
+ *
+ * Connects to a given host. The hostname can be an IP number or a humen
+ * readable hostname.
+ * 
+ * @param sock the destonation socket object to use
+ * @param host hostname 
+ * @param port port number to connect to
+ * @param ssl  whether to open a SSL connection
+ *
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_CREATE 
+ *  - HSOCKET_ERROR_GET_HOSTNAME 
+ *  - HSOCKET_ERROR_CONNECT
+ *
+ */
+extern herror_t hsocket_open(struct hsocket_t *sock, const char *host, int port, int ssl);
+
+/**
+ *
+ * Close a socket connection.
+ *
+ * @param sock the socket to close
+ *
+ */
+extern void hsocket_close(struct hsocket_t *sock);
 
 
 /**
-  Set the socket to the listen mode. You must bind 
-  the socket to a port with hsocket_bind() before 
-  you can listen to the port.
+ *
+ * Binds a socket to a given port number. After bind you can call
+ * hsocket_listen() to listen to the port.
+ *
+ * @param sock socket to use.
+ * @param port  port number to bind to
+ * 
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_CREATE
+ *  - HSOCKET_ERROR_BIND
+ *
+ *  @see hsocket_listen
+ *
+ */
+extern herror_t hsocket_bind(struct hsocket_t *sock, unsigned short port);
 
-  @param sock the socket to use
+/**
+ *
+ * Set the socket to the listen mode. You must bind the socket to a port with
+ * hsocket_bind() before you can listen to the port.
+ *
+ * @param sock the socket to use
+ *
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_NOT_INITIALIZED
+ *  - HSOCKET_ERROR_LISTEN
+ */
+extern herror_t hsocket_listen(struct hsocket_t *sock);
 
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_NOT_INITIALIZED
-    <BR>HSOCKET_ERROR_LISTEN
-*/
-  herror_t hsocket_listen(hsocket_t * sock);
+/**
+ *
+ * Accepts an incoming socket request. Note that this function
+ * will not return until a socket connection is ready.
+ *
+ * @param sock the socket which listents to a port
+ * @param dest the destination socket which will be created
+ * 
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_NOT_INITIALIZED
+ *  - HSOCKET_ERROR_ACCEPT
+ */
+extern herror_t hsocket_accept(struct hsocket_t *sock, struct hsocket_t *dest);
+
+/**
+ *
+ * Sends data throught the socket.
+ *
+ * @param sock the socket to use to send the data
+ * @param bytes bytes to send
+ * @param size size of memory to sent pointed by bytes.
+ *
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_NOT_INITIALIZED
+ *  - HSOCKET_ERROR_SEND
+ */
+extern herror_t hsocket_nsend(struct hsocket_t *sock, const unsigned char *bytes, int size);
 
 
 /**
-  Accepts an incoming socket request. Note that this function
-  will not return until a socket connection is ready.
+ *
+ * Sends a string throught the socket
+ *
+ * @param sock the socket to use to send the data
+ * @param str the null terminated string to sent
+ *
+ * @returns H_OK if success. One of the followings if fails:<P>
+ *  - HSOCKET_ERROR_NOT_INITIALIZED
+ *  - HSOCKET_ERROR_SEND
+ *
+ */
+extern herror_t hsocket_send(struct hsocket_t *sock, const char *str);
 
-  @param sock the socket which listents to a port
-  @param dest the destination socket which will be created
-  
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_NOT_INITIALIZED
-    <BR>HSOCKET_ERROR_ACCEPT
-*/
-  herror_t hsocket_accept(hsocket_t *sock, hsocket_t *dest);
-
-
-/**
-  Sends data throught the socket.
-
-  @param sock the socket to use to send the data
-  @param bytes bytes to send
-  @param size size of memory to sent pointed by bytes.
-
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_NOT_INITIALIZED
-    <BR>HSOCKET_ERROR_SEND
-*/
-  herror_t hsocket_nsend(hsocket_t * sock, const unsigned char *bytes, int size);
-
+extern int hsocket_select_read(int sock, char *buf, size_t len);
 
 /**
-  Sends a string throught the socket
-
-  @param sock the socket to use to send the data
-  @param str the null terminated string to sent
-
-  @returns H_OK if success. One of the followings if fails:<P>
-    <BR>HSOCKET_ERROR_NOT_INITIALIZED
-    <BR>HSOCKET_ERROR_SEND
-*/
-  herror_t hsocket_send(hsocket_t * sock, const char *str);
-
-
-  int hsocket_select_read(int sock, char *buf, size_t len);
-/**
-  Reads data from the socket.
-
-  @param sock the socket to read data from
-  @param buffer the buffer to use to save the readed bytes
-  @param size the maximum size of bytes to read
-  @param force if force is 1 then hsocket_read() will wait until
-   maximum size of bytes (size parameter) was readed. Otherwise
-   this function will not wait and will return with the bytes
-   quequed on the socket.
-
-   @returns This function will return -1 if an read error was occured.
-     Otherwise the return value is the size of bytes readed from 
-     the socket.
-  
-*/
-  herror_t hsocket_read(hsocket_t * sock, unsigned char *buffer, int size,
-                        int force, int *readed);
+ *
+ * Reads data from the socket.
+ *
+ * @param sock the socket to read data from
+ * @param buffer the buffer to use to save the readed bytes
+ * @param size the maximum size of bytes to read
+ * @param force if force is 1 then hsocket_read() will wait until maximum size
+ *        of bytes (size parameter) was readed. Otherwise this function will not
+ *        wait and will return with the bytes quequed on the socket.
+ *
+ * @returns This function will return -1 if an read error was occured. Otherwise
+ *          the return value is the size of bytes readed from the socket.
+ *
+ */
+extern herror_t hsocket_read(struct hsocket_t * sock, unsigned char *buffer, int size, int force, int *readed);
 
 #ifdef __cplusplus
 }

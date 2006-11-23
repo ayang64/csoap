@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.32 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.33 2006/11/23 15:27:33 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,8 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_COMMON_H
-#define NANO_HTTP_COMMON_H
+#ifndef __nanohttp_common_h
+#define __nanohttp_common_h
 
 #define HEADER_CONTENT_ID		"Content-Id"
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
@@ -69,75 +69,14 @@
 #define HEADER_EXPIRES			"Expires"
 #define HEADER_LAST_MODIFIED		"Last-Modified"
 
-
 /**
  *
- * XXX: move to nanohttp-response.h
- *
- * Response Header Fields
- *
- * The response-header fields allow the server to pass additional information
- * about the response which cannot be placed in the Status-Line. These header
- * fields give information about the server and about further access to the
- * resource identified by the Request-URI. (see RFC2616)
+ * Command line arguments for client and server.
  *
  */
-#define HEADER_ACCEPT_RANGES		"Accept-Ranges"
-#define HEADER_AGE			"Age"
-#define HEADER_EXTENSION_TAG		"ETag"
-#define HEADER_LOCATION			"Location"
-#define HEADER_PROXY_AUTHENTICATE	"Proxy-Authenticate"
-#define HEADER_RETRY_AFTER		"Retry-After"
-#define HEADER_SERVER			"Server"
-#define HEADER_VARY			"Vary"
-#define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
-
-/**
- *
- * XXX: move to nanohttp-request.h
- *
- * Request Header Fields
- *
- * The request-header fields allow the client to pass additional information
- * about the request, and about the client itself, to the server. These fields
- * act as request modifiers, with semantics equivalent to the parameters on a
- * programming language method invocation (see RFC2616).
- *
- */
-#define HEADER_ACCEPT			"Accept"
-#define HEADER_CHARSET			"Accept-Charset"
-#define HEADER_ACCEPT_ENCODING		"Accept-Encoding"
-#define HEADER_ACCEPT_LANGUAGE		"Accept-Language"
-#define HEADER_AUTHORIZATION		"Authorization"
-#define HEADER_EXPECT			"Expect"
-#define HEADER_FROM			"From"
-#define HEADER_HOST			"Host"
-#define HEADER_IF_MATCH			"If-Match"
-#define HEADER_IF_MODIFIED_SINCE	"If-Modified-Since"
-#define HEADER_IF_NONE_MATCH		"If-None-Match"
-#define HEADER_IF_RANGE			"If-Range"
-#define HEADER_IF_UNMODIFIED_SINCE	"If-Unmodified-Since"
-#define HEADER_IF_MAX_FORWARDS		"Max-Forwards"
-#define HEADER_PROXY_AUTHORIZATION	"Proxy-Authorization"
-#define HEADER_RANGE			"Range"
-#define HEADER_REFERER			"Referer"
-#define HEADER_TRANSFER_EXTENSION	"TE"
-#define HEADER_USER_AGENT		"User-Agent"
-
-/**
- *
- * nanohttp command line flags
- *
- */
-#define NHTTPD_ARG_PORT		"-NHTTPport"
-#define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
-#define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
-#define NHTTPD_ARG_TIMEOUT	"-NHTTPtimeout"
-
 #define NHTTP_ARG_CERT		"-NHTTPcert"
 #define NHTTP_ARG_CERTPASS	"-NHTTPcertpass"
 #define NHTTP_ARG_CA		"-NHTTPCA"
-#define NHTTP_ARG_HTTPS		"-NHTTPS"
 
 #ifndef SAVE_STR
 #define SAVE_STR(str) ((str==0)?("(null)"):(str))
@@ -146,27 +85,13 @@
 #define BOUNDARY_LENGTH 18
 
 #define MAX_HEADER_SIZE 4256
-#define MAX_SOCKET_BUFFER_SIZE 4256
 #define MAX_FILE_BUFFER_SIZE 4256
-
-#define URL_MAX_HOST_SIZE      120
-#define URL_MAX_CONTEXT_SIZE  1024
-
-#define HSOCKET_MAX_BUFSIZE 1024
 
 #define REQUEST_MAX_PATH_SIZE 1024
 #define RESPONSE_MAX_DESC_SIZE 1024
-
-/*
-  DIME common stuff
-*/
-#define DIME_VERSION_1      0x08
-#define DIME_FIRST_PACKAGE  0x04
-#define DIME_LAST_PACKAGE   0x02
-#define DIME_CHUNKED        0x01
-#define DIME_TYPE_URI       0x2
-
-
+      
+#define URL_MAX_HOST_SIZE      120
+#define URL_MAX_CONTEXT_SIZE  1024
 
 /* TODO (#1#): find proper ports */
 #define URL_DEFAULT_PORT_HTTP 80
@@ -234,15 +159,6 @@
 #define HSSL_ERROR_SERVER		1760
 #define HSSL_ERROR_CONNECT		1770
 
-/*
-Set Sleep function platform depended
-*/
-#ifdef WIN32
-#define system_sleep(seconds) Sleep(seconds*1000);
-#else
-#define system_sleep(seconds) sleep(seconds);
-#endif
-
 /**
   Indicates the version of the 
   used HTTP protocol.
@@ -273,12 +189,6 @@ typedef enum _hreq_method
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifdef WIN32
-#include <string.h>
-char *strtok_r(char *s, const char *delim, char **save_ptr);
-struct tm *localtime_r(const time_t * const timep, struct tm *p_tm);
 #endif
 
 typedef void *herror_t;
@@ -543,7 +453,7 @@ typedef struct _attachments
   part_t *root_part;
 } attachments_t;
 
-attachments_t *attachments_new();       /* should be used internally */
+attachments_t *attachments_new(void);       /* should be used internally */
 
 /*
   Free a attachment. Create attachments with MIME

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.c,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-transport.c,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -33,18 +33,10 @@
 #include <string.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-fault.h"
@@ -70,12 +62,6 @@ struct soap_transport
 
 static struct soap_transport *head = NULL;
 static char soap_transport_name[512] = "not set";
-
-herror_t
-soap_transport_receive(SoapCtx *request, SoapCtx **response)
-{
-  return soap_server_process(request, response);
-}
 
 static struct soap_transport *
 _soap_transport_new(const char *scheme, void *data, msg_exchange invoke)
@@ -114,6 +100,13 @@ _soap_transport_destroy(struct soap_transport *transport)
   return ret;
 }
 
+
+herror_t
+soap_transport_process(struct SoapCtx *request, struct SoapCtx **response)
+{
+  return soap_server_process(request, response);
+}
+
 herror_t
 soap_transport_server_init_args(int argc, char **argv)
 {
@@ -121,27 +114,39 @@ soap_transport_server_init_args(int argc, char **argv)
   char hostname[256];
 
   if ((status = soap_nhttp_server_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_nhttp_server_init_args failed (%s)", herror_message(status));
     return status;
+  }
 
   if ((status = soap_nudp_server_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_nudp_server_init_args failed (%s)", herror_message(status));
     return status;
+  }
 
   gethostname(hostname, 256);
-  sprintf(soap_transport_name, "%s://%s:%i/csoap", soap_nhttp_get_protocol(), hostname, soap_nhttp_get_port());
+  sprintf(soap_transport_name, "%s://%s:%i", soap_nhttp_get_protocol(), hostname, soap_nhttp_get_port());
 
   return H_OK;
 }
 
 herror_t
-soap_transport_register_router(SoapRouter *router, const char *context)
+soap_transport_register(const void *data)
 {
   herror_t status;
 
-  if ((status = soap_nhttp_register_router(router, context)) != H_OK)
+  if ((status = soap_nhttp_register(data)) != H_OK)
+  {
+    log_error2("soap_nhttp_register failed (%s)", herror_message(status));
     return status;
+  }
 
-  if ((status = soap_nudp_register_router(router, context)) != H_OK)
+  if ((status = soap_nudp_register(data)) != H_OK)
+  {
+    log_error2("soap_nudp_register failed (%s)", herror_message(status));
     return status;
+  }
   
   return H_OK;
 }
@@ -155,7 +160,7 @@ soap_transport_add(const char *scheme, void *data, msg_exchange invoke)
   if (!(transport = _soap_transport_new(scheme, data, invoke)))
   {
     log_error1("_soap_transport_new failed");
-    return H_OK;
+    return herror_new("soap_transport_add", 0, "_soap_transport_new failed");
   }
 
   if (head == NULL)
@@ -177,10 +182,16 @@ soap_transport_server_run(void)
   herror_t status;
 
   if ((status = soap_nhttp_server_run()) != H_OK)
+  {
+    log_error2("soap_nhttp_server_run failed (%s)", herror_message(status));
     return status;
+  }
 
   if ((status = soap_nudp_server_run()) != H_OK)
+  {
+    log_error2("soap_nudp_server_run failed (%s)", herror_message(status));
     return status;
+  }
 
   return H_OK;
 }
@@ -207,23 +218,29 @@ soap_transport_client_init_args(int argc, char **argv)
   herror_t status;
 
   if ((status = soap_nhttp_client_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_nhttp_client_init_args failed (%s)", herror_message(status));
     return status;
+  }
 
   if ((status = soap_nudp_client_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_nudp_client_init_args failed (%s)", herror_message(status));
     return status;
+  }
 
   return H_OK;
 }
 
 herror_t
-soap_transport_client_invoke(SoapCtx *request, SoapCtx **response)
+soap_transport_client_invoke(struct SoapCtx *request, struct SoapCtx **response)
 {
   struct soap_transport *walker;
   herror_t ret;
   xmlURI *dest;
   
   log_verbose1(__FUNCTION__);
-  soap_xml_doc_print(request->env->root->doc);
+  xmlDocDump(stdout, request->env->root->doc);
 
   dest = soap_addressing_get_to_address(request->env);
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.6 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: http_server.c,v 1.7 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,17 +23,15 @@
 ******************************************************************/
 #include <stdio.h>
 #include <string.h>
-#include <netinet/in.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
-static int simple_authenticator(hrequest_t *req, const char *user, const char *password)
+static int simple_authenticator(struct hrequest_t *req, const char *user, const char *password)
 {
 
 	log_info3("logging in user=\"%s\" password=\"%s\"", user, password);
@@ -53,11 +51,11 @@ static int simple_authenticator(hrequest_t *req, const char *user, const char *p
 	return 1;
 }
 
-static void secure_service(httpd_conn_t *conn, hrequest_t *req)
+static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 
 	httpd_send_header(conn, 200, "OK");
-	hsocket_send(conn->sock,
+	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
 				"<title>Secure ressource!</title>"
@@ -70,11 +68,11 @@ static void secure_service(httpd_conn_t *conn, hrequest_t *req)
 	return;
 }
 
-static void default_service(httpd_conn_t *conn, hrequest_t *req)
+static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 
 	httpd_send_header(conn, 404, "Not found");
-	hsocket_send(conn->sock,
+	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
 				"<title>Default error page</title>"
@@ -83,9 +81,9 @@ static void default_service(httpd_conn_t *conn, hrequest_t *req)
 				"<h1>Default error page</h1>"
 				"<div>");
 
-	hsocket_send(conn->sock, req->path);
+	http_output_stream_write_string(conn->out, req->path);
 
-	hsocket_send(conn->sock, " can not be found"
+	http_output_stream_write_string(conn->out, " can not be found"
 		       		"</div>"
 			"</body>"
 		"</html>");
@@ -93,12 +91,12 @@ static void default_service(httpd_conn_t *conn, hrequest_t *req)
 	return;
 }	
 
-static void headers_service(httpd_conn_t *conn, hrequest_t *req)
+static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 	hpair_t *walker;
 
 	httpd_send_header(conn, 200, "OK");
-	hsocket_send(conn->sock,
+	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
 				"<title>Request headers</title>"
@@ -109,14 +107,14 @@ static void headers_service(httpd_conn_t *conn, hrequest_t *req)
 
 	for (walker=req->header; walker; walker=walker->next)
 	{
-		hsocket_send(conn->sock, "<li>");
-		hsocket_send(conn->sock, walker->key);
-		hsocket_send(conn->sock, " = ");
-		hsocket_send(conn->sock, walker->value);
-		hsocket_send(conn->sock, "</li>");
+		http_output_stream_write_string(conn->out, "<li>");
+		http_output_stream_write_string(conn->out, walker->key);
+		http_output_stream_write_string(conn->out, " = ");
+		http_output_stream_write_string(conn->out, walker->value);
+		http_output_stream_write_string(conn->out, "</li>");
 	}
 
-	hsocket_send(conn->sock,
+	http_output_stream_write_string(conn->out,
 				"</ul>"
 			"</body>"
 		"</html>");
@@ -124,10 +122,10 @@ static void headers_service(httpd_conn_t *conn, hrequest_t *req)
 	return;
 }
 
-static void root_service(httpd_conn_t *conn, hrequest_t *req)
+static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 	httpd_send_header(conn, 200, "OK");
-	hsocket_send(conn->sock,
+	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
 				"<title>nanoHTTP server examples</title>"
@@ -147,7 +145,7 @@ static void root_service(httpd_conn_t *conn, hrequest_t *req)
 	return;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	hlog_set_level(HLOG_INFO);
 

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.13 2006/11/21 20:58:59 m0gg Exp $
+ * $Id: echoattachments-client.c,v 1.14 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -20,29 +20,21 @@
  *
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#include <sys/time.h>
 #include <stdio.h>
-#include <netinet/in.h>
+#include <stdlib.h>
 
 #include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-env.h>
 #include <libcsoap/soap-ctx.h>
 #include <libcsoap/soap-client.h>
 
-
 static const char *urn = "urn:examples";
 static const char *url = "http://localhost:10000/echoattachments";
 static const char *method = "echo";
-
 
 void
 compareFiles(const char *received, const char *sent)
@@ -116,13 +108,12 @@ compareFiles(const char *received, const char *sent)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
-  SoapCtx *ctx, *ctx2;
+  struct SoapCtx *ctx, *ctx2;
   char href[MAX_HREF_SIZE];
   xmlNodePtr fault;
   herror_t err;
-
 
   if (argc < 2)
   {
@@ -135,8 +126,7 @@ main(int argc, char *argv[])
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4("[%d] %s():%s ", herror_code(err), herror_func(err),
-               herror_message(err));
+    printf("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     return 1;
   }
@@ -146,8 +136,7 @@ main(int argc, char *argv[])
   err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK)
   {
-    log_error4("[%d] %s():%s ", herror_code(err), herror_func(err),
-               herror_message(err));
+    printf("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     return 1;
   }
@@ -157,8 +146,7 @@ main(int argc, char *argv[])
   err = soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }
@@ -177,8 +165,7 @@ main(int argc, char *argv[])
 
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err), herror_message(err),
-               herror_code(err));
+    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }
@@ -188,7 +175,7 @@ main(int argc, char *argv[])
   fault = soap_env_get_fault(ctx2->env);
   if (fault)
   {
-    soap_xml_doc_print(ctx2->env->root->doc);
+    xmlDocDump(stdout, ctx2->env->root->doc);
   }
   else if (ctx2->attachments)
   {
@@ -197,7 +184,7 @@ main(int argc, char *argv[])
   else
   {
     printf("No attachments!");
-    soap_xml_doc_print(ctx2->env->root->doc);
+    xmlDocDump(stdout, ctx2->env->root->doc);
   }
 
   /* 

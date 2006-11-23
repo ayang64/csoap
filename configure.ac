@@ -1,4 +1,6 @@
-
+dnl
+dnl package version
+dnl
 AC_INIT(csoap, 1.2.0)
 
 AC_CONFIG_SRCDIR([nanohttp/nanohttp-server.c])

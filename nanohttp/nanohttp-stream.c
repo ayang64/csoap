@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.14 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.15 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -79,16 +79,16 @@ _http_stream_is_chunked(hpair_t * header)
 /**
   Creates a new input stream. 
 */
-http_input_stream_t *
-http_input_stream_new(hsocket_t *sock, hpair_t * header)
+struct http_input_stream_t *
+http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
 {
-  http_input_stream_t *result;
+  struct http_input_stream_t *result;
   char *content_length;
 
   /* Paranoya check */
   /* if (header == NULL) return NULL; */
   /* Create object */
-  if (!(result = (http_input_stream_t *) malloc(sizeof(http_input_stream_t))))
+  if (!(result = (struct http_input_stream_t *) malloc(sizeof(struct http_input_stream_t))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
@@ -132,10 +132,10 @@ http_input_stream_new(hsocket_t *sock, hpair_t * header)
   This function was added for MIME messages 
   and for debugging.
 */
-http_input_stream_t *
+struct http_input_stream_t *
 http_input_stream_new_from_file(const char *filename)
 {
-  http_input_stream_t *result;
+  struct http_input_stream_t *result;
   FILE *fd;
  
   if (!(fd = fopen(filename, "rb"))) {
@@ -145,7 +145,7 @@ http_input_stream_new_from_file(const char *filename)
   }
 
   /* Create object */
-  if (!(result = (http_input_stream_t *) malloc(sizeof(http_input_stream_t)))) 
+  if (!(result = (struct http_input_stream_t *) malloc(sizeof(struct http_input_stream_t)))) 
   {
     log_error2("malloc failed (%s)", strerror(errno));
     fclose(fd);
@@ -164,7 +164,7 @@ http_input_stream_new_from_file(const char *filename)
   Free input stream
 */
 void
-http_input_stream_free(http_input_stream_t * stream)
+http_input_stream_free(struct http_input_stream_t * stream)
 {
   if (stream->type == HTTP_TRANSFER_FILE && stream->fd)
   {
@@ -178,31 +178,31 @@ http_input_stream_free(http_input_stream_t * stream)
 }
 
 static int
-_http_input_stream_is_content_length_ready(http_input_stream_t * stream)
+_http_input_stream_is_content_length_ready(struct http_input_stream_t * stream)
 {
   return (stream->content_length > stream->received);
 }
 
 static int
-_http_input_stream_is_chunked_ready(http_input_stream_t * stream)
+_http_input_stream_is_chunked_ready(struct http_input_stream_t * stream)
 {
   return stream->chunk_size != 0;
 }
 
 static int
-_http_input_stream_is_connection_closed_ready(http_input_stream_t * stream)
+_http_input_stream_is_connection_closed_ready(struct http_input_stream_t * stream)
 {
   return !stream->connection_closed;
 }
 
 static int
-_http_input_stream_is_file_ready(http_input_stream_t * stream)
+_http_input_stream_is_file_ready(struct http_input_stream_t * stream)
 {
   return !feof(stream->fd);
 }
 
 static int
-_http_input_stream_content_length_read(http_input_stream_t * stream, unsigned char *dest, int size)
+_http_input_stream_content_length_read(struct http_input_stream_t * stream, unsigned char *dest, int size)
 {
   herror_t status;
   int read;
@@ -223,7 +223,7 @@ _http_input_stream_content_length_read(http_input_stream_t * stream, unsigned ch
 }
 
 static int
-_http_input_stream_chunked_read_chunk_size(http_input_stream_t * stream)
+_http_input_stream_chunked_read_chunk_size(struct http_input_stream_t * stream)
 {
   char chunk[25];
   int status, i = 0;
@@ -282,7 +282,7 @@ _http_input_stream_chunked_read_chunk_size(http_input_stream_t * stream)
 }
 
 static int
-_http_input_stream_chunked_read(http_input_stream_t * stream, unsigned char *dest,
+_http_input_stream_chunked_read(struct http_input_stream_t * stream, unsigned char *dest,
                                 int size)
 {
   int status, counter;
@@ -386,8 +386,7 @@ _http_input_stream_chunked_read(http_input_stream_t * stream, unsigned char *des
 
 
 static int
-_http_input_stream_connection_closed_read(http_input_stream_t * stream,
-                                          unsigned char *dest, int size)
+_http_input_stream_connection_closed_read(struct http_input_stream_t * stream, unsigned char *dest, int size)
 {
   int status;
   herror_t err;
@@ -407,7 +406,7 @@ _http_input_stream_connection_closed_read(http_input_stream_t * stream,
 }
 
 static int
-_http_input_stream_file_read(http_input_stream_t * stream, unsigned char *dest, int size)
+_http_input_stream_file_read(struct http_input_stream_t * stream, unsigned char *dest, int size)
 {
   size_t len;
 
@@ -425,7 +424,7 @@ _http_input_stream_file_read(http_input_stream_t * stream, unsigned char *dest, 
   Returns the actual status of the stream.
 */
 int
-http_input_stream_is_ready(http_input_stream_t * stream)
+http_input_stream_is_ready(struct http_input_stream_t * stream)
 {
   /* paranoia check */
   if (stream == NULL)
@@ -455,7 +454,7 @@ http_input_stream_is_ready(http_input_stream_t * stream)
   <0 on error
 */
 int
-http_input_stream_read(http_input_stream_t * stream, unsigned char *dest, int size)
+http_input_stream_read(struct http_input_stream_t * stream, unsigned char *dest, int size)
 {
   int len = 0;
   /* paranoia check */
@@ -505,10 +504,10 @@ HTTP OUTPUT STREAM
 /**
   Creates a new output stream. Transfer code will be found from header.
 */
-http_output_stream_t *
-http_output_stream_new(hsocket_t *sock, hpair_t * header)
+struct http_output_stream_t *
+http_output_stream_new(struct hsocket_t *sock, hpair_t * header)
 {
-  http_output_stream_t *result;
+  struct http_output_stream_t *result;
   char *content_length;
 
   /* Paranoya check */
@@ -516,7 +515,7 @@ http_output_stream_new(hsocket_t *sock, hpair_t * header)
     return NULL;
 */
   /* Create object */
-  if (!(result = (http_output_stream_t *) malloc(sizeof(http_output_stream_t))))
+  if (!(result = (struct http_output_stream_t *) malloc(sizeof(struct http_output_stream_t))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
@@ -555,7 +554,7 @@ http_output_stream_new(hsocket_t *sock, hpair_t * header)
   Free output stream
 */
 void
-http_output_stream_free(http_output_stream_t * stream)
+http_output_stream_free(struct http_output_stream_t * stream)
 {
   free(stream);
 
@@ -567,7 +566,7 @@ http_output_stream_free(http_output_stream_t * stream)
   Returns socket error flags or H_OK.
 */
 herror_t
-http_output_stream_write(http_output_stream_t * stream,
+http_output_stream_write(struct http_output_stream_t * stream,
                          const unsigned char *bytes, int size)
 {
   herror_t status;
@@ -600,7 +599,7 @@ http_output_stream_write(http_output_stream_t * stream,
   Returns socket error flags or H_OK.
 */
 herror_t
-http_output_stream_write_string(http_output_stream_t * stream,
+http_output_stream_write_string(struct http_output_stream_t * stream,
                                 const char *str)
 {
   return http_output_stream_write(stream, str, strlen(str));
@@ -608,7 +607,7 @@ http_output_stream_write_string(http_output_stream_t * stream,
 
 
 herror_t
-http_output_stream_flush(http_output_stream_t * stream)
+http_output_stream_flush(struct http_output_stream_t * stream)
 {
   herror_t status;
 

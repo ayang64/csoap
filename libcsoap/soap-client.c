@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.29 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-client.c,v 1.30 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,16 +25,10 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
@@ -63,13 +57,20 @@ soap_client_destroy(void)
 }
 
 herror_t
-soap_client_invoke(SoapCtx *req, SoapCtx **res, const char *url, const char *action)
+soap_client_invoke(struct SoapCtx *req, struct SoapCtx **res, const char *url, const char *action)
 {
+  char *id;
+
   log_verbose2("action = \"%s\"", action);
   soap_addressing_set_action_string(req->env, action);
 
   log_verbose2("url = \"%s\"", url);
   soap_addressing_set_to_address_string(req->env, url);
+
+  soap_addressing_set_message_id_string(req->env, NULL);
+  id = soap_addressing_get_message_id_string(req->env);
+  log_verbose2("message id = \"%s\"", id);
+  free(id);
 
   return soap_transport_client_invoke(req, res);
 }

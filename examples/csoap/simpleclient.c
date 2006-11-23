@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.14 2006/11/21 20:58:59 m0gg Exp $
+ * $Id: simpleclient.c,v 1.15 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -22,18 +22,14 @@
  ******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 
 #include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-logging.h>
 
+#include <libcsoap/soap-ctx.h>
+#include <libcsoap/soap-env.h>
 #include <libcsoap/soap-client.h>
 
 static char *url = "http://localhost:10000/csoapserver";
@@ -41,12 +37,12 @@ static char *urn = "urn:examples";
 static char *method = "sayHello";
 
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
-  SoapCtx *ctx, *ctx2;
+  struct SoapCtx *ctx, *ctx2;
   herror_t err;
 
-  // hlog_set_level(HLOG_VERBOSE);
+  hlog_set_level(HLOG_VERBOSE);
 
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
@@ -67,7 +63,7 @@ main(int argc, char *argv[])
   soap_env_add_item(ctx->env, "xsd:string", "name", "Jonny B. Good");
 
   printf("**** sending ****\n");
-  soap_xml_doc_print(ctx->env->root->doc);
+  xmlDocDump(stderr, ctx->env->root->doc);
 
   if (argc > 1)
     url = argv[1];
@@ -82,7 +78,7 @@ main(int argc, char *argv[])
   }
 
   printf("**** received ****\n");
-  soap_xml_doc_print(ctx2->env->root->doc);
+  xmlDocDump(stdout, ctx2->env->root->doc);
 
   soap_ctx_free(ctx2);
   soap_ctx_free(ctx);

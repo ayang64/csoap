@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.h,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-nudp.h,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -33,11 +33,11 @@ extern herror_t soap_nudp_server_run(void);
 extern void soap_nudp_server_destroy(void);
 
 #ifdef __CSOAP_INTERNAL
-extern herror_t soap_nudp_register_router(SoapRouter *router, const char *context);
+extern herror_t soap_nudp_register(const void *data);
 #endif
 
 extern herror_t soap_nudp_client_init_args(int argc, char **argv);
-extern herror_t soap_nudp_client_invoke(SoapCtx *req, SoapCtx **res);
+extern herror_t soap_nudp_client_invoke(struct SoapCtx *req, struct SoapCtx **res);
 extern void soap_nudp_client_destroy(void);
 
 #ifdef __cplusplus

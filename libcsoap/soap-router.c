@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.12 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-router.c,v 1.13 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,10 +33,6 @@
 #include <string.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
@@ -44,36 +40,31 @@
 #include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-fault.h"
-#include "soap-env.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
 
 #include "soap-router.h"
 
-SoapRouter *
+struct SoapRouter *
 soap_router_new(void)
 {
-  SoapRouter *router;
+  struct SoapRouter *router;
 
-  if (!(router = (SoapRouter *) malloc(sizeof(SoapRouter))))
+  if (!(router = (struct SoapRouter *) malloc(sizeof(struct SoapRouter))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
   }
-  memset(router, 0, sizeof(SoapRouter));
+  memset(router, 0, sizeof(struct SoapRouter));
 
   return router;
 }
 
 herror_t
-soap_router_register_service(SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn)
+soap_router_register_service(struct SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn)
 {
   SoapService *service;
 
@@ -97,7 +88,7 @@ soap_router_register_service(SoapRouter *router, SoapServiceFunc func, const cha
 }
 
 void
-soap_router_register_security(SoapRouter * router, httpd_auth auth)
+soap_router_register_security(struct SoapRouter * router, soap_auth auth)
 {
   router->auth = auth;
 
@@ -105,18 +96,18 @@ soap_router_register_security(SoapRouter * router, httpd_auth auth)
 }
 
 void
-soap_router_register_description(SoapRouter * router, xmlDocPtr wsdl)
+soap_router_register_description(struct SoapRouter * router, xmlDocPtr description)
 {
-  if (router->wsdl)
-    xmlFreeDoc(router->wsdl);
+  if (router->description)
+    xmlFreeDoc(router->description);
 
-  router->wsdl = xmlCopyDoc(wsdl, 1);
+  router->description = xmlCopyDoc(description, 1);
 
   return;
 }
 
 herror_t
-soap_router_register_default_service(SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn) {
+soap_router_register_default_service(struct SoapRouter *router, SoapServiceFunc func, const char *method, const char *urn) {
 
   SoapService *service;
 
@@ -139,7 +130,7 @@ soap_router_register_default_service(SoapRouter *router, SoapServiceFunc func, c
 }
 
 SoapService *
-soap_router_find_service(SoapRouter *router, const char *urn, const char *method)
+soap_router_find_service(struct SoapRouter *router, const char *urn, const char *method)
 {
   SoapServiceNode *node;
 
@@ -180,7 +171,7 @@ soap_router_find_service(SoapRouter *router, const char *urn, const char *method
 }
 
 void
-soap_router_free(SoapRouter * router)
+soap_router_free(struct SoapRouter * router)
 {
   SoapServiceNode *node;
   log_verbose2("enter: router=%p", router);
@@ -197,8 +188,8 @@ soap_router_free(SoapRouter * router)
     free(router->service_head);
     router->service_head = node;
   }
-  if (router->wsdl)
-    xmlFreeDoc(router->wsdl);
+  if (router->description)
+    xmlFreeDoc(router->description);
 
   free(router);
   log_verbose1("leave with success");

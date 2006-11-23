@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.10 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-service.c,v 1.11 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -55,6 +55,7 @@
 #include "soap-env.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
+#include "soap-router.h"
 
 SoapServiceNode *
 soap_service_node_new(SoapService * service, SoapServiceNode * next)

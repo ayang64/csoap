@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.3 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.4 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,10 +25,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -41,17 +37,12 @@
 #include <pthread.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #include "nanohttp-common.h"
-#include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
 #include "nanohttp-request.h"
 #include "nanohttp-server.h"
-#include "nanohttp-admin.h"
 
+#include "nanohttp-admin.h"
 
 static void
 _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
@@ -136,7 +127,7 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
 
 
 static void
-_httpd_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
+_httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
 {
   char *param;
 
@@ -165,7 +156,7 @@ _httpd_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
 
 
 static void
-_httpd_admin_entry(httpd_conn_t * conn, hrequest_t * req)
+_httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
 {
   if (req->method == HTTP_REQUEST_GET)
   {

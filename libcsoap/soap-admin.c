@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.6 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-admin.c,v 1.7 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -45,17 +45,11 @@
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-admin.h>
 
-#define __CSOAP_INTERNAL
-
-#include "soap-fault.h"
 #include "soap-env.h"
-#include "soap-ctx.h"
 #include "soap-service.h"
 #include "soap-router.h"
 #include "soap-server.h"
@@ -109,7 +103,7 @@ _soap_admin_list_routers(httpd_conn_t *conn)
 static void
 _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
 {
-  SoapRouter *router;
+  struct SoapRouter *router;
   SoapServiceNode *node;
   char buffer[1024];
   
@@ -144,7 +138,7 @@ _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
 
 
 static void
-_soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
+_soap_admin_handle_get(httpd_conn_t * conn, struct hrequest_t * req)
 {
   char *param;
 
@@ -163,6 +157,7 @@ _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
     http_output_stream_write_string(conn->out,
       "<ul>"
         "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>"
+	"<li><a href=\"../inspection.wsil\">inspection.wsil</a> (try: -CSOAPwsil)</li>"
         "<li><a href=\"../nhttp\">nanoHTTP</a></li>"
       "</ul>");
 
@@ -174,7 +169,7 @@ _soap_admin_handle_get(httpd_conn_t * conn, hrequest_t * req)
 
 
 static void
-_soap_admin_entry(httpd_conn_t * conn, hrequest_t * req)
+_soap_admin_entry(httpd_conn_t * conn, struct hrequest_t * req)
 {
   if (req->method == HTTP_REQUEST_GET)
   {

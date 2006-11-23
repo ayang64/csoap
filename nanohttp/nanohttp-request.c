@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.17 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.18 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -56,24 +56,24 @@
 #include "nanohttp-mime.h"
 #include "nanohttp-request.h"
 
-
-static hrequest_t *
+static struct hrequest_t *
 hrequest_new(void)
 {
-  hrequest_t *req;
+  struct hrequest_t *req;
  
-  if (!(req = (hrequest_t *) malloc(sizeof(hrequest_t)))) {
-
+  if (!(req = (struct hrequest_t *) malloc(sizeof(struct hrequest_t))))
+  {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
-  if (!(req->statistics = (struct request_statistics *)malloc(sizeof(struct request_statistics)))) {
-
+  if (!(req->statistics = (struct request_statistics *)malloc(sizeof(struct request_statistics))))
+  {
     log_error2("malloc failed (%s)", strerror(errno));
     free(req);
     return NULL;
   }
+
   if (gettimeofday(&(req->statistics->time), NULL) < 0)
     log_error2("gettimeofday failed (%s)", strerror(errno));
 
@@ -88,10 +88,10 @@ hrequest_new(void)
   return req;
 }
 
-static hrequest_t *
+static struct hrequest_t *
 _hrequest_parse_header(char *data)
 {
-  hrequest_t *req;
+  struct hrequest_t *req;
   hpair_t *hpair = NULL, *qpair = NULL, *tmppair = NULL;
 
   char *tmp;
@@ -214,20 +214,12 @@ _hrequest_parse_header(char *data)
             qpair->next = NULL;
             qpair->key = strdup(opt_key);
             qpair->value = strdup(opt_value);
-
           }
         }
       }
     }
     else
     {
-
-      /* parse "key: value" */
-      /* tmp2 = result; key = (char *) strtok_r(tmp2, ": ", &saveptr2); value 
-         = saveptr2; */
-
-      /* create pair */
-/*			tmppair = (hpair_t *) malloc(sizeof(hpair_t));*/
       tmppair = hpairnode_parse(result, ":", NULL);
 
       if (req->header == NULL)
@@ -239,13 +231,6 @@ _hrequest_parse_header(char *data)
         hpair->next = tmppair;
         hpair = tmppair;
       }
-
-      /* fill pairnode_t struct */
-      /* 
-         hpair->next = NULL; hpair->key = (char *) malloc(strlen(key) + 1);
-         hpair->value = (char *) malloc(strlen(value) + 1);
-
-         strcpy(hpair->key, key); strcpy(hpair->value, value); */
     }
   }
 
@@ -257,9 +242,8 @@ _hrequest_parse_header(char *data)
   return req;
 }
 
-
 void
-hrequest_free(hrequest_t * req)
+hrequest_free(struct hrequest_t * req)
 {
   if (req == NULL)
     return;
@@ -284,13 +268,12 @@ hrequest_free(hrequest_t * req)
   return;
 }
 
-
 herror_t
-hrequest_new_from_socket(hsocket_t *sock, hrequest_t ** out)
+hrequest_new_from_socket(struct hsocket_t *sock, struct hrequest_t ** out)
 {
   int i, readed;
   herror_t status;
-  hrequest_t *req;
+  struct hrequest_t *req;
   char buffer[MAX_HEADER_SIZE + 1];
   attachments_t *mimeMessage;
 

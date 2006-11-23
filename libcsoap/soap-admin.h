@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-admin.h,v 1.3 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: soap-admin.h,v 1.4 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,8 +21,8 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef cSOAP_ADMIN_H
-#define cSOAP_ADMIN_H
+#ifndef __csoap_admin_h
+#define __csoap_admin_h
 
 #define CSOAP_ENABLE_ADMIN	"-CSOAPadmin"
 
@@ -35,14 +35,16 @@ extern "C" {
 #endif
 
 /**
-   Initializes the soap admin HTTP interface with commandline arguments.
-
-   @param argc commandline arg count
-   @param argv commandline arg vector
-
-   @returns 1 if success, 0 otherwise
+ *
+ * Initializes the soap admin HTTP interface with commandline arguments.
+ *
+ * @param argc commandline arg count
+ * @param argv commandline arg vector
+ *
+ * @returns 1 if success, 0 otherwise
+ *
  */
-herror_t soap_admin_init_args(int argc, char *argv[]);
+extern herror_t soap_admin_init_args(int argc, char **argv);
 
 #ifdef __cplusplus
 }

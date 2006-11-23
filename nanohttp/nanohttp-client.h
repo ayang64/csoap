@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.25 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.26 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,7 +26,7 @@
 
 typedef struct httpc_conn
 {
-  hsocket_t sock;
+  struct hsocket_t *sock;
   hpair_t *header;
   hurl_t url;
   http_version_t version;
@@ -36,7 +36,7 @@ typedef struct httpc_conn
   long _dime_sent_bytes;
   int errcode;
   char errmsg[150];
-  http_output_stream_t *out;
+  struct http_output_stream_t *out;
   int id;                       /* uniq id */
 } httpc_conn_t;
 
@@ -61,7 +61,7 @@ extern "C" {
  *
  * @see httpc_destroy, herror_t, soap_client_init_args
  */
-herror_t httpc_init(int argc, char *argv[]);
+herror_t httpc_init(int argc, char **argv);
 
 /**
  *

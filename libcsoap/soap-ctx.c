@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.12 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-ctx.c,v 1.13 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -50,12 +50,12 @@
 #include "soap-env.h"
 #include "soap-ctx.h"
 
-SoapCtx *
-soap_ctx_new(SoapEnv * env)     /* should only be used internally */
+struct SoapCtx *
+soap_ctx_new(struct SoapEnv * env)     /* should only be used internally */
 {
-  SoapCtx *ctx;
+  struct SoapCtx *ctx;
  
-  if (!(ctx = (SoapCtx *) malloc(sizeof(SoapCtx))))
+  if (!(ctx = (struct SoapCtx *) malloc(sizeof(struct SoapCtx))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
@@ -69,7 +69,7 @@ soap_ctx_new(SoapEnv * env)     /* should only be used internally */
 
 
 void
-soap_ctx_add_files(SoapCtx * ctx, attachments_t * attachments)
+soap_ctx_add_files(struct SoapCtx * ctx, attachments_t * attachments)
 {
   part_t *part;
   char href[MAX_HREF_SIZE];
@@ -87,7 +87,7 @@ soap_ctx_add_files(SoapCtx * ctx, attachments_t * attachments)
 
 
 herror_t
-soap_ctx_add_file(SoapCtx * ctx, const char *filename,
+soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
                   const char *content_type, char *dest_href)
 {
   char cid[250];
@@ -116,7 +116,7 @@ soap_ctx_add_file(SoapCtx * ctx, const char *filename,
 }
 
 part_t *
-soap_ctx_get_file(SoapCtx * ctx, xmlNodePtr node)
+soap_ctx_get_file(struct SoapCtx * ctx, xmlNodePtr node)
 {
   xmlChar *prop;
   char href[MAX_HREF_SIZE];
@@ -156,7 +156,7 @@ soap_ctx_get_file(SoapCtx * ctx, xmlNodePtr node)
 }
 
 void
-soap_ctx_free(SoapCtx * ctx)
+soap_ctx_free(struct SoapCtx * ctx)
 {
   if (!ctx)
     return;
@@ -174,9 +174,9 @@ soap_ctx_free(SoapCtx * ctx)
 
 
 herror_t
-soap_ctx_new_with_method(const char *urn, const char *method, SoapCtx ** out)
+soap_ctx_new_with_method(const char *urn, const char *method, struct SoapCtx ** out)
 {
-  SoapEnv *env;
+  struct SoapEnv *env;
   herror_t err;
   err = soap_env_new_with_method(urn, method, &env);
   if (err != H_OK)

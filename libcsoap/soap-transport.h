@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.h,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-transport.h,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -25,7 +25,7 @@
 #define __csoap_transport_h
 
 #ifdef __CSOAP_INTERNAL
-typedef herror_t (*msg_exchange)(void *data, SoapCtx *request, SoapCtx **response);
+typedef herror_t (*msg_exchange)(void *data, struct SoapCtx *request, struct SoapCtx **response);
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,13 +38,13 @@ extern void soap_transport_server_destroy(void);
 extern const char *soap_transport_get_name(void);
 extern herror_t soap_transport_add(const char *protocol, void *data, msg_exchange invoke);
 extern herror_t soap_transport_remove(const char *protocol, void *data);
-extern herror_t soap_transport_register_router(SoapRouter *router, const char *context);
+extern herror_t soap_transport_register(const void *data);
 
-extern herror_t soap_transport_send(SoapCtx *request, SoapCtx **response);
-extern herror_t soap_transport_receive(SoapCtx *request, SoapCtx **response);
+extern herror_t soap_transport_send(struct SoapCtx *request, struct SoapCtx **response);
+extern herror_t soap_transport_process(struct SoapCtx *request, struct SoapCtx **response);
 
 extern herror_t soap_transport_client_init_args(int argc, char **argv);
-extern herror_t soap_transport_client_invoke(SoapCtx *req, SoapCtx **res);
+extern herror_t soap_transport_client_invoke(struct SoapCtx *req, struct SoapCtx **res);
 extern void soap_transport_client_destroy(void);
 
 #ifdef __cplusplus

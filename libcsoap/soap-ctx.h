@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.11 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-ctx.h,v 1.12 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -29,26 +29,25 @@
 
 #define MAX_HREF_SIZE 150
 
-typedef struct _SoapCtx
+struct SoapCtx
 {
-  SoapEnv *env;
+  struct SoapEnv *env;
   attachments_t *attachments;
-} SoapCtx;
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* should only be used internally */
-extern SoapCtx *soap_ctx_new(SoapEnv * env);
+extern struct SoapCtx *soap_ctx_new(struct SoapEnv * env);
 
 /**
 	Creates a new soap context object.
 */
-extern herror_t soap_ctx_new_with_method(const char *urn, const char *method,
-                                  SoapCtx ** out);
+extern herror_t soap_ctx_new_with_method(const char *urn, const char *method, struct SoapCtx ** out);
 
-extern void soap_ctx_free(SoapCtx * ctx);
+extern void soap_ctx_free(struct SoapCtx * ctx);
 /**
 	Returns the attached file if any found. 
 	@param ctx the SoapCtx object which should contain the part
@@ -57,16 +56,16 @@ extern void soap_ctx_free(SoapCtx * ctx);
 	@returns a part_t object of attachment was found, NULL otherwise.
 	  
 */
-extern part_t *soap_ctx_get_file(SoapCtx * ctx, xmlNodePtr node);
+extern part_t *soap_ctx_get_file(struct SoapCtx * ctx, xmlNodePtr node);
 
 /* Size of destination dest_href should be MAX_HREF_SIZE */
-extern herror_t soap_ctx_add_file(SoapCtx * ctx, const char *filename,
+extern herror_t soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
                            const char *content_type, char *dest_href);
 /* 
 Used internally. Will switch the deleteOnExit flag from the 
 given one to the added part.
 */
-extern void soap_ctx_add_files(SoapCtx * ctx, attachments_t * attachments);
+extern void soap_ctx_add_files(struct SoapCtx * ctx, attachments_t * attachments);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-logging.h,v 1.2 2006/08/28 10:39:52 m0gg Exp $
+ *  $Id: nanohttp-logging.h,v 1.3 2006/11/23 15:27:33 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -47,7 +47,7 @@ extern log_level_t hlog_set_level(log_level_t level);
 extern log_level_t hlog_get_level(void);
 
 extern void hlog_set_file(const char *filename);
-extern char *hlog_get_file();
+extern char *hlog_get_file(void);
 
 #ifdef WIN32
 #if defined(_MSC_VER) && _MSC_VER <= 1200

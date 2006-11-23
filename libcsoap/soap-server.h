@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.12 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-server.h,v 1.13 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -43,7 +43,6 @@ extern "C" {
  */
 herror_t soap_server_init_args(int argc, char **argv);
 
-
 /**
  *
  * Register a router to the soap server. 
@@ -59,8 +58,13 @@ herror_t soap_server_init_args(int argc, char **argv);
  * @see soap_router_register_service
  *
  */
-extern herror_t soap_server_register_router(SoapRouter * router, const char *context);
+extern herror_t soap_server_register_router(struct SoapRouter * router, const char *context);
 
+/**
+ *
+ * Returns an URI name of the server.
+ *
+ */
 extern const char *soap_server_get_name(void);
 
 /**
@@ -69,6 +73,7 @@ extern const char *soap_server_get_name(void);
  *
  * @see httpd_run
  * @see udpd_run
+ * @see smptd_run
  *
  */
 extern herror_t soap_server_run(void);
@@ -88,16 +93,16 @@ extern void soap_server_destroy(void);
 typedef struct _SoapRouterNode
 {
   char *context;
-  SoapRouter *router;
+  struct SoapRouter *router;
   struct _SoapRouterNode *next;
 
 } SoapRouterNode;
 
-extern SoapRouter *soap_server_find_router(const char *context);
+extern struct SoapRouter *soap_server_find_router(const char *context);
 
 extern SoapRouterNode * soap_server_get_routers(void);
 
-extern herror_t soap_server_process(SoapCtx *request, SoapCtx **response);
+extern herror_t soap_server_process(struct SoapCtx *request, struct SoapCtx **response);
 
 #endif
 

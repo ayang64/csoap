@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.64 2006/11/21 20:59:03 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.65 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -82,6 +82,7 @@
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
 #include "nanohttp-request.h"
+#include "nanohttp-response.h"
 #include "nanohttp-server.h"
 #include "nanohttp-base64.h"
 #include "nanohttp-ssl.h"
@@ -90,29 +91,27 @@
 typedef struct _conndata
 {
   volatile int flag;
-  hsocket_t sock;
+  struct hsocket_t sock;
 #ifdef WIN32
   HANDLE tid;
 #else
   pthread_t tid;
   pthread_attr_t attr;
 #endif
-  time_t atime;
 }
 conndata_t;
 
 #define CONNECTION_FREE		0
 #define CONNECTION_IN_USE	1
 
-/*
- * -----------------------------------------------------
- * nano httpd
- * internally globals
- * -----------------------------------------------------
+/**
+ *
+ * nanohttpd internally globals
+ *
  */
 static volatile int _httpd_run = 1;
 
-static hsocket_t _httpd_socket;
+static struct hsocket_t _httpd_socket;
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
 static int _httpd_timeout = 10;
@@ -126,7 +125,6 @@ static conndata_t *_httpd_connection;
 #ifdef WIN32
 static DWORD _httpd_terminate_signal = CTRL_C_EVENT;
 static int _httpd_max_idle = 120;
-static void WSAReaper(void *x);
 HANDLE _httpd_connection_lock;
 LPCTSTR _httpd_connection_lock_str;
 #define strncasecmp(s1, s2, num) strncmp(s1, s2, num)
@@ -135,6 +133,23 @@ LPCTSTR _httpd_connection_lock_str;
 static int _httpd_terminate_signal = SIGINT;
 static sigset_t thrsigset;
 static pthread_mutex_t _httpd_connection_lock;
+#endif
+
+/**
+ *
+ * Set Sleep function platform depended
+ *
+ */
+#ifdef WIN32
+static void _sys_sleep(int secs)
+{
+  Sleep(secs*1000);
+}
+#else
+static inline void _sys_sleep(int secs)
+{
+  sleep(secs);
+}
 #endif
 
 static void
@@ -186,38 +201,42 @@ _httpd_connection_slots_init(void)
   return;
 }
 
-static void 
+static herror_t
 _httpd_register_builtin_services(int argc, char **argv)
 {
   herror_t status;
 
   if ((status = httpd_admin_init_args(argc, argv)) != H_OK)
+  {
     log_error2("httpd_admin_init_args failed (%s)", herror_message(status));
+    return status;
+  }
 
-  return;
+  return H_OK;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_init
- * NOTE: This will be called from soap_server_init_args()
- * -----------------------------------------------------
- */
 herror_t
-httpd_init(int argc, char *argv[])
+httpd_init(int argc, char **argv)
 {
   herror_t status;
 
   _httpd_parse_arguments(argc, argv);
 
   if ((status = hsocket_module_init(argc, argv)) != H_OK)
+  {
+    log_error2("hsocket_modeule_init failed (%s)", herror_message(status));
     return status;
+  } 
 
   log_verbose2("socket bind to port '%d'", _httpd_port);
 
   _httpd_connection_slots_init();
 
-  _httpd_register_builtin_services(argc, argv);
+  if ((status = _httpd_register_builtin_services(argc, argv)) != H_OK)
+  {
+    log_error2("_httpd_register_builtin_services failed (%s)", herror_message(status));
+    return status;
+  }
 
   if ((status = hsocket_init(&_httpd_socket)) != H_OK)
   {
@@ -225,15 +244,16 @@ httpd_init(int argc, char *argv[])
     return status;
   }
 
-  return hsocket_bind(&_httpd_socket, _httpd_port);
+  if ((status = hsocket_bind(&_httpd_socket, _httpd_port)) != H_OK)
+  {
+    log_error2("hsocket_bind failed (%s)", herror_message(status));
+    return status;
+  }
+
+  return H_OK;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_register
- * -----------------------------------------------------
- */
-int
+herror_t
 httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
 {
   hservice_t *service;
@@ -241,13 +261,13 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   if (!(service = (hservice_t *) malloc(sizeof(hservice_t))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
-    return -1;
+    return herror_new("httpd_register_secure", 0, "malloc failed (%s)", strerror(errno));
   }
 
   if (!(service->statistics = (struct service_statistics *)malloc(sizeof(struct service_statistics))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
-    return -1;
+    return herror_new("httpd_register_secure", 0, "malloc failed (%s)", strerror(errno));
   }    	
   memset(service->statistics, 0, sizeof(struct service_statistics));
   service->statistics->time.tv_sec = 0;
@@ -270,19 +290,19 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
     _httpd_services_tail = service;
   }
 
-  return 1;
+  return H_OK;
 }
 
-int
+herror_t
 httpd_register(const char *ctx, httpd_service service)
 {
   return httpd_register_secure(ctx, service, NULL);
 }
 
-int
+herror_t
 httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth)
 {
-  int ret;
+  herror_t ret;
 
   ret = httpd_register_secure(ctx, service, auth);
 
@@ -292,13 +312,13 @@ httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth
   return ret;
 }
 
-int
+herror_t
 httpd_register_default(const char *ctx, httpd_service service)
 {
   return httpd_register_default_secure(ctx, service, NULL);
 }
 
-int
+short
 httpd_get_port(void)
 {
   return _httpd_port;
@@ -314,6 +334,8 @@ void
 httpd_set_timeout(int t)
 {
   _httpd_timeout = t;
+
+  return;
 }
 
 const char *
@@ -322,9 +344,6 @@ httpd_get_protocol(void)
   return hssl_enabled() ? "https" : "http";
 }
 
-/*--------------------------------------------------
-FUNCTION: httpd_get_conncount
-----------------------------------------------------*/
 int
 httpd_get_conncount(void)
 {
@@ -339,22 +358,12 @@ httpd_get_conncount(void)
   return ret;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_get_services
- * -----------------------------------------------------
- */
 hservice_t *
 httpd_get_services(void)
 {
   return _httpd_services_head;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_services
- * -----------------------------------------------------
- */
 static void
 hservice_free(hservice_t * service)
 {
@@ -363,11 +372,6 @@ hservice_free(hservice_t * service)
   return;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_find_service
- * -----------------------------------------------------
- */
 hservice_t *
 httpd_find_service(const char *context)
 {
@@ -382,12 +386,6 @@ httpd_find_service(const char *context)
   return _httpd_services_default;
 }
 
-
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_response_set_content_type
- * -----------------------------------------------------
- */
 void
 httpd_response_set_content_type(httpd_conn_t * res, const char *content_type)
 {
@@ -396,12 +394,6 @@ httpd_response_set_content_type(httpd_conn_t * res, const char *content_type)
   return;
 }
 
-
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_response_send_header
- * -----------------------------------------------------
- */
 herror_t
 httpd_send_header(httpd_conn_t * res, int code, const char *text)
 {
@@ -452,14 +444,21 @@ httpd_send_header(httpd_conn_t * res, int code, const char *text)
   return H_OK;
 }
 
-
 herror_t
 httpd_send_internal_error(httpd_conn_t * conn, const char *errmsg)
 {
   const char *template1 =
-    "<html><body><h3>Error!</h3><hr> Message: '%s' </body></html>\r\n";
+    "<html>"
+      "<head>"
+      "</head>"
+      "<body>"
+        "<h3>Error!</h3>"
+	"<hr/>"
+        "<div>Message: '%s'</div>"
+      "</body>"
+    "</html>";
 
-  char buffer[4064];
+  char buffer[4096];
   char buflen[5];
 
   sprintf(buffer, template1, errmsg);
@@ -471,13 +470,8 @@ httpd_send_internal_error(httpd_conn_t * conn, const char *errmsg)
   return http_output_stream_write_string(conn->out, buffer);
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_request_print
- * -----------------------------------------------------
- */
 static void
-httpd_request_print(hrequest_t * req)
+_httpd_request_print(struct hrequest_t * req)
 {
   hpair_t *pair;
 
@@ -501,15 +495,13 @@ httpd_request_print(hrequest_t * req)
   return;
 }
 
-
 httpd_conn_t *
-httpd_new(hsocket_t * sock)
+httpd_new(struct hsocket_t * sock)
 {
   httpd_conn_t *conn;
 
   if (!(conn = (httpd_conn_t *) malloc(sizeof(httpd_conn_t))))
   {
-
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
   }
@@ -520,7 +512,6 @@ httpd_new(hsocket_t * sock)
 
   return conn;
 }
-
 
 void
 httpd_free(httpd_conn_t * conn)
@@ -539,11 +530,9 @@ httpd_free(httpd_conn_t * conn)
   return;
 }
 
-
 static int
 _httpd_decode_authorization(const char *value, char **user, char **pass)
 {
-
   unsigned char *tmp, *tmp2;
   size_t len;
 
@@ -580,7 +569,7 @@ _httpd_decode_authorization(const char *value, char **user, char **pass)
 }
 
 static int
-_httpd_authenticate_request(hrequest_t * req, httpd_auth auth)
+_httpd_authenticate_request(struct hrequest_t * req, httpd_auth auth)
 {
   char *user, *pass;
   char *authorization;
@@ -614,11 +603,6 @@ _httpd_authenticate_request(hrequest_t * req, httpd_auth auth)
   return ret;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_session_main
- * -----------------------------------------------------
- */
 #ifdef WIN32
 static unsigned _stdcall
 httpd_session_main(void *data)
@@ -627,7 +611,7 @@ static void *
 httpd_session_main(void *data)
 #endif
 {
-  hrequest_t *req;              /* only for test */
+  struct hrequest_t *req;
   conndata_t *conn;
   httpd_conn_t *rconn;
   hservice_t *service;
@@ -649,9 +633,6 @@ httpd_session_main(void *data)
   {
     log_verbose3("starting HTTP request on socket %d (%p)", conn->sock, conn->sock.sock);
 
-    /* XXX: only used in WSAreaper */
-    conn->atime = time(NULL);
-
     if ((status = hrequest_new_from_socket(&(conn->sock), &req)) != H_OK)
     {
       int code;
@@ -660,8 +641,7 @@ httpd_session_main(void *data)
       {
       case HSOCKET_ERROR_SSLCLOSE:
       case HSOCKET_ERROR_RECEIVE:
-        log_error2("hrequest_new_from_socket failed (%s)",
-                   herror_message(status));
+        log_error2("hrequest_new_from_socket failed (%s)", herror_message(status));
         break;
       default:
         httpd_send_internal_error(rconn, herror_message(status));
@@ -729,11 +709,11 @@ httpd_session_main(void *data)
           char *template =
             "<html>"
               "<head>"
-              "<title>Unauthorized</title>"
-            "</head>"
-            "<body>"
-              "<h1>Unauthorized request logged</h1>"
-            "</body>"
+                "<title>Unauthorized</title>"
+              "</head>"
+              "<body>"
+                "<h1>Unauthorized request logged</h1>"
+              "</body>"
             "</html>";
 
           httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE,
@@ -810,6 +790,7 @@ httpd_set_headers(httpd_conn_t * conn, hpair_t * header)
     httpd_set_header(conn, header->key, header->value);
     header = header->next;
   }
+  return;
 }
 
 int
@@ -843,11 +824,6 @@ httpd_add_headers(httpd_conn_t * conn, const hpair_t * values)
   return;
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_term
- * -----------------------------------------------------
- */
 #ifdef WIN32
 BOOL WINAPI
 httpd_term(DWORD sig)
@@ -894,9 +870,6 @@ _httpd_register_signal_handler(void)
   return;
 }
 
-/*--------------------------------------------------
-FUNCTION: _httpd_wait_for_empty_conn
-----------------------------------------------------*/
 static conndata_t *
 _httpd_wait_for_empty_conn(void)
 {
@@ -907,13 +880,13 @@ _httpd_wait_for_empty_conn(void)
 #else
   pthread_mutex_lock(&_httpd_connection_lock);
 #endif
+
   for (i = 0;; i++)
   {
     if (!_httpd_run)
     {
-
 #ifdef WIN32
-	  ReleaseMutex(_httpd_connection_lock);
+      ReleaseMutex(_httpd_connection_lock);
 #else
       pthread_mutex_unlock(&_httpd_connection_lock);
 #endif
@@ -922,7 +895,7 @@ _httpd_wait_for_empty_conn(void)
 
     if (i >= _httpd_max_connections)
     {
-      system_sleep(1);
+      _sys_sleep(1);
       i = -1;
     }
     else if (_httpd_connection[i].flag == CONNECTION_FREE)
@@ -931,20 +904,16 @@ _httpd_wait_for_empty_conn(void)
       break;
     }
   }
+
 #ifdef WIN32
-	  ReleaseMutex(_httpd_connection_lock);
+  ReleaseMutex(_httpd_connection_lock);
 #else
-      pthread_mutex_unlock(&_httpd_connection_lock);
+  pthread_mutex_unlock(&_httpd_connection_lock);
 #endif
 
   return &_httpd_connection[i];
 }
 
-/*
- * -----------------------------------------------------
- * FUNCTION: _httpd_start_thread
- * -----------------------------------------------------
- */
 static void
 _httpd_start_thread(conndata_t * conn)
 {
@@ -968,13 +937,6 @@ _httpd_start_thread(conndata_t * conn)
 
   return;
 }
-
-
-/*
- * -----------------------------------------------------
- * FUNCTION: httpd_run
- * -----------------------------------------------------
- */
 
 herror_t
 httpd_run(void)
@@ -1074,55 +1036,8 @@ httpd_destroy(void)
   return;
 }
 
-#ifdef WIN32
-
-static void
-WSAReaper(void *x)
-{
-  short int connections;
-  short int i;
-  char junk[10];
-  int rc;
-  time_t ctime;
-
-  for (;;)
-  {
-    connections = 0;
-    ctime = time((time_t) 0);
-    for (i = 0; i < _httpd_max_connections; i++)
-    {
-      if (_httpd_connection[i].tid == 0)
-        continue;
-      GetExitCodeThread((HANDLE) _httpd_connection[i].tid, (PDWORD) & rc);
-      if (rc != STILL_ACTIVE)
-        continue;
-      connections++;
-      if ((ctime - _httpd_connection[i].atime < _httpd_max_idle) ||
-          (_httpd_connection[i].atime == 0))
-        continue;
-      log_verbose3("Reaping socket %u from (runtime ~= %d seconds)",
-                   _httpd_connection[i].sock,
-                   ctime - _httpd_connection[i].atime);
-      shutdown(_httpd_connection[i].sock.sock, 2);
-      while (recv(_httpd_connection[i].sock.sock, junk, sizeof(junk), 0) > 0)
-      {
-      };
-      closesocket(_httpd_connection[i].sock.sock);
-      _httpd_connection[i].sock.sock = 0;
-      TerminateThread(_httpd_connection[i].tid, (DWORD) & rc);
-      CloseHandle(_httpd_connection[i].tid);
-      memset((char *) &_httpd_connection[i], 0, sizeof(_httpd_connection[i]));
-    }
-    Sleep(100);
-  }
-  return;
-}
-
-#endif
-
 unsigned char *
-httpd_get_postdata(httpd_conn_t * conn, hrequest_t * req, long *received,
-                   long max)
+httpd_get_postdata(httpd_conn_t * conn, struct hrequest_t * req, long *received, long max)
 {
   char *content_length_str;
   long content_length = 0;

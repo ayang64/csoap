@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.4 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: http_client.c,v 1.5 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,10 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netinet/in.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>

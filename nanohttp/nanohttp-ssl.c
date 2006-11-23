@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.29 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.30 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -71,9 +71,10 @@
 #endif
 #endif
 
-#include "nanohttp-logging.h"
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
+#include "nanohttp-logging.h"
+
 #include "nanohttp-ssl.h"
 
 #ifdef HAVE_SSL
@@ -85,8 +86,41 @@ static SSL_CTX *context = NULL;
 
 static int enabled = 0;
 
-static int _hssl_dummy_verify_cert(X509 * cert);
+static int
+_hssl_dummy_verify_cert(X509 * cert)
+{
+  /* TODO: Make sure that the client is providing a client cert, or that the
+     Module is providing the Module cert */
+
+  /* connect to anyone */
+
+  log_verbose1("Validating certificate.");
+  return 1;
+}
+
 int (*_hssl_verify_cert) (X509 * cert) = _hssl_dummy_verify_cert;
+
+static int
+_hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
+{
+/*
+    if ((X509_STORE_CTX_get_error(ctx) = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN))
+    {
+        log_verbose1("Self signed cert in chain");
+        return 1;
+    }
+*/
+  log_verbose2("Cert depth = %d", X509_STORE_CTX_get_error_depth(ctx));
+  if (X509_STORE_CTX_get_error_depth(ctx) == 0)
+  {
+    return _hssl_verify_cert(X509_STORE_CTX_get_current_cert(ctx));
+  }
+  else
+  {
+    log_verbose1("Cert ok (prev)");
+    return prev_ok;
+  }
+}
 
 static void
 _hssl_superseed(void)
@@ -103,7 +137,6 @@ _hssl_superseed(void)
 
   return;
 }
-
 
 static char *
 _hssl_get_error(SSL * ssl, int ret)
@@ -133,7 +166,6 @@ _hssl_get_error(SSL * ssl, int ret)
   }
 }
 
-
 static int
 _hssl_password_callback(char *buf, int num, int rwflag, void *userdata)
 {
@@ -145,9 +177,9 @@ _hssl_password_callback(char *buf, int num, int rwflag, void *userdata)
     return 0;
 
   strcpy(buf, certpass);
+
   return ret;
 }
-
 
 int
 verify_sn(X509 * cert, int who, int nid, char *str)
@@ -179,70 +211,45 @@ void
 hssl_set_hssl_verify_cert(int func(X509 * cert))
 {
   _hssl_verify_cert = func;
-}
 
-static int
-_hssl_dummy_verify_cert(X509 * cert)
-{
-  /* TODO: Make sure that the client is providing a client cert, or that the
-     Module is providing the Module cert */
-
-  /* connect to anyone */
-
-  log_verbose1("Validating certificate.");
-  return 1;
-}
-
-static int
-_hssl_cert_verify_callback(int prev_ok, X509_STORE_CTX * ctx)
-{
-/*
-    if ((X509_STORE_CTX_get_error(ctx) = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN))
-    {
-        log_verbose1("Self signed cert in chain");
-        return 1;
-    }
-*/
-  log_verbose2("Cert depth = %d", X509_STORE_CTX_get_error_depth(ctx));
-  if (X509_STORE_CTX_get_error_depth(ctx) == 0)
-  {
-    return _hssl_verify_cert(X509_STORE_CTX_get_current_cert(ctx));
-  }
-  else
-  {
-    log_verbose1("Cert ok (prev)");
-    return prev_ok;
-  }
+  return;
 }
 
 void
 hssl_set_certificate(char *c)
 {
   certificate = c;
+
+  return;
 }
 
 void
 hssl_set_certpass(char *c)
 {
   certpass = c;
+
+  return;
 }
 
 void
 hssl_set_ca(char *c)
 {
   ca_list = c;
+
+  return;
 }
 
 void
 hssl_enable(void)
 {
   enabled = 1;
+
+  return;
 }
 
 static void
 _hssl_parse_arguments(int argc, char **argv)
 {
-
   int i;
 
   for (i = 1; i < argc; i++)
@@ -259,7 +266,7 @@ _hssl_parse_arguments(int argc, char **argv)
     {
       ca_list = argv[i];
     }
-    else if (!strcmp(argv[i - 1], NHTTP_ARG_HTTPS))
+    else if (!strcmp(argv[i - 1], NHTTPD_ARG_HTTPS))
     {
       enabled = 1;
     }
@@ -267,7 +274,6 @@ _hssl_parse_arguments(int argc, char **argv)
 
   return;
 }
-
 
 static void
 _hssl_library_init(void)
@@ -290,7 +296,6 @@ _hssl_library_init(void)
 
   return;
 }
-
 
 static herror_t
 _hssl_server_context_init(void)
@@ -352,7 +357,6 @@ _hssl_server_context_init(void)
   return H_OK;
 }
 
-
 static void
 _hssl_server_context_destroy(void)
 {
@@ -363,7 +367,6 @@ _hssl_server_context_destroy(void)
   }
   return;
 }
-
 
 herror_t
 hssl_module_init(int argc, char **argv)
@@ -383,7 +386,6 @@ hssl_module_init(int argc, char **argv)
   return _hssl_server_context_init();
 }
 
-
 void
 hssl_module_destroy(void)
 {
@@ -392,16 +394,14 @@ hssl_module_destroy(void)
   return;
 }
 
-
 int
 hssl_enabled(void)
 {
   return enabled;
 }
 
-
 herror_t
-hssl_client_ssl(hsocket_t * sock)
+hssl_client_ssl(struct hsocket_t * sock)
 {
   SSL *ssl;
   int ret;
@@ -452,7 +452,7 @@ _hssl_bio_read(BIO * b, char *out, int outl)
 }
 
 herror_t
-hssl_server_ssl(hsocket_t * sock)
+hssl_server_ssl(struct hsocket_t *sock)
 {
   SSL *ssl;
   int ret;
@@ -502,9 +502,8 @@ hssl_server_ssl(hsocket_t * sock)
   return H_OK;
 }
 
-
 void
-hssl_cleanup(hsocket_t * sock)
+hssl_cleanup(struct hsocket_t * sock)
 {
   if (sock->ssl)
   {
@@ -517,7 +516,7 @@ hssl_cleanup(hsocket_t * sock)
 }
 
 herror_t
-hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
+hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received)
 {
   int count;
 
@@ -544,7 +543,7 @@ hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
 
 
 herror_t
-hssl_write(hsocket_t * sock, const char *buf, size_t len, size_t * sent)
+hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent)
 {
   int count;
 
@@ -572,7 +571,7 @@ hssl_write(hsocket_t * sock, const char *buf, size_t len, size_t * sent)
 #else
 
 herror_t
-hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
+hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received)
 {
   int count;
 
@@ -587,7 +586,7 @@ hssl_read(hsocket_t * sock, char *buf, size_t len, size_t * received)
 
 
 herror_t
-hssl_write(hsocket_t * sock, const char *buf, size_t len, size_t * sent)
+hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent)
 {
   int count;
 

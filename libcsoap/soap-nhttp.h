@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.h,v 1.1 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-nhttp.h,v 1.2 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -47,13 +47,13 @@ extern herror_t soap_nhttp_server_init_args(int argc, char **argv);
 extern herror_t soap_nhttp_server_run(void);
 extern void soap_nhttp_server_destroy(void);
 
-extern herror_t soap_nhttp_register_router(SoapRouter *router, const char *context);
+extern herror_t soap_nhttp_register(const void *data);
 
 extern short soap_nhttp_get_port(void);
 extern const char *soap_nhttp_get_protocol(void);
 
 extern herror_t soap_nhttp_client_init_args(int argc, char **argv);
-extern herror_t soap_nhttp_client_invoke(void *unused, SoapCtx *req, SoapCtx **res);
+extern herror_t soap_nhttp_client_invoke(void *unused, struct SoapCtx *req, struct SoapCtx **res);
 extern void soap_nhttp_client_destroy(void);
 
 #ifdef __cplusplus

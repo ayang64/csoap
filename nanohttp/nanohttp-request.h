@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.9 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.10 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -21,8 +21,38 @@
  * 
  * Email: ferhatayaz@yahoo.com
  ******************************************************************/
-#ifndef NANO_HTTP_REQUEST_H
-#define NANO_HTTP_REQUEST_H
+#ifndef __nhttp_request_h
+#define __nhttp_request_h
+
+/**
+ *
+ * Request Header Fields
+ *
+ * The request-header fields allow the client to pass additional information
+ * about the request, and about the client itself, to the server. These fields
+ * act as request modifiers, with semantics equivalent to the parameters on a
+ * programming language method invocation (see RFC2616).
+ *
+ */
+#define HEADER_ACCEPT			"Accept"
+#define HEADER_CHARSET			"Accept-Charset"
+#define HEADER_ACCEPT_ENCODING		"Accept-Encoding"
+#define HEADER_ACCEPT_LANGUAGE		"Accept-Language"
+#define HEADER_AUTHORIZATION		"Authorization"
+#define HEADER_EXPECT			"Expect"
+#define HEADER_FROM			"From"
+#define HEADER_HOST			"Host"
+#define HEADER_IF_MATCH			"If-Match"
+#define HEADER_IF_MODIFIED_SINCE	"If-Modified-Since"
+#define HEADER_IF_NONE_MATCH		"If-None-Match"
+#define HEADER_IF_RANGE			"If-Range"
+#define HEADER_IF_UNMODIFIED_SINCE	"If-Unmodified-Since"
+#define HEADER_IF_MAX_FORWARDS		"Max-Forwards"
+#define HEADER_PROXY_AUTHORIZATION	"Proxy-Authorization"
+#define HEADER_RANGE			"Range"
+#define HEADER_REFERER			"Referer"
+#define HEADER_TRANSFER_EXTENSION	"TE"
+#define HEADER_USER_AGENT		"User-Agent"
 
 #ifdef __NHTTP_INTERNAL
 struct request_statistics
@@ -36,7 +66,7 @@ struct request_statistics
 /*
   request object
  */
-typedef struct hrequest
+struct hrequest_t
 {
   hreq_method_t method;
   http_version_t version;
@@ -47,18 +77,20 @@ typedef struct hrequest
 
   struct request_statistics *statistics;
 
-  http_input_stream_t *in;
+  struct http_input_stream_t *in;
   content_type_t *content_type;
   attachments_t *attachments;
   char root_part_id[150];
-} hrequest_t;
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-herror_t hrequest_new_from_socket(hsocket_t *sock, hrequest_t ** out);
-void hrequest_free(hrequest_t * req);
+#ifdef __NHTTP_INTERNAL
+herror_t hrequest_new_from_socket(struct hsocket_t *sock, struct hrequest_t **out);
+void hrequest_free(struct hrequest_t *req);
+#endif
 
 #ifdef __cplusplus
 }

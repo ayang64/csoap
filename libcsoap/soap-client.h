@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.13 2006/03/06 13:37:38 m0gg Exp $
+ *  $Id: soap-client.h,v 1.14 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -21,11 +21,8 @@
  * 
  * Email: ayaz@jprogrammer.net
  ******************************************************************/
-#ifndef cSOAP_CLIENT_H
-#define cSOAP_CLIENT_H
-
-#include <libcsoap/soap-env.h>
-#include <libcsoap/soap-ctx.h>
+#ifndef __csoap_client_h
+#define __csoap_client_h
 
 #define SOAP_ERROR_CLIENT_INIT 5001
 
@@ -34,44 +31,32 @@ extern "C" {
 #endif
 
 /**
-	Initializes the client side soap engine
-*/
-herror_t soap_client_init_args(int argc, char *argv[]);
-
-
-/**
-	Destroy the soap client module
-*/
-void soap_client_destroy();
-
-
-/**
-   Establish connection to the soap server and send 
-   the given envelope. 
-
-   @param env envelope to send
-   @param response  the result envelope
-   @param url url to the soap server
-   @soap_action value for "SoapAction:" in the 
-    HTTP request header.
-
-    @returns H_OK if success 
+ *
+ * Initializes the client side soap engine
+ *
  */
-herror_t soap_client_invoke(SoapCtx * ctx, SoapCtx ** response,
-                            const char *url, const char *soap_action);
-
-
+extern herror_t soap_client_init_args(int argc, char **argv);
 
 /**
-	Sets the underlaying socket to use while connecting
-	into block mode or not block mode.
-	The default mode is always non-blocking mode.
+ *
+ *  Establish connection to the soap server and send the given envelope. 
+ * 
+ *  @param env envelope to send
+ *  @param response  the result envelope
+ *  @param url url to the soap server
+ *  @soap_action value for "SoapAction:" in the HTTP request header.
+ *
+ * @returns H_OK if success 
+ *
+ */
+extern herror_t soap_client_invoke(struct SoapCtx * ctx, struct SoapCtx **response, const char *url, const char *soap_action);
 
-  @param block 1 to creat blocked sockets, 0 to create non 
-	blocking sockets.
-*/
-void soap_client_block_socket(int block);
-int soap_client_get_blockmode();
+/**
+ *
+ * Destroy the soap client module
+ *
+ */
+extern void soap_client_destroy(void);
 
 #ifdef __cplusplus
 }

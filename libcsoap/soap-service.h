@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-service.h,v 1.7 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-service.h,v 1.8 2006/11/23 15:27:33 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __csoap_service_h
 #define __csoap_service_h
 
-typedef herror_t(*SoapServiceFunc) (SoapCtx *, SoapCtx *);
+typedef herror_t (*SoapServiceFunc)(struct SoapCtx *request, struct SoapCtx *response);
 
 typedef struct _SoapService
 {
@@ -45,12 +45,11 @@ typedef struct _SoapServiceNode
 extern "C" {
 #endif
 
-SoapServiceNode *soap_service_node_new(SoapService * service,
-                                       SoapServiceNode * next);
+extern SoapServiceNode *soap_service_node_new(SoapService * service, SoapServiceNode * next);
 
-SoapService *soap_service_new(const char *urn, const char *method, SoapServiceFunc f);
+extern SoapService *soap_service_new(const char *urn, const char *method, SoapServiceFunc f);
 
-void soap_service_free(SoapService * service);
+extern void soap_service_free(SoapService * service);
 
 #ifdef __cplusplus
 }

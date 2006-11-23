@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.15 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: nanohttp-mime.c,v 1.16 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -518,7 +518,7 @@ MIME_read_status
 mime_streamreader_function(void *userdata, unsigned char *dest, int *size)
 {
   int readed = 0;
-  http_input_stream_t *in = (http_input_stream_t *) userdata;
+  struct http_input_stream_t *in = (struct http_input_stream_t *) userdata;
 
   if (!http_input_stream_is_ready(in))
     return MIME_READ_EOF;
@@ -799,7 +799,7 @@ _mime_received_bytes(void *data, const unsigned char *bytes, int size)
 */
 
 attachments_t *
-mime_message_parse(http_input_stream_t * in, const char *root_id,
+mime_message_parse(struct http_input_stream_t * in, const char *root_id,
                    const char *boundary, const char *dest_dir)
 {
   MIME_parser_status status;
@@ -896,7 +896,7 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
 }
 
 herror_t
-mime_get_attachments(content_type_t * ctype, http_input_stream_t * in,
+mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
                      attachments_t ** dest)
 {
   /* MIME variables */

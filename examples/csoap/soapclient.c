@@ -7,19 +7,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <netinet/in.h>
 
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-client.h>
-#include <nanohttp/nanohttp-logging.h>
 
+// #include <nanohttp/nanohttp-request.h>
+// #include <nanohttp/nanohttp-response.h>
+// #include <nanohttp/nanohttp-client.h>
 
 #include <libcsoap/soap-fault.h>
 #include <libcsoap/soap-env.h>
@@ -128,7 +124,7 @@ stripcslashes(char *str, int *len)
 //   to the SOAP request
 */
 void
-ParseLine(SoapCtx * ctx, char *Buffer, int LineLen)
+ParseLine(struct SoapCtx * ctx, char *Buffer, int LineLen)
 {
   char *Line, *FirstCommaPos, *SecondCommaPos;
   int len;
@@ -191,7 +187,7 @@ printusage(char *FileName)
 int
 main(int argc, char *argv[])
 {
-  SoapCtx *ctx, *ctx2;
+  struct SoapCtx *ctx, *ctx2;
   herror_t err;
 
   /* create buffer */
@@ -211,7 +207,7 @@ main(int argc, char *argv[])
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err),
+    printf("%s():%s [%d]", herror_func(err),
                herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
@@ -221,7 +217,7 @@ main(int argc, char *argv[])
   err = soap_ctx_new_with_method(argv[2], argv[3], &ctx);
   if (err != H_OK)
   {
-    log_error4("%s():%s [%d]", herror_func(err),
+    printf("%s():%s [%d]", herror_func(err),
                herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
@@ -244,7 +240,7 @@ main(int argc, char *argv[])
     bytes_left = strlen(Buffer);
     if (bytes_left == MAX_LINE_LENGTH)
     {
-      log_error1("The parameter line is too long.");
+      printf("The parameter line is too long.");
       herror_release(err);
       soap_ctx_free(ctx);
       return 1;
@@ -255,7 +251,7 @@ main(int argc, char *argv[])
   err = soap_client_invoke(ctx, &ctx2, argv[1], "");
   if (err != H_OK)
   {
-    log_error4("[%d] %s(): %s ", herror_code(err),
+    printf("[%d] %s(): %s ", herror_code(err),
                herror_func(err), herror_message(err));
     herror_release(err);
     soap_ctx_free(ctx);
@@ -263,7 +259,7 @@ main(int argc, char *argv[])
   }
 
   /* print the result */
-  soap_xml_doc_print(ctx2->env->root->doc);
+  xmlDocDump(stdout, ctx2->env->root->doc);
 
   /* free the objects */
   soap_ctx_free(ctx2);

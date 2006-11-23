@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.29 2006/11/21 20:59:02 m0gg Exp $
+*  $Id: soap-server.c,v 1.30 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,10 +25,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -41,20 +37,10 @@
 #include <errno.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
-
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-socket.h>
-#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-logging.h>
@@ -73,7 +59,7 @@ static SoapRouterNode *head = NULL;
 static SoapRouterNode *tail = NULL;
 
 static SoapRouterNode *
-router_node_new(SoapRouter * router, const char *context, SoapRouterNode * next)
+router_node_new(struct SoapRouter * router, const char *context, SoapRouterNode * next)
 {
   const char *noname = "/lost_found";
   SoapRouterNode *node;
@@ -100,7 +86,13 @@ router_node_new(SoapRouter * router, const char *context, SoapRouterNode * next)
   return node;
 }
 
-SoapRouter *
+static herror_t
+_soap_server_env_new_with_fault(const char *fault_string, const char *detail, struct SoapEnv **out)
+{
+  return soap_env_new_with_fault(SOAP_FAULT_RECEIVER, fault_string, soap_server_get_name(), detail, out);
+}
+
+struct SoapRouter *
 soap_server_find_router(const char *context)
 {
   SoapRouterNode *node;
@@ -114,25 +106,19 @@ soap_server_find_router(const char *context)
   return NULL;
 }
 
-static herror_t
-_soap_server_env_new_with_fault(const char *fault_string, const char *detail, SoapEnv **out)
-{
-  return soap_env_new_with_fault(SOAP_FAULT_RECEIVER, fault_string, soap_server_get_name(), detail, out);
-}
-
 herror_t
-soap_server_process(SoapCtx *request, SoapCtx **response)
+soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 {
   char buffer[1054];
-  char *urn;
-  char *method;
+  const char *urn;
+  const char *method;
   char *to;
-  SoapRouter *router;
+  struct SoapRouter *router;
   SoapService *service;
   herror_t err;
 
   log_verbose1("processing");
-  soap_xml_doc_print(request->env->root->doc);
+  xmlDocDump(stdout, request->env->root->doc);
 
   *response = soap_ctx_new(NULL);
 
@@ -196,12 +182,15 @@ soap_server_process(SoapCtx *request, SoapCtx **response)
 }
 
 herror_t
-soap_server_init_args(int argc, char *argv[])
+soap_server_init_args(int argc, char **argv)
 {
   herror_t status;
 
   if ((status = soap_transport_server_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_transport_server_init_args failed (%s)", herror_message(status));
     return status;
+  }
 
   return H_OK;
 }
@@ -213,12 +202,15 @@ soap_server_get_name(void)
 }
 
 herror_t
-soap_server_register_router(SoapRouter *router, const char *context)
+soap_server_register_router(struct SoapRouter *router, const char *context)
 {
   herror_t status;
 
-  if ((status = soap_transport_register_router(router, context)) != H_OK)
+  if ((status = soap_transport_register(context)) != H_OK)
+  {
+    log_error2("soap_transport_register failed (%s)", herror_message(status));
     return status;
+  }
 
   if (tail == NULL)
   {

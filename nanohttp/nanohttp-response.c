@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.13 2006/11/21 08:34:34 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.14 2006/11/23 15:27:33 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -154,7 +154,7 @@ _hresponse_parse_header(const char *buffer)
 
 
 herror_t
-hresponse_new_from_socket(hsocket_t *sock, hresponse_t ** out)
+hresponse_new_from_socket(struct hsocket_t *sock, hresponse_t ** out)
 {
   int i = 0, count;
   herror_t status;
