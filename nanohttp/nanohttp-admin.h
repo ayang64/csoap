@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-admin.h,v 1.1 2006/11/19 09:40:14 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.2 2006/11/24 17:28:07 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,19 @@
 #ifndef __nanohttp_admin_h
 #define __nanohttp_admin_h
 
-#define NHTTPD_ARG_ENABLE_ADMIN	"-NHTTPDadmin"
+/**
+ *
+ * Commandline argument to enabled the nanoHTTP admin interface.
+ *
+ */
+#define NHTTPD_ARG_ENABLE_ADMIN		"-NHTTPDadmin"
+
+/**
+ *
+ * Context of the nanoHTTP admin interface.
+ *
+ */
+#define NHTTPD_ADMIN_CONTEXT		"/nhttp"
 
 #define NHTTPD_ADMIN_QUERY_SERVICES	"services"
 #define NHTTPD_ADMIN_QUERY_STATISTICS	"statistics"
@@ -35,15 +47,20 @@ extern "C" {
 
 /**
  *
- * Initializes the nanohttp admin HTTP interface with commandline arguments.
+ * Initializes the nanoHTTP admin interface with commandline arguments, if
+ * NHTTPD_ARG_ENABLED_ADMIN was specified in the commandline arguments. This
+ * service will be reachable via the NHTTP_ADMIN_CONTEXT of the nanohttp server.
  *
  * @param argc commandline arg count
  * @param argv commandline arg vector
  *
  * @returns H_OK on success
  *
+ * @see NHTTPD_ADMIN_CONTEXT
+ * @see NHTTPD_ARG_ENABLE_ADMIN
+ *
  */
-herror_t httpd_admin_init_args(int argc, char *argv[]);
+extern herror_t httpd_admin_init_args(int argc, char **argv);
 
 #ifdef __cplusplus
 }

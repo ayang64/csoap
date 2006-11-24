@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.15 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.16 2006/11/24 17:28:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -85,9 +85,6 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
   struct http_input_stream_t *result;
   char *content_length;
 
-  /* Paranoya check */
-  /* if (header == NULL) return NULL; */
-  /* Create object */
   if (!(result = (struct http_input_stream_t *) malloc(sizeof(struct http_input_stream_t))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
@@ -160,9 +157,6 @@ http_input_stream_new_from_file(const char *filename)
   return result;
 }
 
-/**
-  Free input stream
-*/
 void
 http_input_stream_free(struct http_input_stream_t * stream)
 {

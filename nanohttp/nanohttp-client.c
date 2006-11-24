@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.44 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.45 2006/11/24 17:28:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -122,14 +122,13 @@ httpc_new(void)
   if ((status = hsocket_init(res->sock)) != H_OK)
   {
     log_warn2("hsocket_init failed (%s)", herror_message(status));
+    free(res);
     return NULL;
   }
 
   res->header = NULL;
   res->version = HTTP_1_1;
   res->out = NULL;
-  res->_dime_package_nr = 0;
-  res->_dime_sent_bytes = 0;
   res->id = counter++;
 
   return res;
@@ -372,7 +371,7 @@ If success, this function will return 0.
 >0 otherwise.
 ----------------------------------------------------*/
 static herror_t
-httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
+_httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
                      const char *urlstr)
 {
 
@@ -447,42 +446,41 @@ httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   return H_OK;
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_get
-DESC:
-----------------------------------------------------*/
 herror_t
-httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr)
+httpc_get(httpc_conn_t *conn, hresponse_t **out, const char *urlstr)
 {
   herror_t status;
 
-  if ((status = httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
+  if ((status = _httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
+  {
+    log_error2("_httpc_talk_to_server failed (%s)", herror_message(status));
     return status;
+  }
 
   if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
+  {
+    log_error2("hresponse_new_from_socket failed (%s)", herror_message(status));
     return status;
+  }
 
   return H_OK;
 }
 
-
-/*--------------------------------------------------
-FUNCTION: httpc_post_begin
-DESC: Returns H_OK if success
-----------------------------------------------------*/
 herror_t
 httpc_post_begin(httpc_conn_t * conn, const char *url)
 {
   herror_t status;
 
-  if ((status = httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
+  if ((status = _httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
+  {
+    log_error2("_httpc_talk_to_server failed (%s)", herror_message(status));
     return status;
+  }
 
   conn->out = http_output_stream_new(conn->sock, conn->header);
 
   return H_OK;
 }
-
 
 /*--------------------------------------------------
 FUNCTION: httpc_post_begin

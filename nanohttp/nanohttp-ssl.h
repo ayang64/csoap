@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.20 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.21 2006/11/24 17:28:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -48,34 +48,67 @@ extern "C"
 
 /**
  *
- * Initialization and shutdown of the SSL module
+ * Initialization of the SSL module
+ *
+ * @return H_OK on success
  *
  */
 extern herror_t hssl_module_init(int argc, char **argv);
+
+/**
+ *
+ * Shutdown of the SSL module.
+ *
+ */
 extern void hssl_module_destroy(void);
 
 extern void hssl_set_certificate(char *c);
 extern void hssl_set_certpass(char *c);
 extern void hssl_set_ca(char *c);
 
+/**
+ *
+ * Enabled SSL in the nanoHTTP server. You have to call this function before
+ * calling httpd_run.
+ *
+ * @see httpd_run
+ *
+ */
 extern void hssl_enable(void);
 
+/**
+ *
+ * Check if SSL is enabled in the nanoHTTP server.
+ *
+ * @return 1 if enabled, 0 if disabled.
+ *
+ */
 extern int hssl_enabled(void);
 
 /**
  *
- * Socket initialization and shutdown
+ * SSL client socket initialization.
+ *
+ * @return H_OK on success.
  *
  */
 extern herror_t hssl_client_ssl(struct hsocket_t * sock);
+
+/**
+ *
+ * SSL server socket initialization.
+ *
+ * @return H_OK on success.
+ *
+ */
 extern herror_t hssl_server_ssl(struct hsocket_t * sock);
 
-extern void hssl_cleanup(struct hsocket_t * sock);
-
-/*
- * Callback for password checker
+/**
+ *
+ * SSL socket cleanup.
+ *
  */
-/* static int pw_cb(char* buf, int num, int rwflag, void *userdata); */
+extern void hssl_cleanup(struct hsocket_t * sock);
 
 /*
  * Quick function for verifying a portion of the cert
@@ -86,12 +119,12 @@ extern void hssl_cleanup(struct hsocket_t * sock);
 
 extern int verify_sn(X509 * cert, int who, int nid, char *str);
 
-/*
- * Called by framework for verify
+/**
+ *
+ * Called by framework for verification of client or server supplied
+ * certificate.
+ *
  */
-
-/* static int verify_cb(int prev_ok, X509_STORE_CTX* ctx); */
-
 extern void hssl_set_user_verify(int func(X509 * cert));
 
 #ifdef __cplusplus

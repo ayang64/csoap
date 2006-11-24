@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.31 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.32 2006/11/24 17:28:07 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,9 +26,11 @@
 
 #define	HSOCKET_FREE	-1
 
-/*
-  Socket definition
-*/
+/**
+ *
+ * Socket definition
+ *
+ */
 struct hsocket_t
 {
 #ifdef WIN32
@@ -174,7 +176,6 @@ extern herror_t hsocket_accept(struct hsocket_t *sock, struct hsocket_t *dest);
  *  - HSOCKET_ERROR_SEND
  */
 extern herror_t hsocket_nsend(struct hsocket_t *sock, const unsigned char *bytes, int size);
-
 
 /**
  *

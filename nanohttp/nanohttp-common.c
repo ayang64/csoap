@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.31 2006/11/19 09:40:14 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.32 2006/11/24 17:28:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -151,7 +151,11 @@ hpairnode_new(const char *key, const char *value, hpair_t * next)
   hpair_t *pair;
 
   log_verbose3("new pair ('%s','%s')", SAVE_STR(key), SAVE_STR(value));
-  pair = (hpair_t *) malloc(sizeof(hpair_t));
+  if (!(pair = (hpair_t *) malloc(sizeof(hpair_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
 
   if (key != NULL)
   {
@@ -254,6 +258,8 @@ hpairnode_dump(hpair_t * pair)
   }
   log_verbose5("(%p)['%s','%s','%p']", pair,
                SAVE_STR(pair->key), SAVE_STR(pair->value), pair->next);
+
+  return;
 }
 
 
@@ -272,6 +278,8 @@ hpairnode_dump_deep(hpair_t * pair)
   }
 
   log_verbose1("-- END dump hpairnode_t --\n");
+
+  return;
 }
 
 
@@ -285,6 +293,8 @@ hpairnode_free(hpair_t * pair)
   free(pair->value);
 
   free(pair);
+
+  return;
 }
 
 
@@ -299,6 +309,8 @@ hpairnode_free_deep(hpair_t * pair)
     hpairnode_free(pair);
     pair = tmp;
   }
+
+  return;
 }
 
 char *
