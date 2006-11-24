@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.24 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-env.c,v 1.25 2006/11/24 10:54:03 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -74,11 +74,11 @@ Parameters:
 	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
-        " <SOAP-ENV:Header />" \
-	" <SOAP-ENV:Body>"\
-	"  <m:%s xmlns:m=\"%s\">"\
-	"  </m:%s>" \
-	" </SOAP-ENV:Body>"\
+         "<SOAP-ENV:Header />" \
+	 "<SOAP-ENV:Body>"\
+	  "<m:%s xmlns:m=\"%s\">"\
+	  "</m:%s>" \
+	 "</SOAP-ENV:Body>"\
 	"</SOAP-ENV:Envelope>"
 
 
@@ -96,11 +96,11 @@ Parameters:
 	"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"%s\" SOAP-ENV:encodingStyle=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
-        " <SOAP-ENV:Header />" \
-	" <SOAP-ENV:Body>"\
-	"  <%s xmlns=\"%s\">"\
-	"  </%s>" \
-	" </SOAP-ENV:Body>"\
+         "<SOAP-ENV:Header />" \
+	 "<SOAP-ENV:Body>"\
+	  "<%s xmlns=\"%s\">"\
+	  "</%s>" \
+	 "</SOAP-ENV:Body>"\
 	"</SOAP-ENV:Envelope>"
 
 

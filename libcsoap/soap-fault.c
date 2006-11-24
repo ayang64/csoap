@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.13 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-fault.c,v 1.14 2006/11/24 10:54:03 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -59,15 +59,15 @@ Parameters:
         " SOAP-ENV:encoding=\"%s\"" \
 	" xmlns:xsi=\"%s\"" \
 	" xmlns:xsd=\"%s\">" \
-        " <SOAP-ENV:Header />" \
-	" <SOAP-ENV:Body>" \
-	"  <SOAP-ENV:Fault>"\
-	"   <faultcode>%s</faultcode>"\
-	"   <faultstring>%s</faultstring>"\
-	"   <faultactor>%s</faultactor>"\
-	"   <detail>%s</detail>"\
-	"  </SOAP-ENV:Fault>" \
-	" </SOAP-ENV:Body>"\
+         "<SOAP-ENV:Header />" \
+	 "<SOAP-ENV:Body>" \
+	  "<SOAP-ENV:Fault>"\
+	   "<faultcode>%s</faultcode>"\
+	   "<faultstring>%s</faultstring>"\
+	   "<faultactor>%s</faultactor>"\
+	   "<detail>%s</detail>"\
+	  "</SOAP-ENV:Fault>" \
+	 "</SOAP-ENV:Body>"\
 	"</SOAP-ENV:Envelope>"
 
 
@@ -135,7 +135,7 @@ soap_fault_build(int fault_code, const char *fault_string, const char *fault_act
 
   if (fault == NULL)
   {
-    log_error1("Can not create xml document!");
+    log_error1("Cannot create XML document!");
 
     return soap_fault_build(fault_code, "Cannot create fault object in XML", soap_server_get_name(), NULL);
   }

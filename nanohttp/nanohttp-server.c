@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.65 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.66 2006/11/24 10:54:03 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -654,7 +654,7 @@ httpd_session_main(void *data)
     {
       char *conn_str;
 
-      httpd_request_print(req);
+      _httpd_request_print(req);
 
       conn_str = hpairnode_get_ignore_case(req->header, HEADER_CONNECTION);
       if (conn_str && strncasecmp(conn_str, "close", 6) == 0)

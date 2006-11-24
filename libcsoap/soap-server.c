@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.30 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-server.c,v 1.31 2006/11/24 10:54:03 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -53,6 +53,21 @@
 #include "soap-addressing.h"
 #include "soap-transport.h"
 
+#ifdef HAVE_XMLSEC1
+#include "soap-xmlsec.h"
+static inline herror_t
+_soap_server_xmlsec_sign(struct SoapEnv *envelope)
+{
+  return soap_xmlsec_sign(envelope);
+}
+#else
+static inline herror_t
+_soap_server_xmlsec_sign(struct SoapEnv *envelope)
+{
+  return H_OK;
+}
+#endif
+
 #include "soap-server.h"
 
 static SoapRouterNode *head = NULL;
@@ -92,6 +107,26 @@ _soap_server_env_new_with_fault(const char *fault_string, const char *detail, st
   return soap_env_new_with_fault(SOAP_FAULT_RECEIVER, fault_string, soap_server_get_name(), detail, out);
 }
 
+static void
+_soap_server_fillup_header(struct SoapEnv *envelope)
+{
+  xmlURI *uri;
+
+  log_verbose1(__FUNCTION__);
+
+  if (!(uri = soap_addressing_get_message_id(envelope)))
+    soap_addressing_set_message_id_string(envelope, NULL);
+  else
+    xmlFreeURI(uri);
+
+  if (!(uri = soap_addressing_get_from(envelope)))
+    soap_addressing_set_from_string(envelope, soap_server_get_name());
+  else
+    xmlFreeURI(uri);
+
+  return;
+}
+
 struct SoapRouter *
 soap_server_find_router(const char *context)
 {
@@ -122,63 +157,67 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 
   *response = soap_ctx_new(NULL);
 
-  if (!(method = soap_env_find_methodname(request->env)))
+  if ((method = soap_env_find_methodname(request->env)))
   {
-    _soap_server_env_new_with_fault("No method found", "The method is missing in the SOAP envelope", &((*response)->env));
-    return H_OK;
-  }
-  log_verbose2("method: \"%s\"", method);
-
-  if (!(urn = soap_env_find_urn(request->env)))
-  {
-    _soap_server_env_new_with_fault("No URN found", "The URN is missing in the SOAP envelope", &((*response)->env));
-    return H_OK;
-  }
-  log_verbose2("urn: \"%s\"", urn);
-
-  if ((to = soap_addressing_get_to_address_string(request->env)))
-  {
-    if (!(router = soap_server_find_router(to)))
+    log_verbose2("method: \"%s\"", method);
+    if ((urn = soap_env_find_urn(request->env)))
     {
-      sprintf(buffer, "no router for context \"%s\" found", to);
-      _soap_server_env_new_with_fault(buffer, "The method is unknown by the server", &((*response)->env));
-      free(to);
-      return H_OK;
+      log_verbose2("urn: \"%s\"", urn);
+      if ((to = soap_addressing_get_to_address_string(request->env)))
+      {
+        if ((router = soap_server_find_router(to)))
+        {
+          log_verbose2("router: %p", router);
+          if ((service = soap_router_find_service(router, urn, method)))
+          {
+            log_verbose3("service (%p) found, function (%p)", service, service->func);
+            if ((err = service->func(request, *response)) == H_OK)
+            {
+              if ((*response)->env == NULL)
+              {
+                sprintf(buffer, "Service \"%s\" returned no envelope", urn);
+                _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+              }
+            }
+            else
+            {
+              sprintf(buffer, "Service returned following error message: \"%s\"", herror_message(err));
+              herror_release(err);
+              _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+            }
+          }
+          else
+          {
+            sprintf(buffer, "no service for URN \"%s\" found", urn);
+            _soap_server_env_new_with_fault(buffer, "The URN is not known by the server", &((*response)->env));
+          }
+        }
+        else
+        {
+          sprintf(buffer, "no router for context \"%s\" found", to);
+          _soap_server_env_new_with_fault(buffer, "The method is unknown by the server", &((*response)->env));
+          free(to);
+        }
+        free(to);
+      }
+      else
+      {
+        _soap_server_env_new_with_fault(buffer, "The destination address is missing", &((*response)->env));
+      }
     }
-    free(to);
+    else
+    {
+      _soap_server_env_new_with_fault("No method found", "The method is missing in the SOAP envelope", &((*response)->env));
+    }
   }
   else
   {
-    _soap_server_env_new_with_fault(buffer, "The destination address is missing", &((*response)->env));
-    return H_OK;
-  }
-  log_verbose2("router: %p", router);
-
-  if (!(service = soap_router_find_service(router, urn, method)))
-  {
-    sprintf(buffer, "no service for URN \"%s\" found", urn);
-    _soap_server_env_new_with_fault(buffer, "The URN is not known by the server", &((*response)->env));
-    return H_OK;
-  }
-  log_verbose2("service found (%p)", service);
-
-  log_verbose2("service function: %p", service->func);
-  if ((err = service->func(request, *response)) != H_OK)
-  {
-    sprintf(buffer, "Service returned following error message: \"%s\"", herror_message(err));
-    herror_release(err);
-    _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
-    return H_OK;
+    _soap_server_env_new_with_fault("No URN found", "The URN is missing in the SOAP envelope", &((*response)->env));
   }
 
-  if ((*response)->env == NULL)
-  {
-    sprintf(buffer, "Service \"%s\" returned no envelope", urn);
-    _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
-    return H_OK;
-  }
+  _soap_server_fillup_header((*response)->env);
 
-  return H_OK;
+  return _soap_server_xmlsec_sign((*response)->env);
 }
 
 herror_t
@@ -191,6 +230,14 @@ soap_server_init_args(int argc, char **argv)
     log_error2("soap_transport_server_init_args failed (%s)", herror_message(status));
     return status;
   }
+
+#ifdef HAVE_XMLSEC1
+  if ((status = soap_xmlsec_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_xmlsec_init_args failed (%s)", herror_message(status));
+    return status;
+  }
+#endif
 
   return H_OK;
 }

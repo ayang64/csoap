@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.22 2006/11/23 15:27:33 m0gg Exp $
+ * $Id: simpleserver.c,v 1.23 2006/11/24 10:54:03 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -77,7 +77,7 @@ main(int argc, char **argv)
   herror_t err;
   struct SoapRouter *router;
 
-  // hlog_set_level(HLOG_VERBOSE);
+  hlog_set_level(HLOG_VERBOSE);
 
   if ((err = soap_server_init_args(argc, argv)) != H_OK)
   {

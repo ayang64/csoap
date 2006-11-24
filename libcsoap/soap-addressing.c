@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.3 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.4 2006/11/24 10:54:03 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -83,7 +83,7 @@ _soap_addressing_generate_id(void)
 {
   uuid_t uuid;
   uint32_t status;
-  char *ret;
+  char *ret, *buf;
 
   uuid_create(&uuid, &status);
   if (status != uuid_s_ok)
@@ -92,12 +92,24 @@ _soap_addressing_generate_id(void)
     return NULL;
   }
 
-  uuid_to_string(&uuid, &ret, &status);
+  uuid_to_string(&uuid, &buf, &status);
   if (status != uuid_s_ok)
   {
     log_error2("uuid_to_string failed (%s)", _soap_addressing_uuid_error(status));
     return NULL;
   }
+
+  if (!(ret = (char *)malloc(128)))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(buf);
+    return NULL;
+  }
+
+  sprintf(ret, "%s/%s", soap_server_get_name(), buf);
+
+  free(buf);
+
   return ret;
 }
 
@@ -295,6 +307,8 @@ soap_addressing_set_message_id_string(struct SoapEnv *envelope, xmlChar *id)
   else
     tmp = id;
 
+  log_verbose2("setting message id = \"%s\"", tmp);
+
   node = _soap_addressing_get_child_element(envelope->header, WSA_MESSAGE_ID);
   if (node == NULL)
     node = _soap_addressing_add_node(envelope->header, WSA_MESSAGE_ID, tmp);
@@ -427,6 +441,19 @@ soap_addressing_set_from(struct SoapEnv *envelope, xmlNodePtr address)
   node = xmlCopyNode(address, 1);
   xmlUnlinkNode(node);
   xmlAddChild(ret, node);
+
+  return ret;
+}
+
+xmlNodePtr
+soap_addressing_set_from_string(struct SoapEnv *envelope, const char *from)
+{
+  xmlURI *uri;
+  xmlNodePtr ret;
+
+  uri = xmlParseURI(from);
+  ret = soap_addressing_set_from_address(envelope, uri);
+  xmlFreeURI(uri);
 
   return ret;
 }
