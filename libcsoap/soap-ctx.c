@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.13 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-ctx.c,v 1.14 2006/11/25 15:06:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -43,6 +43,7 @@
 
 #include <libxml/tree.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 
@@ -67,11 +68,10 @@ soap_ctx_new(struct SoapEnv * env)     /* should only be used internally */
   return ctx;
 }
 
-
 void
-soap_ctx_add_files(struct SoapCtx * ctx, attachments_t * attachments)
+soap_ctx_add_files(struct SoapCtx *ctx, struct attachments_t *attachments)
 {
-  part_t *part;
+  struct part_t *part;
   char href[MAX_HREF_SIZE];
 
   if (attachments == NULL)
@@ -83,8 +83,9 @@ soap_ctx_add_files(struct SoapCtx * ctx, attachments_t * attachments)
     soap_ctx_add_file(ctx, part->filename, part->content_type, href);
     part = part->next;
   }
-}
 
+  return;
+}
 
 herror_t
 soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
@@ -92,7 +93,7 @@ soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
 {
   char cid[250];
   char id[250];
-  part_t *part;
+  struct part_t *part;
   static int counter = 1;
   FILE *test = fopen(filename, "r");
   if (!test)
@@ -115,13 +116,13 @@ soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
   return H_OK;
 }
 
-part_t *
+struct part_t *
 soap_ctx_get_file(struct SoapCtx * ctx, xmlNodePtr node)
 {
   xmlChar *prop;
   char href[MAX_HREF_SIZE];
   char buffer[MAX_HREF_SIZE];
-  part_t *part;
+  struct part_t *part;
 
   if (!ctx->attachments)
     return NULL;
@@ -172,15 +173,15 @@ soap_ctx_free(struct SoapCtx * ctx)
   return;
 }
 
-
 herror_t
 soap_ctx_new_with_method(const char *urn, const char *method, struct SoapCtx ** out)
 {
   struct SoapEnv *env;
   herror_t err;
-  err = soap_env_new_with_method(urn, method, &env);
-  if (err != H_OK)
+
+  if ((err = soap_env_new_with_method(urn, method, &env)) != H_OK)
     return err;
+
   *out = soap_ctx_new(env);
 
   return H_OK;

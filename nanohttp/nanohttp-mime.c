@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.16 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-mime.c,v 1.17 2006/11/25 15:06:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -41,6 +41,10 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -49,11 +53,12 @@
 Buffered Reader. A helper object to read bytes from a source
 ----------------------------------------------------------------*/
 
+#include "nanohttp-logging.h"
+#include "nanohttp-error.h"
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
 #include "nanohttp-mime.h"
-#include "nanohttp-logging.h"
 
 
 /* ------------------------------------------------------------------
@@ -475,9 +480,6 @@ MIME_parse(MIME_read_function reader_function,
   }                             /* while (1) */
 }
 
-
-
-
 MIME_read_status
 MIME_filereader_function(void *userdata, unsigned char *dest, int *size)
 {
@@ -501,8 +503,8 @@ MIME_filereader_function(void *userdata, unsigned char *dest, int *size)
 typedef struct _mime_callback_data
 {
   int part_id;
-  attachments_t *message;
-  part_t *current_part;
+  struct attachments_t *message;
+  struct part_t *current_part;
   int buffer_capacity;
   char header[4064];
   char root_id[256];
@@ -511,7 +513,6 @@ typedef struct _mime_callback_data
   FILE *current_fd;
   char root_dir[512];
 } mime_callback_data_t;
-
 
 
 MIME_read_status
@@ -568,11 +569,16 @@ static void
 _mime_part_begin(void *data)
 {
   char buffer[1054];
-  mime_callback_data_t *cbdata = (mime_callback_data_t *) data;
-  part_t *part;
-
+  struct part_t *part;
+  mime_callback_data_t *cbdata;
+ 
+  cbdata = (mime_callback_data_t *) data;
   log_verbose2("Begin Part (%p)", data);
-  part = (part_t *) malloc(sizeof(part_t));
+  if (!(part = (struct part_t *) malloc(sizeof(struct part_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return;
+  }
   part->next = NULL;
 
 
@@ -798,16 +804,21 @@ _mime_received_bytes(void *data, const unsigned char *bytes, int size)
   The mime message parser
 */
 
-attachments_t *
+struct attachments_t *
 mime_message_parse(struct http_input_stream_t * in, const char *root_id,
                    const char *boundary, const char *dest_dir)
 {
   MIME_parser_status status;
   MIME_callbacks callbacks;
-  attachments_t *message;
+  struct attachments_t *message;
 
-  mime_callback_data_t *cbdata = (mime_callback_data_t *)
-    malloc(sizeof(mime_callback_data_t));
+  mime_callback_data_t *cbdata;
+ 
+  if (!(cbdata = (mime_callback_data_t *) malloc(sizeof(mime_callback_data_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
 
   cbdata->part_id = 100;
   cbdata->buffer_capacity = 0;
@@ -817,7 +828,13 @@ mime_message_parse(struct http_input_stream_t * in, const char *root_id,
   cbdata->header_search = 0;
   strcpy(cbdata->root_id, root_id);
   strcpy(cbdata->root_dir, dest_dir);
-  message = (attachments_t *) malloc(sizeof(attachments_t));
+
+  if (!(message = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(cbdata);
+    return NULL;
+  }
   cbdata->message = message;
   cbdata->message->parts = NULL;
   cbdata->message->root_part = NULL;
@@ -845,16 +862,21 @@ mime_message_parse(struct http_input_stream_t * in, const char *root_id,
   }
 }
 
-attachments_t *
+struct attachments_t *
 mime_message_parse_from_file(FILE * in, const char *root_id,
                              const char *boundary, const char *dest_dir)
 {
   MIME_parser_status status;
   MIME_callbacks callbacks;
-  attachments_t *message;
+  struct attachments_t *message;
 
-  mime_callback_data_t *cbdata = (mime_callback_data_t *)
-    malloc(sizeof(mime_callback_data_t));
+  mime_callback_data_t *cbdata;
+ 
+  if (!(cbdata = (mime_callback_data_t *) malloc(sizeof(mime_callback_data_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
 
   cbdata->part_id = 100;
   cbdata->buffer_capacity = 0;
@@ -864,7 +886,14 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
   cbdata->header_search = 0;
   strcpy(cbdata->root_id, root_id);
   strcpy(cbdata->root_dir, dest_dir);
-  message = (attachments_t *) malloc(sizeof(attachments_t));
+
+  if (!(message = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(cbdata);
+    return NULL;
+  }
+
   cbdata->message = message;
   cbdata->message->parts = NULL;
   cbdata->message->root_part = NULL;
@@ -897,11 +926,11 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
 
 herror_t
 mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
-                     attachments_t ** dest)
+                     struct attachments_t ** dest)
 {
   /* MIME variables */
-  attachments_t *mimeMessage;
-  part_t *part, *tmp_part = NULL;
+  struct attachments_t *mimeMessage;
+  struct part_t *part, *tmp_part = NULL;
   char *boundary, *root_id;
 
   /* Check for MIME message */

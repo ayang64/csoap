@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.23 2006/11/24 10:54:03 m0gg Exp $
+ * $Id: simpleserver.c,v 1.24 2006/11/25 15:06:57 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -26,6 +26,7 @@
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 

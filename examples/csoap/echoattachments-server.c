@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.11 2006/11/23 15:27:33 m0gg Exp $
+ * $Id: echoattachments-server.c,v 1.12 2006/11/25 15:06:57 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,6 +25,7 @@
 
 #include <libxml/tree.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 
@@ -43,7 +44,7 @@ echo_attachments(struct SoapCtx * req, struct SoapCtx * res)
 {
   herror_t err;
 
-  part_t *part;
+  struct part_t *part;
   char href[MAX_HREF_SIZE];
 
   err = soap_env_new_with_response(req->env, &res->env);

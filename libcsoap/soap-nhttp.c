@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.2 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.3 2006/11/25 15:06:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -40,10 +40,10 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-stream.h>
-
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
 
@@ -273,7 +273,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   /* multipart/related start id */
   char start_id[150];
   static int counter = 1;
-  part_t *part;
+  struct part_t *part;
 
   /* for copy attachments */
   char href[MAX_HREF_SIZE];
@@ -363,11 +363,9 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
 
     for (part=request->attachments->parts; part; part=part->next)
     {
-      status = httpc_mime_send_file(conn, part->id, part->content_type, part->transfer_encoding, part->filename);
-
-      if (status != H_OK)
+      if ((status = httpc_mime_send_file(conn, part->id, part->content_type, part->transfer_encoding, part->filename)) != H_OK)
       {
-        log_error2("Send file failed. Status: %d", status);
+        log_error2("httpc_mime_send_file failed (%s)", herror_message(status));
 	httpc_close_free(conn);
 	xmlBufferFree(buffer);
 	return status;

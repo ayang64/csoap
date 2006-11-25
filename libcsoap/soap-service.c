@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.11 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-service.c,v 1.12 2006/11/25 15:06:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -48,7 +48,7 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-fault.h"

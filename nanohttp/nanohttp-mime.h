@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.10 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-mime.h,v 1.11 2006/11/25 15:06:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -37,7 +37,7 @@ extern "C" {
   "multipart/related"  MIME Message Builder
  ------------------------------------------------------------------*/
 
-extern herror_t mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in, attachments_t ** dest);
+extern herror_t mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in, struct attachments_t ** dest);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.4 2006/11/24 10:54:03 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.5 2006/11/25 15:06:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -53,6 +53,7 @@
 #include <libxml/xpath.h>
 #include <libxml/uri.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 

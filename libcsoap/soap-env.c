@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.25 2006/11/24 10:54:03 m0gg Exp $
+*  $Id: soap-env.c,v 1.26 2006/11/25 15:06:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -53,7 +53,7 @@
 #include <libxml/xpath.h>
 #include <libxml/xmlstring.h>
 
-#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-xml.h"
@@ -265,8 +265,7 @@ soap_env_new_with_response(struct SoapEnv * request, struct SoapEnv ** out)
   {
     return herror_new("soap_env_new_with_response",
                       GENERAL_INVALID_PARAM,
-                      "Method name '%s' not found in request",
-                      SAVE_STR(method));
+                      "Method name not found in request");
   }
 
   if (!(urn = soap_env_find_urn(request)))

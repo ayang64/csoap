@@ -11,6 +11,7 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 
 // #include <nanohttp/nanohttp-request.h>

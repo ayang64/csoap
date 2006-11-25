@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.14 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.15 2006/11/25 15:06:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -46,6 +46,7 @@
 #endif
 
 #include "nanohttp-logging.h"
+#include "nanohttp-error.h"
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
@@ -57,10 +58,11 @@ hresponse_new(void)
 {
   hresponse_t *res;
 
-  if (!(res = (hresponse_t *) malloc(sizeof(hresponse_t)))) {
+  if (!(res = (hresponse_t *) malloc(sizeof(hresponse_t))))
+  {
 
-	  log_error2("malloc failed (%s)", strerror(errno));
-	  return NULL;
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
   }
 
   res->version = HTTP_1_1;
@@ -159,7 +161,7 @@ hresponse_new_from_socket(struct hsocket_t *sock, hresponse_t ** out)
   int i = 0, count;
   herror_t status;
   hresponse_t *res;
-  attachments_t *mimeMessage;
+  struct attachments_t *mimeMessage;
   char buffer[MAX_HEADER_SIZE + 1];
 
 read_header:                   /* for errorcode: 100 (continue) */

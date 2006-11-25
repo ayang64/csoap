@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.32 2006/11/24 17:28:07 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.33 2006/11/25 15:06:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -53,8 +53,9 @@
 #include <pthread.h>
 #endif
 
-#include "nanohttp-common.h"
 #include "nanohttp-logging.h"
+#include "nanohttp-error.h"
+#include "nanohttp-common.h"
 
 static int
 strcmpigcase(const char *s1, const char *s2)
@@ -78,72 +79,6 @@ strcmpigcase(const char *s1, const char *s2)
 
   return 1;
 }
-
-typedef struct _herror_impl_t
-{
-  int errcode;
-  char message[250];
-  char func[100];
-} herror_impl_t;
-
-herror_t
-herror_new(const char *func, int errcode, const char *format, ...)
-{
-  va_list ap;
-  herror_impl_t *impl;
- 
-  if (!(impl = (herror_impl_t *) malloc(sizeof(herror_impl_t))))
-  {
-    log_error2("malloc failed (%s)", strerror(errno));
-    return NULL;
-  }
-
-  impl->errcode = errcode;
-  strcpy(impl->func, func);
-
-  va_start(ap, format);
-  vsprintf(impl->message, format, ap);
-  va_end(ap);
-
-  return (herror_t) impl;
-}
-
-int
-herror_code(herror_t err)
-{
-  herror_impl_t *impl = (herror_impl_t *) err;
-  if (!err)
-    return H_OK;
-  return impl->errcode;
-}
-
-char *
-herror_func(herror_t err)
-{
-  herror_impl_t *impl = (herror_impl_t *) err;
-  if (!err)
-    return "";
-  return impl->func;
-}
-
-char *
-herror_message(herror_t err)
-{
-  herror_impl_t *impl = (herror_impl_t *) err;
-  if (!err)
-    return "";
-  return impl->message;
-}
-
-void
-herror_release(herror_t err)
-{
-  herror_impl_t *impl = (herror_impl_t *) err;
-  if (!err)
-    return;
-  free(impl);
-}
-
 
 hpair_t *
 hpairnode_new(const char *key, const char *value, hpair_t * next)
@@ -583,7 +518,6 @@ content_type_new(const char *content_type_str)
   return ct;
 }
 
-
 void
 content_type_free(content_type_t * ct)
 {
@@ -592,15 +526,21 @@ content_type_free(content_type_t * ct)
 
   hpairnode_free_deep(ct->params);
   free(ct);
+
+  return;
 }
 
-
-part_t *
-part_new(const char *id, const char *filename,
-         const char *content_type, const char *transfer_encoding,
-         part_t * next)
+struct part_t *
+part_new(const char *id, const char *filename, const char *content_type, const char *transfer_encoding, struct part_t * next)
 {
-  part_t *part = (part_t *) malloc(sizeof(part_t));
+  struct part_t *part;
+ 
+  if (!(part = (struct part_t *) malloc(sizeof(struct part_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
+
   part->header = NULL;
   part->next = next;
   part->deleteOnExit = 0;
@@ -632,7 +572,7 @@ part_new(const char *id, const char *filename,
 }
 
 void
-part_free(part_t * part)
+part_free(struct part_t * part)
 {
   if (part == NULL)
     return;
@@ -647,11 +587,17 @@ part_free(part_t * part)
   free(part);
 }
 
-attachments_t *
-attachments_new()               /* should be used internally */
+struct attachments_t *
+attachments_new(void)               /* should be used internally */
 {
-  attachments_t *attachments =
-    (attachments_t *) malloc(sizeof(attachments_t));
+  struct attachments_t *attachments;
+ 
+  if (!(attachments = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
+
   attachments->parts = NULL;
   attachments->last = NULL;
   attachments->root_part = NULL;
@@ -660,9 +606,8 @@ attachments_new()               /* should be used internally */
 }
 
 void
-attachments_add_part(attachments_t * attachments, part_t * part)
+attachments_add_part(struct attachments_t *attachments, struct part_t *part)
 {
-  /* paranoya check */
   if (!attachments)
     return;
 
@@ -672,15 +617,17 @@ attachments_add_part(attachments_t * attachments, part_t * part)
     attachments->parts = part;
 
   attachments->last = part;
+
+  return;
 }
 
 /*
   Free a mime message 
 */
 void
-attachments_free(attachments_t * message)
+attachments_free(struct attachments_t *message)
 {
-  part_t *tmp, *part;
+  struct part_t *tmp, *part;
 
   if (message == NULL)
     return;
@@ -695,8 +642,10 @@ attachments_free(attachments_t * message)
 
   if (message->root_part)
     part_free(message->root_part);
-/* TODO (#1#): HERE IS A BUG!!!! */
+
   free(message);
+
+  return;
 }
 
 

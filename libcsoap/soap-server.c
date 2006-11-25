@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.31 2006/11/24 10:54:03 m0gg Exp $
+*  $Id: soap-server.c,v 1.32 2006/11/25 15:06:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -40,9 +40,7 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-server.h>
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include "soap-fault.h"
@@ -119,7 +117,7 @@ _soap_server_fillup_header(struct SoapEnv *envelope)
   else
     xmlFreeURI(uri);
 
-  if (!(uri = soap_addressing_get_from(envelope)))
+  if (!(uri = soap_addressing_get_from_address(envelope)))
     soap_addressing_set_from_string(envelope, soap_server_get_name());
   else
     xmlFreeURI(uri);

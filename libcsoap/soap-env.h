@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.17 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-env.h,v 1.18 2006/11/25 15:06:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -277,7 +277,7 @@ extern void soap_env_pop_item(struct SoapEnv * env);
  *  @param env The envelope object
  *
  */
-extern void soap_env_free(struct SoapEnv * env);
+extern void soap_env_free(struct SoapEnv *env);
 
 /**
  *

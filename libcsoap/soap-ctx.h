@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.h,v 1.12 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-ctx.h,v 1.13 2006/11/25 15:06:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -32,40 +32,55 @@
 struct SoapCtx
 {
   struct SoapEnv *env;
-  attachments_t *attachments;
+  struct attachments_t *attachments;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* should only be used internally */
+/**
+ *
+ * should only be used internally
+ *
+ */
 extern struct SoapCtx *soap_ctx_new(struct SoapEnv * env);
 
 /**
-	Creates a new soap context object.
-*/
+ *
+ * Creates a new soap context object.
+ *
+ */
 extern herror_t soap_ctx_new_with_method(const char *urn, const char *method, struct SoapCtx ** out);
 
 extern void soap_ctx_free(struct SoapCtx * ctx);
+
 /**
-	Returns the attached file if any found. 
-	@param ctx the SoapCtx object which should contain the part
-	@param node the xml node which points to a file via the "href" xml attribute
+ *
+ * Returns the attached file if any found. 
+ *
+ * @param ctx the SoapCtx object which should contain the part
+ * @param node the xml node which points to a file via the "href" xml attribute
+ *
+ * @returns a part_t object of attachment was found, NULL otherwise.
+ *
+ */
+extern struct part_t *soap_ctx_get_file(struct SoapCtx * ctx, xmlNodePtr node);
 
-	@returns a part_t object of attachment was found, NULL otherwise.
-	  
-*/
-extern part_t *soap_ctx_get_file(struct SoapCtx * ctx, xmlNodePtr node);
+/**
+ *
+ * Size of destination dest_href should be MAX_HREF_SIZE
+ *
+ */
+extern herror_t soap_ctx_add_file(struct SoapCtx * ctx, const char *filename, const char *content_type, char *dest_href);
 
-/* Size of destination dest_href should be MAX_HREF_SIZE */
-extern herror_t soap_ctx_add_file(struct SoapCtx * ctx, const char *filename,
-                           const char *content_type, char *dest_href);
-/* 
-Used internally. Will switch the deleteOnExit flag from the 
-given one to the added part.
-*/
-extern void soap_ctx_add_files(struct SoapCtx * ctx, attachments_t * attachments);
+/**
+ *
+ * Used internally. Will switch the deleteOnExit flag from the given one to the
+ * added part.
+ *
+ */
+extern void soap_ctx_add_files(struct SoapCtx * ctx, struct attachments_t * attachments);
 
 #ifdef __cplusplus
 }

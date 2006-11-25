@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.18 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.19 2006/11/25 15:06:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -50,6 +50,7 @@
 #endif
 
 #include "nanohttp-logging.h"
+#include "nanohttp-error.h"
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
@@ -275,7 +276,7 @@ hrequest_new_from_socket(struct hsocket_t *sock, struct hrequest_t ** out)
   herror_t status;
   struct hrequest_t *req;
   char buffer[MAX_HEADER_SIZE + 1];
-  attachments_t *mimeMessage;
+  struct attachments_t *mimeMessage;
 
   memset(buffer, 0, MAX_HEADER_SIZE);
   /* Read header */
