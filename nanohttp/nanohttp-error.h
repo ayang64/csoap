@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-error.h,v 1.1 2006/11/25 15:06:58 m0gg Exp $
+ *  $Id: nanohttp-error.h,v 1.2 2006/11/25 15:38:10 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,60 +28,69 @@
 #define H_OK				0
 
 /* Socket errors */
-#define HSOCKET_ERROR_CREATE		1001
-#define HSOCKET_ERROR_GET_HOSTNAME	1002
-#define HSOCKET_ERROR_CONNECT		1003
-#define HSOCKET_ERROR_SEND		1004
-#define HSOCKET_ERROR_RECEIVE		1005
-#define HSOCKET_ERROR_BIND		1006
-#define HSOCKET_ERROR_LISTEN		1007
-#define HSOCKET_ERROR_ACCEPT		1008
-#define HSOCKET_ERROR_NOT_INITIALIZED	1009
-#define HSOCKET_ERROR_IOCTL		1010
-#define HSOCKET_ERROR_SSLCLOSE		1011
-#define HSOCKET_ERROR_SSLCTX		1011
+#define HSOCKET_ERROR			1000
+#define HSOCKET_ERROR_CREATE		(HSOCKET_ERROR + 1)
+#define HSOCKET_ERROR_GET_HOSTNAME	(HSOCKET_ERROR + 2)
+#define HSOCKET_ERROR_CONNECT		(HSOCKET_ERROR + 3)
+#define HSOCKET_ERROR_SEND		(HSOCKET_ERROR + 4)
+#define HSOCKET_ERROR_RECEIVE		(HSOCKET_ERROR + 5)
+#define HSOCKET_ERROR_BIND		(HSOCKET_ERROR + 6)
+#define HSOCKET_ERROR_LISTEN		(HSOCKET_ERROR + 7)
+#define HSOCKET_ERROR_ACCEPT		(HSOCKET_ERROR + 8)
+#define HSOCKET_ERROR_NOT_INITIALIZED	(HSOCKET_ERROR + 9)
+#define HSOCKET_ERROR_IOCTL		(HSOCKET_ERROR + 10)
+#define HSOCKET_ERROR_SSLCLOSE		(HSOCKET_ERROR + 11)
+#define HSOCKET_ERROR_SSLCTX		(HSOCKET_ERROR + 11)
 
 /* URL errors */
-#define URL_ERROR_UNKNOWN_PROTOCOL	1101
-#define URL_ERROR_NO_PROTOCOL		1102
-#define URL_ERROR_NO_HOST		1103
+#define URL_ERROR			1100
+#define URL_ERROR_UNKNOWN_PROTOCOL	(URL_ERROR + 1)
+#define URL_ERROR_NO_PROTOCOL		(URL_ERROR + 2)
+#define URL_ERROR_NO_HOST		(URL_ERROR + 3)
 
 /* Stream errors */
-#define STREAM_ERROR_INVALID_TYPE	1201
-#define STREAM_ERROR_SOCKET_ERROR	1202
-#define STREAM_ERROR_NO_CHUNK_SIZE	1203
-#define STREAM_ERROR_WRONG_CHUNK_SIZE	1204
+#define STREAM_ERROR			1200
+#define STREAM_ERROR_INVALID_TYPE	(STREAM_ERROR + 1)
+#define STREAM_ERROR_SOCKET_ERROR	(STREAM_ERROR + 2)
+#define STREAM_ERROR_NO_CHUNK_SIZE	(STREAM_ERROR + 3)
+#define STREAM_ERROR_WRONG_CHUNK_SIZE	(STREAM_ERROR + 4)
 
 /* MIME errors */
-#define MIME_ERROR_NO_BOUNDARY_PARAM	1301
-#define MIME_ERROR_NO_START_PARAM	1302
-#define MIME_ERROR_PARSE_ERROR		1303
-#define MIME_ERROR_NO_ROOT_PART		1304
-#define MIME_ERROR_NOT_MIME_MESSAGE	1305
+#define MIME_ERROR			1300
+#define MIME_ERROR_NO_BOUNDARY_PARAM	(MIME_ERROR + 1)
+#define MIME_ERROR_NO_START_PARAM	(MIME_ERROR + 2)
+#define MIME_ERROR_PARSE_ERROR		(MIME_ERROR + 3)
+#define MIME_ERROR_NO_ROOT_PART		(MIME_ERROR + 4)
+#define MIME_ERROR_NOT_MIME_MESSAGE	(MIME_ERROR + 5)
 
 /* General errors */
-#define GENERAL_INVALID_PARAM		1400
-#define GENERAL_HEADER_PARSE_ERROR	1401
+#define GENERAL_ERROR			1400
+#define GENERAL_INVALID_PARAM		(GENERAL_ERROR + 1)
+#define GENERAL_HEADER_PARSE_ERROR	(GENERAL_ERROR + 2)
 
 /* Thread errors */
-#define THREAD_BEGIN_ERROR		1500
+#define THREAD_ERROR			1500
+#define THREAD_BEGIN_ERROR		(THREAD_ERROR)
 
 /* XML Errors */
-#define XML_ERROR_EMPTY_DOCUMENT	1600
-#define XML_ERROR_PARSE			1601
+#define XML_ERROR			1600
+#define XML_ERROR_EMPTY_DOCUMENT	(XML_ERROR + 1)
+#define XML_ERROR_PARSE			(XML_ERROR + 2)
 
 /* SSL Errors */
-#define HSSL_ERROR_CA_LIST		1710
-#define HSSL_ERROR_CONTEXT		1720
-#define HSSL_ERROR_CERTIFICATE		1730
-#define HSSL_ERROR_PEM			1740
-#define HSSL_ERROR_CLIENT		1750
-#define HSSL_ERROR_SERVER		1760
-#define HSSL_ERROR_CONNECT		1770
+#define HSSL_ERROR			1700
+#define HSSL_ERROR_CA_LIST		(HSSL_ERROR + 10)
+#define HSSL_ERROR_CONTEXT		(HSSL_ERROR + 20)
+#define HSSL_ERROR_CERTIFICATE		(HSSL_ERROR + 30)
+#define HSSL_ERROR_PEM			(HSSL_ERROR + 40)
+#define HSSL_ERROR_CLIENT		(HSSL_ERROR + 50)
+#define HSSL_ERROR_SERVER		(HSSL_ERROR + 60)
+#define HSSL_ERROR_CONNECT		(HSSL_ERROR + 70)
 
 /* File errors */
-#define FILE_ERROR_OPEN			8000
-#define FILE_ERROR_READ			8001
+#define FILE_ERROR			8000
+#define FILE_ERROR_OPEN			(FILE_ERROR + 1)
+#define FILE_ERROR_READ			(FILE_ERROR + 2)
 
 typedef void *herror_t;
 
@@ -89,10 +98,41 @@ typedef void *herror_t;
 extern "C" {
 #endif
 
+/**
+ *
+ * Creates a new error struture.
+ *
+ * @see printf
+ *
+ */
 extern herror_t herror_new(const char *func, int errcode, const char *format, ...);
+
+/**
+ *
+ * Returns the code of the error.
+ *
+ */
 extern int herror_code(herror_t err);
-extern char *herror_func(herror_t err);
-extern char *herror_message(herror_t err);
+
+/**
+ *
+ * Returns the name of the function.
+ *
+ */
+extern const char *herror_func(herror_t err);
+
+/**
+ *
+ * Returns the error message.
+ *
+ */
+extern const char *herror_message(herror_t err);
+
+/**
+ *
+ * Frees the error structure.
+ *
+ */
 extern void herror_release(herror_t err);
 
 #ifdef __cplusplus

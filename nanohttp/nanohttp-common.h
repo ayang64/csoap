@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.34 2006/11/25 15:06:58 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.35 2006/11/25 15:38:10 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -40,14 +40,105 @@
  *
  */
 
+/**
+ *
+ * The Cache-Control general-header field is used to specify directives that MUST
+ * be obeyed by all caching mechanisms along the request/response chain. The
+ * directives specify behavior intended to prevent caches from adversely
+ * interfering with the request or response. These directives typically override
+ * the default caching algorithms. Cache directives are unidirectional in that
+ * the presence of a directive in a request does not imply that the same
+ * directive is to be given in the response.
+ *
+ */
 #define HEADER_CACHE_CONTROL		"Cache-Control"
+
+/**
+ *
+ * The Connection general-header field allows the sender to specify options that
+ * are desired for that particular connection and MUST NOT be communicated by
+ * proxies over further connections.
+ *
+ */
 #define HEADER_CONNECTION		"Connection"
+
+/**
+ *
+ * The Date general-header field represents the date and time at which the
+ * message was originated, having the same semantics as orig-date in RFC 822.
+ * The field value is an HTTP-date, as described in section 3.3.1; it MUST be
+ * sent in RFC 1123 [8]-date format.
+ *
+ * @see http://www.ietf.org/rfc/rfc822.txt,
+ *      http://www.ietf.org/rfc/rfc1123.txt
+ *
+ */
 #define HEADER_DATE			"Date"
+
+/**
+ *
+ * The Pragma general-header field is used to include implementation-specific
+ * directives that might apply to any recipient along the request/response chain.
+ * All pragma directives specify optional behavior from the viewpoint of the
+ * protocol; however, some systems MAY require that behavior be consistent with
+ * the directives.
+ *
+ */
 #define HEADER_PRAGMA			"Pragma"
+
+/**
+ *
+ * The Trailer general field value indicates that the given set of header fields
+ * is present in the trailer of a message encoded with chunked transfer-coding.
+ *
+ */
 #define HEADER_TRAILER			"Trailer"
+
+/**
+ *
+ * The Transfer-Encoding general-header field indicates what (if any) type of
+ * transformation has been applied to the message body in order to safely
+ * transfer it between the sender and the recipient. This differs from the
+ * content-coding in that the transfer-coding is a property of the message, not
+ * of the entity.
+ *
+ */
 #define HEADER_TRANSFER_ENCODING	"Transfer-Encoding"
+
+/**
+ *
+ * The Upgrade general-header allows the client to specify what additional
+ * communication protocols it supports and would like to use if the server finds
+ * it appropriate to switch protocols. The server MUST use the Upgrade header
+ * field within a 101 (Switching Protocols) response to indicate which
+ * protocol(s) are being switched.
+ *
+ */
 #define HEADER_UPGRADE			"Upgrade"
+
+/**
+ *
+ * The Via general-header field MUST be used by gateways and proxies to indicate
+ * the intermediate protocols and recipients between the user agent and the
+ * server on requests, and between the origin server and the client on responses.
+ * It is analogous to the "Received" field of RFC 822 and is intended to be used
+ * for tracking message forwards, avoiding request loops, and identifying the
+ * protocol capabilities of all senders along the request/response chain.
+ *
+ * @see http://www.ietf.org/rfc/rfc822.txt
+ *
+ */
 #define HEADER_VIA			"Via"
+
+/**
+ *
+ * The Warning general-header field is used to carry additional information about
+ * the status or transformation of a message which might not be reflected in the
+ * message. This information is typically used to warn about a possible lack of
+ * semantic transparency from caching operations or transformations applied to
+ * the entity body of the message.
+ *
+ */
 #define HEADER_WARNING			"Warning"
 
 /**
@@ -62,15 +153,115 @@
  * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
+
+/**
+ *
+ * The Allow entity-header field lists the set of methods supported by the
+ * resource identified by the Request-URI. The purpose of this field is strictly
+ * to inform the recipient of valid methods associated with the resource. An
+ * Allow header field MUST be present in a 405 (Method Not Allowed) response.
+ *
+ */
 #define HEADER_ALLOW			"Allow"
+
+/**
+ *
+ * The Content-Encoding entity-header field is used as a modifier to the
+ * media-type. When present, its value indicates what additional content codings
+ * have been applied to the entity-body, and thus what decoding mechanisms must
+ * be applied in order to obtain the media-type referenced by the Content-Type
+ * header field. Content-Encoding is primarily used to allow a document to be
+ * compressed without losing the identity of its underlying media type.
+ *
+ */
 #define HEADER_CONTENT_ENCODING		"Content-Encoding"
+
+/**
+ *
+ * The Content-Language entity-header field describes the natural language(s) of
+ * the intended audience for the enclosed entity. Note that this might not be
+ * equivalent to all the languages used within the entity-body.
+ *
+ */
 #define HEADER_CONTENT_LANGUAGE		"Content-Language"
+
+/**
+ *
+ * The Content-Length entity-header field indicates the size of the entity-body,
+ * in decimal number of OCTETs, sent to the recipient or, in the case of the HEAD
+ * method, the size of the entity-body that would have been sent had the request
+ * been a GET.
+ *
+ */
 #define HEADER_CONTENT_LENGTH		"Content-Length"
+
+/**
+ *
+ * The Content-Location entity-header field MAY be used to supply the resource
+ * location for the entity enclosed in the message when that entity is accessible
+ * from a location separate from the requested resource's URI. A server SHOULD
+ * provide a Content-Location for the variant corresponding to the response
+ * entity; especially in the case where a resource has multiple entities
+ * associated with it, and those entities actually have separate locations by
+ * which they might be individually accessed, the server SHOULD provide a
+ * Content-Location for the particular variant which is returned.
+ *
+ */
 #define HEADER_CONTENT_LOCATION		"Content-Location"
+
+/**
+ *
+ * The Content-MD5 entity-header field, as defined in RFC 1864, is an MD5 digest
+ * of the entity-body for the purpose of providing an end-to-end message
+ * integrity check (MIC) of the entity-body. (Note: a MIC is good for detecting
+ * accidental modification of the entity-body in transit, but is not proof
+ * against malicious attacks.)
+ *
+ * @see http://www.ietf.org/rfc/rfc1864.txt
+ *
+ */
 #define HEADER_CONTENT_MD5		"Content-MD5"
+
+/**
+ *
+ * The Content-Range entity-header is sent with a partial entity-body to specify
+ * where in the full entity-body the partial body should be applied. Range units
+ * are defined in RFC 2616 section 3.12.
+ *
+ * @see http://www.ietf.org/rfc/rcf2616.txt
+ *
+ */
 #define HEADER_CONTENT_RANGE		"Content-Range"
+
+/**
+ *
+ * The Content-Type entity-header field indicates the media type of the
+ * entity-body sent to the recipient or, in the case of the HEAD method, the
+ * media type that would have been sent had the request been a GET.
+ *
+ */
 #define HEADER_CONTENT_TYPE		"Content-Type"
+
+/**
+ *
+ * The Expires entity-header field gives the date/time after which the response
+ * is considered stale. A stale cache entry may not normally be returned by a
+ * cache (either a proxy cache or a user agent cache) unless it is first
+ * validated with the origin server (or with an intermediate cache that has a
+ * fresh copy of the entity). See RFC 2616 section 13.2 for further discussion of
+ * the expiration model.
+ *
+ * @see http://www.ietf.org/rfc/rfc2616.txt
+ *
+ */
 #define HEADER_EXPIRES			"Expires"
+
+/**
+ *
+ * The Last-Modified entity-header field indicates the date and time at which the
+ * origin server believes the variant was last modified.
+ *
+ */
 #define HEADER_LAST_MODIFIED		"Last-Modified"
 
 /**
@@ -449,8 +640,8 @@ typedef struct _content_type
  * @param content_type_str the string representation of the content-type field in
  *        a HTTP header.
  *
- * @returns A newly created content_type_t object. Free this object with
- *          content_type_free();
+ * @return A newly created content_type_t object. Free this object with
+ *         content_type_free();
  *
  * @see content_type_free
  */
