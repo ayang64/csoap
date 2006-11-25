@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-logging.h,v 1.3 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: nanohttp-logging.h,v 1.4 2006/11/25 17:03:20 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -35,7 +35,8 @@ typedef enum log_level
   HLOG_INFO,
   HLOG_WARN,
   HLOG_ERROR,
-  HLOG_FATAL
+  HLOG_FATAL,
+  HLOG_OFF
 } log_level_t;
 
 

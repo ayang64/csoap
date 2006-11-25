@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.36 2006/11/25 16:35:57 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.37 2006/11/25 17:03:20 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -457,6 +457,8 @@ typedef enum _hreq_method
  * since that entity is likely to include human-readable information which will
  * explain the unusual status.
  *
+ * @see http://www.ietf.org/rfc/rfc2616.txt
+ *
  */
 #define HTTP_STATUS_100_REASON_PHRASE	"Continue"
 #define HTTP_STATUS_101_REASON_PHRASE	"Switching Protocols"
@@ -511,6 +513,66 @@ struct hpair
   char *value;
   hpair_t *next;
 };
+
+/**
+ *
+ * The protocol types in enumeration format. Used in some other nanohttp objects
+ * like hurl_t.
+ *
+ * @see hurl_t
+ *
+ */
+typedef enum _hprotocol
+{
+  PROTOCOL_HTTP,
+  PROTOCOL_HTTPS,
+  PROTOCOL_FTP
+} hprotocol_t;
+
+/**
+ *
+ * The URL object. A representation of an URL like:
+ *
+ * [protocol]://[host]:[port]/[context]
+ *
+ * @see http://www.ietf.org/rfc/rfc2396.txt
+ *
+ */
+typedef struct _hurl
+{
+  /**
+   *
+   * The transfer protocol. Note that only PROTOCOL_HTTP and PROTOCOL_HTTPS are
+   * supported by nanohttp.
+   *
+   */
+  hprotocol_t protocol;
+
+  /**
+   *
+   * The port number. If no port number was given in the URL, one of the default
+   * port numbers will be selected. 
+   * - URL_HTTP_DEFAULT_PORT    
+   * - URL_HTTPS_DEFAULT_PORT   
+   * - URL_FTP_DEFAULT_PORT    
+   *
+   */
+  short port;
+
+  /**
+   *
+   * The hostname
+   *
+   */
+  char host[URL_MAX_HOST_SIZE];
+
+  /**
+   *
+   * The string after the hostname.
+   *
+   */
+  char context[URL_MAX_CONTEXT_SIZE];
+} hurl_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -634,56 +696,6 @@ extern void hpairnode_dump(hpair_t * pair);
 
 /**
  *
- * The protocol types in enumeration format. Used in some other nanohttp objects
- * like hurl_t.
- *
- * @see hurl_t
- *
- */
-typedef enum _hprotocol
-{
-  PROTOCOL_HTTP,
-  PROTOCOL_HTTPS,
-  PROTOCOL_FTP
-} hprotocol_t;
-
-
-
-/**
- *
- * The URL object. A representation of an URL like:
- *
- * [protocol]://[host]:[port]/[context]
- *
- * @see http://www.ietf.org/rfc/rfc2396.txt
- *
- */
-typedef struct _hurl
-{
-  /**
-    The transfer protocol. 
-    Note that only PROTOCOL_HTTP is supported by nanohttp.
-  */
-  hprotocol_t protocol;
-
-  /**
-    The port number. If no port number was given in the URL,
-    one of the default port numbers will be selected. 
-    URL_HTTP_DEFAULT_PORT    
-    URL_HTTPS_DEFAULT_PORT   
-    URL_FTP_DEFAULT_PORT    
-  */
-  int port;
-
-  /** The hostname */
-  char host[URL_MAX_HOST_SIZE];
-
-  /** The string after the hostname. */
-  char context[URL_MAX_CONTEXT_SIZE];
-} hurl_t;
-
-/**
- *
  * Parses the given 'urlstr' and fills the given hurl_t object.
  *
  * @param obj the destination URL object to fill
@@ -726,7 +738,6 @@ typedef struct _content_type
  */
 extern content_type_t *content_type_new(const char *content_type_str);
 
-
 /**
  *
  * Frees the given content_type_t object
@@ -767,7 +778,8 @@ struct attachments_t
   struct part_t *root_part;
 };
 
-extern struct attachments_t *attachments_new(void);       /* should be used internally */
+/* should be used internally */
+extern struct attachments_t *attachments_new(void);
 
 /**
  *

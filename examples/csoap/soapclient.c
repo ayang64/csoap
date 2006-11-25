@@ -1,22 +1,31 @@
-/* soapclient.c
-// compile with
-// gcc soapclient.c -o soapclient -lcsoap
-*/
-/* Author: Adrianus Warmenhoven */
-
+/******************************************************************
+ * $Id: soapclient.c,v 1.11 2006/11/25 17:03:20 m0gg Exp $
+ *
+ * CSOAP Project:  CSOAP examples project 
+ * Copyright (C) 2003-2006 Adrianus Warmehoven
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
+ *
+ * Author: Adrianus Warmenhoven
+ ******************************************************************/
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #include <libxml/tree.h>
-#include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-common.h>
-
-// #include <nanohttp/nanohttp-request.h>
-// #include <nanohttp/nanohttp-response.h>
-// #include <nanohttp/nanohttp-client.h>
 
 #include <libcsoap/soap-fault.h>
 #include <libcsoap/soap-env.h>

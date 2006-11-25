@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.24 2006/11/25 15:06:57 m0gg Exp $
+ * $Id: simpleserver.c,v 1.25 2006/11/25 17:03:20 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -27,7 +27,6 @@
 #include <libxml/xpath.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-xml.h>
@@ -47,7 +46,7 @@ say_hello(struct SoapCtx *req, struct SoapCtx *res)
   herror_t err;
   char *name;
 
-  log_verbose1("service request");
+  printf("service request");
 
   xmlNodePtr method, node;
 

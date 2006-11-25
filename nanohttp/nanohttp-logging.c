@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-logging.c,v 1.1 2006/07/09 16:22:52 snowdrop Exp $
+*  $Id: nanohttp-logging.c,v 1.2 2006/11/25 17:03:20 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -81,13 +81,11 @@ hlog_set_level(log_level_t level)
   return old;
 }
 
-
 log_level_t
 hlog_get_level(void)
 {
   return loglevel;
 }
-
 
 void
 hlog_set_file(const char *filename)
@@ -96,16 +94,20 @@ hlog_set_file(const char *filename)
     strncpy(logfile, filename, 75);
   else
     logfile[0] = '\0';
+
+  return;
 }
 
 void
 hlog_set_background(int state)
 {
   log_background = state;
+
+  return;
 }
 
 char *
-hlog_get_file()
+hlog_get_file(void)
 {
   if (logfile[0] == '\0')
     return NULL;
@@ -151,6 +153,8 @@ _log_write(log_level_t level, const char *prefix,
       }
     }
   }
+
+  return;
 }
 
 void
