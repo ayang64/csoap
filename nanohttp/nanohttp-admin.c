@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.5 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.6 2006/11/25 16:35:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -48,7 +48,7 @@
 static void
 _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 {
-  httpd_send_header(conn, 200, "OK");
+  httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
   http_output_stream_write_string(conn->out,
    "<html><head><style>");
   http_output_stream_write_string(conn->out,
@@ -165,7 +165,7 @@ _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
   }
   else
   {
-    httpd_send_header(conn, 200, "OK");
+    httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
               "<html>"
                   "<head>"

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.8 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: http_server.c,v 1.9 2006/11/25 16:35:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -55,7 +55,7 @@ static int simple_authenticator(struct hrequest_t *req, const char *user, const 
 static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 
-	httpd_send_header(conn, 200, "OK");
+	httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
 	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
@@ -72,7 +72,7 @@ static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
 static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 
-	httpd_send_header(conn, 404, "Not found");
+	httpd_send_header(conn, 404, HTTP_STATUS_404_REASON_PHRASE);
 	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
@@ -96,7 +96,7 @@ static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
 	hpair_t *walker;
 
-	httpd_send_header(conn, 200, "OK");
+	httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
 	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"
@@ -125,7 +125,7 @@ static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 
 static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
-	httpd_send_header(conn, 200, "OK");
+	httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
 	http_output_stream_write_string(conn->out,
 		"<html>"
 			"<head>"

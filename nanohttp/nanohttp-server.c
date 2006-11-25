@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.67 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.68 2006/11/25 16:35:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -466,7 +466,7 @@ httpd_send_internal_error(httpd_conn_t * conn, const char *errmsg)
   snprintf(buflen, 5, "%d", strlen(buffer));
 
   httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
-  httpd_send_header(conn, 500, "INTERNAL");
+  httpd_send_header(conn, 500, HTTP_STATUS_500_REASON_PHRASE);
 
   return http_output_stream_write_string(conn->out, buffer);
 }
@@ -719,7 +719,7 @@ httpd_session_main(void *data)
 
           httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE,
                            "Basic realm=\"nanoHTTP\"");
-          httpd_send_header(rconn, 401, "Unauthorized");
+          httpd_send_header(rconn, 401, HTTP_STATUS_401_REASON_PHRASE);
           http_output_stream_write_string(rconn->out, template);
           done = 1;
         }

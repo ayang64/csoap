@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-wsil.c,v 1.3 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: soap-wsil.c,v 1.4 2006/11/25 16:35:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -84,7 +84,7 @@ static void
 _soap_wsil_handle_get(httpd_conn_t * conn, struct hrequest_t * req)
 {
   httpd_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
-  httpd_send_header(conn, 200, "OK");
+  httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
 
   http_output_stream_write_string(conn->out,
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -108,7 +108,7 @@ _soap_wsil_entry(httpd_conn_t * conn, struct hrequest_t * req)
   }
   else
   {
-    httpd_send_header(conn, 200, "OK");
+    httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
       "<html>"
         "<head>"

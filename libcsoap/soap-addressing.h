@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-addressing.h,v 1.4 2006/11/24 10:54:03 m0gg Exp $
+ *  $Id: soap-addressing.h,v 1.5 2006/11/25 16:35:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -24,7 +24,7 @@
 #ifndef __csoap_addressing_h
 #define __csoap_addressing_h
 
-/**
+/** @file
  *
  * WS-Addressing provides transport-neutral mechanisms to address Web services
  * and messages. Specifically, this specification defines XML [XML 1.0, XML
@@ -35,11 +35,27 @@
  * in a transport-neutral manner.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.4 $
- * @see		http://www.w3.org/TR/ws-addr-core/
+ * @version	$Revision: 1.5 $
+ *
+ * @see		http://www.w3.org/TR/ws-addr-core/,
+ *		http://www.w3.org/TR/REC-xml-names/
+ *
+ */
+
+/**
+ *
+ * Namespace used for the addressing elements.
  *
  */
 #define WSA_NAMESPACE		"http://www.w3.org/2005/08/addressing"
+
+/**
+ *
+ * Prefix for the WSA namespace used internally.
+ *
+ * @see WSA_NAMESPACE
+ *
+ */
 #define WSA_NAMESPACE_PREFIX	"wsa"
 
 /**

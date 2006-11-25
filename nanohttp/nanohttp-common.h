@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.35 2006/11/25 15:38:10 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.36 2006/11/25 16:35:57 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -419,6 +419,85 @@ typedef enum _hreq_method
   HTTP_REQUEST_CONNECT,
   HTTP_REQUEST_UNKOWN
 } hreq_method_t;
+
+/**
+ *
+ * The Status-Code element is a 3-digit integer result code of the attempt to
+ * understand and satisfy the request. These codes are fully defined in section
+ * 10. The Reason-Phrase is intended to give a short textual description of the
+ * Status-Code. The Status-Code is intended for use by automata and the
+ * Reason-Phrase is intended for the human user. The client is not required to
+ * examine or display the Reason- Phrase. The first digit of the Status-Code
+ * defines the class of response. The last two digits do not have any
+ * categorization role. There are 5 values for the first digit: 
+ *
+ * - 1xx: Informational - Request received, continuing process
+ * - 2xx: Success - The action was successfully received, understood, and
+ *        accepted 
+ * - 3xx: Redirection - Further action must be taken in order to complete the
+ *        request
+ * - 4xx: Client Error - The request contains bad syntax or cannot be fulfilled
+ * - 5xx: Server Error - The server failed to fulfill an apparently valid request
+ *
+ * The individual values of the numeric status codes defined for HTTP/1.1, and an
+ * example set of corresponding Reason-Phrase's, are presented below. The reason
+ * phrases listed here are only recommendations -- they MAY be replaced by local
+ * equivalents without affecting the protocol.
+ *
+ * HTTP status codes are extensible. HTTP applications are not required to
+ * understand the meaning of all registered status codes, though such
+ * understanding is obviously desirable. However, applications MUST understand
+ * the class of any status code, as indicated by the first digit, and treat any
+ * unrecognized response as being equivalent to the x00 status code of that class,
+ * with the exception that an unrecognized response MUST NOT be cached. For
+ * example, if an unrecognized status code of 431 is received by the client, it
+ * can safely assume that there was something wrong with its request and treat
+ * the response as if it had received a 400 status code. In such cases, user
+ * agents SHOULD present to the user the entity returned with the response,
+ * since that entity is likely to include human-readable information which will
+ * explain the unusual status.
+ *
+ */
+#define HTTP_STATUS_100_REASON_PHRASE	"Continue"
+#define HTTP_STATUS_101_REASON_PHRASE	"Switching Protocols"
+#define HTTP_STATUS_200_REASON_PHRASE	"OK"
+#define HTTP_STATUS_201_REASON_PHRASE	"Created"
+#define HTTP_STATUS_202_REASON_PHRASE	"Accepted"
+#define HTTP_STATUS_203_REASON_PHRASE	"Non-Authoritative Information"
+#define HTTP_STATUS_204_REASON_PHRASE	"No Content"
+#define HTTP_STATUS_205_REASON_PHRASE	"Reset Content"
+#define HTTP_STATUS_206_REASON_PHRASE	"Partial Content"
+#define HTTP_STATUS_300_REASON_PHRASE	"Multiple Choices"
+#define HTTP_STATUS_301_REASON_PHRASE	"Moved Permanently"
+#define HTTP_STATUS_302_REASON_PHRASE	"Found"
+#define HTTP_STATUS_303_REASON_PHRASE	"See Other"
+#define HTTP_STATUS_304_REASON_PHRASE	"Not Modified"
+#define HTTP_STATUS_305_REASON_PHRASE	"Use Proxy"
+#define HTTP_STATUS_307_REASON_PHRASE	"Temporary Redirect"
+#define HTTP_STATUS_400_REASON_PHRASE	"Bad Request"
+#define HTTP_STATUS_401_REASON_PHRASE	"Unauthorized"
+#define HTTP_STATUS_402_REASON_PHRASE	"Payment Required"
+#define HTTP_STATUS_403_REASON_PHRASE	"Forbidden"
+#define HTTP_STATUS_404_REASON_PHRASE	"Not Found"
+#define HTTP_STATUS_405_REASON_PHRASE	"Method Not Allowed"
+#define HTTP_STATUS_406_REASON_PHRASE	"Not Acceptable"
+#define HTTP_STATUS_407_REASON_PHRASE	"Proxy Authentication Required"
+#define HTTP_STATUS_408_REASON_PHRASE	"Request Time-out"
+#define HTTP_STATUS_409_REASON_PHRASE	"Conflict"
+#define HTTP_STATUS_410_REASON_PHRASE	"Gone"
+#define HTTP_STATUS_411_REASON_PHRASE	"Length Required"
+#define HTTP_STATUS_412_REASON_PHRASE	"Precondition Failed"
+#define HTTP_STATUS_413_REASON_PHRASE	"Request Entity Too Large"
+#define HTTP_STATUS_414_REASON_PHRASE	"Request-URI Too Large"
+#define HTTP_STATUS_415_REASON_PHRASE	"Unsupported Media Type"
+#define HTTP_STATUS_416_REASON_PHRASE	"Requested range not satisfiable"
+#define HTTP_STATUS_417_REASON_PHRASE	"Expectation Failed"
+#define HTTP_STATUS_500_REASON_PHRASE	"Internal Server Error"
+#define HTTP_STATUS_501_REASON_PHRASE	"Not Implemented"
+#define HTTP_STATUS_502_REASON_PHRASE	"Bad Gateway"
+#define HTTP_STATUS_503_REASON_PHRASE	"Service Unavailable"
+#define HTTP_STATUS_504_REASON_PHRASE	"Gateway Time-out"
+#define HTTP_STATUS_505_REASON_PHRASE	"HTTP Version not supported"
 
 /**
  *
