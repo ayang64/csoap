@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.11 2006/11/25 15:06:58 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.12 2006/11/26 20:13:05 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __nhttp_request_h
 #define __nhttp_request_h
 
-/**
+/** @file
  *
  * Request Header Fields
  *

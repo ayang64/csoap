@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.26 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: soap-env.c,v 1.27 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -167,7 +167,7 @@ xmlbuilder_end_element(const xmlChar * element_name, void *userData)
 herror_t
 soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
 {
-  xmlNodePtr node;
+  xmlNodePtr root;
   struct SoapEnv *env;
 
   if (doc == NULL)
@@ -178,7 +178,7 @@ soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
                       "XML Document (xmlDocPtr) is NULL");
   }
 
-  if (!(node = xmlDocGetRootElement(doc)))
+  if (!(root = xmlDocGetRootElement(doc)))
   {
     log_error1("XML document is empty!");
     return herror_new("soap_env_new_from_doc",
@@ -191,7 +191,7 @@ soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
     return herror_new("soap_env_from_doc", GENERAL_INVALID_PARAM, "malloc failed (%s)", strerror(errno));
   }
 
-  env->root = node;
+  env->root = root;
   env->header = soap_env_get_header(env);
   env->body = soap_env_get_body(env);
   env->cur = soap_env_get_method(env);
@@ -200,7 +200,6 @@ soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
 
   return H_OK;
 }
-
 
 herror_t
 soap_env_new_from_buffer(const char *buffer, struct SoapEnv **out)
@@ -446,13 +445,13 @@ soap_env_get_body(struct SoapEnv * env)
 
   if (env == NULL)
   {
-    log_error1("env object is NULL");
+    log_error1("SOAP envelope is NULL");
     return NULL;
   }
 
   if (env->root == NULL)
   {
-    log_error1("env has no xml");
+    log_error1("SOAP envelope contains no XML");
     return NULL;
   }
 
@@ -525,7 +524,7 @@ soap_env_get_method(struct SoapEnv * env)
 
   if (!(body = soap_env_get_body(env)))
   {
-    log_verbose1("SoapEnv contains no Body");
+    log_verbose1("SoapEnv contains no Body element");
     return NULL;
   }
 

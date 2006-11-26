@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.32 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: soap-server.c,v 1.33 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -163,6 +163,7 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
       log_verbose2("urn: \"%s\"", urn);
       if ((to = soap_addressing_get_to_address_string(request->env)))
       {
+        log_verbose2("searching router for \"%s\"", to);
         if ((router = soap_server_find_router(to)))
         {
           log_verbose2("router: %p", router);
@@ -173,7 +174,7 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
             {
               if ((*response)->env == NULL)
               {
-                sprintf(buffer, "Service \"%s\" returned no envelope", urn);
+                sprintf(buffer, "Service for \"%s\" returned no envelope", urn);
                 _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
               }
             }

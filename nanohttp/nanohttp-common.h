@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.37 2006/11/25 17:03:20 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.38 2006/11/26 20:13:05 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,7 +28,7 @@
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define TRANSFER_ENCODING_CHUNKED	"chunked"
 
-/**
+/** @file
  *
  * General Header Fields
  *

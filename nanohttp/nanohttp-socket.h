@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.32 2006/11/24 17:28:07 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.33 2006/11/26 20:13:06 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -191,7 +191,7 @@ extern herror_t hsocket_nsend(struct hsocket_t *sock, const unsigned char *bytes
  */
 extern herror_t hsocket_send(struct hsocket_t *sock, const char *str);
 
-extern int hsocket_select_read(int sock, char *buf, size_t len);
+extern int hsocket_select_recv(int sock, char *buf, size_t len);
 
 /**
  *

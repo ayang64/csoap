@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.h,v 1.2 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-nudp.h,v 1.3 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -21,27 +21,33 @@
 * 
 * Email: hero@persua.de
 ******************************************************************/
-#ifndef __soap_nudp_h
-#define __soap_nudp_h
+#ifndef __csoap_nudp_h
+#define __csoap_nudp_h
+
+#ifdef __CSOAP_INTERNAL
+
+#define NUDP_ARG_PORT		"-NUDPport"
+
+#define NUDP_DEFAULT_PORT	10001
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern herror_t soap_nudp_server_init_args(int argc, char **argv);
-extern herror_t soap_nudp_server_run(void);
+extern void *soap_nudp_server_run(void *unused);
+extern herror_t soap_nudp_server_run_threaded(void);
 extern void soap_nudp_server_destroy(void);
 
-#ifdef __CSOAP_INTERNAL
 extern herror_t soap_nudp_register(const void *data);
-#endif
 
 extern herror_t soap_nudp_client_init_args(int argc, char **argv);
-extern herror_t soap_nudp_client_invoke(struct SoapCtx *req, struct SoapCtx **res);
 extern void soap_nudp_client_destroy(void);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

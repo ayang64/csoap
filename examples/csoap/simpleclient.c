@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.17 2006/11/25 17:03:20 m0gg Exp $
+ * $Id: simpleclient.c,v 1.18 2006/11/26 20:13:05 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -47,7 +47,7 @@ main(int argc, char **argv)
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     exit(1);
   }
@@ -55,7 +55,7 @@ main(int argc, char **argv)
   err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK)
   {
-    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     exit(1);
   }
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 
   if ((err = soap_client_invoke(ctx, &ctx2, url, "")) != H_OK)
   {
-    printf("[%d] %s(): %s ", herror_code(err), herror_func(err), herror_message(err));
+    printf("[%d] %s(): %s\n", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     soap_ctx_free(ctx);
     exit(1);

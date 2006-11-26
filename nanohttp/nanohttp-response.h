@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.10 2006/11/25 15:06:58 m0gg Exp $
+ *  $Id: nanohttp-response.h,v 1.11 2006/11/26 20:13:06 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __nanohttp_response_h
 #define __nanohttp_response_h
 
-/**
+/** @file
  *
  * Response Header Fields
  *
@@ -176,8 +176,9 @@ extern "C" {
 
 #ifdef __NHTTP_INTERNAL
 extern herror_t hresponse_new_from_socket(struct hsocket_t *sock, hresponse_t **out);
-extern void hresponse_free(hresponse_t * res);
 #endif
+
+extern void hresponse_free(hresponse_t * res);
 
 #ifdef __cplusplus
 }

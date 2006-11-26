@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.9 2006/11/25 16:35:57 m0gg Exp $
+*  $Id: soap-admin.c,v 1.10 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -46,6 +46,7 @@
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 #include <nanohttp/nanohttp-admin.h>

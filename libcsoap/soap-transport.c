@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.c,v 1.4 2006/11/25 17:03:20 m0gg Exp $
+*  $Id: soap-transport.c,v 1.5 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -31,6 +31,10 @@
 
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #include <libxml/tree.h>
@@ -85,7 +89,7 @@ _soap_transport_new(const char *scheme, void *data, msg_exchange invoke)
   return ret;
 }
 
-static void *
+/* static void *
 _soap_transport_destroy(struct soap_transport *transport)
 {
   void *ret;
@@ -98,8 +102,7 @@ _soap_transport_destroy(struct soap_transport *transport)
   free(transport);
 
   return ret;
-}
-
+} */
 
 herror_t
 soap_transport_process(struct SoapCtx *request, struct SoapCtx **response)
@@ -181,15 +184,16 @@ soap_transport_server_run(void)
 {
   herror_t status;
 
-  if ((status = soap_nhttp_server_run()) != H_OK)
+  if ((status = soap_nudp_server_run_threaded()) != H_OK)
   {
-    log_error2("soap_nhttp_server_run failed (%s)", herror_message(status));
+    log_error2("soap_nudp_server_run failed (%s)", herror_message(status));
     return status;
   }
 
-  if ((status = soap_nudp_server_run()) != H_OK)
+  /* nanoHTTP blocks in this call */
+  if ((status = soap_nhttp_server_run()) != H_OK)
   {
-    log_error2("soap_nudp_server_run failed (%s)", herror_message(status));
+    log_error2("soap_nhttp_server_run failed (%s)", herror_message(status));
     return status;
   }
 

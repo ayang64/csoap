@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.31 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.32 2006/11/26 20:13:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -27,6 +27,10 @@
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/socket.h>
 #endif
 
 #ifdef HAVE_NETINET_IN_H

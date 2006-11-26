@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.4 2006/11/25 16:35:57 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.5 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -415,25 +415,31 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
 herror_t
 soap_nhttp_client_init_args(int argc, char **argv)
 {
+  herror_t status;
+
+  if ((status = httpc_init(argc, argv)) != H_OK)
+  {
+    log_error2("httpc_init failed (%s)", herror_message(status));
+    return status;
+  }
+
   soap_transport_add("https", NULL, _soap_nhttp_client_invoke);
   soap_transport_add("http", NULL, _soap_nhttp_client_invoke);
 
-  return httpc_init(argc, argv);
+  return H_OK;
 }
 
 herror_t
-soap_nhttp_register(const void *data)
+soap_nhttp_register(const char *context)
 {
   herror_t status;
-  const char *context;
-
-  context = (char *)data;
 
   if ((status = httpd_register(context, soap_nhttp_process)) != H_OK)
   {
     log_error2("httpd_register_secure failed (%s)", herror_message(status));
     return status;
   }
+
   return H_OK;
 }
 
@@ -470,4 +476,3 @@ soap_nhttp_get_protocol(void)
 {
   return httpd_get_protocol();
 }
-

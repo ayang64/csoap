@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: soapclient.c,v 1.11 2006/11/25 17:03:20 m0gg Exp $
+ * $Id: soapclient.c,v 1.12 2006/11/26 20:13:05 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2006 Adrianus Warmehoven
@@ -22,6 +22,7 @@
  ******************************************************************/
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <libxml/tree.h>
 

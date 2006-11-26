@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.64 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.65 2006/11/26 20:13:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -85,6 +85,8 @@ typedef int ssize_t;
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
 #include "nanohttp-ssl.h"
+#include "nanohttp-request.h"
+#include "nanohttp-server.h"
 
 #ifdef WIN32
 static void

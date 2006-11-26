@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.12 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-xml.c,v 1.13 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,7 @@
 #include <config.h>
 #endif
 
+#include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
@@ -33,31 +34,34 @@
 #include "soap-xml.h"
 
 xmlNodePtr
-soap_xml_get_children(xmlNodePtr param)
+soap_xml_get_children(xmlNodePtr node)
 {
-  xmlNodePtr children;
+  xmlNodePtr child;
 
-  if (param == NULL)
+  if (node == NULL)
   {
-    log_error1("Invalid parameter 'param' (null)");
+    log_error1("Invalid node (null)");
     return NULL;
   }
 
-  children = param->xmlChildrenNode;
-  while (children != NULL)
+  for (child = node->children; child; child=child->next)
   {
-    if (children->type != XML_ELEMENT_NODE)
-      children = children->next;
-    else
-      break;
+    if (child->type == XML_ELEMENT_NODE)
+      return child;
   }
 
-  return children;
+  return NULL;
 }
 
 xmlNodePtr
 soap_xml_get_next(xmlNodePtr param)
 {
+
+  if (param == NULL)
+  {
+    log_error1("Invalid node (null)");
+    return NULL;
+  }
 
   xmlNodePtr node = param->next;
 

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.68 2006/11/25 16:35:57 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.69 2006/11/26 20:13:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -145,11 +145,15 @@ static pthread_mutex_t _httpd_connection_lock;
 static void _sys_sleep(int secs)
 {
   Sleep(secs*1000);
+
+  return;
 }
 #else
 static inline void _sys_sleep(int secs)
 {
   sleep(secs);
+
+  return;
 }
 #endif
 
@@ -228,8 +232,6 @@ httpd_init(int argc, char **argv)
     log_error2("hsocket_modeule_init failed (%s)", herror_message(status));
     return status;
   } 
-
-  log_verbose2("socket bind to port '%d'", _httpd_port);
 
   _httpd_connection_slots_init();
 

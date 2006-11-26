@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.6 2006/11/25 17:03:20 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.7 2006/11/26 20:13:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -41,6 +41,10 @@
 #include <stdlib.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
@@ -59,6 +63,7 @@
 #include "soap-xml.h"
 #include "soap-fault.h"
 #include "soap-env.h"
+#include "soap-server.h"
 #include "soap-addressing.h"
 
 static const xmlChar *
@@ -189,7 +194,7 @@ _soap_addressing_set_content_uri(xmlNodePtr node, xmlURI *uri)
   xmlChar *buf;
 
   if (uri == NULL)
-    return;
+    return NULL;
 
   buf = xmlSaveUri(uri);
   xmlNodeSetContent(node, buf);

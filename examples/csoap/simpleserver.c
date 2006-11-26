@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.25 2006/11/25 17:03:20 m0gg Exp $
+ * $Id: simpleserver.c,v 1.26 2006/11/26 20:13:05 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,27 +45,39 @@ say_hello(struct SoapCtx *req, struct SoapCtx *res)
 {
   herror_t err;
   char *name;
-
-  printf("service request");
-
   xmlNodePtr method, node;
+
+  printf("processing service request\n");
+
+  xmlDocFormatDump(stdout, req->env->root->doc, 1);
 
   err = soap_env_new_with_response(req->env, &res->env);
   if (err != H_OK)
   {
+    printf("soap_env_new_with_response failed (%s)\n", herror_message(err));
     return err;
   }
+  printf("empty response created\n");
 
-  method = soap_env_get_method(req->env);
+  if (!(method = soap_env_get_method(req->env)))
+  {
+    printf("soap_env_get_method failed\n");
+    return herror_new("say_hello", 0, "There may be a bug in the library...");
+  }
+  printf("method found\n");
+
+  printf("adding response content...\n");
   node = soap_xml_get_children(method);
-
   while (node)
   {
     name = (char *) xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
     soap_env_add_itemf(res->env, "xsd:string", "echo", "Hello '%s'", name);
     node = soap_xml_get_next(node);
-    xmlFree(name);
+    if (name)
+      xmlFree(name);
   }
+
+  printf("service request done\n");
 
   return H_OK;
 }
@@ -102,7 +114,7 @@ main(int argc, char **argv)
 
   if ((err = soap_server_register_router(router, url)))
   {
-    printf("%s(): %s [%s]\n", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     exit(1);
   }
@@ -111,7 +123,7 @@ main(int argc, char **argv)
   printf("press ctrl-c to shutdown\n");
   if ((err = soap_server_run()) != H_OK)
   {
-    printf("%s(): %s [%s]\n", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     exit(1);
   }
