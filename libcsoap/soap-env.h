@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.18 2006/11/25 15:06:57 m0gg Exp $
+ *  $Id: soap-env.h,v 1.19 2006/11/27 10:49:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,92 @@
  ******************************************************************/
 #ifndef __csoap_env_h
 #define __csoap_env_h
+
+/** @file
+ *
+ * SOAP Envelope
+ *
+ * A SOAP message is an XML document that consists of a mandatory SOAP envelope,
+ * an optional SOAP header, and a mandatory SOAP body. This XML document is
+ * referred to as a SOAP message. The namespace identifier for the elements and
+ * attributes defined in this section is
+ * "http://schemas.xmlsoap.org/soap/envelope/". A SOAP message contains the
+ * following:
+ * - The Envelope is the top element of the XML document representing the
+ *   message. 
+ * - The Header is a generic mechanism for adding features to a SOAP message in a
+ *   decentralized manner without prior agreement between the communicating
+ *   parties. SOAP defines a few attributes that can be used to indicate who
+ *   should deal with a feature and whether it is optional or mandatory.
+ * - The Body is a container for mandatory information intended for the ultimate
+ *   recipient of the message. SOAP defines one element for the body, which is
+ *   the Fault element used for reporting errors. 
+ *
+ * The grammar rules are as follows: 
+ * - Envelope 
+ * -# The element name is "Envelope". 
+ * -# The element MUST be present in a SOAP message 
+ * -# The element MAY contain namespace declarations as well as additional
+ *    attributes. If present, such additional attributes MUST be
+ *    namespace-qualified. Similarly, the element MAY contain additional sub
+ *    elements. If present these elements MUST be namespace-qualified and MUST
+ *    follow the SOAP Body element. 
+ * - Header
+ * -# The element name is "Header". 
+ * -# The element MAY be present in a SOAP message. If present, the element MUST
+ *    be the first immediate child element of a SOAP Envelope element. 
+ * -# The element MAY contain a set of header entries each being an immediate
+ *    child element of the SOAP Header element. All immediate child elements of
+ *    the SOAP Header element MUST be namespace-qualified. 
+ * - Body
+ * -# The element name is "Body". 
+ * -# The element MUST be present in a SOAP message and MUST be an immediate
+ *    child element of a SOAP Envelope element. It MUST directly follow the SOAP
+ *    Header element if present. Otherwise it MUST be the first immediate child
+ *    element of the SOAP Envelope element. 
+ * -# The element MAY contain a set of body entries each being an immediate child
+ *    element of the SOAP Body element. Immediate child elements of the SOAP Body
+ *    element MAY be namespace-qualified. SOAP defines the SOAP Fault element,
+ *    which is used to indicate error messages (see section 4.4).
+ *
+ * SOAP encodingStyle Attribute
+ *
+ * The SOAP encodingStyle global attribute can be used to indicate the
+ * serialization rules used in a SOAP message. This attribute MAY appear on any
+ * element, and is scoped to that element's contents and all child elements not
+ * themselves containing such an attribute, much as an XML namespace declaration
+ * is scoped. There is no default encoding defined for a SOAP message.
+ *
+ * The attribute value is an ordered list of one or more URIs identifying the
+ * serialization rule or rules that can be used to deserialize the SOAP message
+ * indicated in the order of most specific to least specific. Examples of values
+ * are:
+ * - "http://schemas.xmlsoap.org/soap/encoding/"
+ * - "http://my.host/encoding/restricted http://my.host/encoding/"
+ * - ""
+ * The serialization rules defined by SOAP are identified by the URI
+ * "http://schemas.xmlsoap.org/soap/encoding/". Messages using this particular
+ * serialization SHOULD indicate this using the SOAP encodingStyle attribute. In
+ * addition, all URIs syntactically beginning with
+ * "http://schemas.xmlsoap.org/soap/encoding/" indicate conformance with the SOAP
+ * encoding rules (though with potentially tighter rules added). A value of the
+ * zero-length URI ("") explicitly indicates that no claims are made for the
+ * encoding style of contained elements. This can be used to turn off any claims
+ * from containing elements.
+ *
+ * Envelope Versioning Model
+ *
+ * SOAP does not define a traditional versioning model based on major and minor
+ * version numbers. A SOAP message MUST have an Envelope element associated with
+ * the "http://schemas.xmlsoap.org/soap/envelope/" namespace. If a message is
+ * received by a SOAP application in which the SOAP Envelope element is
+ * associated with a different namespace, the application MUST treat this as a
+ * version error and discard the message. If the message is received through a
+ * request/response protocol such as HTTP, the application MUST respond with a
+ * SOAP VersionMismatch faultcode message using the SOAP
+ * "http://schemas.xmlsoap.org/soap/envelope/" namespace.
+ *
+ */
 
 /**
  *

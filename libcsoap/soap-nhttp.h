@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.h,v 1.3 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-nhttp.h,v 1.4 2006/11/27 10:49:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -23,6 +23,31 @@
 ******************************************************************/
 #ifndef __soap_nhttp_h
 #define __soap_nhttp_h
+
+/** @file
+ *
+ * Using SOAP in HTTP
+ *
+ * This section describes how to use SOAP within HTTP with or without using the
+ * HTTP Extension Framework. Binding SOAP to HTTP provides the advantage of being
+ * able to use the formalism and decentralized flexibility of SOAP with the rich
+ * feature set of HTTP. Carrying SOAP in HTTP does not mean that SOAP overrides
+ * existing semantics of HTTP but rather that the semantics of SOAP over HTTP
+ * maps naturally to HTTP semantics.
+ *
+ * SOAP naturally follows the HTTP request/response message model providing SOAP
+ * request parameters in a HTTP request and SOAP response parameters in a HTTP
+ * response. Note, however, that SOAP intermediaries are NOT the same as HTTP
+ * intermediaries. That is, an HTTP intermediary addressed with the HTTP
+ * Connection header field cannot be expected to inspect or process the SOAP
+ * entity body carried in the HTTP request.
+ *
+ * HTTP applications MUST use the media type "text/xml" according to RFC 2376
+ * when including SOAP entity bodies in HTTP messages.
+ *
+ * @see http://www.ietf.org/rfc/rfc2376.txt
+ *
+ */
 
 #ifdef __cplusplus
 extern "C" {

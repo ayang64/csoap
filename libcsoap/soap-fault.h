@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-fault.h,v 1.6 2006/11/21 20:59:02 m0gg Exp $
+ *  $Id: soap-fault.h,v 1.7 2006/11/27 10:49:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __csoap_fault_h
 #define __csoap_fault_h
 
-/**
+/** @file
  *
  * The SOAP Fault element is used to carry error and/or status information within
  * a SOAP message. If present, the SOAP Fault element MUST appear as a body entry
@@ -58,6 +58,9 @@
  *   NOT be used to carry information about error information belonging to header
  *   entries. Detailed error information belonging to header entries MUST be
  *   carried within header entries.
+ *
+ *   @author	F. Ayaz
+ *   @version	$Revision: 1.7 $
  *
  */
  

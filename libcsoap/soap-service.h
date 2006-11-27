@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-service.h,v 1.8 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-service.h,v 1.9 2006/11/27 10:49:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,22 @@
  ******************************************************************/
 #ifndef __csoap_service_h
 #define __csoap_service_h
+
+/** @file
+ *
+ * A Web service is a software system designed to support interoperable
+ * machine-to-machine interaction over a network. It has an interface described
+ * in a machine-processable format (specifically WSDL). Other systems interact
+ * with the Web service in a manner prescribed by its description using SOAP
+ * messages, typically conveyed using HTTP with an XML serialization in
+ * conjunction with other Web-related standards.
+ *
+ * @see http://www.w3.org/TR/wslc/,
+ *      http://www.w3.org/TR/wsdl,
+ *      http://www.w3.org/TR/owl-ref/
+ *
+ */
+
 
 typedef herror_t (*SoapServiceFunc)(struct SoapCtx *request, struct SoapCtx *response);
 
