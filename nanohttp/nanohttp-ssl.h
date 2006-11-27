@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.21 2006/11/24 17:28:07 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.22 2006/11/27 12:47:27 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -24,16 +24,6 @@
 #ifndef __nanohttp_ssl_h
 #define __nanohttp_ssl_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef HAVE_SSL
-
-#ifdef HAVE_OPENSSL_SSL_H
-#include <openssl/ssl.h>
-#endif
-
 /**
  *
  * Commandline argument to enabled SSL in the nanoHTTP server.
@@ -42,8 +32,7 @@
 #define NHTTPD_ARG_HTTPS	"-NHTTPS"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -127,56 +116,8 @@ extern int verify_sn(X509 * cert, int who, int nid, char *str);
  */
 extern void hssl_set_user_verify(int func(X509 * cert));
 
-#ifdef __cplusplus
-}
-#endif
-
-#else /* HAVE_SSL */
-
-static inline herror_t
-hssl_module_init(int argc, char **argv)
-{
-  return H_OK;
-}
-
-static inline void
-hssl_module_destroy(void)
-{
-  return;
-}
-
-static inline int
-hssl_enabled(void)
-{
-  return 0;
-}
-
-static inline herror_t
-hssl_client_ssl(struct hsocket_t *sock)
-{
-  return H_OK;
-}
-
-static inline herror_t
-hssl_server_ssl(struct hsocket_t *sock)
-{
-  return H_OK;
-}
-
-static inline void
-hssl_cleanup(struct hsocket_t *sock)
-{
-  return;
-}
-
-#endif /* HAVE_SSL */
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 extern herror_t hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received);
+
 extern herror_t hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent);
 
 #ifdef __cplusplus

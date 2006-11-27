@@ -1,13 +1,15 @@
-remove most of the typedefs!
- 
-------------------------------------------------------------
-improve error handling!!!!
+$Id: TODO,v 1.4 2006/11/27 12:47:27 m0gg Exp $
+-------------------------------------------------------------------------------
 
-
-mime_message_t *
-mime_message_parse(http_input_stream_t *in, 
-  const char* root_id, const char* boundary, 
-  const char* dest_dir);
-
-and try to optimize mime API
+- Get rid of #ifdef HAVE_SSL in nanohttp-socket.c
+- remove most of the typedefs!
+- cleanup circular module dependencies (e.g. hsocket <-> hssl)
+- include neccessary headers in *-client.h *-server.h if __*_INTERNAL isn't
+  specified
+- improve error handling!!!!
+- optimize mime API
+- cleanup/improve nanohttp request parsing
+- XML encryption/signature verification
+- Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
+- API documentation
 

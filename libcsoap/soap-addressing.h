@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-addressing.h,v 1.6 2006/11/27 11:15:27 m0gg Exp $
+ *  $Id: soap-addressing.h,v 1.7 2006/11/27 12:47:27 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -37,7 +37,7 @@
  * in a transport-neutral manner.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  *
  * @see http://www.w3.org/TR/ws-addr-core/,
  *      http://www.w3.org/TR/REC-xml-names/
@@ -217,6 +217,7 @@ xmlNodePtr soap_addressing_set_metadata(xmlNodePtr endpoint_reference, xmlNodePt
 xmlURI *soap_addressing_get_message_id(struct SoapEnv *envelope);
 xmlChar *soap_addressing_get_message_id_string(struct SoapEnv *envelope);
 xmlNodePtr soap_addressing_set_message_id(struct SoapEnv *envelope, xmlURI *id);
+xmlNodePtr soap_addressing_set_message_id_string(struct SoapEnv *envelope, xmlChar *id);
 
 xmlNodePtr soap_addressing_get_relates_to(struct SoapEnv *envelope);
 xmlNodePtr soap_addressing_add_relates_to(struct SoapEnv *envelope, xmlURI *id, xmlURI *type);

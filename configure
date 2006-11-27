@@ -464,7 +464,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL csoap_major csoap_minor csoap_patch csoap_release csoap_version nanohttp_release nanohttp_version LIBOBJS LIBUUID acx_pthread_config PTHREAD_CC PTHREAD_LIBS PTHREAD_CFLAGS LIBSOCKET LIBNSL XML2_CONFIG XML_CPPFLAGS XML_LIBS BUILD_WITH_XMLSEC1_TRUE BUILD_WITH_XMLSEC1_FALSE XMLSEC1_CONFIG XMLSEC1_CFLAGS XMLSEC1_LIBS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL csoap_major csoap_minor csoap_patch csoap_release csoap_version nanohttp_release nanohttp_version LIBOBJS LIBUUID acx_pthread_config PTHREAD_CC PTHREAD_LIBS PTHREAD_CFLAGS LIBSOCKET LIBNSL XML2_CONFIG XML_CPPFLAGS XML_LIBS BUILD_WITH_SSL_TRUE BUILD_WITH_SSL_FALSE BUILD_WITH_XMLSEC1_TRUE BUILD_WITH_XMLSEC1_FALSE XMLSEC1_CONFIG XMLSEC1_CFLAGS XMLSEC1_LIBS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -21696,7 +21696,9 @@ fi
   if test "x$no_xml" = x ; then
      echo "$as_me:$LINENO: result: yes (version $xml_config_major_version.$xml_config_minor_version.$xml_config_micro_version)" >&5
 echo "${ECHO_T}yes (version $xml_config_major_version.$xml_config_minor_version.$xml_config_micro_version)" >&6
-     CFLAGS="$CFLAGS $XML_CPPFLAGS"; LDFLAGS="$LDFLAGS $XML_LIBS"
+     CFLAGS="$CFLAGS $XML_CPPFLAGS";
+	LDFLAGS="$LDFLAGS $XML_LIBS"
+
   else
      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -21780,6 +21782,7 @@ rm -f conftest.err conftest.$ac_objext \
      XML_CPPFLAGS=""
      XML_LIBS=""
      exit 1
+
   fi
 
 
@@ -21829,12 +21832,34 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_SSL 1
 _ACEOF
 
+
+
+if true; then
+  BUILD_WITH_SSL_TRUE=
+  BUILD_WITH_SSL_FALSE='#'
+else
+  BUILD_WITH_SSL_TRUE='#'
+  BUILD_WITH_SSL_FALSE=
+fi
+
+
     fi
 
 else
 
     echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
+
+
+if false; then
+  BUILD_WITH_SSL_TRUE=
+  BUILD_WITH_SSL_FALSE='#'
+else
+  BUILD_WITH_SSL_TRUE='#'
+  BUILD_WITH_SSL_FALSE=
+fi
+
+
 
 fi;
 
@@ -22262,6 +22287,20 @@ if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${BUILD_WITH_SSL_TRUE}" && test -z "${BUILD_WITH_SSL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_SSL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_SSL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${BUILD_WITH_SSL_TRUE}" && test -z "${BUILD_WITH_SSL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_SSL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_SSL\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -22901,6 +22940,8 @@ s,@LIBNSL@,$LIBNSL,;t t
 s,@XML2_CONFIG@,$XML2_CONFIG,;t t
 s,@XML_CPPFLAGS@,$XML_CPPFLAGS,;t t
 s,@XML_LIBS@,$XML_LIBS,;t t
+s,@BUILD_WITH_SSL_TRUE@,$BUILD_WITH_SSL_TRUE,;t t
+s,@BUILD_WITH_SSL_FALSE@,$BUILD_WITH_SSL_FALSE,;t t
 s,@BUILD_WITH_XMLSEC1_TRUE@,$BUILD_WITH_XMLSEC1_TRUE,;t t
 s,@BUILD_WITH_XMLSEC1_FALSE@,$BUILD_WITH_XMLSEC1_FALSE,;t t
 s,@XMLSEC1_CONFIG@,$XMLSEC1_CONFIG,;t t

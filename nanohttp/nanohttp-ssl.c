@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.32 2006/11/26 20:13:06 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.33 2006/11/27 12:47:27 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -65,14 +65,16 @@
 #include <io.h>
 #endif
 
-#ifdef HAVE_SSL
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
+
 #ifdef HAVE_OPENSSL_RAND_H
 #include <openssl/rand.h>
 #endif
 
 #ifdef HAVE_OPENSSL_ERR_H
 #include <openssl/err.h>
-#endif
 #endif
 
 #include "nanohttp-error.h"
@@ -81,8 +83,6 @@
 #include "nanohttp-logging.h"
 
 #include "nanohttp-ssl.h"
-
-#ifdef HAVE_SSL
 
 static char *certificate = NULL;
 static char *certpass = "";
@@ -540,7 +540,6 @@ hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received)
       return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE,
                         "recv failed (%s)", strerror(errno));
   }
-  sock->bytes_received += count;
   *received = count;
 
   return H_OK;
@@ -567,41 +566,7 @@ hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent)
       return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)",
                         strerror(errno));
   }
-  sock->bytes_transmitted += count;
   *sent = count;
 
   return H_OK;
 }
-
-#else
-
-herror_t
-hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received)
-{
-  int count;
-
-  if ((count = hsocket_select_recv(sock->sock, buf, len)) == -1)
-    return herror_new("hssl_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)",
-                      strerror(errno));
-  sock->bytes_received += count;
-  *received = count;
-
-  return H_OK;
-}
-
-
-herror_t
-hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent)
-{
-  int count;
-
-  if ((count = send(sock->sock, buf, len, 0)) == -1)
-    return herror_new("hssl_write", HSOCKET_ERROR_SEND, "send failed (%s)",
-                      strerror(errno));
-  sock->bytes_received += count;
-  *sent = count;
-
-  return H_OK;
-}
-
-#endif

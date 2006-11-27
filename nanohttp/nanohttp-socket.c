@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.65 2006/11/26 20:13:06 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.66 2006/11/27 12:47:27 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -84,7 +84,12 @@ typedef int ssize_t;
 
 #include "nanohttp-common.h"
 #include "nanohttp-socket.h"
+#ifdef HAVE_SSL
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
 #include "nanohttp-ssl.h"
+#endif
 #include "nanohttp-request.h"
 #include "nanohttp-server.h"
 
@@ -121,9 +126,21 @@ _hsocket_module_sys_destroy(void)
 herror_t
 hsocket_module_init(int argc, char **argv)
 {
+#ifdef HAVE_SSL
+  herror_t status;
+#endif
+
   _hsocket_module_sys_init(argc, argv);
 
-  return hssl_module_init(argc, argv);
+#ifdef HAVE_SSL
+  if ((status = hssl_module_init(argc, argv)) != H_OK)
+  {
+    log_error2("hssl_module_init failed (%s)", herror_message(status));
+    return status;
+  }
+#endif
+
+  return H_OK;
 }
 
 void
@@ -177,13 +194,12 @@ hsocket_open(struct hsocket_t * dsock, const char *hostname, int port, int ssl)
   log_verbose4("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
 
   /* connect to the server */
-  if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) !=
-      0)
-    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT,
-                      "Socket error (%s)", strerror(errno));
+  if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) != 0)
+    return herror_new("hsocket_open", HSOCKET_ERROR_CONNECT, "Socket error (%s)", strerror(errno));
 
   if (ssl)
   {
+#ifdef HAVE_SSL
     herror_t status;
 
     if ((status = hssl_client_ssl(dsock)) != H_OK)
@@ -191,8 +207,10 @@ hsocket_open(struct hsocket_t * dsock, const char *hostname, int port, int ssl)
       log_error2("hssl_client_ssl failed (%s)", herror_message(status));
       return status;
     }
+#else
+    return herror_new("hssl_client_ssl", 0, "SSL wasn't enabled at compile time");
+#endif
   }
-
   return H_OK;
 }
 
@@ -287,11 +305,13 @@ hsocket_accept(struct hsocket_t * sock, struct hsocket_t * dest)
   if ((status = _hsocket_sys_accept(sock, dest)) != H_OK)
     return status;
 
+#ifdef HAVE_SSL
   if ((status = hssl_server_ssl(dest)) != H_OK)
   {
     log_warn2("SSL startup failed (%s)", herror_message(status));
     return status;
   }
+#endif
 
   log_verbose3("accepting connection from '%s' socket=%d",
                SAVE_STR(((char *) inet_ntoa(dest->addr.sin_addr))),
@@ -350,7 +370,9 @@ hsocket_close(struct hsocket_t * sock)
 {
   log_verbose3("closing socket %p (%d)...", sock, sock->sock);
 
+#ifdef HAVE_SSL
   hssl_cleanup(sock);
+#endif
 
   _hsocket_sys_close(sock);
 
@@ -365,7 +387,9 @@ hsocket_close(struct hsocket_t * sock)
 herror_t
 hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
 {
+#ifdef HAVE_SSL
   herror_t status;
+#endif
   size_t total = 0;
   size_t size;
 
@@ -378,11 +402,17 @@ hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
 
   while (1)
   {
+#ifdef HAVE_SSL
     if ((status = hssl_write(sock, bytes + total, n, &size)) != H_OK)
     {
       log_warn2("hssl_write failed (%s)", herror_message(status));
       return status;
     }
+#else
+    if ((size = send(sock->sock, bytes + total, n, 0)) == -1)
+      return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "send failed (%s)", strerror(errno));
+#endif
+    sock->bytes_received += size;
 
     n -= size;
     total += size;
@@ -434,11 +464,17 @@ hsocket_read(struct hsocket_t * sock, unsigned char * buffer, int total, int for
   do
   {
 
-    if ((status = hssl_read(sock, &buffer[totalRead], (size_t) total - totalRead, &count)) != H_OK)
+#ifdef HAVE_SSL
+    if ((status = hssl_read(sock, buffer + totalRead, (size_t) total - totalRead, &count)) != H_OK)
     {
       log_warn2("hssl_read failed (%s)", herror_message(status));
       return status;
     }
+#else
+    if ((count = hsocket_select_recv(sock->sock, buffer + totalRead, (size_t) total - totalRead)) == -1)
+      return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)", strerror(errno));
+#endif
+    sock->bytes_received += count;
 
     if (!force)
     {

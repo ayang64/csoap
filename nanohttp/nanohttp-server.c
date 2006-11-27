@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.69 2006/11/26 20:13:06 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.70 2006/11/27 12:47:27 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -86,7 +86,14 @@
 #include "nanohttp-response.h"
 #include "nanohttp-server.h"
 #include "nanohttp-base64.h"
+#ifdef HAVE_SSL
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
 #include "nanohttp-ssl.h"
+#else
+static inline int hssl_enabled(void) { return 0; }
+#endif
 #include "nanohttp-admin.h"
 
 typedef struct _conndata

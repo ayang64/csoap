@@ -330,13 +330,18 @@ AC_CHECK_LIB(nsl, inet_ntoa, [LIBNSL="-lnsl"])
 AC_CHECK_LIB(nsl, gethostbyname, [LIBNSL="-lnsl"])
 AC_SUBST(LIBNSL)
 
-AM_PATH_XML2(2.6.0,CFLAGS="$CFLAGS $XML_CPPFLAGS"; LDFLAGS="$LDFLAGS $XML_LIBS",exit 1)
+AM_PATH_XML2(2.6.0,
+	CFLAGS="$CFLAGS $XML_CPPFLAGS";
+	LDFLAGS="$LDFLAGS $XML_LIBS"
+,
+	exit 1
+)
 
 # ------------------------------------------
 # Check ssl library 
 # Original work at: http://autoconf-archive.cryp.to/check_ssl.html
 # ------------------------------------------
-AC_DEFUN([CHECK_SSL],
+AC_DEFUN([AM_PATH_SSL],
 [AC_MSG_CHECKING(if ssl is wanted)
 AC_ARG_WITH(ssl,
 [  --with-ssl=PFX	will check PFX for ssl library
@@ -364,15 +369,21 @@ AC_ARG_WITH(ssl,
         printf "OpenSSL found in $ssldir\n";
         LIBS="$LIBS -lssl -lcrypto";
         LDFLAGS="$LDFLAGS -L$ssldir/lib";
-        AC_DEFINE(HAVE_SSL,1,Define to 1 if you have requested --with-ssl)
+        ifelse([$2], , :, [$2])
     fi
 ],
 [
     AC_MSG_RESULT(no)
+    ifelse([$3], , :, [$3])
 ])
 ])dnl
 
-CHECK_SSL
+AM_PATH_SSL(,
+        AC_DEFINE(HAVE_SSL,1,Define to 1 if you have requested --with-ssl)
+	AM_CONDITIONAL(BUILD_WITH_SSL, true)
+,
+        AM_CONDITIONAL(BUILD_WITH_SSL, false)
+)
 
 #---------------------------------------------
 # Check xmlsec1 library
