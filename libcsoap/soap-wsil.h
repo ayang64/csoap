@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-wsil.h,v 1.2 2006/11/27 10:49:57 m0gg Exp $
+ *  $Id: soap-wsil.h,v 1.3 2006/11/27 10:52:39 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 H. Ronsdorf
@@ -58,9 +58,11 @@
  * such a duplication is not desired.
  *
  * @author	H. Ronsorf
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * @see http://www-128.ibm.com/developerworks/library/specification/ws-wsilspec/
+ * @see http://www-128.ibm.com/developerworks/library/specification/ws-wsilspec/,
+ *      http://www.w3.org/TR/wsdl,
+ *      http://www.uddi.org/
  *
  */
 
@@ -88,7 +90,7 @@ extern "C" {
  * @see CSOAP_ENABLE_WSIL
  *
  */
-extern herror_t soap_wsil_init_args(int argc, char *argv[]);
+extern herror_t soap_wsil_init_args(int argc, char **argv);
 
 #ifdef __cplusplus
 }

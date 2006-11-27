@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-wsil.c,v 1.4 2006/11/25 16:35:57 m0gg Exp $
+*  $Id: soap-wsil.c,v 1.5 2006/11/27 10:52:39 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -54,8 +54,8 @@ _soap_wsil_list_routers(httpd_conn_t *conn)
   for (node=soap_server_get_routers(); node; node=node->next)
   { 
     http_output_stream_write_string(conn->out,
-      "<service>"
-        "<description "
+      "<wsil:service>"
+        "<wsil:description "
 	  "location=\"");
     http_output_stream_write_string(conn->out, soap_transport_get_name());
     http_output_stream_write_string(conn->out, node->context);
@@ -75,7 +75,7 @@ _soap_wsil_list_routers(httpd_conn_t *conn)
     }
     http_output_stream_write_string(conn->out,
           "\" />"
-      "</service>");
+      "</wsil:service>");
   }
   return;
 }
