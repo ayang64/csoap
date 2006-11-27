@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xmlsec.h,v 1.1 2006/11/24 11:22:55 m0gg Exp $
+ *  $Id: soap-xmlsec.h,v 1.2 2006/11/27 11:15:27 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -24,6 +24,25 @@
 #ifndef __csoap_xmlsec_h
 #define __csoap_xmlsec_h
 
+/** @file
+ *
+ * Web Services Security
+ *
+ * This module is implemented using the xmlsec1 library.
+ *
+ * @author	H. Ronsdorf
+ * @version	$Revision: 1.2 $
+ *
+ * @see http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss
+ *      http://www.aleksey.com/xmlsec/,
+ *
+ */
+
+/**
+ *
+ * Commandline argument to enabled WS-Security.
+ *
+ */
 #define CSOAP_ENABLE_XMLSEC	"-CSOAPxmlsec"
 
 #ifdef __cplusplus
@@ -32,7 +51,7 @@ extern "C" {
 
 /**
  *
- * Initializes the XML security subsystem.
+ * Initializes the WS-Security subsystem.
  *
  * @param argc commandline arg count
  * @param argv commandline arg vector
@@ -46,12 +65,16 @@ extern herror_t soap_xmlsec_init_args(int argc, char **argv);
  *
  * Sign a XML document contained in a SOAP Envelope
  *
+ * @param envelope The SOAP envelope to be signed.
+ *
  */
 extern herror_t soap_xmlsec_sign(struct SoapEnv *envelope);
 
 /**
  *
  * Encrypt a XML document contained in a SOAP envelope.
+ *
+ * @param envelope The SOAP envelope to be encrypted.
  *
  */
 extern herror_t soap_xmlsec_encrypt(struct SoapEnv *envelope);

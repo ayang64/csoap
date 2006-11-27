@@ -1,8 +1,8 @@
 /******************************************************************
-*  $Id: soap-nudp.h,v 1.3 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-nudp.h,v 1.4 2006/11/27 11:15:27 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
-* Copyright (C) 2007 Heiko Ronsdorf
+* Copyright (C) 2006 Heiko Ronsdorf
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Library General Public
@@ -24,11 +24,36 @@
 #ifndef __csoap_nudp_h
 #define __csoap_nudp_h
 
-#ifdef __CSOAP_INTERNAL
+/** @file
+ *
+ * SOAP-over-UDP server/client module
+ *
+ * Many Application protocol patterns match the semantics of the User Datagram
+ * Protocol (UDP, RFC 768). Some do not require the delivery guarantees of TCP
+ * while others make use of multicats transmisson. In order to allow Web Services
+ * to support these pattersn, we need a way to map SOAP envelopes to user
+ * datagrams. This support is essential for services using WS-Discovery, where
+ * the use of multicast and need for low connection overhead makes UDP a natural
+ * choice. It is anticipated that other protocols will have similar requirements.
+ *
+ * @author	H. Ronsdorf
+ * @version	$Revision: 1.4 $
+ *
+ * @see http://specs.xmlsoap.org/ws/2004/09/soap-over-udp/soap-over-udp.pdf,
+ *      http://www.ietf.org/rfc/rfc768.txt
+ *
+ */
 
+/**
+ *
+ * Commandline argument to set the UDP port.
+ *
+ */
 #define NUDP_ARG_PORT		"-NUDPport"
 
 #define NUDP_DEFAULT_PORT	10001
+
+#ifdef __CSOAP_INTERNAL
 
 #ifdef __cplusplus
 extern "C" {

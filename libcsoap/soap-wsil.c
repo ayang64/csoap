@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-wsil.c,v 1.5 2006/11/27 10:52:39 m0gg Exp $
+*  $Id: soap-wsil.c,v 1.6 2006/11/27 11:15:27 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -37,6 +37,7 @@
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
 
@@ -44,6 +45,7 @@
 #include "soap-service.h"
 #include "soap-router.h"
 #include "soap-server.h"
+#include "soap-transport.h"
 #include "soap-wsil.h"
 
 static void

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-addressing.h,v 1.5 2006/11/25 16:35:57 m0gg Exp $
+ *  $Id: soap-addressing.h,v 1.6 2006/11/27 11:15:27 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -26,6 +26,8 @@
 
 /** @file
  *
+ * WS-Addressing
+ *
  * WS-Addressing provides transport-neutral mechanisms to address Web services
  * and messages. Specifically, this specification defines XML [XML 1.0, XML
  * Namespaces] elements to identify Web service endpoints and to secure
@@ -35,10 +37,10 @@
  * in a transport-neutral manner.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  *
- * @see		http://www.w3.org/TR/ws-addr-core/,
- *		http://www.w3.org/TR/REC-xml-names/
+ * @see http://www.w3.org/TR/ws-addr-core/,
+ *      http://www.w3.org/TR/REC-xml-names/
  *
  */
 
