@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.18 2006/11/26 20:13:05 m0gg Exp $
+ * $Id: simpleclient.c,v 1.19 2006/11/28 23:45:57 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -42,7 +42,7 @@ main(int argc, char **argv)
   struct SoapCtx *ctx, *ctx2;
   herror_t err;
 
-  hlog_set_level(HLOG_VERBOSE);
+  // hlog_set_level(HLOG_VERBOSE);
 
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)

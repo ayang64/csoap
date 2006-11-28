@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.46 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.47 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -261,7 +261,7 @@ _httpc_set_basic_authorization_header(httpc_conn_t *conn, const char *key, const
 
   sprintf(in, "%s:%s", user, password);
 
-  base64_encode(in, out);
+  base64_encode_string(in, out);
 
   sprintf(in, "Basic %s", out);
 

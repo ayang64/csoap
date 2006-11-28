@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.c,v 1.5 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-transport.c,v 1.6 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -110,11 +110,27 @@ soap_transport_process(struct SoapCtx *request, struct SoapCtx **response)
   return soap_server_process(request, response);
 }
 
+static herror_t
+_soap_transport_set_name(void)
+{
+  static int set = 0;
+  char hostname[256];
+
+  if (set)
+    return H_OK;
+
+  gethostname(hostname, 256);
+  sprintf(soap_transport_name, "%s://%s:%i", soap_nhttp_get_protocol(), hostname, soap_nhttp_get_port());
+
+  set = 1;
+
+  return H_OK;
+}
+
 herror_t
 soap_transport_server_init_args(int argc, char **argv)
 {
   herror_t status;
-  char hostname[256];
 
   if ((status = soap_nhttp_server_init_args(argc, argv)) != H_OK)
   {
@@ -128,8 +144,11 @@ soap_transport_server_init_args(int argc, char **argv)
     return status;
   }
 
-  gethostname(hostname, 256);
-  sprintf(soap_transport_name, "%s://%s:%i", soap_nhttp_get_protocol(), hostname, soap_nhttp_get_port());
+  if ((status = _soap_transport_set_name()) != H_OK)
+  {
+    log_error2("_soap_transport_set_name failed (%s)", herror_message(status));
+    return status;
+  }
 
   return H_OK;
 }
@@ -233,6 +252,12 @@ soap_transport_client_init_args(int argc, char **argv)
     return status;
   }
 
+  if ((status = _soap_transport_set_name()) != H_OK)
+  {
+    log_error2("_soap_transport_set_name failed (%s)", herror_message(status));
+    return status;
+  }
+
   return H_OK;
 }
 
@@ -244,7 +269,7 @@ soap_transport_client_invoke(struct SoapCtx *request, struct SoapCtx **response)
   xmlURI *dest;
   
   log_verbose1(__FUNCTION__);
-  xmlDocDump(stdout, request->env->root->doc);
+  xmlDocFormatDump(stdout, request->env->root->doc, 1);
 
   dest = soap_addressing_get_to_address(request->env);
 
@@ -260,8 +285,10 @@ soap_transport_client_invoke(struct SoapCtx *request, struct SoapCtx **response)
       return ret;
     }
   }
+
   ret = herror_new("soap_transport_client_invoke", 0, "no transport service found for \"%s\"", dest->scheme);
   xmlFreeURI(dest);
+
   return ret;
 }
 

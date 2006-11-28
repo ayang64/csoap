@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.70 2006/11/27 12:47:27 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.71 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -558,7 +558,7 @@ _httpd_decode_authorization(const char *value, char **user, char **pass)
 
   log_verbose2("Authorization (base64) = \"%s\"", value);
 
-  base64_decode(value, tmp);
+  base64_decode_string(value, tmp);
 
   log_verbose2("Authorization (ascii) = \"%s\"", tmp);
 

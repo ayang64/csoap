@@ -1,4 +1,4 @@
-$Id: TODO,v 1.4 2006/11/27 12:47:27 m0gg Exp $
+$Id: TODO,v 1.5 2006/11/28 23:45:57 m0gg Exp $
 -------------------------------------------------------------------------------
 
 - Get rid of #ifdef HAVE_SSL in nanohttp-socket.c
@@ -12,4 +12,5 @@ $Id: TODO,v 1.4 2006/11/27 12:47:27 m0gg Exp $
 - XML encryption/signature verification
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - API documentation
+- Add reference to http://www.w3.org/TR/SOAP-attachments
 

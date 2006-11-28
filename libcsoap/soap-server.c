@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.33 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-server.c,v 1.34 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -118,7 +118,7 @@ _soap_server_fillup_header(struct SoapEnv *envelope)
     xmlFreeURI(uri);
 
   if (!(uri = soap_addressing_get_from_address(envelope)))
-    soap_addressing_set_from_string(envelope, soap_server_get_name());
+    soap_addressing_set_from_address_string(envelope, soap_server_get_name());
   else
     xmlFreeURI(uri);
 
@@ -144,8 +144,8 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 {
   char buffer[1054];
   const char *urn;
+  xmlURI *uri;
   const char *method;
-  char *to;
   struct SoapRouter *router;
   SoapService *service;
   herror_t err;
@@ -161,10 +161,10 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
     if ((urn = soap_env_find_urn(request->env)))
     {
       log_verbose2("urn: \"%s\"", urn);
-      if ((to = soap_addressing_get_to_address_string(request->env)))
+      if ((uri = soap_addressing_get_to_address(request->env)))
       {
-        log_verbose2("searching router for \"%s\"", to);
-        if ((router = soap_server_find_router(to)))
+        log_verbose2("searching router for \"%s\"", uri->path);
+        if ((router = soap_server_find_router(uri->path)))
         {
           log_verbose2("router: %p", router);
           if ((service = soap_router_find_service(router, urn, method)))
@@ -193,11 +193,10 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
         }
         else
         {
-          sprintf(buffer, "no router for context \"%s\" found", to);
+          sprintf(buffer, "no router for context \"%s\" found", uri->path);
           _soap_server_env_new_with_fault(buffer, "The method is unknown by the server", &((*response)->env));
-          free(to);
         }
-        free(to);
+        xmlFreeURI(uri);
       }
       else
       {
@@ -231,9 +230,9 @@ soap_server_init_args(int argc, char **argv)
   }
 
 #ifdef HAVE_XMLSEC1
-  if ((status = soap_xmlsec_init_args(argc, argv)) != H_OK)
+  if ((status = soap_xmlsec_server_init_args(argc, argv)) != H_OK)
   {
-    log_error2("soap_xmlsec_init_args failed (%s)", herror_message(status));
+    log_error2("soap_xmlsec_server_init_args failed (%s)", herror_message(status));
     return status;
   }
 #endif

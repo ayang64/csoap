@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.h,v 1.2 2006/05/02 09:12:50 m0gg Exp $
+*  $Id: nanohttp-base64.h,v 1.3 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,6 +24,31 @@
 #ifndef __nanohttp_base64_h
 #define __nanohttp_base64_h
 
+/** @file
+ *
+ * Base64 data encoding
+ *
+ * Base encoding of data is used in many situations to store or transfer data in
+ * environments that, perhaps for legacy reasons, are restricted to US-ASCII
+ * data. Base64 encoding can also be used in new applications that do not have
+ * legacy restrictions, simply because it makes it possible to manipulate objects
+ * with text editors.
+ *
+ * In the past, different applications have had different requirements and thus
+ * sometimes implemented base encodings in slightly different ways. Today,
+ * protocol specifications sometimes use base encodings in general, and "base64"
+ * in particular, without a precise description or reference.  Multipurpose
+ * Internet Mail Extensions (MIME) is often used as a reference for base64
+ * without considering the consequences for line-wrapping or non-alphabet
+ * characters.
+ *
+ * @author	H. Ronsdorf
+ * @version	$Revision: 1.3 $
+ *
+ * @see http://www.ietf.org/rfc/rfc4648.txt
+ *
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,10 +60,10 @@ extern "C" {
  * @param instr		Pointer to the input string.
  * @param outstr	Pointer to the output destination.
  *
- * @see base64_decode
+ * @see base64_decode_string
  *
  */
-extern void base64_encode(const unsigned char *instr, unsigned char *outstr);
+extern void base64_encode_string(const unsigned char *instr, unsigned char *outstr);
 
 /**
  *
@@ -47,10 +72,10 @@ extern void base64_encode(const unsigned char *instr, unsigned char *outstr);
  * @param instr		Pointer to the input string.
  * @param outstr	Pointer to the output destination.
  *
- * @see base64_encode
+ * @see base64_encode_string
  *
  */
-extern void base64_decode(const unsigned char *instr, unsigned char *outstr);
+extern void base64_decode_string(const unsigned char *instr, unsigned char *outstr);
 
 #ifdef __cplusplus
 }

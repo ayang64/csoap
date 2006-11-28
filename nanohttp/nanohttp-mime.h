@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.11 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-mime.h,v 1.12 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,6 +28,18 @@
 
 #ifndef __nanohttp_mime_h
 #define __nanohttp_mime_h
+
+/** @file
+ *
+ * @author	Ferhat Ayaz
+ * @version	$Revision: 1.12 $
+ *
+ * @see http://www.ietf.org/rfc/rfc2045.txt,
+ *      http://www.ietf.org/rfc/rfc2046.txt,
+ *      http://www.ietf.org/rfc/rfc4288.txt,
+ *      http://www.ietf.org/rfc/rfc4289.txt,
+ *
+ */
 
 #ifdef __cplusplus
 extern "C" {

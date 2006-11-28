@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.5 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.6 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -195,12 +195,12 @@ soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
     xmlFree(uri);
   }
 
-  xmlDocDump(stdout, ctx->env->root->doc);
+  xmlDocFormatDump(stdout, ctx->env->root->doc, 1);
 
   soap_ctx_add_files(ctx, req->attachments);
 
   /* only local part is interesting... */
-  soap_addressing_set_to_address_string(ctx->env, req->path);
+  // soap_addressing_set_to_address_string(ctx->env, req->path);
 
   soap_transport_process(ctx, &response);
 
@@ -285,7 +285,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   xmlNodeDump(buffer, request->env->root->doc, request->env->root, 1, 0);
   content = (char *) xmlBufferContent(buffer);
 
-  xmlDocDump(stdout, request->env->root->doc);
+  xmlDocFormatDump(stdout, request->env->root->doc, 1);
 
   /* Transport via HTTP */
   if (!(conn = httpc_new()))

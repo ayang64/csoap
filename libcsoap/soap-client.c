@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.31 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: soap-client.c,v 1.32 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -38,12 +38,31 @@
 #include "soap-service.h"
 #include "soap-router.h"
 #include "soap-transport.h"
+#ifdef HAVE_XMLSEC1
+#include "soap-xmlsec.h"
+#endif
 #include "soap-client.h"
 
 herror_t
 soap_client_init_args(int argc, char **argv)
 {
-  return soap_transport_client_init_args(argc, argv);
+  herror_t status;
+
+#ifdef HAVE_XMLSEC1
+  if ((status = soap_xmlsec_client_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_xmlsec_client_init_args failed (%s)", herror_message(status));
+    return status;
+  }
+#endif
+
+  if ((status = soap_transport_client_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_transport_client_init_args failed (%s)", herror_message(status));
+    return status;
+  }
+
+  return H_OK;
 }
 
 void
@@ -57,6 +76,7 @@ soap_client_destroy(void)
 herror_t
 soap_client_invoke(struct SoapCtx *req, struct SoapCtx **res, const char *url, const char *action)
 {
+  herror_t status;
   char *id;
 
   log_verbose2("action = \"%s\"", action);
@@ -65,10 +85,49 @@ soap_client_invoke(struct SoapCtx *req, struct SoapCtx **res, const char *url, c
   log_verbose2("url = \"%s\"", url);
   soap_addressing_set_to_address_string(req->env, url);
 
+  log_verbose2("from = \"%s\"", soap_transport_get_name());
+  soap_addressing_set_from_address_string(req->env, soap_transport_get_name());
+
   soap_addressing_set_message_id_string(req->env, NULL);
   id = soap_addressing_get_message_id_string(req->env);
-  log_verbose2("message id = \"%s\"", id);
+  log_verbose2("generated message id = \"%s\"", id);
   free(id);
 
-  return soap_transport_client_invoke(req, res);
+#ifdef HAVE_XMLSEC1
+  log_error1("trying encryption and signation");
+
+  if ((status = soap_xmlsec_encrypt(req)) != H_OK)
+  {
+    log_error2("soap_xmlsec_encrypt failed (%s)", herror_message(status));
+    return status;
+  }
+
+  if ((status = soap_xmlsec_sign(req)) != H_OK)
+  {
+    log_error2("soap_xmlsec_sign failed (%s)", herror_message(status));
+    return status;
+  }
+#endif
+
+  if ((status = soap_transport_client_invoke(req, res)) != H_OK)
+  {
+    log_error2("soap_transport_client_invoke failed (%s)", herror_message(status));
+    return status;
+  }
+
+#ifdef HAVE_XMLSEC1
+  if ((status = soap_xmlsec_verify(*res)) != H_OK)
+  {
+    log_error2("soap_xmlsec_verify failed (%s)", herror_message(status));
+    return status;
+  }
+
+  if ((status = soap_xmlsec_decrypt(*res)) != H_OK)
+  {
+    log_error2("soap_xmlsec_decrypt failed (%s)", herror_message(status));
+    return status;
+  }
+#endif
+
+  return H_OK;
 }

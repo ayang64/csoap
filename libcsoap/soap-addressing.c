@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.7 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.8 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -451,7 +451,7 @@ soap_addressing_set_from(struct SoapEnv *envelope, xmlNodePtr address)
 }
 
 xmlNodePtr
-soap_addressing_set_from_string(struct SoapEnv *envelope, const char *from)
+soap_addressing_set_from_address_string(struct SoapEnv *envelope, const char *from)
 {
   xmlURI *uri;
   xmlNodePtr ret;

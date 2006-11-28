@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.c,v 1.2 2006/02/25 10:09:29 snowdrop Exp $
+*  $Id: nanohttp-base64.c,v 1.3 2006/11/28 23:45:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -32,9 +32,11 @@ static const char cb64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 static const char cd64[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
 /**
+ *
  * encode 3 8-bit binary bytes as 4 '6-bit' characters
+ *
  */
-static void encodeblock(unsigned char in[3], unsigned char out[4], int len)
+static void _encodeblock(unsigned char in[3], unsigned char out[4], int len)
 {
 
   out[0] = cb64[in[0] >> 2];
@@ -45,10 +47,7 @@ static void encodeblock(unsigned char in[3], unsigned char out[4], int len)
   return;
 }
 
-/**
- * base64 encode a string.
- */
-void base64_encode(const unsigned char *instr, unsigned char *outstr)
+void base64_encode_string(const unsigned char *instr, unsigned char *outstr)
 {
   unsigned char in[3], out[4];
   int i, len;
@@ -66,7 +65,7 @@ void base64_encode(const unsigned char *instr, unsigned char *outstr)
     }
     if (len)
     {
-      encodeblock(in, out, len);
+      _encodeblock(in, out, len);
       for (i = 0; i < 4; i++)
         *outstr++ = out[i];
     }
@@ -74,9 +73,11 @@ void base64_encode(const unsigned char *instr, unsigned char *outstr)
 }
 
 /**
+ *
  * decode 4 '6-bit' characters into 3 8-bit binary bytes
+ *
  */
-static void decodeblock(unsigned char in[4], unsigned char out[3])
+static void _decodeblock(unsigned char in[4], unsigned char out[3])
 {
   out[0] = (unsigned char)(in[0] << 2 | in[1] >> 4);
   out[1] = (unsigned char)(in[1] << 4 | in[2] >> 2);
@@ -88,7 +89,7 @@ static void decodeblock(unsigned char in[4], unsigned char out[3])
 /** 
  * decode a base64 encoded string (maybe broken...)
  */
-void base64_decode(const unsigned char *instr, unsigned char *outstr)
+void base64_decode_string(const unsigned char *instr, unsigned char *outstr)
 {
   unsigned char in[4], out[3], v;
   int i, len;
@@ -118,7 +119,7 @@ void base64_decode(const unsigned char *instr, unsigned char *outstr)
     }
     if (len)
     {
-      decodeblock(in, out);
+      _decodeblock(in, out);
       for (i = 0; i < len - 1; i++)
         *outstr++ = out[i];
     }
@@ -135,7 +136,7 @@ int main(int argc, char **argv) {
   unsigned char outstr[80];
 
   bzero(outstr, 80);
-  base64_decode(instr, outstr);
+  base64_decode_string(instr, outstr);
 
   printf("\"%s\" => \"%s\"\n", instr, outstr);
   if (strcmp(outstr, result))
@@ -144,7 +145,7 @@ int main(int argc, char **argv) {
   strcpy(instr2, outstr);
 
   bzero(outstr, 80);
-  base64_encode(instr2, outstr);
+  base64_encode_string(instr2, outstr);
 
   printf("\"%s\" => \"%s\"\n", instr2, outstr);
   if (strcmp(outstr, instr))

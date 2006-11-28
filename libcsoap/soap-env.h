@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.19 2006/11/27 10:49:57 m0gg Exp $
+ *  $Id: soap-env.h,v 1.20 2006/11/28 23:45:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -371,7 +371,6 @@ extern void soap_env_free(struct SoapEnv *env);
  *
  */
 extern xmlNodePtr soap_env_get_body(struct SoapEnv * env);
-
 
 /**
  *

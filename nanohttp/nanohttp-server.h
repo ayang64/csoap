@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.24 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.25 2006/11/28 23:45:57 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -117,6 +117,8 @@ extern "C"
 
   extern hservice_t *httpd_get_services(void);
   extern hservice_t *httpd_find_service(const char *name);
+
+  extern void httpd_response_set_content_type(httpd_conn_t * res, const char *content_type);
 
   extern herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
 
