@@ -1,4 +1,4 @@
-$Id: TODO,v 1.7 2006/11/29 13:01:00 m0gg Exp $
+$Id: TODO,v 1.8 2006/11/29 13:24:00 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -46,5 +46,4 @@ csoap:
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
   create an automated testsuite (?)
 - http://www.w3.org/Submission/WS-Enumeration/
-
 
