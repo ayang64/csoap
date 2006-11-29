@@ -19,7 +19,6 @@ documentation=doc/Doxyfile.api \
 broken_examples=examples/nanohttp/client_get.c   \
                 examples/nanohttp/client_mime.c  \
                 examples/nanohttp/httpcpost.c    \
-                examples/nanohttp/httpget.c      \
                 examples/nanohttp/httppost.c     \
                 examples/nanohttp/postserver.c   \
                 examples/nanohttp/client_post_chunked.c
@@ -31,5 +30,5 @@ win32_env=win32/MinGW/Makefile    \
           win32/include/wsockcompat.h
 
 EXTRA_DIST=$(documentation) $(win32_env) libcsoap.pc.in libcsoap.m4 \
-           $(broken_examples)
+           indent.pro README.ssl README.xmlsec $(broken_examples)
 

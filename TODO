@@ -1,16 +1,47 @@
-$Id: TODO,v 1.5 2006/11/28 23:45:57 m0gg Exp $
--------------------------------------------------------------------------------
+$Id: TODO,v 1.6 2006/11/29 11:31:37 m0gg Exp $
+===============================================================================
 
+Things to do _before_ 1.2 release:
+==================================
+
+nanohttp:
+---------
 - Get rid of #ifdef HAVE_SSL in nanohttp-socket.c
-- remove most of the typedefs!
+- API documentation
+- remove internal typedefs!
+- include neccessary headers in nanohttp-client.h and nanohttp-server.h if
+  __NANOHTTP_INTERNAL isn't specified
+- Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - cleanup circular module dependencies (e.g. hsocket <-> hssl)
-- include neccessary headers in *-client.h *-server.h if __*_INTERNAL isn't
-  specified
 - improve error handling!!!!
 - optimize mime API
 - cleanup/improve nanohttp request parsing
-- XML encryption/signature verification
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
+- Write README.ssl
+
+csoap:
+------
+- move service description documents from router to service (???)
+- Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
+- soap-nudp.c needs testing
+- XML signature verification
 - API documentation
 - Add reference to http://www.w3.org/TR/SOAP-attachments
+- include neccessary headers in soap-client.h and soap-server.h if
+  __CSOAP_INTERNAL isn't specified
+- correct handling of configure flag --with-xmlsec1
+- Write README.xmlsec
+
+Additional things to do:
+========================
+
+nanohttp:
+---------
+- add DIME attachments
+- add BASE64 decoding for MIME attachments
+
+csoap:
+------
+- soap-nudp.c one thread per request (see soap_nudp_server_run)
+- soap-nudp message re-transmission
 

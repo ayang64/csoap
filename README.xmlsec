@@ -1,0 +1,10 @@
+$Id: README.xmlsec,v 1.1 2006/11/29 11:31:37 m0gg Exp $
+===============================================================================
+
+How to use xmlsec with csoap
+
+  1. Simple key generation
+  2. Generate a key with a certificate
+  3. Commandline arguments for startup
+  4. Howto hide the key password
+

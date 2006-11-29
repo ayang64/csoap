@@ -4,7 +4,7 @@
 
 CSOAP provides a C API for programming SOAP applications
 using C. CSOAP is still under development and is not
-recommended to use in commertial products.
+recommended to use in commercial products.
 
 
 For installation support read "INSTALL".
