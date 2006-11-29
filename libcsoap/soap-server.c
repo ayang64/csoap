@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.34 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: soap-server.c,v 1.35 2006/11/29 11:04:25 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -50,22 +50,9 @@
 #include "soap-router.h"
 #include "soap-addressing.h"
 #include "soap-transport.h"
-
 #ifdef HAVE_XMLSEC1
 #include "soap-xmlsec.h"
-static inline herror_t
-_soap_server_xmlsec_sign(struct SoapEnv *envelope)
-{
-  return soap_xmlsec_sign(envelope);
-}
-#else
-static inline herror_t
-_soap_server_xmlsec_sign(struct SoapEnv *envelope)
-{
-  return H_OK;
-}
 #endif
-
 #include "soap-server.h"
 
 static SoapRouterNode *head = NULL;
@@ -139,6 +126,8 @@ soap_server_find_router(const char *context)
   return NULL;
 }
 
+/* XXX: rewrite this function */
+
 herror_t
 soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 {
@@ -150,10 +139,30 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
   SoapService *service;
   herror_t err;
 
-  log_verbose1("processing");
+  log_verbose1("**** processing ****");
   xmlDocDump(stdout, request->env->root->doc);
+  log_verbose1("********************");
 
   *response = soap_ctx_new(NULL);
+
+#ifdef HAVE_XMLSEC1
+  if ((err = soap_xmlsec_verify(request)) != H_OK)
+  {
+    log_error2("soap_xmlsec_verify failed (%s)", herror_message(err));
+    sprintf(buffer, "Verification of message signature failed (%s)", herror_message(err));
+
+    _soap_server_env_new_with_fault("Internal server error", buffer, &((*response)->env));
+    return H_OK;
+  }
+
+  if ((err = soap_xmlsec_decrypt(request)) != H_OK)
+  {
+    log_error2("soap_xmlsec_decrypt failed (%s)", herror_message(err));
+    sprintf(buffer, "Decryption of message body failed (%s)", herror_message(err));
+    _soap_server_env_new_with_fault("Internal server error", buffer, &((*response)->env));
+    return H_OK;
+  }
+#endif 
 
   if ((method = soap_env_find_methodname(request->env)))
   {
@@ -215,7 +224,13 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 
   _soap_server_fillup_header((*response)->env);
 
-  return _soap_server_xmlsec_sign((*response)->env);
+#ifdef HAVE_XMLSEC1
+  soap_xmlsec_encrypt(*response);
+
+  soap_xmlsec_sign(*response);
+#endif
+
+  return H_OK;
 }
 
 herror_t

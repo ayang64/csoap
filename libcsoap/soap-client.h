@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.14 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-client.h,v 1.15 2006/11/29 11:04:25 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,7 +24,45 @@
 #ifndef __csoap_client_h
 #define __csoap_client_h
 
-#define SOAP_ERROR_CLIENT_INIT 5001
+#define SOAP_ERROR_CLIENT		5000
+#define SOAP_ERROR_CLIENT_GENERIC	(SOAP_ERROR_CLIENT + 0)
+#define SOAP_ERROR_CLIENT_INIT		(SOAP_ERROR_CLIENT + 1)
+
+/**
+ *
+ * Commandline argument to force encryption of outgoing messages.
+ *
+ * @see soap_xmlsec_encrypt
+ *
+ */
+#define CSOAP_CLIENT_FORCE_ENCRYPT	"-CSOAPencrypt"
+
+/**
+ *
+ * Commandline argument to force decryption of incoming messages.
+ *
+ * @see soap_xmlsec_decrypt
+ *
+ */
+#define CSOAP_CLIENT_FORCE_DECRYPT	"-CSOAPdecrypt"
+
+/**
+ *
+ * Commandline argument to force signature on outgoing messages.
+ *
+ * @see soap_xmlsec_sign
+ *
+ */
+#define CSOAP_CLIENT_FORCE_SIGN		"-CSOAPsign"
+
+/**
+ *
+ * Commandline argument to force signature on incoming messages.
+ *
+ * @see soap_xmlsec_verify
+ *
+ */
+#define CSOAP_CLIENT_FORCE_VERIFY	"-CSOAPverify"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,9 +82,10 @@ extern herror_t soap_client_init_args(int argc, char **argv);
  *  @param env envelope to send
  *  @param response  the result envelope
  *  @param url url to the soap server
- *  @soap_action value for "SoapAction:" in the HTTP request header.
  *
- * @returns H_OK if success 
+ *  @param soap_action value for "SoapAction:" in the HTTP request header.
+ *
+ *  @return H_OK if success 
  *
  */
 extern herror_t soap_client_invoke(struct SoapCtx * ctx, struct SoapCtx **response, const char *url, const char *soap_action);

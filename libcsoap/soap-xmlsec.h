@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xmlsec.h,v 1.3 2006/11/28 23:45:57 m0gg Exp $
+ *  $Id: soap-xmlsec.h,v 1.4 2006/11/29 11:04:25 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -31,7 +31,7 @@
  * This module is implemented using the xmlsec1 library.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
  * @see http://www.w3.org/TR/SOAP-dsig/,
  *      http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss,
@@ -71,6 +71,20 @@
  */
 #define CSOAP_XMLSEC_CERTFILE	"-CSOAPcertfile"
 
+#define XMLSEC_ERROR			5100
+#define XMLSEC_ERROR_GENERIC		(XMLSEC_ERROR + 0)
+#define XMLSEC_ERROR_KEYSTORE		(XMLSEC_ERROR + 10)
+#define XMLSEC_ERROR_KEYMANAGER		(XMLSEC_ERROR + 20)
+#define XMLSEC_ERROR_KEY		(XMLSEC_ERROR + 30)
+#define XMLSEC_ERROR_CERTIFICATE	(XMLSEC_ERROR + 40)
+#define XMLSEC_ERROR_INIT		(XMLSEC_ERROR + 50)
+#define XMLSEC_ERROR_VERSION		(XMLSEC_ERROR + 60)
+#define XMLSEC_ERROR_DLLOAD		(XMLSEC_ERROR + 70)
+#define XMLSEC_ERROR_SIGN		(XMLSEC_ERROR + 80)
+#define XMLSEC_ERROR_SIGN_INIT		(XMLSEC_ERROR + 90)
+#define XMLSEC_ERROR_ENCRYPT		(XMLSEC_ERROR + 100)
+#define XMLSEC_ERROR_ENCRYPT_INIT	(XMLSEC_ERROR + 110)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,23 +115,67 @@ extern herror_t soap_xmlsec_client_init_args(int argc, char **argv);
 
 /**
  *
- * Sign a XML document contained in a SOAP Envelope. The key specified on the
- * commandline is used for signating the document.
+ * Sign a XML document contained in a SOAP Envelope with the key specified on
+ * the commandline. Our way to create a <SOAP-SEC:Signature> header entry is as
+ * follows:
+ *
+ * # Prepare the target SOAP Envelope with the body and necessary headers.
+ * # Create a template of a <ds:Signature> element. The template is assumed to
+ *   contain empty contents for <ds:DigestValue> or <ds:SignatureValue> elements,
+ *   but contains appropriate values for the elements such as
+ *   <ds:SignatureMethod> and <ds:Reference> required to calculate them.
+ * # Create a new header entry <SOAP-SEC:Signature> and add the template to this
+ *   entry.
+ * # Add the header entry <SOAP-SEC:Signature> to the SOAP Header.
+ * # Add the SOAP "actor" and "mustUnderstand" attributes to the entry, if
+ *   necessary.
+ * # Calculate the <ds:DigestValue> and <ds:SignatureValue> elements according
+ *   to the core generation of the XML-Signature specification.
+ *
+ * XPath filtering can be used to specify objects to be signed, as described in
+ * the XML-Signature specification. However, since the SOAP message exchange
+ * model allows intermediate applications to modify the Envelope (add or delete
+ * a header entry, for example), XPath filtering does not always result in the
+ * same objects after message delivery. Care should be taken in using XPath
+ * filtering so that there is no subsequent validation failure due to such
+ * modifications.
+ *
+ * The transform http://www.w3.org/2000/09/xmldsig#enveloped-signature defined
+ * in the XML-Signature specification may be useful when signing the entire
+ * Envelope including other header entries, if any.
  *
  * @param envelope The SOAP envelope to be signed.
  *
  * @return H_OK on success
+ *
+ * @see http://www.w3.org/TR/SOAP-dsig/,
+ *      http://www.w3.org/TR/xmldsig-core/
  *
  */
 extern herror_t soap_xmlsec_sign(struct SoapCtx *context);
 
 /**
  *
- * Verify a XML documents signature contained in a SOAP Envelope.
+ * Verify a XML documents signature contained in a SOAP Envelope. The validation
+ * of a <SOAP-SEC:Signature> header entry fails if:
+ *
+ * # The syntax of the content of the header entry does not conform to SOAP
+ *   Security Extensions: Digital Signature specification, or
+ * # The validation of the signature contained in the header entry fails
+ *   according to the core validation of the XML-Signature specification, or
+ * # The receiving application program rejects the signature for some reason
+ *   (e.g., the signature is created by an untrusted key).
+ *
+ * If the validation of the signature header entry fails, applications MAY report
+ * the failure to the sender. It is out of the scope of this library how to deal
+ * with it.
  *
  * @param envelope The SOAP envelope to be verified.
  *
  * @return H_OK on success
+ *
+ * @see http://www.w3.org/TR/SOAP-dsig/,
+ *      http://www.w3.org/TR/xmldsig-core/
  *
  */
 extern herror_t soap_xmlsec_verify(struct SoapCtx *context);

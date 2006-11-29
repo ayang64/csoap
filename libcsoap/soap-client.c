@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-client.c,v 1.32 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: soap-client.c,v 1.33 2006/11/29 11:04:24 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
@@ -43,12 +47,48 @@
 #endif
 #include "soap-client.h"
 
+#ifdef HAVE_XMLSEC1
+static int _soap_client_force_sign = 0;
+static int _soap_client_force_verify = 0;
+static int _soap_client_force_encrypt = 0;
+static int _soap_client_force_decrypt = 0;
+
+static inline void
+_soap_client_parse_arguments(int argc, char **argv)
+{
+  int i;
+
+  for (i=0; i<argc; i++)
+  {
+    if (!strcmp(CSOAP_CLIENT_FORCE_ENCRYPT, argv[i]))
+    {
+      _soap_client_force_encrypt = 1;
+    }
+    else if (!strcmp(CSOAP_CLIENT_FORCE_DECRYPT, argv[i]))
+    {
+      _soap_client_force_decrypt = 1;
+    }
+    else if (!strcmp(CSOAP_CLIENT_FORCE_VERIFY, argv[i]))
+    {
+      _soap_client_force_verify = 1;
+    }
+    else if (!strcmp(CSOAP_CLIENT_FORCE_SIGN, argv[i]))
+    {
+      _soap_client_force_sign = 1;
+    }
+  }
+  return;
+}
+#endif
+
 herror_t
 soap_client_init_args(int argc, char **argv)
 {
   herror_t status;
 
 #ifdef HAVE_XMLSEC1
+  _soap_client_parse_arguments(argc, argv);
+
   if ((status = soap_xmlsec_client_init_args(argc, argv)) != H_OK)
   {
     log_error2("soap_xmlsec_client_init_args failed (%s)", herror_message(status));
@@ -94,18 +134,26 @@ soap_client_invoke(struct SoapCtx *req, struct SoapCtx **res, const char *url, c
   free(id);
 
 #ifdef HAVE_XMLSEC1
-  log_error1("trying encryption and signation");
-
   if ((status = soap_xmlsec_encrypt(req)) != H_OK)
   {
     log_error2("soap_xmlsec_encrypt failed (%s)", herror_message(status));
-    return status;
+    if (_soap_client_force_encrypt)
+      return status;
+  }
+  else
+  {
+    log_verbose1("soap_xmlsec_encrypt succeed");
   }
 
   if ((status = soap_xmlsec_sign(req)) != H_OK)
   {
     log_error2("soap_xmlsec_sign failed (%s)", herror_message(status));
-    return status;
+    if (_soap_client_force_sign)
+      return status;
+  }
+  else
+  {
+    log_verbose1("soap_xmlsec_encrypt succeed");
   }
 #endif
 
@@ -119,13 +167,23 @@ soap_client_invoke(struct SoapCtx *req, struct SoapCtx **res, const char *url, c
   if ((status = soap_xmlsec_verify(*res)) != H_OK)
   {
     log_error2("soap_xmlsec_verify failed (%s)", herror_message(status));
-    return status;
+    if (_soap_client_force_verify)
+      return status;
+  }
+  else
+  {
+    log_verbose1("soap_xmlsec_verify succeed");
   }
 
   if ((status = soap_xmlsec_decrypt(*res)) != H_OK)
   {
     log_error2("soap_xmlsec_decrypt failed (%s)", herror_message(status));
-    return status;
+    if (_soap_client_force_decrypt)
+      return status;
+  }
+  else
+  {
+    log_verbose1("soap_xmlsec_decrypt succeed");
   }
 #endif
 

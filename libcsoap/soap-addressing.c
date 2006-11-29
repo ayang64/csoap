@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.8 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.9 2006/11/29 11:04:24 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -424,12 +424,6 @@ soap_addressing_set_reply_to_address(struct SoapEnv *envelope, xmlURI *address)
 }
 
 xmlNodePtr
-soap_addressing_get_from(struct SoapEnv *envelope)
-{
-  return _soap_addressing_get_child_element(envelope->header, WSA_FROM);
-}
-
-xmlNodePtr
 soap_addressing_set_from(struct SoapEnv *envelope, xmlNodePtr address)
 {
   xmlNodePtr ret;
@@ -463,6 +457,12 @@ soap_addressing_set_from_address_string(struct SoapEnv *envelope, const char *fr
   return ret;
 }
 
+xmlNodePtr
+soap_addressing_get_from(struct SoapEnv *envelope)
+{
+  return _soap_addressing_get_child_element(envelope->header, WSA_FROM);
+}
+
 xmlURI *
 soap_addressing_get_from_address(struct SoapEnv *envelope)
 {
@@ -473,6 +473,21 @@ soap_addressing_get_from_address(struct SoapEnv *envelope)
     return NULL;
 
   return soap_addressing_get_address(from);
+}
+
+xmlChar *
+soap_addressing_get_from_address_string(struct SoapEnv *envelope)
+{
+  xmlURI *uri;
+  xmlChar *ret;
+  
+  if (!(uri = soap_addressing_get_from_address(envelope)))
+    return NULL;
+
+  ret = xmlSaveUri(uri);
+  xmlFreeURI(uri);
+  
+  return ret;
 }
 
 xmlNodePtr

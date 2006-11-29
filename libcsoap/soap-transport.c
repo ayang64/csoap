@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.c,v 1.6 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: soap-transport.c,v 1.7 2006/11/29 11:04:25 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -84,7 +84,7 @@ _soap_transport_new(const char *scheme, void *data, msg_exchange invoke)
   ret->data = data;
   ret->invoke = invoke;
 
-  log_verbose4("scheme=%s, data=%p, invoke=%p", ret->scheme, ret->data, ret->invoke);
+  log_verbose4("scheme=\"%s\", data=%p, invoke=%p", ret->scheme, ret->data, ret->invoke);
 
   return ret;
 }
@@ -268,15 +268,26 @@ soap_transport_client_invoke(struct SoapCtx *request, struct SoapCtx **response)
   herror_t ret;
   xmlURI *dest;
   
-  log_verbose1(__FUNCTION__);
-  xmlDocFormatDump(stdout, request->env->root->doc, 1);
+  // log_verbose1(__FUNCTION__);
+  // xmlDocFormatDump(stdout, request->env->root->doc, 1);
 
-  dest = soap_addressing_get_to_address(request->env);
+  if (!(dest = soap_addressing_get_to_address(request->env)))
+  {
+    log_verbose1("soap_addressing_get_to_address failed");
+    return herror_new("soap_transport_client_invoke", 0, "cannot find to address in SOAP envelope");
+  }
+
+  if (!dest->scheme)
+  {
+    log_verbose1("missing scheme (protocol) in to address");
+    return herror_new("soap_transport_client_invoke", 0, "cannot find protocol in destination address");
+  }
 
   log_verbose2("trying to contact \"%s\"", soap_addressing_get_to_address_string(request->env));
 
-  for (walker = head; walker; walker = walker->next)
+  for (walker=head; walker; walker=walker->next)
   {
+    log_verbose3("testing transport server \"%s\" for \"%s\"", walker->scheme, dest->scheme);
     if (!strcmp(walker->scheme, dest->scheme))
     {
       log_verbose3("found transport layer for \"%s\" (%p)", dest->scheme, walker->invoke);

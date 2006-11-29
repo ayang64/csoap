@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.5 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.6 2006/11/29 11:04:25 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -89,6 +89,7 @@ static short _soap_nudp_port = NUDP_DEFAULT_PORT;
 static int _soap_nudp_socket;
 static pthread_t _soap_nudp_thread;
 static pthread_attr_t _soap_nudp_attr;
+static volatile int _soap_nudp_running = 0;
 
 static short
 _soap_nudp_server_set_port(void)
@@ -97,8 +98,8 @@ _soap_nudp_server_set_port(void)
 
   if (!(entry = getservbyname("soap", "udp")))
   {
-    log_warn1("getservbyname returned NULL");
-    _soap_nudp_port = NUDP_DEFAULT_PORT;  
+    log_warn1("getservbyname(\"soap\", \"udp\") returned NULL, please edit services database");
+    _soap_nudp_port = NUDP_DEFAULT_PORT;
   }
   else
   {
@@ -259,11 +260,14 @@ soap_nudp_server_run(void *unused)
   struct SoapCtx *res;
   xmlURI *to;
 
-  for(;;)
+  while (_soap_nudp_running)
   {
+    /* XXX: select with timeout */
+
     _soap_nudp_receive_document(_soap_nudp_socket, &doc, &addr, &addr_len);
 
-    xmlDocFormatDump(stdout, doc, 1);
+    // log_error1(__FUNCTION__);
+    // xmlDocFormatDump(stdout, doc, 1);
 
     req = soap_ctx_new(NULL);
 
@@ -284,6 +288,8 @@ soap_nudp_server_run(void *unused)
     soap_ctx_free(req);
   }
  
+  close(_soap_nudp_socket);
+
   return NULL;
 }
 
@@ -292,6 +298,8 @@ soap_nudp_server_run_threaded(void)
 {
   int err;
   
+  _soap_nudp_running = 1;
+
   if ((err = pthread_create(&_soap_nudp_thread, &_soap_nudp_attr, soap_nudp_server_run, NULL)) < 0)
   {
     log_error2("pthread_create failed (%s)", strerror(err));
@@ -304,12 +312,12 @@ soap_nudp_server_run_threaded(void)
 void
 soap_nudp_server_destroy(void)
 {
+  _soap_nudp_running = 0;
 
-  close(_soap_nudp_socket);
+  /* XXX: sleep for timeout, wait for select */
 
   return;
 }
-
 
 herror_t
 soap_nudp_client_init_args(int argc, char **argv)

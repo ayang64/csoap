@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.13 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-server.h,v 1.14 2006/11/29 11:04:25 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,30 @@
  ******************************************************************/
 #ifndef __csoap_server_h
 #define __csoap_server_h
+
+/**
+ *
+ * @mainpage Project overview
+ *
+ * @section seq_intro Introduction
+ *
+ * cSOAP is a client/server SOAP library implemented in pure C. It comes with
+ * embedded transport servers for UDP and HTTP (nanohttp). The transferred XML
+ * structures are handled by libxml2.
+ *
+ * @section seq_features Features
+ *
+ * - different transport services
+ * -- client/server HTTP transport service (with SSL)
+ * -- client/server UDP transport service (multicast)
+ * - attachments via MIME
+ * - message based security (encryption/signation)
+ * - automatic generation of WS-Inspection
+ *
+ * @author	Ferhat Ayaz
+ * @version	$Revision: 1.14 $
+ *
+ */
 
 #ifdef __cplusplus
 extern "C" {

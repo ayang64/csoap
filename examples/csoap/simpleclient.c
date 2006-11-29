@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.19 2006/11/28 23:45:57 m0gg Exp $
+ * $Id: simpleclient.c,v 1.20 2006/11/29 11:04:24 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,12 +24,14 @@
 #include <stdlib.h>
 
 #include <libxml/tree.h>
+#include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-logging.h>
 
 #include <libcsoap/soap-ctx.h>
 #include <libcsoap/soap-env.h>
+#include <libcsoap/soap-addressing.h>
 #include <libcsoap/soap-client.h>
 
 static char *url = "http://localhost:10000/csoapserver";
@@ -39,7 +41,8 @@ static char *method = "sayHello";
 int
 main(int argc, char **argv)
 {
-  struct SoapCtx *ctx, *ctx2;
+  struct SoapCtx *request;
+  struct SoapCtx *response;
   herror_t err;
 
   // hlog_set_level(HLOG_VERBOSE);
@@ -52,7 +55,7 @@ main(int argc, char **argv)
     exit(1);
   }
 
-  err = soap_ctx_new_with_method(urn, method, &ctx);
+  err = soap_ctx_new_with_method(urn, method, &request);
   if (err != H_OK)
   {
     printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
@@ -60,28 +63,27 @@ main(int argc, char **argv)
     exit(1);
   }
 
-  soap_env_add_item(ctx->env, "xsd:string", "name", "Jonny B. Good");
-
-  printf("**** sending ****\n");
-  xmlDocDump(stderr, ctx->env->root->doc);
+  soap_env_add_item(request->env, "xsd:string", "name", "Jonny B. Good");
 
   if (argc > 1)
     url = argv[1];
-  printf("destination: \"%s\"\n", url);
 
-  if ((err = soap_client_invoke(ctx, &ctx2, url, "")) != H_OK)
+  printf("**** sending to \"%s\" ****\n", url);
+  xmlDocFormatDump(stderr, request->env->root->doc, 1);
+
+  if ((err = soap_client_invoke(request, &response, url, "")) != H_OK)
   {
     printf("[%d] %s(): %s\n", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
-    soap_ctx_free(ctx);
+    soap_ctx_free(request);
     exit(1);
   }
 
-  printf("**** received ****\n");
-  xmlDocDump(stdout, ctx2->env->root->doc);
+  printf("**** received from \"%s\" ****\n", soap_addressing_get_from_address_string(response->env));
+  xmlDocFormatDump(stdout, response->env->root->doc, 1);
 
-  soap_ctx_free(ctx2);
-  soap_ctx_free(ctx);
+  soap_ctx_free(response);
+  soap_ctx_free(request);
 
   soap_client_destroy();
 
