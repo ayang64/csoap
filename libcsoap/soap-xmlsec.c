@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xmlsec.c,v 1.5 2006/11/29 11:04:25 m0gg Exp $
+*  $Id: soap-xmlsec.c,v 1.6 2006/11/29 13:01:00 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -865,7 +865,38 @@ herror_t soap_xmlsec_verify(struct SoapCtx *context)
       {
         if (!xmlStrcmp(walker->ns->href, "http://schemas.xmlsoap.org/soap/security/2000-12"))
 	{
-          /* XXX do it */
+          xmlNodePtr node;
+	  xmlSecDSigCtxPtr dsigCtx;
+
+          node = xmlSecFindNode(envelope->root, xmlSecNodeSignature, xmlSecDSigNs);
+	  if (node == NULL)
+	  {
+            log_error1("cannot find message signature");
+	    return herror_new("soap_xmlsec_verify", 0, "message signature wasn't found");
+	  }
+
+          dsigCtx = xmlSecDSigCtxCreate(_soap_xmlsec_key_manager);
+          if (dsigCtx == NULL)
+          {
+            log_error1("cannot create signature context");
+            return herror_new("soap_xmlsec_verify", 0, "cannot create signatur context");
+          }
+
+          if (xmlSecDSigCtxVerify(dsigCtx, node) < 0)
+          {
+            log_error1("xmlsecDSigCtxVerify failed");
+	    return herror_new("soap_xmlsec_verify", 0, "verification failed");
+          }
+
+          if (dsigCtx->status == xmlSecDSigStatusSucceeded)
+          {
+            return H_OK;
+          }
+          else
+          {
+            log_error1("signature invalid");
+	    return herror_new("soap_xmlsec_verify", 0, "signature invalid");
+          }
 	}
 	else
 	{

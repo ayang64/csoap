@@ -1,4 +1,4 @@
-$Id: TODO,v 1.6 2006/11/29 11:31:37 m0gg Exp $
+$Id: TODO,v 1.7 2006/11/29 13:01:00 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -7,7 +7,7 @@ Things to do _before_ 1.2 release:
 nanohttp:
 ---------
 - Get rid of #ifdef HAVE_SSL in nanohttp-socket.c
-- API documentation
+- Improve API documentation
 - remove internal typedefs!
 - include neccessary headers in nanohttp-client.h and nanohttp-server.h if
   __NANOHTTP_INTERNAL isn't specified
@@ -15,25 +15,24 @@ nanohttp:
 - cleanup circular module dependencies (e.g. hsocket <-> hssl)
 - improve error handling!!!!
 - optimize mime API
-- cleanup/improve nanohttp request parsing
+- cleanup/improve nanohttp request parsing (add GET http://fdqn/service)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
-- Write README.ssl
+- Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
 
 csoap:
 ------
 - move service description documents from router to service (???)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - soap-nudp.c needs testing
-- XML signature verification
-- API documentation
-- Add reference to http://www.w3.org/TR/SOAP-attachments
+- Improve API documentation
+  - Add reference to http://www.w3.org/TR/SOAP-attachments
 - include neccessary headers in soap-client.h and soap-server.h if
   __CSOAP_INTERNAL isn't specified
 - correct handling of configure flag --with-xmlsec1
 - Write README.xmlsec
 
-Additional things to do:
-========================
+Additional things that could be done:
+=====================================
 
 nanohttp:
 ---------
@@ -44,4 +43,8 @@ csoap:
 ------
 - soap-nudp.c one thread per request (see soap_nudp_server_run)
 - soap-nudp message re-transmission
+- http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
+  create an automated testsuite (?)
+- http://www.w3.org/Submission/WS-Enumeration/
+
 
