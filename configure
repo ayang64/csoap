@@ -21864,9 +21864,6 @@ fi
 fi;
 
 
-#---------------------------------------------
-# Check xmlsec1 library
-#---------------------------------------------
 
 
 
@@ -22076,7 +22073,7 @@ else
 fi
 
 	CFLAGS="$CFLAGS $XMLSEC1_CFLAGS";
-        LDFLAGS="$LDFLAGS $XMLSEC1_LIBS"
+	LDFLAGS="$LDFLAGS $XMLSEC1_LIBS"
 
   else
      echo "$as_me:$LINENO: result: no" >&5

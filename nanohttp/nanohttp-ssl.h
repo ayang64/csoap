@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.22 2006/11/27 12:47:27 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.23 2006/11/30 14:24:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -51,9 +51,9 @@ extern herror_t hssl_module_init(int argc, char **argv);
  */
 extern void hssl_module_destroy(void);
 
-extern void hssl_set_certificate(char *c);
-extern void hssl_set_certpass(char *c);
-extern void hssl_set_ca(char *c);
+extern void hssl_set_certificate(const char *filename);
+extern void hssl_set_certpass(const char *password);
+extern void hssl_set_ca_list(const char *filename);
 
 /**
  *

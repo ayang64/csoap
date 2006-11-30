@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.25 2006/11/28 23:45:57 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.26 2006/11/30 14:24:00 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,16 @@
  ******************************************************************/
 #ifndef __nanohttp_server_h
 #define __nanohttp_server_h
+
+/* XXX: Clean up nanohttp to make this unnecessary */
+#ifndef __NHTTP_INTERNAL
+#include <nanohttp/nanohttp-error.h>
+#include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-stream.h>
+#include <nanohttp/nanohttp-request.h>
+#include <nanohttp/nanohttp-response.h>
+#include <nanohttp/nanohttp-logging.h>
+#endif
 
 /**
  *
@@ -110,7 +120,7 @@ extern "C"
 
   extern short httpd_get_port(void);
   extern int httpd_get_timeout(void);
-  extern void httpd_set_timeout(int t);
+  extern void httpd_set_timeout(int secs);
 
   extern const char *httpd_get_protocol(void);
   extern int httpd_get_conncount(void);

@@ -16,8 +16,7 @@ documentation=doc/Doxyfile.api \
               doc/tutorial.xml \
               doc/images/logo02.gif
 
-broken_examples=examples/nanohttp/client_get.c   \
-                examples/nanohttp/client_mime.c  \
+broken_examples=examples/nanohttp/client_mime.c  \
                 examples/nanohttp/httpcpost.c    \
                 examples/nanohttp/httppost.c     \
                 examples/nanohttp/postserver.c   \

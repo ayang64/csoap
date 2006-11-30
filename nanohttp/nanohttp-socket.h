@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.33 2006/11/26 20:13:06 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.34 2006/11/30 14:24:00 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -175,7 +175,7 @@ extern herror_t hsocket_accept(struct hsocket_t *sock, struct hsocket_t *dest);
  *  - HSOCKET_ERROR_NOT_INITIALIZED
  *  - HSOCKET_ERROR_SEND
  */
-extern herror_t hsocket_nsend(struct hsocket_t *sock, const unsigned char *bytes, int size);
+extern herror_t hsocket_send(struct hsocket_t *sock, const unsigned char *bytes, int size);
 
 /**
  *
@@ -189,7 +189,7 @@ extern herror_t hsocket_nsend(struct hsocket_t *sock, const unsigned char *bytes
  *  - HSOCKET_ERROR_SEND
  *
  */
-extern herror_t hsocket_send(struct hsocket_t *sock, const char *str);
+extern herror_t hsocket_send_string(struct hsocket_t *sock, const char *str);
 
 extern int hsocket_select_recv(int sock, char *buf, size_t len);
 
@@ -209,6 +209,9 @@ extern int hsocket_select_recv(int sock, char *buf, size_t len);
  *
  */
 extern herror_t hsocket_read(struct hsocket_t * sock, unsigned char *buffer, int size, int force, int *readed);
+
+extern int hsocket_get_timeout(void);
+extern void hsocket_set_timeout(int secs);
 
 #ifdef __cplusplus
 }

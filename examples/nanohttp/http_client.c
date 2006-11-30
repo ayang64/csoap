@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.6 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: http_client.c,v 1.7 2006/11/30 14:23:59 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,13 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-stream.h>
-#include <nanohttp/nanohttp-request.h>
-#include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-client.h>
-#include <nanohttp/nanohttp-logging.h>
 
 #define MAX_BUFFER_SIZE 1024
 
@@ -42,109 +36,109 @@ static int show_content = 1;
 static char *username = NULL;
 static char *password = NULL;
 
-static void show_response(hresponse_t *res) {
+static void show_response(hresponse_t *res)
+{
+  unsigned char buffer[MAX_BUFFER_SIZE+1];
+  int read;
 
-	unsigned char buffer[MAX_BUFFER_SIZE+1];
-	int read;
+  if (!res)
+  {
+    fprintf(stderr, "hresponse_t is NULL!");
+    return;
+  }
+  
+  if (res->errcode != 200 || show_http_status_code)
+    printf("HTTP Status: %d \"%s\"\n", res->errcode, res->desc);
 
-	if (!res) {
+  if (show_headers)
+  {
+    hpair_t *pair;
+    printf("HTTP Headers:\n");
+    for (pair = res->header; pair; pair=pair->next)
+      printf("  %s: %s\n", pair->key, pair->value);
+  }
 
-		printf("hresponse_t is NULL!");
-		return;
-	}
-	
-	if (res->errcode != 200 || show_http_status_code)
-		printf("HTTP Status: %d \"%s\"\n", res->errcode, res->desc);
+  if (!res->in)
+  {
+    fprintf(stderr, "No input stream!");
+    return;
+  }
 
-	if (show_headers) {
+  while (http_input_stream_is_ready(res->in))
+  {
+    read = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
 
-		hpair_t *pair;
-		printf("HTTP Headers:\n");
-		for (pair = res->header; pair; pair=pair->next)
-			printf("  %s: %s\n", pair->key, pair->value);
-	}
-
-	if (!res->in) {
-
-		log_warn1("No input stream!");
-		return;
-	}
-
-	while (http_input_stream_is_ready(res->in)) {
-
-		read = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
-
-		if (show_content)
-			fwrite(buffer, read, 1, stdout);
-	}
-	return;
+    if (show_content)
+      fwrite(buffer, read, 1, stdout);
+  }
+  return;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+  httpc_conn_t *conn; /* Client connection object */
+  hresponse_t *res; /* Response object **/
+  herror_t status;
+  int i;
 
-	httpc_conn_t *conn; /* Client connection object */
-	hresponse_t *res; /* Response object **/
-	herror_t status;
-	int i;
+  /* check usage */
+  if (argc < 2)
+  {
+    fprintf(stderr, "usage: %s [-headers] [-status] [-noout] [-username name] [-password secret] <url>\n", argv[0]);
+    exit(1);
+  }
 
-	/* check usage */
-	if (argc < 2) {
+  /* XXX: this is not safe... */
+  for (i=0; i<argc; i++)
+  {
+    if (!strcmp("-headers", argv[i]))
+      show_headers = 1;
+    else if (!strcmp("-status", argv[i]))
+      show_http_status_code = 1;
+    else if (!strcmp("-noout", argv[i]))
+      show_content = 0;
+    else if (!strcmp("-username", argv[i]))
+      username = argv[i+1];
+    else if (!strcmp("-password", argv[i]))
+      password = argv[i+1];
+  }
 
-		fprintf(stderr, "usage: %s [-headers] [-status] [-noout] [-username name] [-password secret] <url>\n", argv[0]);
-		exit(1);
-	}
+  /* Set log level to see more information written by the library */
+  hlog_set_level(HLOG_INFO);
 
-	/* XXX: this is not safe... */
-	for (i=0; i<argc; i++) {
+  /* Initialize httpc module */
+  if (httpc_init(argc, argv))
+  {
+    fprintf(stderr, "Cannot inititialize httpc");
+    exit(1);
+  }
 
-		if (!strcmp("-headers", argv[i]))
-			show_headers = 1;
-		else if (!strcmp("-status", argv[i]))
-			show_http_status_code = 1;
-		else if (!strcmp("-noout", argv[i]))
-			show_content = 0;
-		else if (!strcmp("-username", argv[i]))
-			username = argv[i+1];
-		else if (!strcmp("-password", argv[i]))
-			password = argv[i+1];
-	}
+  /* Create the client connection object */
+  if (!(conn = httpc_new()))
+  {
+    fprintf(stderr, "httpc_new failed");
+    exit(1);
+  }
+  
+  /* set the credentials, if specified */
+  if (username || password)
+    httpc_set_basic_authorization(conn, username, password);
 
-	/* Set log level to see more information written by the library */
-	hlog_set_level(HLOG_INFO);
+  /* Send GET method and receive response */
+  if ((status = httpc_get(conn, &res, argv[argc-1])) != H_OK)
+  {
+    fprintf(stderr, "httpc_get failed (%s)", herror_message(status));
+    herror_release(status);
+    exit(1);
+  }
 
-	/* Initialize httpc module */
-	if (httpc_init(argc, argv)) {
+  /* Show response */
+  show_response(res);
 
-		log_error1("Cannot init httpc");
-		exit(1);
-	}
+  /* Clean up */
+  hresponse_free(res);
 
-	/* Create the client connection object */
-	if (!(conn = httpc_new())) {
+  httpc_free(conn);
 
-		log_error1("httpc_new failed");
-		exit(1);
-	}
-	
-	/* set the credentials, if specified */
-	if (username || password)
-		httpc_set_basic_authorization(conn, username, password);
-
-	/* Send GET method and receive response */
-	if ((status = httpc_get(conn, &res, argv[argc-1])) != H_OK) {
-
-		log_error2("httpc_get failed (%s)", herror_message(status));
-		herror_release(status);
-		exit(1);
-	}
-
-	/* Show response */
-	show_response(res);
-
-	/* Clean up */
-	hresponse_free(res);
-
-	httpc_free(conn);
-
-	return 0;
+  return 0;
 }

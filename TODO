@@ -1,4 +1,4 @@
-$Id: TODO,v 1.8 2006/11/29 13:24:00 m0gg Exp $
+$Id: TODO,v 1.9 2006/11/30 14:23:58 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -6,30 +6,23 @@ Things to do _before_ 1.2 release:
 
 nanohttp:
 ---------
-- Get rid of #ifdef HAVE_SSL in nanohttp-socket.c
-- Improve API documentation
-- remove internal typedefs!
-- include neccessary headers in nanohttp-client.h and nanohttp-server.h if
-  __NANOHTTP_INTERNAL isn't specified
-- Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
-- cleanup circular module dependencies (e.g. hsocket <-> hssl)
 - improve error handling!!!!
 - optimize mime API
-- cleanup/improve nanohttp request parsing (add GET http://fdqn/service)
+- cleanup/improve nanohttp request parsing (add GET http://fdqn/service HTTP/1.1)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
+- delete or fix broken examples (see Makefile.am)
+- Improve API documentation
 
 csoap:
 ------
 - move service description documents from router to service (???)
+- add examples from http://www.xmethods.org (Google, UDDI)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - soap-nudp.c needs testing
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments
-- include neccessary headers in soap-client.h and soap-server.h if
-  __CSOAP_INTERNAL isn't specified
-- correct handling of configure flag --with-xmlsec1
-- Write README.xmlsec
+- Write README.xmlsec like README.ssl
 
 Additional things that could be done:
 =====================================
@@ -38,6 +31,7 @@ nanohttp:
 ---------
 - add DIME attachments
 - add BASE64 decoding for MIME attachments
+- cleanup circular module dependencies (e.g. hsocket <-> hssl)
 
 csoap:
 ------

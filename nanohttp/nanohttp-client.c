@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.47 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.48 2006/11/30 14:23:59 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -318,12 +318,12 @@ httpc_send_header(httpc_conn_t * conn)
     if (walker->key && walker->value)
     {
       sprintf(buffer, "%s: %s\r\n", walker->key, walker->value);
-      if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
+      if ((status = hsocket_send_string(conn->sock, buffer)) != H_OK)
         return status;
     }
   }
 
-  return hsocket_send(conn->sock, "\r\n");
+  return hsocket_send_string(conn->sock, "\r\n");
 }
 
 /*--------------------------------------------------
@@ -429,7 +429,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   }
 
   log_verbose1("Sending request...");
-  if ((status = hsocket_send(conn->sock, buffer)) != H_OK)
+  if ((status = hsocket_send_string(conn->sock, buffer)) != H_OK)
   {
     log_error2("Cannot send request (%s)", herror_message(status));
     hsocket_close(conn->sock);

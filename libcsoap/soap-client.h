@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.15 2006/11/29 11:04:25 m0gg Exp $
+ *  $Id: soap-client.h,v 1.16 2006/11/30 14:23:59 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,14 @@
  ******************************************************************/
 #ifndef __csoap_client_h
 #define __csoap_client_h
+
+#ifndef __CSOAP_INTERNAL
+#include <nanohttp/nanohttp-client.h>
+
+#include <libcsoap/soap-ctx.h>
+#include <libcsoap/soap-env.h>
+#include <libcsoap/soap-addressing.h>
+#endif
 
 #define SOAP_ERROR_CLIENT		5000
 #define SOAP_ERROR_CLIENT_GENERIC	(SOAP_ERROR_CLIENT + 0)

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: soapclient.c,v 1.12 2006/11/26 20:13:05 m0gg Exp $
+ * $Id: soapclient.c,v 1.13 2006/11/30 14:23:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2006 Adrianus Warmehoven
@@ -25,12 +25,8 @@
 #include <ctype.h>
 
 #include <libxml/tree.h>
+#include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-error.h>
-
-#include <libcsoap/soap-fault.h>
-#include <libcsoap/soap-env.h>
-#include <libcsoap/soap-ctx.h>
 #include <libcsoap/soap-client.h>
 
 #define MAX_LINE_LENGTH 65535

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleclient.c,v 1.20 2006/11/29 11:04:24 m0gg Exp $
+ * $Id: simpleclient.c,v 1.21 2006/11/30 14:23:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -26,12 +26,6 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
-
-#include <libcsoap/soap-ctx.h>
-#include <libcsoap/soap-env.h>
-#include <libcsoap/soap-addressing.h>
 #include <libcsoap/soap-client.h>
 
 static char *url = "http://localhost:10000/csoapserver";

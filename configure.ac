@@ -385,14 +385,11 @@ AM_PATH_SSL(,
         AM_CONDITIONAL(BUILD_WITH_SSL, false)
 )
 
-#---------------------------------------------
-# Check xmlsec1 library
-#---------------------------------------------
 AM_PATH_XMLSEC1(1.2.10,
 	AC_DEFINE(HAVE_XMLSEC1,1,Define to 1 if you have requested --with-xmlsec1)
 	AM_CONDITIONAL(BUILD_WITH_XMLSEC1, true)
 	CFLAGS="$CFLAGS $XMLSEC1_CFLAGS";
-        LDFLAGS="$LDFLAGS $XMLSEC1_LIBS"
+	LDFLAGS="$LDFLAGS $XMLSEC1_LIBS"
 ,
 	AM_CONDITIONAL(BUILD_WITH_XMLSEC1, false)
 )

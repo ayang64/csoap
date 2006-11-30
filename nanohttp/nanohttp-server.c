@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.71 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.72 2006/11/30 14:24:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -122,7 +122,6 @@ static volatile int _httpd_run = 1;
 static struct hsocket_t _httpd_socket;
 static int _httpd_port = 10000;
 static int _httpd_max_connections = 20;
-static int _httpd_timeout = 10;
 
 static hservice_t *_httpd_services_default = NULL;
 static hservice_t *_httpd_services_head = NULL;
@@ -143,20 +142,36 @@ static sigset_t thrsigset;
 static pthread_mutex_t _httpd_connection_lock;
 #endif
 
-/**
- *
- * Set Sleep function platform depended
- *
- */
 #ifdef WIN32
-static void _sys_sleep(int secs)
+BOOL WINAPI
+_httpd_term(DWORD sig)
+{
+  /* log_debug2 ("Got signal %d", sig); */
+  if (sig == _httpd_terminate_signal)
+    _httpd_run = 0;
+
+  return TRUE;
+}
+
+static void _httpd_sys_sleep(int secs)
 {
   Sleep(secs*1000);
 
   return;
 }
 #else
-static inline void _sys_sleep(int secs)
+static void
+_httpd_term(int sig)
+{
+  log_debug2("Got signal %d", sig);
+
+  if (sig == _httpd_terminate_signal)
+    _httpd_run = 0;
+
+  return;
+}
+
+static inline void _httpd_sys_sleep(int secs)
 {
   sleep(secs);
 
@@ -185,7 +200,7 @@ _httpd_parse_arguments(int argc, char **argv)
     }
     else if (!strcmp(argv[i - 1], NHTTPD_ARG_TIMEOUT))
     {
-      _httpd_timeout = atoi(argv[i]);
+      hsocket_set_timeout(atoi(argv[i]));
     }
   }
 
@@ -337,13 +352,13 @@ httpd_get_port(void)
 int
 httpd_get_timeout(void)
 {
-  return _httpd_timeout;
+  return hsocket_get_timeout();
 }
 
 void
-httpd_set_timeout(int t)
+httpd_set_timeout(int secs)
 {
-  _httpd_timeout = t;
+  hsocket_set_timeout(secs);
 
   return;
 }
@@ -447,7 +462,7 @@ httpd_send_header(httpd_conn_t * res, int code, const char *text)
   strcat(header, "\r\n");
 
   /* send header */
-  if ((status = hsocket_nsend(res->sock, header, strlen(header))) != H_OK)
+  if ((status = hsocket_send(res->sock, header, strlen(header))) != H_OK)
     return status;
 
   res->out = http_output_stream_new(res->sock, res->header);
@@ -834,29 +849,6 @@ httpd_add_headers(httpd_conn_t * conn, const hpair_t * values)
   return;
 }
 
-#ifdef WIN32
-BOOL WINAPI
-httpd_term(DWORD sig)
-{
-  /* log_debug2 ("Got signal %d", sig); */
-  if (sig == _httpd_terminate_signal)
-    _httpd_run = 0;
-
-  return TRUE;
-}
-#else
-void
-httpd_term(int sig)
-{
-  log_debug2("Got signal %d", sig);
-
-  if (sig == _httpd_terminate_signal)
-    _httpd_run = 0;
-
-  return;
-}
-#endif
-
 /*
  * -----------------------------------------------------
  * FUNCTION: _httpd_register_signal_handler
@@ -868,13 +860,13 @@ _httpd_register_signal_handler(void)
   log_verbose2("registering termination signal handler (SIGNAL:%d)",
                _httpd_terminate_signal);
 #ifdef WIN32
-  if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) httpd_term, TRUE) == FALSE)
+  if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) _httpd_term, TRUE) == FALSE)
   {
     log_error1("Unable to install console event handler!");
   }
 
 #else
-  signal(_httpd_terminate_signal, httpd_term);
+  signal(_httpd_terminate_signal, _httpd_term);
 #endif
 
   return;
@@ -905,7 +897,7 @@ _httpd_wait_for_empty_conn(void)
 
     if (i >= _httpd_max_connections)
     {
-      _sys_sleep(1);
+      _httpd_sys_sleep(1);
       i = -1;
     }
     else if (_httpd_connection[i].flag == CONNECTION_FREE)

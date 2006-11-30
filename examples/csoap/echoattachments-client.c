@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.15 2006/11/25 15:06:57 m0gg Exp $
+ * $Id: echoattachments-client.c,v 1.16 2006/11/30 14:23:59 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,13 +24,8 @@
 #include <stdlib.h>
 
 #include <libxml/tree.h>
+#include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-logging.h>
-
-#include <libcsoap/soap-env.h>
-#include <libcsoap/soap-ctx.h>
 #include <libcsoap/soap-client.h>
 
 static const char *urn = "urn:examples";

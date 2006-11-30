@@ -1,3 +1,6 @@
+#
+# $Revision: 1.15 $
+#
 lib_LTLIBRARIES=libnanohttp.la
 
 libnanohttp_ladir=$(includedir)/nanohttp-@nanohttp_release@/nanohttp
@@ -8,10 +11,9 @@ libnanohttp_la_SOURCES=nanohttp-common.c nanohttp-socket.c nanohttp-client.c    
                        nanohttp-logging.c nanohttp-admin.c nanohttp-error.c
 
 libnanohttp_la_HEADERS=nanohttp-common.h nanohttp-socket.h nanohttp-client.h     \
-                           nanohttp-server.h nanohttp-stream.h nanohttp-mime.h   \
-                           nanohttp-request.h nanohttp-response.h                \
-                           nanohttp-base64.h nanohttp-logging.h nanohttp-admin.h \
-                           nanohttp-error.h
+                       nanohttp-server.h nanohttp-stream.h nanohttp-mime.h       \
+                       nanohttp-request.h nanohttp-response.h nanohttp-logging.h \
+                       nanohttp-error.h nanohttp-base64.h nanohttp-admin.h
 
 if BUILD_WITH_SSL
 libnanohttp_la_SOURCES+=nanohttp-ssl.c

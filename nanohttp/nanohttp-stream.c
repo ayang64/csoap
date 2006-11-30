@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.17 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.18 2006/11/30 14:24:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -570,19 +570,19 @@ http_output_stream_write(struct http_output_stream_t * stream,
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
     sprintf(chunked, "%x\r\n", size);
-    if ((status = hsocket_send(stream->sock, chunked)) != H_OK)
+    if ((status = hsocket_send_string(stream->sock, chunked)) != H_OK)
       return status;
   }
 
   if (size > 0)
   {
-    if ((status = hsocket_nsend(stream->sock, bytes, size)) != H_OK)
+    if ((status = hsocket_send(stream->sock, bytes, size)) != H_OK)
       return status;
   }
 
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
-    if ((status = hsocket_send(stream->sock, "\r\n")) != H_OK)
+    if ((status = hsocket_send_string(stream->sock, "\r\n")) != H_OK)
       return status;
   }
 
@@ -608,7 +608,7 @@ http_output_stream_flush(struct http_output_stream_t * stream)
 
   if (stream->type == HTTP_TRANSFER_CHUNKED)
   {
-    if ((status = hsocket_send(stream->sock, "0\r\n\r\n")) != H_OK)
+    if ((status = hsocket_send_string(stream->sock, "0\r\n\r\n")) != H_OK)
       return status;
   }
 

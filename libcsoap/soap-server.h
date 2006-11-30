@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.14 2006/11/29 11:04:25 m0gg Exp $
+ *  $Id: soap-server.h,v 1.15 2006/11/30 14:23:59 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,15 +37,22 @@
  * @section seq_features Features
  *
  * - different transport services
- * -- client/server HTTP transport service (with SSL)
- * -- client/server UDP transport service (multicast)
+ * -# client/server HTTP transport service (including SSL)
+ * -# client/server UDP transport service (multicast)
  * - attachments via MIME
  * - message based security (encryption/signation)
  * - automatic generation of WS-Inspection
  *
- * @author	Ferhat Ayaz
- * @version	$Revision: 1.14 $
+ * @author	Ferhat Ayaz,
+ * 		Michael Rans,
+ * 		Matt Campbell,
+ * 		Heiko Ronsdorf
  *
+ * @version	$Revision: 1.15 $
+ *
+ * @see		http://www.libxml.org/,
+ * 		http://www.openssl.org/,
+ * 		http://www.aleksey.com/xmlsec/
  */
 
 #ifdef __cplusplus

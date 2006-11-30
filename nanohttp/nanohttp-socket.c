@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.66 2006/11/27 12:47:27 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.68 2006/11/30 14:25:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -90,10 +90,51 @@ typedef int ssize_t;
 #endif
 #include "nanohttp-ssl.h"
 #endif
-#include "nanohttp-request.h"
-#include "nanohttp-server.h"
+
+static int _hsocket_timeout = 10;
 
 #ifdef WIN32
+static herror_t
+_hsocket_sys_accept(struct hsocket_t * sock, struct hsocket_t * dest)
+{
+  struct hsocket_t sockfd;
+  int asize;
+
+  asize = sizeof(struct sockaddr_in);
+  while (1)
+  {
+    sockfd.sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &asize);
+    if (sockfd.sock == INVALID_SOCKET)
+    {
+      if (WSAGetLastError() != WSAEWOULDBLOCK)
+        return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Socket error (%s)", strerror(errno));
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  dest->sock = sockfd.sock;
+
+  return H_OK;
+}
+
+static void
+_hsocket_sys_close(struct hsocket_t * sock)
+{
+  char junk[10];
+
+  /* shutdown(sock,SD_RECEIVE); */
+
+  shutdown(sock->sock, SD_SEND);
+  while (recv(sock->sock, junk, sizeof(junk), 0) > 0);
+    /* nothing */
+  closesocket(sock->sock);
+
+  return;
+}
+
 static void
 _hsocket_module_sys_init(int argc, char **argv)
 {
@@ -116,9 +157,36 @@ _hsocket_module_sys_init(int argc, char **argv)
 {
   return;
 }
+
 static inline void
 _hsocket_module_sys_destroy(void)
 {
+  return;
+}
+
+static herror_t
+_hsocket_sys_accept(struct hsocket_t * sock, struct hsocket_t * dest)
+{
+  socklen_t len;
+
+  len = sizeof(struct sockaddr_in);
+
+  if ((dest->sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &len)) == -1)
+  {
+    log_warn2("accept failed (%s)", strerror(errno));
+    return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Cannot accept network connection (%s)", strerror(errno));
+  }
+
+  return H_OK;
+}
+
+static inline void
+_hsocket_sys_close(struct hsocket_t * sock)
+{
+  shutdown(sock->sock, SHUT_RDWR);
+
+  close(sock->sock);
+
   return;
 }
 #endif
@@ -246,53 +314,6 @@ hsocket_bind(struct hsocket_t *dsock, unsigned short port)
   return H_OK;
 }
 
-#ifdef WIN32
-static herror_t
-_hsocket_sys_accept(struct hsocket_t * sock, struct hsocket_t * dest)
-{
-  int asize;
-  struct hsocket_t sockfd;
-
-  asize = sizeof(struct sockaddr_in);
-  while (1)
-  {
-    sockfd.sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &asize);
-    if (sockfd.sock == INVALID_SOCKET)
-    {
-      if (WSAGetLastError() != WSAEWOULDBLOCK)
-        return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT,
-                          "Socket error (%s)", strerror(errno));
-    }
-    else
-    {
-      break;
-    }
-  }
-
-  dest->sock = sockfd.sock;
-
-  return H_OK;
-}
-#else
-static herror_t
-_hsocket_sys_accept(struct hsocket_t * sock, struct hsocket_t * dest)
-{
-  socklen_t len;
-
-  len = sizeof(struct sockaddr_in);
-
-  if ((dest->sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &len)) == -1)
-  {
-    log_warn2("accept failed (%s)", strerror(errno));
-    return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT,
-                      "Cannot accept network connection (%s)",
-                      strerror(errno));
-  }
-
-  return H_OK;
-}
-#endif
-
 herror_t
 hsocket_accept(struct hsocket_t * sock, struct hsocket_t * dest)
 {
@@ -337,34 +358,6 @@ hsocket_listen(struct hsocket_t * sock)
   return H_OK;
 }
 
-#ifdef WIN32
-static void
-_hsocket_sys_close(struct hsocket_t * sock)
-{
-  char junk[10];
-
-  /* shutdown(sock,SD_RECEIVE); */
-
-  shutdown(sock->sock, SD_SEND);
-  while (recv(sock->sock, junk, sizeof(junk), 0) > 0);
-    /* nothing */
-  closesocket(sock->sock);
-
-  return;
-}
-#else
-static inline void
-_hsocket_sys_close(struct hsocket_t * sock)
-{
-
-  shutdown(sock->sock, SHUT_RDWR);
-
-  close(sock->sock);
-
-  return;
-}
-#endif
-
 void
 hsocket_close(struct hsocket_t * sock)
 {
@@ -385,7 +378,7 @@ hsocket_close(struct hsocket_t * sock)
 }
 
 herror_t
-hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
+hsocket_send(struct hsocket_t * sock, const unsigned char * bytes, int n)
 {
 #ifdef HAVE_SSL
   herror_t status;
@@ -393,9 +386,8 @@ hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
   size_t total = 0;
   size_t size;
 
-  log_verbose2("Starting to send on sock=%p", &sock);
   if (sock->sock < 0)
-    return herror_new("hsocket_nsend", HSOCKET_ERROR_NOT_INITIALIZED,
+    return herror_new("hsocket_send", HSOCKET_ERROR_NOT_INITIALIZED,
                       "hsocket not initialized");
 
   /* log_verbose2( "SENDING %s", bytes ); */
@@ -410,7 +402,7 @@ hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
     }
 #else
     if ((size = send(sock->sock, bytes + total, n, 0)) == -1)
-      return herror_new("hsocket_nsend", HSOCKET_ERROR_SEND, "send failed (%s)", strerror(errno));
+      return herror_new("hsocket_send", HSOCKET_ERROR_SEND, "send failed (%s)", strerror(errno));
 #endif
     sock->bytes_received += size;
 
@@ -424,9 +416,9 @@ hsocket_nsend(struct hsocket_t * sock, const unsigned char * bytes, int n)
 }
 
 herror_t
-hsocket_send(struct hsocket_t * sock, const char *str)
+hsocket_send_string(struct hsocket_t * sock, const char *str)
 {
-  return hsocket_nsend(sock, str, strlen(str));
+  return hsocket_send(sock, str, strlen(str));
 }
 
 int
@@ -438,13 +430,13 @@ hsocket_select_recv(int sock, char *buf, size_t len)
   FD_ZERO(&fds);
   FD_SET(sock, &fds);
 
-  timeout.tv_sec = httpd_get_timeout();
+  timeout.tv_sec = _hsocket_timeout;
   timeout.tv_usec = 0;
 
   if (select(sock + 1, &fds, NULL, NULL, &timeout) == 0)
   {
     errno = ETIMEDOUT;
-    log_verbose2("Socket %d timeout", sock);
+    log_verbose2("Socket %d timed out", sock);
     return -1;
   }
 
@@ -497,4 +489,18 @@ hsocket_read(struct hsocket_t * sock, unsigned char * buffer, int total, int for
     }
   }
   while (1);
+}
+
+int
+hsocket_get_timeout(void)
+{
+  return _hsocket_timeout;
+}
+
+void
+hsocket_set_timeout(int secs)
+{
+  _hsocket_timeout = secs;
+
+  return;
 }
