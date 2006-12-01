@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.34 2006/11/30 14:24:00 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.35 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -284,7 +284,7 @@ _hssl_parse_arguments(int argc, char **argv)
     }
     else if (!strcmp(argv[i - 1], NHTTPD_ARG_HTTPS))
     {
-      hssl_enabled();
+      hssl_enable();
     }
   }
 
@@ -437,12 +437,21 @@ hssl_enabled(void)
 herror_t
 hssl_client_ssl(struct hsocket_t * sock)
 {
+  SSL_CTX *ctx;
   SSL *ssl;
   int ret;
 
   log_verbose1("Starting SSL client initialization");
 
-  if (!(ssl = SSL_new(_hssl_context)))
+  _hssl_library_init();
+
+  if (!(ctx = SSL_CTX_new(SSLv23_method())))
+  {
+    log_error2("SSL_CTX_new failed (ctx == %p)", ctx);
+    return herror_new("hssl_client_ssl", HSSL_ERROR_CONTEXT, "Cannot create SSL client context");
+  }
+
+  if (!(ssl = SSL_new(ctx)))
   {
     log_error1("Cannot create new SSL object");
     return herror_new("hssl_client_ssl", HSSL_ERROR_CLIENT, "SSL_new failed");

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.18 2006/11/30 14:24:00 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.19 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -207,7 +207,7 @@ _http_input_stream_content_length_read(struct http_input_stream_t * stream, unsi
     size = stream->content_length - stream->received;
 
   /* read from socket */
-  if ((status = hsocket_read(stream->sock, dest, size, 1, &read)) != H_OK)
+  if ((status = hsocket_recv(stream->sock, dest, size, 1, &read)) != H_OK)
   {
     stream->err = status;
     return -1;
@@ -227,7 +227,7 @@ _http_input_stream_chunked_read_chunk_size(struct http_input_stream_t * stream)
 
   while (1)
   {
-    err = hsocket_read(stream->sock, &(chunk[i]), 1, 1, &status);
+    err = hsocket_recv(stream->sock, &(chunk[i]), 1, 1, &status);
     if (status != 1)
     {
       stream->err = herror_new("_http_input_stream_chunked_read_chunk_size",
@@ -296,7 +296,7 @@ _http_input_stream_chunked_read(struct http_input_stream_t * stream, unsigned ch
       counter = 100;            /* maximum for stop infinity */
       while (1)
       {
-        if ((err = hsocket_read(stream->sock, &ch, 1, 1, &status)) != H_OK)
+        if ((err = hsocket_recv(stream->sock, &ch, 1, 1, &status)) != H_OK)
         {
           stream->err = err;
           return -1;
@@ -338,7 +338,7 @@ _http_input_stream_chunked_read(struct http_input_stream_t * stream, unsigned ch
     if (remain < size)
     {
       /* read from socket */
-      if ((err = hsocket_read(stream->sock, &(dest[read]), remain, 1, &status)) != H_OK)
+      if ((err = hsocket_recv(stream->sock, &(dest[read]), remain, 1, &status)) != H_OK)
       {
         stream->err = err;
         return -1;
@@ -355,7 +355,7 @@ _http_input_stream_chunked_read(struct http_input_stream_t * stream, unsigned ch
     else
     {
       /* read from socket */
-      err = hsocket_read(stream->sock, &(dest[read]), size, 1, &status);
+      err = hsocket_recv(stream->sock, &(dest[read]), size, 1, &status);
       if (status != size)
       {
         stream->err = herror_new("_http_input_stream_chunked_read",
@@ -387,7 +387,7 @@ _http_input_stream_connection_closed_read(struct http_input_stream_t * stream, u
   herror_t err;
 
   /* read from socket */
-  if ((err = hsocket_read(stream->sock, dest, size, 0, &status)) != H_OK)
+  if ((err = hsocket_recv(stream->sock, dest, size, 0, &status)) != H_OK)
   {
     stream->err = err;
     return -1;

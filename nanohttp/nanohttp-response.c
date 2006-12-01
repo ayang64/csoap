@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.15 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.16 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -168,7 +168,7 @@ read_header:                   /* for errorcode: 100 (continue) */
   /* Read header */
   while (i < MAX_HEADER_SIZE)
   {
-    if ((status = hsocket_read(sock, &(buffer[i]), 1, 1, &count)) != H_OK)
+    if ((status = hsocket_recv(sock, &(buffer[i]), 1, 1, &count)) != H_OK)
     {
       log_error1("Socket read error");
       return status;

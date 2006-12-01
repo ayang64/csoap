@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.67 2006/11/30 14:24:00 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.69 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -90,8 +90,8 @@ typedef int ssize_t;
 #endif
 #include "nanohttp-ssl.h"
 #endif
-#include "nanohttp-request.h"
-#include "nanohttp-server.h"
+
+#define	HSOCKET_FREE	-1
 
 static int _hsocket_timeout = 10;
 
@@ -446,13 +446,13 @@ hsocket_select_recv(int sock, char *buf, size_t len)
 }
 
 herror_t
-hsocket_read(struct hsocket_t * sock, unsigned char * buffer, int total, int force, int *received)
+hsocket_recv(struct hsocket_t * sock, unsigned char * buffer, int total, int force, int *received)
 {
   herror_t status;
   size_t totalRead;
   size_t count;
 
-/* log_verbose3("Entering hsocket_read(total=%d,force=%d)", total, force); */
+/* log_verbose3("Entering hsocket_recv(total=%d,force=%d)", total, force); */
 
   totalRead = 0;
   do
@@ -466,7 +466,7 @@ hsocket_read(struct hsocket_t * sock, unsigned char * buffer, int total, int for
     }
 #else
     if ((count = hsocket_select_recv(sock->sock, buffer + totalRead, (size_t) total - totalRead)) == -1)
-      return herror_new("hsocket_read", HSOCKET_ERROR_RECEIVE, "recv failed (%s)", strerror(errno));
+      return herror_new("hsocket_recv", HSOCKET_ERROR_RECEIVE, "recv failed (%s)", strerror(errno));
 #endif
     sock->bytes_received += count;
 

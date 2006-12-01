@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.23 2006/11/30 14:24:00 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.24 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -51,8 +51,27 @@ extern herror_t hssl_module_init(int argc, char **argv);
  */
 extern void hssl_module_destroy(void);
 
+/**
+ *
+ * Sets the SSL certificate to be used.
+ *
+ */
 extern void hssl_set_certificate(const char *filename);
+
+/**
+ *
+ * Sets the password for the SSL certificate.
+ *
+ * @see hssl_set_certificate
+ *
+ */
 extern void hssl_set_certpass(const char *password);
+
+/**
+ *
+ * Sets the filename for a certification authority list.
+ *
+ */
 extern void hssl_set_ca_list(const char *filename);
 
 /**
@@ -99,25 +118,39 @@ extern herror_t hssl_server_ssl(struct hsocket_t * sock);
  */
 extern void hssl_cleanup(struct hsocket_t * sock);
 
-/*
- * Quick function for verifying a portion of the cert
- * nid is any NID_ defined in <openssl/objects.h>
- * returns non-zero if everything went ok
- */
 #define CERT_SUBJECT	1
 
+/**
+ *
+ * Quick function for verifying a portion of the cert nid is any NID_ defined
+ * in <openssl/objects.h> returns non-zero if everything went ok
+ *
+ */
 extern int verify_sn(X509 * cert, int who, int nid, char *str);
 
 /**
  *
- * Called by framework for verification of client or server supplied
- * certificate.
+ * Called by framework for verification of client or server supplied certificate.
  *
  */
 extern void hssl_set_user_verify(int func(X509 * cert));
 
+/**
+ *
+ * Read from a SSL socket.
+ *
+ * @see hsocket_read
+ *
+ */
 extern herror_t hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received);
 
+/**
+ *
+ * Write to a SSL socket.
+ *
+ * @see hsocket_write
+ *
+ */
 extern herror_t hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent);
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.7 2006/11/30 14:23:59 m0gg Exp $
+*  $Id: http_client.c,v 1.8 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -43,7 +43,7 @@ static void show_response(hresponse_t *res)
 
   if (!res)
   {
-    fprintf(stderr, "hresponse_t is NULL!");
+    fprintf(stderr, "hresponse_t is NULL!\n");
     return;
   }
   
@@ -60,7 +60,7 @@ static void show_response(hresponse_t *res)
 
   if (!res->in)
   {
-    fprintf(stderr, "No input stream!");
+    fprintf(stderr, "No input stream!\n");
     return;
   }
 
@@ -109,25 +109,27 @@ int main(int argc, char **argv)
   /* Initialize httpc module */
   if (httpc_init(argc, argv))
   {
-    fprintf(stderr, "Cannot inititialize httpc");
+    fprintf(stderr, "Cannot inititialize HTTP client\n");
     exit(1);
   }
 
   /* Create the client connection object */
   if (!(conn = httpc_new()))
   {
-    fprintf(stderr, "httpc_new failed");
+    fprintf(stderr, "httpc_new failed\n");
     exit(1);
   }
   
   /* set the credentials, if specified */
   if (username || password)
+  {
     httpc_set_basic_authorization(conn, username, password);
+  }
 
   /* Send GET method and receive response */
   if ((status = httpc_get(conn, &res, argv[argc-1])) != H_OK)
   {
-    fprintf(stderr, "httpc_get failed (%s)", herror_message(status));
+    fprintf(stderr, "httpc_get failed (%s)\n", herror_message(status));
     herror_release(status);
     exit(1);
   }

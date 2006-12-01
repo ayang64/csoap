@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.34 2006/11/30 14:24:00 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.35 2006/12/01 10:56:00 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,8 +23,6 @@
  ******************************************************************/
 #ifndef __nanohttp_socket_h
 #define __nanohttp_socket_h
-
-#define	HSOCKET_FREE	-1
 
 /**
  *
@@ -65,6 +63,8 @@ extern herror_t hsocket_module_init(int argc, char **argv);
  * Destroys the socket modul. This should be called after finishing an
  * application.
  *
+ * @see hssl_module_destroy
+ *
  */
 extern void hsocket_module_destroy(void);
 
@@ -77,7 +77,7 @@ extern void hsocket_module_destroy(void);
  *
  * @returns This function should always return H_OK. 
  *
- * @see hsocket_init_ssl
+ * @see hssl_module_init
  *
  */
 extern herror_t hsocket_init(struct hsocket_t * sock);
@@ -110,14 +110,13 @@ extern void hsocket_free(struct hsocket_t * sock);
 extern herror_t hsocket_open(struct hsocket_t *sock, const char *host, int port, int ssl);
 
 /**
- *
+ e
  * Close a socket connection.
  *
  * @param sock the socket to close
  *
  */
 extern void hsocket_close(struct hsocket_t *sock);
-
 
 /**
  *
@@ -208,9 +207,22 @@ extern int hsocket_select_recv(int sock, char *buf, size_t len);
  *          the return value is the size of bytes readed from the socket.
  *
  */
-extern herror_t hsocket_read(struct hsocket_t * sock, unsigned char *buffer, int size, int force, int *readed);
+extern herror_t hsocket_recv(struct hsocket_t * sock, unsigned char *buffer, int size, int force, int *len);
 
+/**
+ *
+ * Get the socket read/write timeout.
+ *
+ */
 extern int hsocket_get_timeout(void);
+
+/**
+ *
+ * Set the socket read/write timeout.
+ *
+ * @param secs Timeout in seconds.
+ *
+ */
 extern void hsocket_set_timeout(int secs);
 
 #ifdef __cplusplus

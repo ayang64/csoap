@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.19 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.20 2006/12/01 10:56:00 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -282,9 +282,9 @@ hrequest_new_from_socket(struct hsocket_t *sock, struct hrequest_t ** out)
   /* Read header */
   for(i=0; i < MAX_HEADER_SIZE; i++)
   {
-    if ((status = hsocket_read(sock, &(buffer[i]), 1, 1, &readed)) != H_OK)
+    if ((status = hsocket_recv(sock, &(buffer[i]), 1, 1, &readed)) != H_OK)
     {
-      log_error2("hsocket_read failed (%s)", herror_message(status));
+      log_error2("hsocket_recv failed (%s)", herror_message(status));
       return status;
     }
 
