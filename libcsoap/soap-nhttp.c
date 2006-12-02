@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.7 2006/12/02 21:50:47 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.8 2006/12/02 21:59:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -67,20 +67,19 @@ static herror_t
 _soap_nhttp_send_document(httpd_conn_t *conn, xmlDocPtr doc)
 {
   char length[16];
-  xmlBufferPtr buf;
+  xmlChar *buf;
   int size;
 
-  buf = xmlBufferCreate();
-  xmlDocDumpMemory(doc, buf, &size);
+  xmlDocDumpMemory(doc, &buf, &size);
 
   sprintf(length, "%d", size);
   httpd_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
   httpd_set_header(conn, HEADER_CONTENT_LENGTH, length);
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
 
-  http_output_stream_write_string(conn->out, xmlBufferContent(buf));
+  http_output_stream_write(conn->out, buf, size);
 
-  xmlBufferFree(buf);
+  xmlFree(buf);
 
   return H_OK;
 }
@@ -260,8 +259,8 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   herror_t status;
 
   /* Buffer variables */
-  xmlBufferPtr buffer;
-  char *content;
+  xmlChar *buffer;
+  int size;
   char tmp[15];
   char *action;
   char *url;
@@ -281,12 +280,9 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
 
   log_verbose1("nanohttp client");
 
-  /* Create buffer */
-  buffer = xmlBufferCreate();
-  xmlNodeDump(buffer, request->env->root->doc, request->env->root, 1, 0);
-  content = (char *) xmlBufferContent(buffer);
+  xmlDocDumpMemory(request->env->root->doc, &buffer, &size);
 
-  xmlDocFormatDump(stdout, request->env->root->doc, 1);
+  // xmlDocFormatDump(stdout, request->env->root->doc, 1);
 
   /* Transport via HTTP */
   if (!(conn = httpc_new()))
@@ -312,27 +308,27 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
     /* content-type is always 'text/xml' */
     httpc_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
 
-    sprintf(tmp, "%d", (int) strlen(content));
+    sprintf(tmp, "%d", size);
     httpc_set_header(conn, HEADER_CONTENT_LENGTH, tmp);
 
     if ((status = httpc_post_begin(conn, url)) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
 
-    if ((status = http_output_stream_write_string(conn->out, content)) != H_OK)
+    if ((status = http_output_stream_write(conn->out, buffer, size)) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
 
     if ((status = httpc_post_end(conn, &res)) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
   }
@@ -344,21 +340,21 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
     if ((status = httpc_mime_begin(conn, url, start_id, "", "text/xml")) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
 
     if ((status = httpc_mime_next(conn, start_id, "text/xml", "binary")) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
 
-    if ((status = http_output_stream_write(conn->out, content, strlen(content))) != H_OK)
+    if ((status = http_output_stream_write(conn->out, buffer, size)) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
 
@@ -368,7 +364,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
       {
         log_error2("httpc_mime_send_file failed (%s)", herror_message(status));
 	httpc_close_free(conn);
-	xmlBufferFree(buffer);
+	xmlFree(buffer);
 	return status;
       }
     }
@@ -376,12 +372,12 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
     if ((status = httpc_mime_end(conn, &res)) != H_OK)
     {
       httpc_close_free(conn);
-      xmlBufferFree(buffer);
+      xmlFree(buffer);
       return status;
     }
   }
 
-  xmlBufferFree(buffer);
+  xmlFree(buffer);
   free(url);
 
   if ((status = _soap_nhttp_client_build_result(res, &res_env)) != H_OK)
