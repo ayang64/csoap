@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.6 2006/11/25 16:35:57 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.7 2006/12/02 21:50:47 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -66,7 +66,6 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
   return;
 }
 
-
 static void
 _httpd_admin_list_services(httpd_conn_t *conn)
 {
@@ -78,7 +77,16 @@ _httpd_admin_list_services(httpd_conn_t *conn)
   http_output_stream_write_string(conn->out, "<ul>");
   for (node = httpd_get_services(); node; node = node->next)
   {
-    sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx);
+    switch (node->status)
+    {
+      case NHTTPD_SERVICE_DISABLED:
+        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_ENABLE_SERVICE "=%s\">[Enable]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+        break;
+      case NHTTPD_SERVICE_ENABLED:
+      default:
+        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_DISABLE_SERVICE "=%s\">[Disable]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+        break;
+    }
     http_output_stream_write_string(conn->out, buffer);
   }
   http_output_stream_write_string(conn->out, "</ul>");
@@ -87,7 +95,6 @@ _httpd_admin_list_services(httpd_conn_t *conn)
 
   return;
 }
-
 
 static void
 _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
@@ -100,8 +107,9 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
 
   if (!(service = httpd_find_service(service_name)))
   {
-    http_output_stream_write_string(conn->out, "service not found!");
-    http_output_stream_write_string(conn->out, "</body></html>");
+    http_output_stream_write_string(conn->out,
+      "<p>Service not found!</p>"
+      "</body></html>");
     return;
   }
 
@@ -126,6 +134,57 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
   return;
 }
 
+static void
+_httpd_admin_enable_service(httpd_conn_t *conn, const char *service_name)
+{
+  hservice_t *service;
+  char buffer[1024];
+
+  sprintf(buffer, "Enabling service <b>%s</b>", service_name);
+  _httpd_admin_send_title(conn, buffer);
+
+  if (!(service = httpd_find_service(service_name)))
+  {
+    http_output_stream_write_string(conn->out,
+      "<p>Service not found!</p>"
+      "</body></html>");
+    return;   
+  }
+
+  httpd_enable_service(service);
+
+  http_output_stream_write_string(conn->out,
+    "<p>Service enabled</p>"
+    "</body></html>");
+
+  return;
+}
+
+static void
+_httpd_admin_disable_service(httpd_conn_t *conn, const char *service_name)
+{
+  hservice_t *service;
+  char buffer[1024];
+
+  sprintf(buffer, "Disabling service <b>%s</b>", service_name);
+  _httpd_admin_send_title(conn, buffer);
+
+  if (!(service = httpd_find_service(service_name)))
+  {
+    http_output_stream_write_string(conn->out,
+      "<p>service not found!</p>"
+      "</body></html>");
+    return;
+  }
+
+  httpd_disable_service(service);
+
+  http_output_stream_write_string(conn->out,
+    "<p>Service disabled</p>"
+    "</body></html>");
+
+  return;
+}
 
 static void
 _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
@@ -139,6 +198,14 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
   else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_STATISTICS)))
   {
     _httpd_admin_list_statistics(conn, param);
+  }
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_ENABLE_SERVICE)))
+  {
+    _httpd_admin_enable_service(conn, param);
+  }
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_DISABLE_SERVICE)))
+  {
+    _httpd_admin_disable_service(conn, param);
   }
   else
   {
@@ -154,7 +221,6 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
 
   return;
 }
-
 
 static void
 _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
@@ -179,7 +245,6 @@ _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
   }
   return;
 }
-
 
 herror_t
 httpd_admin_init_args(int argc, char **argv)

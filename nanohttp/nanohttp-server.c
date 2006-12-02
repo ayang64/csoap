@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.72 2006/11/30 14:24:00 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.73 2006/12/02 21:50:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -292,6 +292,7 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   if (!(service->statistics = (struct service_statistics *)malloc(sizeof(struct service_statistics))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
+    free(service);
     return herror_new("httpd_register_secure", 0, "malloc failed (%s)", strerror(errno));
   }    	
   memset(service->statistics, 0, sizeof(struct service_statistics));
@@ -302,6 +303,7 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   service->next = NULL;
   service->auth = auth;
   service->func = func;
+  service->status = NHTTPD_SERVICE_ENABLED;
   strcpy(service->ctx, ctx);
 
   log_verbose3("register service (%p) for \"%s\"", service, SAVE_STR(ctx));
@@ -392,9 +394,35 @@ httpd_get_services(void)
 static void
 hservice_free(hservice_t * service)
 {
+  if (!service)
+    return;
+
+  if (service->statistics)
+    free(service->statistics);
+
   free(service);
 
   return;
+}
+
+int httpd_enable_service(hservice_t *service)
+{
+  int ret;
+
+  ret = service->status;
+  service->status = NHTTPD_SERVICE_ENABLED;
+
+  return ret;
+}
+
+int httpd_disable_service(hservice_t *service)
+{
+  int ret;
+  
+  ret = service->status;
+  service->status = NHTTPD_SERVICE_DISABLED;
+
+  return ret;
 }
 
 hservice_t *
@@ -564,7 +592,6 @@ _httpd_decode_authorization(const char *value, char **user, char **pass)
   len = strlen(value) * 2;
   if (!(tmp = (char *) calloc(1, len)))
   {
-
     log_error2("calloc failed (%s)", strerror(errno));
     return -1;
   }
@@ -692,60 +719,68 @@ httpd_session_main(void *data)
       {
         log_verbose3("service '%s' for '%s' found", service->ctx, req->path);
 
-        pthread_rwlock_wrlock(&(service->statistics->lock));
-        service->statistics->requests++;
-        pthread_rwlock_unlock(&(service->statistics->lock));
+	if (service->status == NHTTPD_SERVICE_ENABLED)
+	{
+          pthread_rwlock_wrlock(&(service->statistics->lock));
+          service->statistics->requests++;
+          pthread_rwlock_unlock(&(service->statistics->lock));
 
-        if (_httpd_authenticate_request(req, service->auth))
-        {
-          if (service->func != NULL)
+          if (_httpd_authenticate_request(req, service->auth))
           {
-            service->func(rconn, req);
-
-            if (gettimeofday(&end, NULL) == -1)
-              log_error2("gettimeofday failed (%s)", strerror(errno));
-            timersub(&end, &start, &duration);
-
-            pthread_rwlock_wrlock(&(service->statistics->lock));
-            service->statistics->bytes_received += rconn->sock->bytes_received;
-            service->statistics->bytes_transmitted += rconn->sock->bytes_transmitted;
-            timeradd(&(service->statistics->time), &duration, &(service->statistics->time));
-            pthread_rwlock_unlock(&(service->statistics->lock));
-
-            if (rconn->out && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
+            if (service->func != NULL)
             {
-              log_verbose1("Connection close requested");
-              done = 1;
+              service->func(rconn, req);
+
+              if (gettimeofday(&end, NULL) == -1)
+                log_error2("gettimeofday failed (%s)", strerror(errno));
+              timersub(&end, &start, &duration);
+
+              pthread_rwlock_wrlock(&(service->statistics->lock));
+              service->statistics->bytes_received += rconn->sock->bytes_received;
+              service->statistics->bytes_transmitted += rconn->sock->bytes_transmitted;
+              timeradd(&(service->statistics->time), &duration, &(service->statistics->time));
+              pthread_rwlock_unlock(&(service->statistics->lock));
+
+              if (rconn->out && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
+              {
+                log_verbose1("Connection close requested");
+                done = 1;
+              }
             }
-          }
+            else
+            {
+              char buffer[256];
+
+              sprintf(buffer, "service '%s' not registered properly (func == NULL)", req->path);
+              log_verbose1(buffer);
+              httpd_send_internal_error(rconn, buffer);
+            }
+	  }
           else
           {
-            char buffer[256];
+            char *template =
+              "<html>"
+                "<head>"
+                  "<title>Unauthorized</title>"
+                "</head>"
+                "<body>"
+                  "<h1>Unauthorized request logged</h1>"
+                "</body>"
+              "</html>";
 
-            sprintf(buffer,
-                    "service '%s' not registered properly (func == NULL)",
-                    req->path);
-            log_verbose1(buffer);
-            httpd_send_internal_error(rconn, buffer);
+            httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE, "Basic realm=\"nanoHTTP\"");
+            httpd_send_header(rconn, 401, HTTP_STATUS_401_REASON_PHRASE);
+            http_output_stream_write_string(rconn->out, template);
+            done = 1;
           }
         }
         else
         {
-          char *template =
-            "<html>"
-              "<head>"
-                "<title>Unauthorized</title>"
-              "</head>"
-              "<body>"
-                "<h1>Unauthorized request logged</h1>"
-              "</body>"
-            "</html>";
+          char buffer[256];
 
-          httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE,
-                           "Basic realm=\"nanoHTTP\"");
-          httpd_send_header(rconn, 401, HTTP_STATUS_401_REASON_PHRASE);
-          http_output_stream_write_string(rconn->out, template);
-          done = 1;
+          sprintf(buffer, "service for '%s' is disabled", req->path);
+          log_verbose1(buffer);
+          httpd_send_internal_error(rconn, buffer);
         }
       }
       else

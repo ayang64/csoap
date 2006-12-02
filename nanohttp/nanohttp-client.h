@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.28 2006/11/30 14:24:00 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.29 2006/12/02 21:50:47 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -76,7 +76,8 @@ extern void httpc_destroy(void);
 
 /**
  *
- * Creates a new connection.
+ * Creates a new http client connection object. You need to create at least one
+ * http client connection to communicate via HTTP.
  *
  * @return A pointer to a httpc_conn_t structure on success, NULL on error.
  *

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-admin.h,v 1.3 2006/12/01 10:56:00 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.4 2006/12/02 21:50:47 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -32,7 +32,7 @@
  * @see NHTTPD_ADMIN_CONTEXT
  *
  */
-#define NHTTPD_ARG_ENABLE_ADMIN		"-NHTTPDadmin"
+#define NHTTPD_ARG_ENABLE_ADMIN			"-NHTTPDadmin"
 
 /**
  *
@@ -45,7 +45,7 @@
  * @see httpd_register
  *
  */
-#define NHTTPD_ADMIN_CONTEXT		"/nhttp"
+#define NHTTPD_ADMIN_CONTEXT			"/nhttp"
 
 /**
  *
@@ -56,7 +56,7 @@
  *   http://localhost:10000/nhttp?services=list
  *
  */
-#define NHTTPD_ADMIN_QUERY_SERVICES	"services"
+#define NHTTPD_ADMIN_QUERY_SERVICES		"services"
 
 /**
  *
@@ -67,7 +67,30 @@
  *   http://localhost:10000/nhttp?statistics=SERVICE_CONTEXT
  *
  */
-#define NHTTPD_ADMIN_QUERY_STATISTICS	"statistics"
+#define NHTTPD_ADMIN_QUERY_STATISTICS		"statistics"
+
+
+/**
+ *
+ * Parameter to enable a server.
+ *
+ * Example query:
+ *
+ *   http://localhost:10000/nhttp?enable=SERVICE_CONTEXT
+ *
+ */
+#define NHTTPD_ADMIN_QUERY_ENABLE_SERVICE	"enable"
+
+/**
+ *
+ * Parameter to disable a service.
+ *
+ * Example query:
+ *
+ *   http://localhost:10000/nhttp?disable=SERVICE_CONTEXT
+ *
+ */
+#define NHTTPD_ADMIN_QUERY_DISABLE_SERVICE	"disable"
 
 #ifdef __cplusplus
 extern "C" {

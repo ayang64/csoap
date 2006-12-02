@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.6 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.7 2006/12/02 21:50:47 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -68,11 +68,12 @@ _soap_nhttp_send_document(httpd_conn_t *conn, xmlDocPtr doc)
 {
   char length[16];
   xmlBufferPtr buf;
+  int size;
 
   buf = xmlBufferCreate();
-  xmlNodeDump(buf, doc, xmlDocGetRootElement(doc), 1, 1);
+  xmlDocDumpMemory(doc, buf, &size);
 
-  sprintf(length, "%d", xmlBufferLength(buf));
+  sprintf(length, "%d", size);
   httpd_set_header(conn, HEADER_CONTENT_TYPE, "text/xml");
   httpd_set_header(conn, HEADER_CONTENT_LENGTH, length);
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
@@ -159,15 +160,15 @@ soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
   {
     httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
-              "<html>"
-                  "<head>"
-		  "</head>"
-		  "<body>"
-                      "<h1>Sorry!</h1>"
-                      "<hr />"
-                      "<div>I only speak with 'POST' method.</div>"
-                  "</body>"
-              "</html>");
+      "<html>"
+        "<head>"
+        "</head>"
+        "<body>"
+          "<h1>Sorry!</h1>"
+          "<hr />"
+          "<div>I only speak with 'POST' method.</div>"
+        "</body>"
+      "</html>");
     return;
   }
 

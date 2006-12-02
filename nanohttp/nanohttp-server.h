@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.26 2006/11/30 14:24:00 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.27 2006/12/02 21:50:48 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -85,12 +85,27 @@ struct service_statistics
 
 /**
  *
+ * @see hservice_t
+ *
+ */
+#define NHTTPD_SERVICE_DISABLED	0
+
+/**
+ *
+ * @see hservice_t
+ *
+ */
+#define NHTTPD_SERVICE_ENABLED	1
+
+/**
+ *
  * Service representation object
  *
  */
 typedef struct tag_hservice
 {
   char ctx[255];
+  int status;
   httpd_service func;
   httpd_auth auth;
   struct tag_hservice *next;
@@ -103,83 +118,88 @@ extern "C"
 {
 #endif
 
-
-/*
-  Begin  httpd_* function set
+/**
+ *
+ * Initialize the nanoHTTP server.
+ *
  */
-  extern herror_t httpd_init(int argc, char *argv[]);
-  extern void httpd_destroy(void);
+extern herror_t httpd_init(int argc, char *argv[]);
 
-  extern herror_t httpd_run(void);
+/**
+ *
+ * @see httpd_init
+ *
+ */
+extern void httpd_destroy(void);
 
-  extern herror_t httpd_register(const char *ctx, httpd_service service);
-  extern herror_t httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
-  extern herror_t httpd_register_default(const char *ctx, httpd_service service);
-  extern herror_t httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth);
+extern herror_t httpd_run(void);
 
-  extern short httpd_get_port(void);
-  extern int httpd_get_timeout(void);
-  extern void httpd_set_timeout(int secs);
+extern herror_t httpd_register(const char *ctx, httpd_service service);
+extern herror_t httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
-  extern const char *httpd_get_protocol(void);
-  extern int httpd_get_conncount(void);
+extern herror_t httpd_register_default(const char *ctx, httpd_service service);
+extern herror_t httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth);
 
-  extern hservice_t *httpd_get_services(void);
-  extern hservice_t *httpd_find_service(const char *name);
+extern short httpd_get_port(void);
+extern int httpd_get_timeout(void);
+extern void httpd_set_timeout(int secs);
 
-  extern void httpd_response_set_content_type(httpd_conn_t * res, const char *content_type);
+extern const char *httpd_get_protocol(void);
+extern int httpd_get_conncount(void);
 
-  extern herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
+extern hservice_t *httpd_get_services(void);
+extern hservice_t *httpd_find_service(const char *name);
 
-  extern int httpd_set_header(httpd_conn_t * conn, const char *key, const char *value);
-  extern void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
+extern int httpd_enable_service(hservice_t *service);
+extern int httpd_disable_service(hservice_t *service);
 
-  extern int httpd_add_header(httpd_conn_t * conn, const char *key, const char *value);
-  extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
+extern void httpd_response_set_content_type(httpd_conn_t * res, const char *content_type);
 
-/* --------------------------------------------------------------
- MIME RELATED FUNCTIONS
- ---------------------------------------------------------------*/
+extern herror_t httpd_send_header(httpd_conn_t * res, int code, const char *text);
+
+extern int httpd_set_header(httpd_conn_t * conn, const char *key, const char *value);
+extern void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
+
+extern int httpd_add_header(httpd_conn_t * conn, const char *key, const char *value);
+extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
+
 /*
-  MIME support httpd_mime_* function set
-*/
+ * XXX: move to nanohttp-mime.c
+ *
+ * MIME support httpd_mime_* function set
+ */
 
 /**
-  Begin MIME multipart/related POST 
-  Returns: HSOCKET_OK  or error flag
-*/
-  extern herror_t httpd_mime_send_header(httpd_conn_t * conn,
-                                  const char *related_start,
-                                  const char *related_start_info,
-                                  const char *related_type, int code,
-                                  const char *text);
+ *
+ * MIME multipart/related POST 
+ * @returns H_OK on success or error flag
+ *
+ */
+extern herror_t httpd_mime_send_header(httpd_conn_t * conn, const char *related_start, const char *related_start_info, const char *related_type, int code, const char *text);
 
 /**
-  Send boundary and part header and continue 
-  with next part
-*/
-  extern herror_t httpd_mime_next(httpd_conn_t * conn,
-                           const char *content_id,
-                           const char *content_type,
-                           const char *transfer_encoding);
+ *
+ * Send boundary and part header and continue with next part
+ *
+ */
+extern herror_t httpd_mime_next(httpd_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding);
 
 /**
-  Send boundary and part header and continue 
-  with next part
-*/
-  extern herror_t httpd_mime_send_file(httpd_conn_t * conn,
-                                const char *content_id,
-                                const char *content_type,
-                                const char *transfer_encoding,
-                                const char *filename);
+ *
+ * Send boundary and part header and continue with next part
+ *
+ */
+extern herror_t httpd_mime_send_file(httpd_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding, const char *filename);
 
 /**
-  Finish MIME request 
-  Returns: HSOCKET_OK  or error flag
-*/
-  extern herror_t httpd_mime_end(httpd_conn_t * conn);
-
+ *
+ * Finish MIME request 
+ *
+ * @return H_OK on success or error flag
+ *
+ */
+extern herror_t httpd_mime_end(httpd_conn_t * conn);
 
 #ifdef __cplusplus
 }

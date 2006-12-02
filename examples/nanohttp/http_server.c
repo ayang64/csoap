@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.10 2006/11/30 14:23:59 m0gg Exp $
+*  $Id: http_server.c,v 1.11 2006/12/02 21:50:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -28,17 +28,17 @@
 
 static int simple_authenticator(struct hrequest_t *req, const char *user, const char *password)
 {
-  fprintf(stdout, "logging in user=\"%s\" password=\"%s\"", user, password);
+  fprintf(stdout, "logging in user=\"%s\" password=\"%s\"\n", user, password);
 
   if (strcmp(user, "bob")) {
 
-    fprintf(stderr, "user \"%s\" unkown", user);
+    fprintf(stderr, "user \"%s\" unkown\n", user);
     return 0;
   }
 
   if (strcmp(password, "builder")) {
 
-    fprintf(stderr, "wrong password");
+    fprintf(stderr, "wrong password\n");
     return 0;
   }
 
@@ -75,7 +75,7 @@ static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
 
   http_output_stream_write_string(conn->out, req->path);
 
-  http_output_stream_write_string(conn->out, " can not be found"
+  http_output_stream_write_string(conn->out, " cannot be found"
                "</div>"
       "</body>"
     "</html>");
@@ -139,41 +139,47 @@ static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
 
 int main(int argc, char **argv)
 {
+  herror_t status;
   hlog_set_level(HLOG_INFO);
 
   if (httpd_init(argc, argv)) {
 
-    fprintf(stderr, "Cannot init httpd");
+    fprintf(stderr, "Cannot init httpd\n");
     return 1;
   }
 
-  if (!httpd_register("/", root_service)) {
+  if ((status = httpd_register("/", root_service)) != H_OK) {
 
-    fprintf(stderr, "Cannot register service");
+    fprintf(stderr, "Cannot register service (%s)\n", herror_message(status));
+    herror_release(status);
     return 1;
   }
 
-  if (!httpd_register_secure("/secure", secure_service, simple_authenticator)) {
+  if ((status = httpd_register_secure("/secure", secure_service, simple_authenticator)) != H_OK) {
 
-    fprintf(stderr, "Cannot register secure service");
+    fprintf(stderr, "Cannot register secure service (%s)\n", herror_message(status));
+    herror_release(status);
     return 1;
   }
 
-  if (!httpd_register("/headers", headers_service)) {
+  if ((status = httpd_register("/headers", headers_service)) != H_OK) {
 
-    fprintf(stderr, "Cannot register headers service");
+    fprintf(stderr, "Cannot register headers service (%s)\n", herror_message(status));
+    herror_release(status);
     return 1;
   }
 
-  if (!httpd_register_default("/error", default_service)) {
+  if ((status = httpd_register_default("/error", default_service)) != H_OK) {
 
-    fprintf(stderr, "Cannot register default service");
+    fprintf(stderr, "Cannot register default service (%s)\n", herror_message(status));
+    herror_release(status);
     return 1;
   }
 
   if (httpd_run()) {
 
-    fprintf(stderr, "can not run httpd");
+    fprintf(stderr, "Cannot run httpd\n");
+    herror_release(status);
     return 1;
   }
 

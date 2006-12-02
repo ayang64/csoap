@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.48 2006/11/30 14:23:59 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.49 2006/12/02 21:50:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -61,6 +61,10 @@
 #include <netinet/in.h>
 #endif
 
+#ifdef WIN32
+#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
+#endif
+
 #include "nanohttp-logging.h"
 #include "nanohttp-error.h"
 #include "nanohttp-common.h"
@@ -71,21 +75,12 @@
 #include "nanohttp-base64.h"
 #include "nanohttp-client.h"
 
-/*--------------------------------------------------
-FUNCTION: httpc_init
-DESC: Initialize http client connection
-NOTE: This will be called from soap_client_init_args()
-----------------------------------------------------*/
 herror_t
 httpc_init(int argc, char **argv)
 {
   return hsocket_module_init(argc, argv);
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_destroy
-DESC: Destroy the http client module
-----------------------------------------------------*/
 void
 httpc_destroy(void)
 {
@@ -94,12 +89,6 @@ httpc_destroy(void)
   return;
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_new
-DESC: Creates a new http client connection object
-You need to create at least 1 http client connection
-to communicate via http.
-----------------------------------------------------*/
 httpc_conn_t *
 httpc_new(void)
 {
@@ -135,10 +124,6 @@ httpc_new(void)
   return res;
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_free
-DESC: Free the given http client object.
-----------------------------------------------------*/
 void
 httpc_free(httpc_conn_t * conn)
 {
@@ -167,10 +152,6 @@ httpc_free(httpc_conn_t * conn)
   return;
 }
 
-/*--------------------------------------------------
- FUNCTION: httpc_close_free
- DESC: Close and free the given http client object.
- ----------------------------------------------------*/
 void
 httpc_close_free(httpc_conn_t * conn)
 {
@@ -256,6 +237,7 @@ _httpc_set_basic_authorization_header(httpc_conn_t *conn, const char *key, const
   if (!password)
     password = "";
 
+  /* XXX: do we need this really? */
   memset(in, 0, 64);
   memset(out, 0, 64);
 
@@ -280,10 +262,6 @@ httpc_set_basic_proxy_authorization(httpc_conn_t *conn, const char *user, const 
   return _httpc_set_basic_authorization_header(conn, HEADER_PROXY_AUTHORIZATION, user, password);
 }
 
-/*--------------------------------------------------
-FUNCTION: httpc_header_set_date
-DESC: Adds the current date to the header.
-----------------------------------------------------*/
 static void
 httpc_header_set_date(httpc_conn_t * conn)
 {
@@ -299,7 +277,6 @@ httpc_header_set_date(httpc_conn_t * conn)
 
   return;
 }
-
 
 /*--------------------------------------------------
 FUNCTION: httpc_send_header
@@ -511,12 +488,12 @@ _httpc_mime_get_boundary(httpc_conn_t * conn, char *dest)
 {
   sprintf(dest, "---=.Part_NH_%d", conn->id);
   log_verbose2("boundary= \"%s\"", dest);
+
+  return;
 }
 
 herror_t
-httpc_mime_begin(httpc_conn_t * conn, const char *url,
-                 const char *related_start,
-                 const char *related_start_info, const char *related_type)
+httpc_mime_begin(httpc_conn_t * conn, const char *url, const char *related_start, const char *related_start_info, const char *related_type)
 {
   herror_t status;
   char buffer[300];
@@ -529,12 +506,6 @@ httpc_mime_begin(httpc_conn_t * conn, const char *url,
 
    */
   sprintf(buffer, "multipart/related;");
-  /* 
-     using sprintf instead of snprintf because visual c does not support
-     snprintf */
-#ifdef WIN32
-#define snprintf(buffer, num, s1, s2) sprintf(buffer, s1,s2)
-#endif
 
   if (related_type)
   {
@@ -565,9 +536,7 @@ httpc_mime_begin(httpc_conn_t * conn, const char *url,
 }
 
 herror_t
-httpc_mime_next(httpc_conn_t * conn,
-                const char *content_id,
-                const char *content_type, const char *transfer_encoding)
+httpc_mime_next(httpc_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding)
 {
   herror_t status;
   char buffer[512];
@@ -625,19 +594,19 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   with next part
 */
 herror_t
-httpc_mime_send_file(httpc_conn_t * conn,
-                     const char *content_id,
-                     const char *content_type,
-                     const char *transfer_encoding, const char *filename)
+httpc_mime_send_file(httpc_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding, const char *filename)
 {
   herror_t status;
-  FILE *fd = fopen(filename, "rb");
+  FILE *fd;
   unsigned char buffer[MAX_FILE_BUFFER_SIZE];
   size_t size;
 
-  if (fd == NULL)
+  if ((fd = fopen(filename, "rb")) == NULL)
+  {
+    log_error2("fopen failed (%s)", strerror(errno));
     return herror_new("httpc_mime_send_file", FILE_ERROR_OPEN,
-                      "Can not open file '%s'", filename);
+                      "Can not open file \"%s\" (%s)", filename, strerror(errno));
+  }
 
   status = httpc_mime_next(conn, content_id, content_type, transfer_encoding);
   if (status != H_OK)
@@ -670,5 +639,6 @@ httpc_mime_send_file(httpc_conn_t * conn,
 
   fclose(fd);
   log_verbose1("file sent!");
+
   return H_OK;
 }
