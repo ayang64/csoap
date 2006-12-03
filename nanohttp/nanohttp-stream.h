@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.12 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: nanohttp-stream.h,v 1.13 2006/12/03 17:30:58 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -49,6 +49,17 @@
  * information. (After <CF><CF>)"
  *
  */
+
+/**
+ *
+ * Stream errors
+ *
+ */
+#define STREAM_ERROR			1200
+#define STREAM_ERROR_INVALID_TYPE	(STREAM_ERROR + 1)
+#define STREAM_ERROR_SOCKET_ERROR	(STREAM_ERROR + 2)
+#define STREAM_ERROR_NO_CHUNK_SIZE	(STREAM_ERROR + 3)
+#define STREAM_ERROR_WRONG_CHUNK_SIZE	(STREAM_ERROR + 4)
 
 /**
  *

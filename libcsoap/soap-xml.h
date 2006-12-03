@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.11 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-xml.h,v 1.12 2006/12/03 17:30:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,15 @@
  ******************************************************************/
 #ifndef __csoap_xml_h
 #define __csoap_xml_h
+
+/**
+ *
+ * XML Errors
+ *
+ */
+#define XML_ERROR			1600
+#define XML_ERROR_EMPTY_DOCUMENT	(XML_ERROR + 1)
+#define XML_ERROR_PARSE			(XML_ERROR + 2)
 
 static const char * const soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
 static const char * const soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";

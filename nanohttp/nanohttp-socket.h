@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.35 2006/12/01 10:56:00 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.36 2006/12/03 17:30:58 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,25 @@
  ******************************************************************/
 #ifndef __nanohttp_socket_h
 #define __nanohttp_socket_h
+
+/**
+ *
+ * Socket error
+ *
+ */
+#define HSOCKET_ERROR			1000
+#define HSOCKET_ERROR_CREATE		(HSOCKET_ERROR + 1)
+#define HSOCKET_ERROR_GET_HOSTNAME	(HSOCKET_ERROR + 2)
+#define HSOCKET_ERROR_CONNECT		(HSOCKET_ERROR + 3)
+#define HSOCKET_ERROR_SEND		(HSOCKET_ERROR + 4)
+#define HSOCKET_ERROR_RECEIVE		(HSOCKET_ERROR + 5)
+#define HSOCKET_ERROR_BIND		(HSOCKET_ERROR + 6)
+#define HSOCKET_ERROR_LISTEN		(HSOCKET_ERROR + 7)
+#define HSOCKET_ERROR_ACCEPT		(HSOCKET_ERROR + 8)
+#define HSOCKET_ERROR_NOT_INITIALIZED	(HSOCKET_ERROR + 9)
+#define HSOCKET_ERROR_IOCTL		(HSOCKET_ERROR + 10)
+#define HSOCKET_ERROR_SSLCLOSE		(HSOCKET_ERROR + 11)
+#define HSOCKET_ERROR_SSLCTX		(HSOCKET_ERROR + 11)
 
 /**
  *

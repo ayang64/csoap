@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.15 2006/11/30 14:23:59 m0gg Exp $
+ *  $Id: soap-server.h,v 1.16 2006/12/03 17:30:57 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -48,11 +48,11 @@
  * 		Matt Campbell,
  * 		Heiko Ronsdorf
  *
- * @version	$Revision: 1.15 $
+ * @version	$Revision: 1.16 $
  *
- * @see		http://www.libxml.org/,
- * 		http://www.openssl.org/,
- * 		http://www.aleksey.com/xmlsec/
+ * @see		http://www.libxml.org/
+ * @see		http://www.openssl.org/
+ * @see		http://www.aleksey.com/xmlsec/
  */
 
 #ifdef __cplusplus

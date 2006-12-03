@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.12 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: nanohttp-mime.h,v 1.13 2006/12/03 17:30:57 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -25,21 +25,32 @@
 *
 * Email: ferhatayaz@yahoo.com
 ******************************************************************/
-
 #ifndef __nanohttp_mime_h
 #define __nanohttp_mime_h
 
 /** @file
  *
  * @author	Ferhat Ayaz
- * @version	$Revision: 1.12 $
+ * @version	$Revision: 1.13 $
  *
- * @see http://www.ietf.org/rfc/rfc2045.txt,
- *      http://www.ietf.org/rfc/rfc2046.txt,
- *      http://www.ietf.org/rfc/rfc4288.txt,
- *      http://www.ietf.org/rfc/rfc4289.txt,
+ * @see		http://www.ietf.org/rfc/rfc2045.txt
+ * @see		http://www.ietf.org/rfc/rfc2046.txt
+ * @see		http://www.ietf.org/rfc/rfc4288.txt
+ * @see		http://www.ietf.org/rfc/rfc4289.txt,
  *
  */
+
+/**
+ *
+ * MIME errors
+ *
+ */
+#define MIME_ERROR			1300
+#define MIME_ERROR_NO_BOUNDARY_PARAM	(MIME_ERROR + 1)
+#define MIME_ERROR_NO_START_PARAM	(MIME_ERROR + 2)
+#define MIME_ERROR_PARSE_ERROR		(MIME_ERROR + 3)
+#define MIME_ERROR_NO_ROOT_PART		(MIME_ERROR + 4)
+#define MIME_ERROR_NOT_MIME_MESSAGE	(MIME_ERROR + 5)
 
 #ifdef __cplusplus
 extern "C" {

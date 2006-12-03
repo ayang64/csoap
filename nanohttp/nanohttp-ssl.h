@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.24 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.25 2006/12/03 17:30:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -30,6 +30,21 @@
  *
  */
 #define NHTTPD_ARG_HTTPS	"-NHTTPS"
+
+
+/**
+ *
+ * SSL Errors
+ *
+ */
+#define HSSL_ERROR			1700
+#define HSSL_ERROR_CA_LIST		(HSSL_ERROR + 10)
+#define HSSL_ERROR_CONTEXT		(HSSL_ERROR + 20)
+#define HSSL_ERROR_CERTIFICATE		(HSSL_ERROR + 30)
+#define HSSL_ERROR_PEM			(HSSL_ERROR + 40)
+#define HSSL_ERROR_CLIENT		(HSSL_ERROR + 50)
+#define HSSL_ERROR_SERVER		(HSSL_ERROR + 60)
+#define HSSL_ERROR_CONNECT		(HSSL_ERROR + 70)
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.8 2006/12/02 21:59:09 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.9 2006/12/03 17:30:57 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -39,6 +39,7 @@
 
 #include <libxml/tree.h>
 #include <libxml/uri.h>
+#include <libxml/xpath.h>
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
@@ -57,6 +58,7 @@
 #include "soap-client.h"
 #include "soap-transport.h"
 #include "soap-addressing.h"
+#include "soap-xml.h"
 
 #include "soap-admin.h"
 #include "soap-wsil.h"
