@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.6 2006/11/29 11:04:25 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.7 2006/12/06 11:27:21 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -266,8 +266,8 @@ soap_nudp_server_run(void *unused)
 
     _soap_nudp_receive_document(_soap_nudp_socket, &doc, &addr, &addr_len);
 
-    // log_error1(__FUNCTION__);
-    // xmlDocFormatDump(stdout, doc, 1);
+    /* log_error1(__FUNCTION__);
+     xmlDocFormatDump(stdout, doc, 1); */
 
     req = soap_ctx_new(NULL);
 

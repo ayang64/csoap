@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xmlsec.c,v 1.6 2006/11/29 13:01:00 m0gg Exp $
+*  $Id: soap-xmlsec.c,v 1.7 2006/12/06 11:27:21 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -135,7 +135,7 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
   xmlURI *uri;
   char *file;
 
-  log_info2("trying to find key \"%s\"\n", name);
+  log_verbose2("trying to find key \"%s\"\n", name);
 
   /*
    * it's possible to do not have the key name or desired key type but we could
@@ -160,10 +160,10 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
     return NULL;
   }
 
-  // printf("uri->scheme=\"%s\"\n", uri->scheme);
-  // printf("uri->server=\"%s\"\n", uri->server);
-  // printf("uri->port=\"%i\"\n", uri->port);
-  // printf("uri->path=\"%s\"\n", uri->path);
+  /* printf("uri->scheme=\"%s\"\n", uri->scheme);
+   printf("uri->server=\"%s\"\n", uri->server);
+   printf("uri->port=\"%i\"\n", uri->port);
+   printf("uri->path=\"%s\"\n", uri->path); */
 
   {
           char *tmp;
@@ -174,10 +174,7 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
     {
       tmp = "/tmp";
     }
-    // printf("tmp = \"%s\"\n", tmp);
-
     sprintf(buf, "%s/csoap-XXXXXX-key.pem", tmp);
-    // printf("buf = \"%s\"\n", buf);
 
     if (mkstemps(buf, 8) < 0)
     {
@@ -185,7 +182,6 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
       return NULL;
     }
 
-    // printf("fopen(\"%s\")\n", buf);
     file = strdup(buf);
 
     if (!(fp = fopen(buf, "w")))
@@ -360,8 +356,8 @@ _soap_xmlsec_load_key(void)
     return herror_new("_soap_xmlsec_load_key", XMLSEC_ERROR_KEY, "xmlSecKeySetName(\"%s\") failed (%i)", keyName, err);
   }
 
-//  xmlSecKeyDebugXmlDump(_soap_xmlsec_key, stdout);
-//  xmlSecKeyDataDebugXmlDump(xmlSecKeyGetValue(_soap_xmlsec_key), stdout);
+/*  xmlSecKeyDebugXmlDump(_soap_xmlsec_key, stdout);
+    xmlSecKeyDataDebugXmlDump(xmlSecKeyGetValue(_soap_xmlsec_key), stdout); */
 
   return H_OK;
 }
@@ -644,9 +640,9 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
 
   doc = context->env->root->doc;
 
-  // fprintf(stdout, "*** before encryption ***\n");
-  // xmlDocFormatDump(stdout, doc, 1);
-  // fprintf(stdout, "*************************\n");
+  /* fprintf(stdout, "*** before encryption ***\n");
+   xmlDocFormatDump(stdout, doc, 1);
+   fprintf(stdout, "*************************\n"); */
 
   encDataNode = xmlSecTmplEncDataCreate(doc, xmlSecTransformDes3CbcId, NULL, xmlSecTypeEncElement, NULL, NULL);
   if (encDataNode == NULL)
@@ -727,9 +723,9 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
     goto out;
   }
 
-  // fprintf(stdout, "*** before encryption ***\n");
-  // xmlDocFormatDump(stdout, doc, 1);
-  // fprintf(stdout, "*************************\n");
+  /* fprintf(stdout, "*** before encryption ***\n");
+   xmlDocFormatDump(stdout, doc, 1);
+   fprintf(stdout, "*************************\n"); */
 
   if (xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, soap_env_get_method(envelope)) < 0)
   {
@@ -738,9 +734,11 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
     goto out;
   }
 
-  // fprintf(stdout, "*** after encryption ***\n");
-  // xmlDocFormatDump(stdout, doc, 1);
-  // fprintf(stdout, "************************\n");
+  /*
+   fprintf(stdout, "*** after encryption ***\n");
+   xmlDocFormatDump(stdout, doc, 1);
+   fprintf(stdout, "************************\n");
+  */
 
 out:
 
@@ -863,7 +861,7 @@ herror_t soap_xmlsec_verify(struct SoapCtx *context)
     {
       if (!xmlStrcmp(walker->name, "Signature"))
       {
-        if (!xmlStrcmp(walker->ns->href, "http://schemas.xmlsoap.org/soap/security/2000-12"))
+        if (!xmlStrcmp(walker->ns->href, SOAP_SECURITY_NAMESPACE))
 	{
           xmlNodePtr node;
 	  xmlSecDSigCtxPtr dsigCtx;

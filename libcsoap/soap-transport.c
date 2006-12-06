@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.c,v 1.7 2006/11/29 11:04:25 m0gg Exp $
+*  $Id: soap-transport.c,v 1.8 2006/12/06 11:27:21 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -268,8 +268,8 @@ soap_transport_client_invoke(struct SoapCtx *request, struct SoapCtx **response)
   herror_t ret;
   xmlURI *dest;
   
-  // log_verbose1(__FUNCTION__);
-  // xmlDocFormatDump(stdout, request->env->root->doc, 1);
+  /* log_verbose1(__FUNCTION__);
+   xmlDocFormatDump(stdout, request->env->root->doc, 1); */
 
   if (!(dest = soap_addressing_get_to_address(request->env)))
   {

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xmlsec.h,v 1.4 2006/11/29 11:04:25 m0gg Exp $
+ *  $Id: soap-xmlsec.h,v 1.5 2006/12/06 11:27:21 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -31,11 +31,11 @@
  * This module is implemented using the xmlsec1 library.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  *
- * @see http://www.w3.org/TR/SOAP-dsig/,
- *      http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss,
- *      http://www.aleksey.com/xmlsec/
+ * @see		http://www.w3.org/TR/SOAP-dsig/
+ * @see		http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss
+ * @see		http://www.aleksey.com/xmlsec/
  *
  */
 

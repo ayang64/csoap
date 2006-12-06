@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.35 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.36 2006/12/06 11:27:21 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -520,10 +520,9 @@ hssl_server_ssl(struct hsocket_t *sock)
     log_error1("BIO_new_socket failed");
     return NULL;
   }
-  // BIO_set_callback(sbio, hssl_bio_cb);
+  /* BIO_set_callback(sbio, hssl_bio_cb); */
   sbio->method->bread = _hssl_bio_read;
   SSL_set_bio(ssl, sbio, sbio);
-
 
   if ((ret = SSL_accept(ssl)) <= 0)
   {
@@ -531,9 +530,7 @@ hssl_server_ssl(struct hsocket_t *sock)
 
     log_error2("SSL_accept failed (%s)", _hssl_get_error(ssl, ret));
 
-    err =
-      herror_new("hssl_server_ssl", HSSL_ERROR_SERVER,
-                 "SSL_accept failed (%s)", _hssl_get_error(ssl, ret));
+    err = herror_new("hssl_server_ssl", HSSL_ERROR_SERVER, "SSL_accept failed (%s)", _hssl_get_error(ssl, ret));
     SSL_free(ssl);
 
     return err;
