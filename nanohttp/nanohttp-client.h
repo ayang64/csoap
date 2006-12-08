@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.29 2006/12/02 21:50:47 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.30 2006/12/08 21:21:41 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -34,11 +34,132 @@
 #include <nanohttp/nanohttp-logging.h>
 #endif
 
+/** @file
+ *
+ * Writing an HTTP client using nanoHTTP
+ *
+ * - Client initialization
+ * - Connection initialization
+ * -- SSL related functions
+ * - Setting HTTP headers (optional)
+ * -- Setting an HTTP header with uniq key
+ * -- Setting multiple headers
+ * - Fetch the network resource
+ * -- HTTP GET command
+ * -- HTTP POST command
+ * -- MIME attachments
+ * - Print out the result
+ * - Connection cleanup
+ * - Client cleanup
+ *
+ * Client initialization
+ *
+ * int main(int argc, char **argv)
+ * {
+ *   herror_t status;
+ *   size_t len;
+ *   httpc_conn_t conn;
+ *
+ *   if (argc < 2)
+ *   {
+ *     fprintf(stderr, "usage: %s <url> [nanoHTTP params]\n", argv[0]);
+ *     exit(1);
+ *   }
+ *
+ *   if ((status = httpc_init(argc, argv)) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot init nanoHTTP client (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     exit(1);
+ *   }
+ *
+ * Connection initialization
+ *
+ *   if (!(conn = httpc_new()))
+ *   {
+ *     fprintf(stderr, "Cannot create nanoHTTP client connection\n");
+ *     httpc_destroy();
+ *     exit(1);
+ *   }
+ *
+ * SSL related functions
+ *
+ * T.B.D.
+ *
+ * Setting HTTP headers (optional)
+ *
+ *   httpc_set_header(conn, "my-key", "my-value");
+ *
+ *   httpc_add_header(conn, "Cookie", "name1:value1");
+ *   httpc_add_header(conn, "Cookie", "name2:value2");
+ *
+ * Fetch the network resource
+ *
+ * HTTP GET command
+ *
+ *   if ((status = httpc_get(conn, &result, argv[1])) != H_OK)
+ *   {
+ *     fprintf(stderr, "nanoHTTP client connection failed (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpc_destroy();
+ *     exit(1);
+ *   }
+ *
+ * HTTP POST command
+ *
+ *   if ((status = httpc_post_begin(conn, argv[1])) != H_OK)
+ *   {
+ *     fprintf(stderr, "nanoHTTP client connection failed (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpc_destroy();
+ *     exit(1);
+ *   }
+ *
+ *   if ((status = http_output_stream_write(conn->out, buffer, len)) != H_OK)
+ *   {
+ *     fprintf(stderr, "nanoHTTP client sending POST data failed (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpc_destroy();
+ *     exit(1);
+ *   }
+ *
+ *   if ((status = httpc_post_end(conn, &result)) != H_OK)
+ *   {
+ *     fprintf(stderr, "nanoHTTP client POST failed (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpc_destroy();
+ *     exit(1);
+ *   }
+ *
+ * MIME attachments
+ *
+ * T.B.D.
+ *
+ * Print out the result
+ *
+ *   while (http_input_stream_is_read(res->in))
+ *   {
+ *     len = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
+ *     fwrite(buffer, len, 1, stdout);
+ *   }
+ *
+ * Connection cleanup
+ *
+ *   hresponse_free(res);
+ *
+ * Client cleanup
+ *
+ *   httpc_free(conn);
+ *
+ * }
+ *
+ */
+
 typedef struct httpc_conn
 {
   struct hsocket_t *sock;
   hpair_t *header;
-  hurl_t url;
+  struct hurl_t *url;
   http_version_t version;
 
   int errcode;

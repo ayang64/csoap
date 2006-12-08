@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.49 2006/12/02 21:50:47 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.50 2006/12/08 21:21:41 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -73,6 +73,7 @@
 #include "nanohttp-request.h"
 #include "nanohttp-response.h"
 #include "nanohttp-base64.h"
+#include "nanohttp-url.h"
 #include "nanohttp-client.h"
 
 herror_t
@@ -105,6 +106,14 @@ httpc_new(void)
   if (!(res->sock = (struct hsocket_t *)malloc(sizeof(struct hsocket_t))))
   {
     log_error2("malloc failed (%s)", strerror(errno));
+    free(res);
+    return NULL;
+  }
+
+  if (!(res->url = (struct hurl_t *)malloc(sizeof(struct hurl_t))))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    free(res->sock);
     free(res);
     return NULL;
   }
@@ -146,6 +155,8 @@ httpc_free(httpc_conn_t * conn)
   }
 
   hsocket_free(conn->sock);
+  hurl_free(conn->url);
+
   free(conn->sock);
   free(conn);
 
@@ -352,8 +363,6 @@ static herror_t
 _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
                      const char *urlstr)
 {
-
-  hurl_t url;
   char buffer[4096];
   herror_t status;
   int ssl;
@@ -366,7 +375,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   /* Build request header */
   httpc_header_set_date(conn);
 
-  if ((status = hurl_parse(&url, urlstr)) != H_OK)
+  if ((status = hurl_parse(conn->url, urlstr)) != H_OK)
   {
     log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
     return status;
@@ -374,12 +383,12 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 /* TODO (#1#): Check for HTTP protocol in URL */
 
   /* Set hostname */
-  httpc_set_header(conn, HEADER_HOST, url.host);
+  httpc_set_header(conn, HEADER_HOST, conn->url->host);
 
-  ssl = url.protocol == PROTOCOL_HTTPS ? 1 : 0;
+  ssl = conn->url->protocol == PROTOCOL_HTTPS ? 1 : 0;
 
   /* Open connection */
-  if ((status = hsocket_open(conn->sock, url.host, url.port, ssl)) != H_OK)
+  if ((status = hsocket_open(conn->sock, conn->url->host, conn->url->port, ssl)) != H_OK)
     return status;
 
   switch(method)
@@ -387,14 +396,14 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
     case HTTP_REQUEST_GET:
 
       sprintf(buffer, "GET %s HTTP/%s\r\n",
-        (url.context[0] != '\0') ? url.context : ("/"),
+        (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
         (conn->version == HTTP_1_0) ? "1.0" : "1.1");
       break;
 
     case HTTP_REQUEST_POST:
 
       sprintf(buffer, "POST %s HTTP/%s\r\n",
-        (url.context[0] != '\0') ? url.context : ("/"),
+        (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
         (conn->version == HTTP_1_0) ? "1.0" : "1.1");
       break;
 

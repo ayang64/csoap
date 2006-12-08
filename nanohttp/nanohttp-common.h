@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.38 2006/11/26 20:13:05 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.39 2006/12/08 21:21:41 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -284,14 +284,19 @@
 
 #define REQUEST_MAX_PATH_SIZE 1024
 #define RESPONSE_MAX_DESC_SIZE 1024
-      
-#define URL_MAX_HOST_SIZE      120
-#define URL_MAX_CONTEXT_SIZE  1024
 
-/* TODO (#1#): find proper ports */
-#define URL_DEFAULT_PORT_HTTP 80
-#define URL_DEFAULT_PORT_HTTPS 81
-#define URL_DEFAULT_PORT_FTP 120
+/**
+ *
+ * hpairnode_t represents a pair (key, value) pair. This is also a linked list.
+ *
+ */
+typedef struct hpair hpair_t;
+struct hpair
+{
+  char *key;
+  char *value;
+  hpair_t *next;
+};
 
 /**
  *
@@ -304,6 +309,21 @@ typedef enum _http_version
   HTTP_1_1                      /* default */
 } http_version_t;
 
+
+/**
+ *
+ * Object representation of the content-type field in a HTTP header: 
+ *
+ * Example:
+ *
+ * text/xml; key="value" key2="value2' ...
+ *
+ */
+typedef struct _content_type
+{
+  char type[128];
+  hpair_t *params;
+} content_type_t;
 
 /**
  *
@@ -503,76 +523,33 @@ typedef enum _hreq_method
 
 /**
  *
- * hpairnode_t represents a pair (key, value) pair. This is also a linked list.
+ * part. Attachment
  *
  */
-typedef struct hpair hpair_t;
-struct hpair
+struct part_t
 {
-  char *key;
-  char *value;
-  hpair_t *next;
+  char id[250];
+  char location[250];
+  hpair_t *header;
+  char content_type[128];
+  char transfer_encoding[128];
+  char filename[250];
+  struct part_t *next;
+  int deleteOnExit;             /* default is 0 */
 };
 
 /**
  *
- * The protocol types in enumeration format. Used in some other nanohttp objects
- * like hurl_t.
- *
- * @see hurl_t
+ * Attachments
  *
  */
-typedef enum _hprotocol
+struct attachments_t
 {
-  PROTOCOL_HTTP,
-  PROTOCOL_HTTPS,
-  PROTOCOL_FTP
-} hprotocol_t;
+  struct part_t *parts;
+  struct part_t *last;
+  struct part_t *root_part;
+};
 
-/**
- *
- * The URL object. A representation of an URL like:
- *
- * [protocol]://[host]:[port]/[context]
- *
- * @see http://www.ietf.org/rfc/rfc2396.txt
- *
- */
-typedef struct _hurl
-{
-  /**
-   *
-   * The transfer protocol. Note that only PROTOCOL_HTTP and PROTOCOL_HTTPS are
-   * supported by nanohttp.
-   *
-   */
-  hprotocol_t protocol;
-
-  /**
-   *
-   * The port number. If no port number was given in the URL, one of the default
-   * port numbers will be selected. 
-   * - URL_HTTP_DEFAULT_PORT    
-   * - URL_HTTPS_DEFAULT_PORT   
-   * - URL_FTP_DEFAULT_PORT    
-   *
-   */
-  short port;
-
-  /**
-   *
-   * The hostname
-   *
-   */
-  char host[URL_MAX_HOST_SIZE];
-
-  /**
-   *
-   * The string after the hostname.
-   *
-   */
-  char context[URL_MAX_CONTEXT_SIZE];
-} hurl_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -696,36 +673,6 @@ extern void hpairnode_dump(hpair_t * pair);
 
 /**
  *
- * Parses the given 'urlstr' and fills the given hurl_t object.
- *
- * @param obj the destination URL object to fill
- * @param url the URL in string format
- *
- * @returns H_OK on success or one of the following otherwise
- *          - URL_ERROR_UNKNOWN_PROTOCOL 
- *          - URL_ERROR_NO_PROTOCOL 
- *          - URL_ERROR_NO_HOST 
- *
- */
-extern herror_t hurl_parse(hurl_t * obj, const char *url);
-
-/**
- *
- * Object representation of the content-type field in a HTTP header: 
- *
- * Example:
- *
- * text/xml; key="value" key2="value2' ...
- *
- */
-typedef struct _content_type
-{
-  char type[128];
-  hpair_t *params;
-} content_type_t;
-
-/**
- *
  * Parses the given string and creates a new ccontent_type_t object. 
  *
  * @param content_type_str the string representation of the content-type field in
@@ -745,38 +692,10 @@ extern content_type_t *content_type_new(const char *content_type_str);
  */
 extern void content_type_free(content_type_t * ct);
 
-/**
- *
- * part. Attachment
- *
- */
-struct part_t
-{
-  char id[250];
-  char location[250];
-  hpair_t *header;
-  char content_type[128];
-  char transfer_encoding[128];
-  char filename[250];
-  struct part_t *next;
-  int deleteOnExit;             /* default is 0 */
-};
-
 extern struct part_t *part_new(const char *id, const char *filename, const char *content_type, const char *transfer_encoding, struct part_t * next);
 
 extern void part_free(struct part_t * part);
 
-/**
- *
- * Attachments
- *
- */
-struct attachments_t
-{
-  struct part_t *parts;
-  struct part_t *last;
-  struct part_t *root_part;
-};
 
 /* should be used internally */
 extern struct attachments_t *attachments_new(void);

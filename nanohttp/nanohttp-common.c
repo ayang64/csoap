@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.33 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.34 2006/12/08 21:21:41 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -56,29 +56,6 @@
 #include "nanohttp-logging.h"
 #include "nanohttp-error.h"
 #include "nanohttp-common.h"
-
-static int
-strcmpigcase(const char *s1, const char *s2)
-{
-  int l1, l2, i;
-
-  if (s1 == NULL && s2 == NULL)
-    return 1;
-  if (s1 == NULL || s2 == NULL)
-    return 0;
-
-  l1 = strlen(s1);
-  l2 = strlen(s2);
-
-  if (l1 != l2)
-    return 0;
-
-  for (i = 0; i < l1; i++)
-    if (toupper(s1[i]) != toupper(s2[i]))
-      return 0;
-
-  return 1;
-}
 
 hpair_t *
 hpairnode_new(const char *key, const char *value, hpair_t * next)
@@ -260,7 +237,7 @@ hpairnode_get_ignore_case(hpair_t * pair, const char *key)
   {
     if (pair->key != NULL)
     {
-      if (strcmpigcase(pair->key, key))
+      if (strcasecmp(pair->key, key))
       {
         return pair->value;
       }
@@ -293,143 +270,6 @@ hpairnode_get(hpair_t * pair, const char *key)
 
   return NULL;
 }
-
-static void
-hurl_dump(const hurl_t * url)
-{
-
-  if (url == NULL)
-  {
-    log_error1("url is NULL!");
-    return;
-  }
-  log_verbose2("PROTOCOL : %d", url->protocol);
-  log_verbose2("    HOST : %s", url->host);
-  log_verbose2("    PORT : %d", url->port);
-  log_verbose2(" CONTEXT : %s", url->context);
-}
-
-herror_t
-hurl_parse(hurl_t * url, const char *urlstr)
-{
-  int iprotocol;
-  int ihost;
-  int iport;
-  int len;
-  int size;
-  char tmp[8];
-  char protocol[1024];
-
-  iprotocol = 0;
-  len = strlen(urlstr);
-
-  /* find protocol */
-  while (urlstr[iprotocol] != ':' && urlstr[iprotocol] != '\0')
-  {
-    iprotocol++;
-  }
-
-  if (iprotocol == 0)
-  {
-    log_error1("no protocol");
-    return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
-  }
-  if (iprotocol + 3 >= len)
-  {
-    log_error1("no host");
-    return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
-  }
-  if (urlstr[iprotocol] != ':'
-      && urlstr[iprotocol + 1] != '/' && urlstr[iprotocol + 2] != '/')
-  {
-    log_error1("no protocol");
-    return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
-  }
-  /* find host */
-  ihost = iprotocol + 3;
-  while (urlstr[ihost] != ':'
-         && urlstr[ihost] != '/' && urlstr[ihost] != '\0')
-  {
-    ihost++;
-  }
-
-  if (ihost == iprotocol + 1)
-  {
-    log_error1("no host");
-    return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
-  }
-  /* find port */
-  iport = ihost;
-  if (ihost + 1 < len)
-  {
-    if (urlstr[ihost] == ':')
-    {
-      while (urlstr[iport] != '/' && urlstr[iport] != '\0')
-      {
-        iport++;
-      }
-    }
-  }
-
-  /* find protocol */
-  strncpy(protocol, urlstr, iprotocol);
-  protocol[iprotocol] = '\0';
-  if (strcmpigcase(protocol, "http"))
-    url->protocol = PROTOCOL_HTTP;
-  else if (strcmpigcase(protocol, "https"))
-    url->protocol = PROTOCOL_HTTPS;
-  else if (strcmpigcase(protocol, "ftp"))
-    url->protocol = PROTOCOL_FTP;
-  else
-    return herror_new("hurl_parse",
-                      URL_ERROR_UNKNOWN_PROTOCOL, "Unknown protocol '%s'",
-                      protocol);
-
-  /* TODO (#1#): add max of size and URL_MAX_HOST_SIZE */
-  size = ihost - iprotocol - 3;
-  strncpy(url->host, &urlstr[iprotocol + 3], size);
-  url->host[size] = '\0';
-
-  if (iport > ihost)
-  {
-    size = iport - ihost;
-    strncpy(tmp, &urlstr[ihost + 1], size);
-    url->port = atoi(tmp);
-  }
-  else
-  {
-    switch (url->protocol)
-    {
-    case PROTOCOL_HTTP:
-      url->port = URL_DEFAULT_PORT_HTTP;
-      break;
-    case PROTOCOL_HTTPS:
-      url->port = URL_DEFAULT_PORT_HTTPS;
-      break;
-    case PROTOCOL_FTP:
-      url->port = URL_DEFAULT_PORT_FTP;
-      break;
-    }
-  }
-
-  len = strlen(urlstr);
-  if (len > iport)
-  {
-    /* TODO (#1#): find max of size and URL_MAX_CONTEXT_SIZE */
-    size = len - iport;
-    strncpy(url->context, &urlstr[iport], size);
-    url->context[size] = '\0';
-  }
-  else
-  {
-    url->context[0] = '\0';
-  }
-
-  hurl_dump(url);
-
-  return H_OK;
-}
-
 
 /* Content-type stuff */
 

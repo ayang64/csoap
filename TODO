@@ -1,4 +1,4 @@
-$Id: TODO,v 1.9 2006/11/30 14:23:58 m0gg Exp $
+$Id: TODO,v 1.10 2006/12/08 21:21:41 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -23,6 +23,14 @@ csoap:
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments
 - Write README.xmlsec like README.ssl
+
+Things to do _after_ 1.2 release:
+=================================
+
+additional:
+-----------
+- publish {Open,Net,Free,Dragonfly}BSD port
+- publish Debian package
 
 Additional things that could be done:
 =====================================
