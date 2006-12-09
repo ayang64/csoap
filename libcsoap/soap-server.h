@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.16 2006/12/03 17:30:57 m0gg Exp $
+ *  $Id: soap-server.h,v 1.17 2006/12/09 09:27:11 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,19 +37,20 @@
  * @section seq_features Features
  *
  * - different transport services
- * -# client/server HTTP transport service (including SSL)
- * -# client/server UDP transport service (multicast)
+ *   - client/server HTTP transport service (including SSL)
+ *   - client/server UDP transport service (multicast)
  * - attachments via MIME
  * - message based security (encryption/signation)
  * - automatic generation of WS-Inspection
  *
- * @author	Ferhat Ayaz,
- * 		Michael Rans,
- * 		Matt Campbell,
- * 		Heiko Ronsdorf
+ * @author	Ferhat Ayaz
+ * @author	Michael Rans
+ * @author	Matt Campbell
+ * @author	Heiko Ronsdorf
  *
- * @version	$Revision: 1.16 $
+ * @version	$Revision: 1.17 $
  *
+ * @see		http://csoap.sourceforge.net/
  * @see		http://www.libxml.org/
  * @see		http://www.openssl.org/
  * @see		http://www.aleksey.com/xmlsec/
@@ -76,7 +77,7 @@ herror_t soap_server_init_args(int argc, char **argv);
 
 /**
  *
- * Register a router to the soap server. 
+ * Register a router to the SOAP server. 
  *
  * <p><i>scheme</i>://<i>host</i>:<i>port</i>/<b>[context]</b>
  *
@@ -111,7 +112,7 @@ extern herror_t soap_server_run(void);
 
 /**
  *
- * Frees the soap server.
+ * Frees the SOAP server.
  *
  * @see httpd_destroy
  * @see udpd_destroy

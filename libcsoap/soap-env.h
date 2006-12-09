@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-env.h,v 1.20 2006/11/28 23:45:57 m0gg Exp $
+ *  $Id: soap-env.h,v 1.21 2006/12/09 09:27:11 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -26,7 +26,7 @@
 
 /** @file
  *
- * SOAP Envelope
+ * \section soap_env SOAP Envelope
  *
  * A SOAP message is an XML document that consists of a mandatory SOAP envelope,
  * an optional SOAP header, and a mandatory SOAP body. This XML document is
@@ -46,32 +46,32 @@
  *
  * The grammar rules are as follows: 
  * - Envelope 
- * -# The element name is "Envelope". 
- * -# The element MUST be present in a SOAP message 
- * -# The element MAY contain namespace declarations as well as additional
- *    attributes. If present, such additional attributes MUST be
- *    namespace-qualified. Similarly, the element MAY contain additional sub
- *    elements. If present these elements MUST be namespace-qualified and MUST
- *    follow the SOAP Body element. 
+ *   -# The element name is "Envelope". 
+ *   -# The element MUST be present in a SOAP message 
+ *   -# The element MAY contain namespace declarations as well as additional
+ *      attributes. If present, such additional attributes MUST be
+ *      namespace-qualified. Similarly, the element MAY contain additional sub
+ *      elements. If present these elements MUST be namespace-qualified and MUST
+ *      follow the SOAP Body element. 
  * - Header
- * -# The element name is "Header". 
- * -# The element MAY be present in a SOAP message. If present, the element MUST
- *    be the first immediate child element of a SOAP Envelope element. 
- * -# The element MAY contain a set of header entries each being an immediate
- *    child element of the SOAP Header element. All immediate child elements of
- *    the SOAP Header element MUST be namespace-qualified. 
+ *   -# The element name is "Header". 
+ *   -# The element MAY be present in a SOAP message. If present, the element MUST
+ *      be the first immediate child element of a SOAP Envelope element. 
+ *   -# The element MAY contain a set of header entries each being an immediate
+ *      child element of the SOAP Header element. All immediate child elements of
+ *      the SOAP Header element MUST be namespace-qualified. 
  * - Body
- * -# The element name is "Body". 
- * -# The element MUST be present in a SOAP message and MUST be an immediate
- *    child element of a SOAP Envelope element. It MUST directly follow the SOAP
- *    Header element if present. Otherwise it MUST be the first immediate child
- *    element of the SOAP Envelope element. 
- * -# The element MAY contain a set of body entries each being an immediate child
- *    element of the SOAP Body element. Immediate child elements of the SOAP Body
- *    element MAY be namespace-qualified. SOAP defines the SOAP Fault element,
- *    which is used to indicate error messages (see section 4.4).
+ *   -# The element name is "Body". 
+ *   -# The element MUST be present in a SOAP message and MUST be an immediate
+ *      child element of a SOAP Envelope element. It MUST directly follow the SOAP
+ *      Header element if present. Otherwise it MUST be the first immediate child
+ *      element of the SOAP Envelope element. 
+ *   -# The element MAY contain a set of body entries each being an immediate
+ *      child element of the SOAP Body element. Immediate child elements of the
+ *      SOAP Body element MAY be namespace-qualified. SOAP defines the SOAP Fault
+ *      element, which is used to indicate error messages.
  *
- * SOAP encodingStyle Attribute
+ * \subsection soap_env_enc SOAP encodingStyle Attribute
  *
  * The SOAP encodingStyle global attribute can be used to indicate the
  * serialization rules used in a SOAP message. This attribute MAY appear on any
@@ -96,7 +96,7 @@
  * encoding style of contained elements. This can be used to turn off any claims
  * from containing elements.
  *
- * Envelope Versioning Model
+ * \subsection soap_env_version Envelope Versioning Model
  *
  * SOAP does not define a traditional versioning model based on major and minor
  * version numbers. A SOAP message MUST have an Envelope element associated with

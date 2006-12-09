@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-wsil.h,v 1.3 2006/11/27 10:52:39 m0gg Exp $
+ *  $Id: soap-wsil.h,v 1.4 2006/12/09 09:27:11 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 H. Ronsdorf
@@ -26,7 +26,7 @@
 
 /** @file
  *
- * WS-Inspection
+ * \section WS-Inspection
  *
  * The WS-Inspection specification provides an XML format for assisting in the
  * inspection of a site for available services and a set of rules for how
@@ -58,11 +58,11 @@
  * such a duplication is not desired.
  *
  * @author	H. Ronsorf
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * @see http://www-128.ibm.com/developerworks/library/specification/ws-wsilspec/,
- *      http://www.w3.org/TR/wsdl,
- *      http://www.uddi.org/
+ * @see http://www-128.ibm.com/developerworks/library/specification/ws-wsilspec/
+ * @see http://www.w3.org/TR/wsdl
+ * @see http://www.uddi.org/
  *
  */
 
@@ -80,7 +80,7 @@ extern "C" {
 /**
  *
  * Initializes the WSIL HTTP interface with commandline arguments. The generated
- * WSIL document can be seen at http://servername/inspection.wsil.
+ * WSIL document can be seen at http://localhost:10000/inspection.wsil .
  *
  * @param argc commandline arg count
  * @param argv commandline arg vector

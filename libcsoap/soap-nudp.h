@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.h,v 1.4 2006/11/27 11:15:27 m0gg Exp $
+*  $Id: soap-nudp.h,v 1.5 2006/12/09 09:27:11 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -26,7 +26,7 @@
 
 /** @file
  *
- * SOAP-over-UDP server/client module
+ * \section SOAP-over-UDP server/client module
  *
  * Many Application protocol patterns match the semantics of the User Datagram
  * Protocol (UDP, RFC 768). Some do not require the delivery guarantees of TCP
@@ -37,10 +37,10 @@
  * choice. It is anticipated that other protocols will have similar requirements.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  *
- * @see http://specs.xmlsoap.org/ws/2004/09/soap-over-udp/soap-over-udp.pdf,
- *      http://www.ietf.org/rfc/rfc768.txt
+ * @see http://specs.xmlsoap.org/ws/2004/09/soap-over-udp/soap-over-udp.pdf
+ * @see http://www.ietf.org/rfc/rfc768.txt
  *
  */
 
