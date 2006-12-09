@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.31 2006/12/09 08:43:06 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.32 2006/12/09 09:04:16 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,23 +36,23 @@
 
 /** @file
  *
- * Writing an HTTP client using nanoHTTP
+ * \section client_sec Writing an HTTP client using nanoHTTP
  *
  * - Client initialization
  * - Connection initialization
- * -- SSL related functions
+ *   - SSL related functions
  * - Setting HTTP headers (optional)
- * -- Setting an HTTP header with uniq key
- * -- Setting multiple headers
+ *   - Setting an HTTP header with uniq key
+ *   - Setting multiple headers
  * - Fetch the network resource
- * -- HTTP GET command
- * -- HTTP POST command
- * -- MIME attachments
+ *   - HTTP GET command
+ *   - HTTP POST command
+ *   - MIME attachments
  * - Print out the result
  * - Connection cleanup
  * - Client cleanup
  *
- * Client initialization
+ * \subsection init_sec Client initialization
  *
  * @code
  * int main(int argc, char **argv)
@@ -75,7 +75,7 @@
  *   }
  * @endcode
  *
- * Connection initialization
+ * \subsection conn_sec Connection initialization
  *
  * @code
  *   if (!(conn = httpc_new()))
@@ -86,11 +86,11 @@
  *   }
  * @endcode
  *
- * SSL related functions
+ * \subsection ssl_sec SSL related functions
  *
  * T.B.D.
  *
- * Setting HTTP headers (optional)
+ * \subsection header_sec Setting HTTP headers (optional)
  *
  * @code
  *   httpc_set_header(conn, "my-key", "my-value");
@@ -101,9 +101,9 @@
  *   httpc_add_header(conn, "Cookie", "name2:value2");
  * @endcode
  *
- * Fetch the network resource
+ * \subsection fetch_sec Fetch the network resource
  *
- * HTTP GET command
+ * \subsubsection get_sec HTTP GET command
  *
  * @code
  *   if ((status = httpc_get(conn, &result, argv[1])) != H_OK)
@@ -115,7 +115,7 @@
  *   }
  * @endcode
  *
- * HTTP POST command
+ * \subsubsection post_sec HTTP POST command
  *
  * @code
  *   if ((status = httpc_post_begin(conn, argv[1])) != H_OK)
@@ -143,11 +143,11 @@
  *   }
  * @endcode
  *
- * MIME attachments
+ * \subsubsection mime_sec MIME attachments
  *
  * T.B.D.
  *
- * Print out the result
+ * \subsection output_sec Print out the result
  *
  * @code
  *   while (http_input_stream_is_read(res->in))
@@ -157,13 +157,13 @@
  *   }
  * @endcode
  *
- * Connection cleanup
+ * \subsection conn_clean_sec Connection cleanup
  *
  * @code
  *   hresponse_free(res);
  * @endcode
  *
- * Client cleanup
+ * \subsection client_clean Client cleanup
  *
  * @code
  *   httpc_free(conn);
@@ -215,8 +215,8 @@ extern void httpc_destroy(void);
 
 /**
  *
- * Creates a new http client connection object. You need to create at least one
- * http client connection to communicate via HTTP.
+ * Creates a new HTTP client connection object. You need to create at least one
+ * HTTP client connection to communicate via HTTP.
  *
  * @return A pointer to a httpc_conn_t structure on success, NULL on error.
  *

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.34 2006/12/08 21:21:41 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.35 2006/12/09 09:04:16 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -135,7 +135,6 @@ hpairnode_copy(const hpair_t * src)
   return pair;
 }
 
-
 hpair_t *
 hpairnode_copy_deep(const hpair_t * src)
 {
@@ -159,9 +158,8 @@ hpairnode_copy_deep(const hpair_t * src)
   return result;
 }
 
-
 void
-hpairnode_dump(hpair_t * pair)
+hpairnode_dump(const hpair_t * pair)
 {
   if (pair == NULL)
   {
@@ -174,26 +172,20 @@ hpairnode_dump(hpair_t * pair)
   return;
 }
 
-
 void
-hpairnode_dump_deep(hpair_t * pair)
+hpairnode_dump_deep(const hpair_t * pairs)
 {
-  hpair_t *p;
-  p = pair;
+  const hpair_t *p;
 
-  log_verbose1("-- BEGIN dump hpairnode_t --");
-
-  while (p != NULL)
+  log_verbose1("-- BEGIN dump_deep hpair_t --");
+  for (p = pairs; p != NULL; p = p->next)
   {
     hpairnode_dump(p);
-    p = p->next;
   }
-
-  log_verbose1("-- END dump hpairnode_t --\n");
+  log_verbose1("-- END dump_deep hpair_t --\n");
 
   return;
 }
-
 
 void
 hpairnode_free(hpair_t * pair)

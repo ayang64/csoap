@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.39 2006/12/08 21:21:41 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.40 2006/12/09 09:04:16 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,17 +28,21 @@
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define TRANSFER_ENCODING_CHUNKED	"chunked"
 
-/** @file
- *
- * General Header Fields
+/** @defgroup general_header_fields General Header Fields
  *
  * There are a few header fields which have general applicability for both
  * request and response messages, but which do not apply to the entity being
- * transferred. These header fields apply only to the message being transmitted.
+ * transferred. These header fields apply only to the General-header field names
+ * can be extended reliably only in combination with a change in the protocol
+ * version. However, new or experimental header fields may be given the semantics
+ * of general header fields if all parties in the communication recognize them to
+ * be general-header fields. Unrecognized header fields are treated as
+ * entity-header fields.
  *
- * @see http://www.ietf.org/rfc/rfc/2616.txt
+ * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
+/*@{*/
 
 /**
  *
@@ -263,6 +267,8 @@
  *
  */
 #define HEADER_LAST_MODIFIED		"Last-Modified"
+
+/*@}*/
 
 /**
  *
@@ -661,15 +667,23 @@ extern hpair_t *hpairnode_copy(const hpair_t * src);
  * @see hpairnode_copy
  *
  */
-extern hpair_t *hpairnode_copy_deep(const hpair_t * src);
+extern hpair_t *hpairnode_copy_deep(const hpair_t *src);
 
 /**
  *
- * Debug functions
+ * Dumps a set of pairs.
+ *
+ * @see hpairnode_dump
  *
  */
-extern void hpairnode_dump_deep(hpair_t * pair);
-extern void hpairnode_dump(hpair_t * pair);
+extern void hpairnode_dump_deep(const hpair_t *pairs);
+
+/**
+ *
+ * Dumps the pair specified.
+ *
+ */
+extern void hpairnode_dump(const hpair_t *pair);
 
 /**
  *
