@@ -63,7 +63,7 @@ AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 AC_FUNC_STRFTIME
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([gethostbyname inet_ntoa memmove memset mkdir select socket strchr strdup strncasecmp strpbrk strspn strstr strtol])
+AC_CHECK_FUNCS([gethostbyname inet_ntoa memmove memset mkdir select socket strchr strdup strcasecmp strncasecmp strpbrk strspn strstr strtol])
 
 dnl
 dnl check for uuid

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.30 2006/12/08 21:21:41 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.31 2006/12/09 08:43:06 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -54,6 +54,7 @@
  *
  * Client initialization
  *
+ * @code
  * int main(int argc, char **argv)
  * {
  *   herror_t status;
@@ -72,15 +73,18 @@
  *     herror_release(status);
  *     exit(1);
  *   }
+ * @endcode
  *
  * Connection initialization
  *
+ * @code
  *   if (!(conn = httpc_new()))
  *   {
  *     fprintf(stderr, "Cannot create nanoHTTP client connection\n");
  *     httpc_destroy();
  *     exit(1);
  *   }
+ * @endcode
  *
  * SSL related functions
  *
@@ -88,15 +92,20 @@
  *
  * Setting HTTP headers (optional)
  *
+ * @code
  *   httpc_set_header(conn, "my-key", "my-value");
+ * @endcode
  *
+ * @code
  *   httpc_add_header(conn, "Cookie", "name1:value1");
  *   httpc_add_header(conn, "Cookie", "name2:value2");
+ * @endcode
  *
  * Fetch the network resource
  *
  * HTTP GET command
  *
+ * @code
  *   if ((status = httpc_get(conn, &result, argv[1])) != H_OK)
  *   {
  *     fprintf(stderr, "nanoHTTP client connection failed (%s)\n", herror_message(status));
@@ -104,9 +113,11 @@
  *     httpc_destroy();
  *     exit(1);
  *   }
+ * @endcode
  *
  * HTTP POST command
  *
+ * @code
  *   if ((status = httpc_post_begin(conn, argv[1])) != H_OK)
  *   {
  *     fprintf(stderr, "nanoHTTP client connection failed (%s)\n", herror_message(status));
@@ -130,6 +141,7 @@
  *     httpc_destroy();
  *     exit(1);
  *   }
+ * @endcode
  *
  * MIME attachments
  *
@@ -137,21 +149,27 @@
  *
  * Print out the result
  *
+ * @code
  *   while (http_input_stream_is_read(res->in))
  *   {
  *     len = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
  *     fwrite(buffer, len, 1, stdout);
  *   }
+ * @endcode
  *
  * Connection cleanup
  *
+ * @code
  *   hresponse_free(res);
+ * @endcode
  *
  * Client cleanup
  *
+ * @code
  *   httpc_free(conn);
  *
  * }
+ * @endcode
  *
  */
 
