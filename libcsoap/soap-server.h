@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.17 2006/12/09 09:27:11 m0gg Exp $
+ *  $Id: soap-server.h,v 1.18 2006/12/09 09:57:38 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -37,7 +37,7 @@
  * @section seq_features Features
  *
  * - different transport services
- *   - client/server HTTP transport service (including SSL)
+ *   - @ref nanoHTTP (HTTP including SSL)
  *   - client/server UDP transport service (multicast)
  * - attachments via MIME
  * - message based security (encryption/signation)
@@ -48,12 +48,18 @@
  * @author	Matt Campbell
  * @author	Heiko Ronsdorf
  *
- * @version	$Revision: 1.17 $
+ * @version	1.2
  *
  * @see		http://csoap.sourceforge.net/
  * @see		http://www.libxml.org/
  * @see		http://www.openssl.org/
  * @see		http://www.aleksey.com/xmlsec/
+ */
+
+/** @file
+ *
+ * @version	$Revision: 1.18 $
+ *
  */
 
 #ifdef __cplusplus

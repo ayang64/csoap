@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.27 2006/12/02 21:50:48 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.28 2006/12/09 09:57:38 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -33,6 +33,25 @@
 #include <nanohttp/nanohttp-response.h>
 #include <nanohttp/nanohttp-logging.h>
 #endif
+
+/**
+ *
+ * @page nanoHTTP nanoHTTP
+ *
+ * \section nanohttp_sec nanoHTTP
+ *
+ * nanoHTTP is an embedded HTTP implementation. It comes with the following
+ * features:
+ * - client/server HTTP engnine
+ * - attachments via MIME
+ * - HTTPS (SSL/TLS) via OpenSSL
+ *
+ * @version 1.2
+ *
+ * @see http://www.ietf.org/rfc/rfc2616.txt
+ * @see http://www.openssl.org
+ *
+ */
 
 /**
  *
