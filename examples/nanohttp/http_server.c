@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.11 2006/12/02 21:50:47 m0gg Exp $
+*  $Id: http_server.c,v 1.12 2006/12/10 12:23:45 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -142,45 +142,51 @@ int main(int argc, char **argv)
   herror_t status;
   hlog_set_level(HLOG_INFO);
 
-  if (httpd_init(argc, argv)) {
-
+  if (httpd_init(argc, argv))
+  {
     fprintf(stderr, "Cannot init httpd\n");
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
-  if ((status = httpd_register("/", root_service)) != H_OK) {
-
+  if ((status = httpd_register("/", root_service)) != H_OK)
+  {
     fprintf(stderr, "Cannot register service (%s)\n", herror_message(status));
     herror_release(status);
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
-  if ((status = httpd_register_secure("/secure", secure_service, simple_authenticator)) != H_OK) {
-
+  if ((status = httpd_register_secure("/secure", secure_service, simple_authenticator)) != H_OK)
+  {
     fprintf(stderr, "Cannot register secure service (%s)\n", herror_message(status));
     herror_release(status);
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
-  if ((status = httpd_register("/headers", headers_service)) != H_OK) {
-
+  if ((status = httpd_register("/headers", headers_service)) != H_OK)
+  {
     fprintf(stderr, "Cannot register headers service (%s)\n", herror_message(status));
     herror_release(status);
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
-  if ((status = httpd_register_default("/error", default_service)) != H_OK) {
-
+  if ((status = httpd_register_default("/error", default_service)) != H_OK)
+  {
     fprintf(stderr, "Cannot register default service (%s)\n", herror_message(status));
     herror_release(status);
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
-  if (httpd_run()) {
-
-    fprintf(stderr, "Cannot run httpd\n");
+  if ((status = httpd_run()) != H_OK)
+  {
+    fprintf(stderr, "Cannot run httpd (%s)\n", herror_message(status));
     herror_release(status);
-    return 1;
+    httpd_destroy();
+    exit(1);
   }
 
   httpd_destroy();

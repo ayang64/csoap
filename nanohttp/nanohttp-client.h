@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.32 2006/12/09 09:04:16 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.33 2006/12/10 12:23:45 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -34,9 +34,9 @@
 #include <nanohttp/nanohttp-logging.h>
 #endif
 
-/** @file
+/** @page nanohttp_client Howto write an HTTP client
  *
- * \section client_sec Writing an HTTP client using nanoHTTP
+ * \section client_sec Table of contents
  *
  * - Client initialization
  * - Connection initialization

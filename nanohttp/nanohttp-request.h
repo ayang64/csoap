@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.12 2006/11/26 20:13:05 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.13 2006/12/10 12:23:45 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,9 +24,7 @@
 #ifndef __nhttp_request_h
 #define __nhttp_request_h
 
-/** @file
- *
- * Request Header Fields
+/** @defgroup request_header_fields Request Header Fields
  *
  * The request-header fields allow the client to pass additional information
  * about the request, and about the client itself, to the server. These fields
@@ -36,6 +34,7 @@
  * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
+/*{*/
 
 /**
  *
@@ -100,8 +99,8 @@
  * address SHOULD be machine-usable, as defined by "mailbox" in RFC 822 as
  * updated by RFC 1123.
  *
- * @see http://www.ietf.org/rfc/rfc1123.txt,
- *      http://www.ietf.org/rfc/rfc822.txt
+ * @see http://www.ietf.org/rfc/rfc1123.txt
+ * @see http://www.ietf.org/rfc/rfc822.txt
  *
  */
 #define HEADER_FROM			"From"
@@ -252,6 +251,8 @@
  *
  */
 #define HEADER_USER_AGENT		"User-Agent"
+
+/*}*/
 
 #ifdef __NHTTP_INTERNAL
 struct request_statistics

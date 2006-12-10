@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.12 2006/12/09 09:27:11 m0gg Exp $
+ *  $Id: nanohttp-response.h,v 1.13 2006/12/10 12:23:46 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,18 +24,17 @@
 #ifndef __nanohttp_response_h
 #define __nanohttp_response_h
 
-/** @file
- *
- * \section Response Header Fields
+/** @defgroup response_header_fields Response Header Fields
  *
  * The response-header fields allow the server to pass additional information
  * about the response which cannot be placed in the Status-Line. These header
  * fields give information about the server and about further access to the
- * resource identified by the Request-URI. (see RFC2616)
+ * resource identified by the Request-URI. (see RFC 2616)
  *
  * @see	http://www.ietf.org/rfc/rfc2616.txt
  *
  */
+/*{*/
 
 /**
  *
@@ -150,6 +149,8 @@
  *
  */
 #define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
+
+/*}*/
 
 /**
  *

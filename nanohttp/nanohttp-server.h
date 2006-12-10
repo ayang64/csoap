@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.28 2006/12/09 09:57:38 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.29 2006/12/10 12:23:46 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,20 +36,156 @@
 
 /**
  *
- * @page nanoHTTP nanoHTTP
+ * @page nanohttp_page nanoHTTP
  *
  * \section nanohttp_sec nanoHTTP
  *
  * nanoHTTP is an embedded HTTP implementation. It comes with the following
  * features:
- * - client/server HTTP engnine
+ * - client/server HTTP engine
  * - attachments via MIME
- * - HTTPS (SSL/TLS) via OpenSSL
+ * - HTTPS support (SSL/TLS) using OpenSSL
  *
- * @version 1.2
+ * \section links_sec Howto to the nanoHTTP library
+ *
+ * - \ref nanohttp_client
+ * - \ref nanohttp_server
+ * - \ref nanohttp_mime
+ *
+ * @author	Ferhat Ayaz
+ * @author	Michael Rans
+ * @author	Matt Campbell
+ * @author	Heiko Ronsdorf
+ *
+ * @version	1.2
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
  * @see http://www.openssl.org
+ *
+ */
+
+/** @page nanohttp_server Howto write an HTTP server
+ *
+ * \section server_sec Table of contents
+ * 
+ * - \ref init_sec
+ * - \ref service_sec
+ * - \ref running_sec
+ * - \ref cleanup_sec
+ * - \ref function_sec
+ *
+ * \section init_sec Server initialization
+ *
+ * @code
+ * int main(int argc, char **argv)
+ * {
+ *   herror_t status;
+ *   hlog_set_level(HLOG_INFO);
+ *
+ *   if (httpd_init(argc, argv))
+ *   {
+ *     fprintf(stderr, "Cannot init httpd\n");
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * \section service_sec Service registration
+ *
+ * @code
+ *   if ((status = httpd_register("/", root_service)) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot register service (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpd_destroy();
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * @code
+ *   if ((status = httpd_register_secure("/secure", secure_service, simple_authenticator)) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot register secure service (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpd_destroy();
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * @code
+ *   if ((status = httpd_register("/headers", headers_service)) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot register headers service (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpd_destroy();
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * @code
+ *   if ((status = httpd_register_default("/error", default_service)) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot register default service (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpd_destroy();
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * \section running_sec Running the server
+ *
+ * @code
+ *   if ((status = httpd_run()) != H_OK)
+ *   {
+ *     fprintf(stderr, "Cannot run httpd (%s)\n", herror_message(status));
+ *     herror_release(status);
+ *     httpd_destroy();
+ *     exit(1);
+ *   }
+ * @code
+ *
+ * \section cleanup_sec Server cleanup
+ *
+ * @code
+ *   httpd_destroy();
+ *
+ *   exit(0);
+ * }
+ * @code
+ *
+ * \section function_seq Sample service function
+ *
+ * @code
+ * static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
+ * {
+ *   hpair_t *walker;
+ *
+ *   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
+ *   http_output_stream_write_string(conn->out,
+ *     "<html>"
+ *       "<head>"
+ *         "<title>Request headers</title>"
+ *       "</head>"
+ *       "<body>"
+ *         "<h1>Request headers</h1>"
+ *         "<ul>");
+ *
+ *   for (walker=req->header; walker; walker=walker->next)
+ *   {
+ *     http_output_stream_write_string(conn->out, "<li>");
+ *     http_output_stream_write_string(conn->out, walker->key);
+ *     http_output_stream_write_string(conn->out, " = ");
+ *     http_output_stream_write_string(conn->out, walker->value);
+ *     http_output_stream_write_string(conn->out, "</li>");
+ *   }
+ *
+ *   http_output_stream_write_string(conn->out,
+ *         "</ul>"
+ *       "</body>"
+ *     "</html>");
+ *
+ *   return;
+ * }
+ * @code
  *
  */
 

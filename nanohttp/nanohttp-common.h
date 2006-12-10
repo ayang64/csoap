@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.40 2006/12/09 09:04:16 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.41 2006/12/10 12:23:45 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -70,11 +70,12 @@
  *
  * The Date general-header field represents the date and time at which the
  * message was originated, having the same semantics as orig-date in RFC 822.
- * The field value is an HTTP-date, as described in section 3.3.1; it MUST be
- * sent in RFC 1123 [8]-date format.
+ * The field value is an HTTP-date, as described in RDF 2616 section 3.3.1; it
+ * MUST be sent in RFC 1123 date format.
  *
- * @see http://www.ietf.org/rfc/rfc822.txt,
- *      http://www.ietf.org/rfc/rfc1123.txt
+ * @see http://www.ietf.org/rfc/rfc822.txt
+ * @see http://www.ietf.org/rfc/rfc1123.txt
+ * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
 #define HEADER_DATE			"Date"
@@ -152,7 +153,7 @@
  * Entity-header fields define metainformation about the entity-body or, if no
  * body is present, about the resource identified by the request. Some of this
  * metainformation is OPTIONAL; some might be REQUIRED by portions of this
- * specification. (see RFC2616 7.1)
+ * specification. (see RFC 2616 section 7.1)
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
  *
