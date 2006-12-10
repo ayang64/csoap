@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.29 2006/12/10 12:23:46 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.30 2006/12/10 19:21:07 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -48,9 +48,9 @@
  *
  * \section links_sec Howto to the nanoHTTP library
  *
- * - \ref nanohttp_client
- * - \ref nanohttp_server
- * - \ref nanohttp_mime
+ * - \ref nanohttp_client_page
+ * - \ref nanohttp_server_page
+ * - \ref nanohttp_mime_page
  *
  * @author	Ferhat Ayaz
  * @author	Michael Rans
@@ -64,7 +64,7 @@
  *
  */
 
-/** @page nanohttp_server Howto write an HTTP server
+/** @page nanohttp_server_page Howto write an HTTP server
  *
  * \section server_sec Table of contents
  * 
@@ -87,7 +87,7 @@
  *     fprintf(stderr, "Cannot init httpd\n");
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * \section service_sec Service registration
  *
@@ -99,7 +99,7 @@
  *     httpd_destroy();
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * @code
  *   if ((status = httpd_register_secure("/secure", secure_service, simple_authenticator)) != H_OK)
@@ -109,7 +109,7 @@
  *     httpd_destroy();
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * @code
  *   if ((status = httpd_register("/headers", headers_service)) != H_OK)
@@ -119,7 +119,7 @@
  *     httpd_destroy();
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * @code
  *   if ((status = httpd_register_default("/error", default_service)) != H_OK)
@@ -129,7 +129,7 @@
  *     httpd_destroy();
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * \section running_sec Running the server
  *
@@ -141,7 +141,7 @@
  *     httpd_destroy();
  *     exit(1);
  *   }
- * @code
+ * @endcode
  *
  * \section cleanup_sec Server cleanup
  *
@@ -150,7 +150,7 @@
  *
  *   exit(0);
  * }
- * @code
+ * @endcode
  *
  * \section function_seq Sample service function
  *
@@ -185,7 +185,7 @@
  *
  *   return;
  * }
- * @code
+ * @endcode
  *
  */
 
@@ -323,6 +323,7 @@ extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
  * XXX: move to nanohttp-mime.c
  *
  * MIME support httpd_mime_* function set
+ *
  */
 
 /**

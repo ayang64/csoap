@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-logging.h,v 1.4 2006/11/25 17:03:20 m0gg Exp $
+ *  $Id: nanohttp-logging.h,v 1.5 2006/12/10 19:21:06 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -44,10 +44,42 @@ typedef enum log_level
 extern "C" {
 #endif
 
+/**
+ *
+ * Set the loglevel.
+ *
+ * @param level The new loglevel.
+ *
+ * @return The old loglevel.
+ *
+ */
 extern log_level_t hlog_set_level(log_level_t level);
+
+/**
+ *
+ * Get the loglevel.
+ *
+ * @return The current loglevel.
+ *
+ */
 extern log_level_t hlog_get_level(void);
 
+/**
+ *
+ * Set the logfile.
+ *
+ * @param filename The filename of the logfile.
+ *
+ */
 extern void hlog_set_file(const char *filename);
+
+/**
+ *
+ * Get the filename of the logfile.
+ *
+ * @return Pointer to the filename or null otherwise.
+ *
+ */
 extern char *hlog_get_file(void);
 
 #ifdef WIN32
@@ -67,8 +99,9 @@ extern void hlog_error(const char *FUNC, const char *format, ...);
 }
 #endif
 
-/*
- * XXX: This isn't the "right" way
+/**
+ *
+ * @todo This isn't the "right" way
  *
  * #define log_debug(fmt, ...)	fprintf(stderr, "EMERGENCY: %s: " fmt "\n", \
  *                                              __FUNCTION__, ## __VA_ARGS__)

@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.27 2006/11/28 23:45:57 m0gg Exp $
+ * $Id: simpleserver.c,v 1.28 2006/12/10 19:21:05 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -102,6 +102,7 @@ main(int argc, char **argv)
   {
     printf("soap_router_new failed (%p)\n", router);
     herror_release(err);
+    soap_server_destroy();
     exit(1);
   }
 
@@ -109,6 +110,7 @@ main(int argc, char **argv)
   {
     printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
+    soap_server_destroy();
     exit(1);
   }
 
@@ -116,6 +118,7 @@ main(int argc, char **argv)
   {
     printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
+    soap_server_destroy();
     exit(1);
   }
   printf("router (%p) registered for \"%s\"\n", router, url);
@@ -125,11 +128,12 @@ main(int argc, char **argv)
   {
     printf("%s(): %s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
+    soap_server_destroy();
     exit(1);
   }
   
   printf("shutting down\n");
   soap_server_destroy();
 
-  return 0;
+  exit(0);
 }

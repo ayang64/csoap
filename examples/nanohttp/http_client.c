@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.8 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: http_client.c,v 1.9 2006/12/10 19:21:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -39,7 +39,7 @@ static char *password = NULL;
 static void show_response(hresponse_t *res)
 {
   unsigned char buffer[MAX_BUFFER_SIZE+1];
-  int read;
+  int len;
 
   if (!res)
   {
@@ -53,6 +53,7 @@ static void show_response(hresponse_t *res)
   if (show_headers)
   {
     hpair_t *pair;
+
     printf("HTTP Headers:\n");
     for (pair = res->header; pair; pair=pair->next)
       printf("  %s: %s\n", pair->key, pair->value);
@@ -66,10 +67,10 @@ static void show_response(hresponse_t *res)
 
   while (http_input_stream_is_ready(res->in))
   {
-    read = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
+    len = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
 
     if (show_content)
-      fwrite(buffer, read, 1, stdout);
+      fwrite(buffer, len, 1, stdout);
   }
   return;
 }

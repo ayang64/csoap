@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.50 2006/12/08 21:21:41 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.51 2006/12/10 19:21:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -121,6 +121,8 @@ httpc_new(void)
   if ((status = hsocket_init(res->sock)) != H_OK)
   {
     log_warn2("hsocket_init failed (%s)", herror_message(status));
+    hurl_free(res->url);
+    free(res->sock);
     free(res);
     return NULL;
   }
@@ -157,7 +159,8 @@ httpc_free(httpc_conn_t * conn)
   hsocket_free(conn->sock);
   hurl_free(conn->url);
 
-  free(conn->sock);
+  if (conn->sock)
+    free(conn->sock);
   free(conn);
 
   return;
@@ -360,8 +363,7 @@ If success, this function will return 0.
 >0 otherwise.
 ----------------------------------------------------*/
 static herror_t
-_httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
-                     const char *urlstr)
+_httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *urlstr)
 {
   char buffer[4096];
   herror_t status;
@@ -369,15 +371,15 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
 
   if (conn == NULL)
   {
-    return herror_new("httpc_talk_to_server",
-                      GENERAL_INVALID_PARAM, "httpc_conn_t param is NULL");
+    return herror_new("httpc_talk_to_server", GENERAL_INVALID_PARAM, "httpc_conn_t param is NULL");
   }
+
   /* Build request header */
   httpc_header_set_date(conn);
 
   if ((status = hurl_parse(conn->url, urlstr)) != H_OK)
   {
-    log_error2("Can not parse URL '%s'", SAVE_STR(urlstr));
+    log_error2("Cannot parse URL \"%s\"", SAVE_STR(urlstr));
     return status;
   }
 /* TODO (#1#): Check for HTTP protocol in URL */
@@ -386,10 +388,14 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn,
   httpc_set_header(conn, HEADER_HOST, conn->url->host);
 
   ssl = conn->url->protocol == PROTOCOL_HTTPS ? 1 : 0;
+  log_error4("ssl = %i (%i %i)", ssl, conn->url->protocol, PROTOCOL_HTTPS);
 
   /* Open connection */
   if ((status = hsocket_open(conn->sock, conn->url->host, conn->url->port, ssl)) != H_OK)
+  {
+    log_error2("hsocket_open failed (%s)", herror_message(status));
     return status;
+  }
 
   switch(method)
   {

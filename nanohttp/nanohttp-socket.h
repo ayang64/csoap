@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.36 2006/12/03 17:30:58 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.37 2006/12/10 19:21:07 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,9 +24,14 @@
 #ifndef __nanohttp_socket_h
 #define __nanohttp_socket_h
 
+/** @defgroup socket_errors Socket errors
+ *
+ */
+/*{*/
+
 /**
  *
- * Socket error
+ * Generic socket error
  *
  */
 #define HSOCKET_ERROR			1000
@@ -40,8 +45,16 @@
 #define HSOCKET_ERROR_ACCEPT		(HSOCKET_ERROR + 8)
 #define HSOCKET_ERROR_NOT_INITIALIZED	(HSOCKET_ERROR + 9)
 #define HSOCKET_ERROR_IOCTL		(HSOCKET_ERROR + 10)
+
+/**
+ *
+ * @todo move the next two items to nanohttp-ssl.h
+ *
+ */
 #define HSOCKET_ERROR_SSLCLOSE		(HSOCKET_ERROR + 11)
 #define HSOCKET_ERROR_SSLCTX		(HSOCKET_ERROR + 11)
+
+/*}*/
 
 /**
  *
@@ -71,7 +84,7 @@ extern "C"
  * Initializes the socket modul. This should be called only once for an
  * application.
  *
- * @returns This function should always return H_OK. 
+ * @return This function should always return H_OK. 
  *
  */
 extern herror_t hsocket_module_init(int argc, char **argv);
@@ -94,7 +107,7 @@ extern void hsocket_module_destroy(void);
  *
  * @param sock the destination socket to initialize.
  *
- * @returns This function should always return H_OK. 
+ * @return This function should always return H_OK. 
  *
  * @see hssl_module_init
  *
@@ -120,10 +133,10 @@ extern void hsocket_free(struct hsocket_t * sock);
  * @param port port number to connect to
  * @param ssl  whether to open a SSL connection
  *
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_CREATE 
- *  - HSOCKET_ERROR_GET_HOSTNAME 
- *  - HSOCKET_ERROR_CONNECT
+ * @return H_OK if success. One of the followings if fails:
+ *         - HSOCKET_ERROR_CREATE 
+ *         - HSOCKET_ERROR_GET_HOSTNAME 
+ *         - HSOCKET_ERROR_CONNECT
  *
  */
 extern herror_t hsocket_open(struct hsocket_t *sock, const char *host, int port, int ssl);
@@ -145,9 +158,9 @@ extern void hsocket_close(struct hsocket_t *sock);
  * @param sock socket to use.
  * @param port  port number to bind to
  * 
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_CREATE
- *  - HSOCKET_ERROR_BIND
+ * @return H_OK on success. One of the followings if fails:
+ *         - HSOCKET_ERROR_CREATE
+ *         - HSOCKET_ERROR_BIND
  *
  *  @see hsocket_listen
  *
@@ -161,9 +174,10 @@ extern herror_t hsocket_bind(struct hsocket_t *sock, unsigned short port);
  *
  * @param sock the socket to use
  *
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_LISTEN
+ * @return H_OK if success. One of the followings if fails:<
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_LISTEN
+ *
  */
 extern herror_t hsocket_listen(struct hsocket_t *sock);
 
@@ -175,9 +189,9 @@ extern herror_t hsocket_listen(struct hsocket_t *sock);
  * @param sock the socket which listents to a port
  * @param dest the destination socket which will be created
  * 
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_ACCEPT
+ * @return H_OK if success. One of the followings if fails:<P>
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_ACCEPT
  */
 extern herror_t hsocket_accept(struct hsocket_t *sock, struct hsocket_t *dest);
 
@@ -189,9 +203,9 @@ extern herror_t hsocket_accept(struct hsocket_t *sock, struct hsocket_t *dest);
  * @param bytes bytes to send
  * @param size size of memory to sent pointed by bytes.
  *
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_SEND
+ * @return H_OK if success. One of the followings if fails:
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_SEND
  */
 extern herror_t hsocket_send(struct hsocket_t *sock, const unsigned char *bytes, int size);
 
@@ -202,9 +216,9 @@ extern herror_t hsocket_send(struct hsocket_t *sock, const unsigned char *bytes,
  * @param sock the socket to use to send the data
  * @param str the null terminated string to sent
  *
- * @returns H_OK if success. One of the followings if fails:<P>
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_SEND
+ * @return H_OK on success. One of the followings if fails:
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t hsocket_send_string(struct hsocket_t *sock, const char *str);
@@ -222,8 +236,8 @@ extern int hsocket_select_recv(int sock, char *buf, size_t len);
  *        of bytes (size parameter) was readed. Otherwise this function will not
  *        wait and will return with the bytes quequed on the socket.
  *
- * @returns This function will return -1 if an read error was occured. Otherwise
- *          the return value is the size of bytes readed from the socket.
+ * @return This function will return -1 if an read error was occured. Otherwise
+ *         the return value is the size of bytes readed from the socket.
  *
  */
 extern herror_t hsocket_recv(struct hsocket_t * sock, unsigned char *buffer, int size, int force, int *len);
@@ -231,6 +245,10 @@ extern herror_t hsocket_recv(struct hsocket_t * sock, unsigned char *buffer, int
 /**
  *
  * Get the socket read/write timeout.
+ *
+ * @return The socket timeout in seconds.
+ *
+ * @see hsocket_set_timeout
  *
  */
 extern int hsocket_get_timeout(void);
@@ -240,6 +258,8 @@ extern int hsocket_get_timeout(void);
  * Set the socket read/write timeout.
  *
  * @param secs Timeout in seconds.
+ *
+ * @see hsocket_get_timeout
  *
  */
 extern void hsocket_set_timeout(int secs);

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.33 2006/12/10 12:23:45 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.34 2006/12/10 19:21:06 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -34,9 +34,9 @@
 #include <nanohttp/nanohttp-logging.h>
 #endif
 
-/** @page nanohttp_client Howto write an HTTP client
+/** @page nanohttp_client_page Howto write an HTTP client
  *
- * \section client_sec Table of contents
+ * @section client_sec Table of contents
  *
  * - Client initialization
  * - Connection initialization
@@ -45,14 +45,14 @@
  *   - Setting an HTTP header with uniq key
  *   - Setting multiple headers
  * - Fetch the network resource
- *   - HTTP GET command
- *   - HTTP POST command
+ *   - @ref get_sec
+ *   - @ref post_sec
  *   - MIME attachments
  * - Print out the result
  * - Connection cleanup
  * - Client cleanup
  *
- * \subsection init_sec Client initialization
+ * @section init_sec Client initialization
  *
  * @code
  * int main(int argc, char **argv)
@@ -75,7 +75,7 @@
  *   }
  * @endcode
  *
- * \subsection conn_sec Connection initialization
+ * @section conn_sec Connection initialization
  *
  * @code
  *   if (!(conn = httpc_new()))
@@ -86,11 +86,11 @@
  *   }
  * @endcode
  *
- * \subsection ssl_sec SSL related functions
+ * @section ssl_sec SSL related functions
  *
  * T.B.D.
  *
- * \subsection header_sec Setting HTTP headers (optional)
+ * @section header_sec Setting HTTP headers (optional)
  *
  * @code
  *   httpc_set_header(conn, "my-key", "my-value");
@@ -101,9 +101,12 @@
  *   httpc_add_header(conn, "Cookie", "name2:value2");
  * @endcode
  *
- * \subsection fetch_sec Fetch the network resource
+ * Please see @ref general_header_fields and @ref request_header_fields for more
+ * information.
  *
- * \subsubsection get_sec HTTP GET command
+ * @section fetch_sec Fetch the network resource
+ *
+ * @subsection get_sec HTTP GET method
  *
  * @code
  *   if ((status = httpc_get(conn, &result, argv[1])) != H_OK)
@@ -115,7 +118,7 @@
  *   }
  * @endcode
  *
- * \subsubsection post_sec HTTP POST command
+ * @subsection post_sec HTTP POST method
  *
  * @code
  *   if ((status = httpc_post_begin(conn, argv[1])) != H_OK)
@@ -143,11 +146,11 @@
  *   }
  * @endcode
  *
- * \subsubsection mime_sec MIME attachments
+ * @section mime_sec MIME attachments
  *
  * T.B.D.
  *
- * \subsection output_sec Print out the result
+ * @section output_sec Print out the result
  *
  * @code
  *   while (http_input_stream_is_read(res->in))
@@ -157,17 +160,18 @@
  *   }
  * @endcode
  *
- * \subsection conn_clean_sec Connection cleanup
+ * @section conn_clean_sec Connection cleanup
  *
  * @code
  *   hresponse_free(res);
  * @endcode
  *
- * \subsection client_clean Client cleanup
+ * @section client_clean Client cleanup
  *
  * @code
  *   httpc_free(conn);
  *
+ *   exit(0);
  * }
  * @endcode
  *

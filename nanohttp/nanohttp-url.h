@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-url.h,v 1.1 2006/12/08 21:21:41 m0gg Exp $
+ *  $Id: nanohttp-url.h,v 1.2 2006/12/10 19:21:07 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -26,6 +26,16 @@
 
 /**
  *
+ * URL errors
+ *
+ */
+#define URL_ERROR			1100
+#define URL_ERROR_UNKNOWN_PROTOCOL	(URL_ERROR + 1)
+#define URL_ERROR_NO_PROTOCOL		(URL_ERROR + 2)
+#define URL_ERROR_NO_HOST		(URL_ERROR + 3)
+
+/**
+ *
  * The protocol types in enumeration format. Used in some other nanohttp objects
  * like hurl_t.
  *
@@ -35,8 +45,7 @@
 typedef enum _hprotocol
 {
   PROTOCOL_HTTP,
-  PROTOCOL_HTTPS,
-  PROTOCOL_FTP
+  PROTOCOL_HTTPS
 } hprotocol_t;
 
 #define URL_MAX_HOST_SIZE      120
@@ -46,7 +55,7 @@ typedef enum _hprotocol
  *
  * The URL object. A representation of an URL like:
  *
- * [protocol]://[host]:[port]/[context]
+ * [protocol]://[user]@[host]:[port]/[context]['#' fragment]['?' query]
  *
  * @see http://www.ietf.org/rfc/rfc2396.txt
  *
@@ -64,27 +73,26 @@ struct hurl_t
   /**
    *
    * The port number. If no port number was given in the URL, one of the default
-   * port numbers will be selected. 
-   * - URL_HTTP_DEFAULT_PORT    
-   * - URL_HTTPS_DEFAULT_PORT   
-   * - URL_FTP_DEFAULT_PORT    
+   * port numbers will be selected: 
+   * - HTTP_DEFAULT_PORT    
+   * - HTTPS_DEFAULT_PORT   
    *
    */
-  short port;
+  unsigned short port;
 
   /**
    *
    * The hostname
    *
    */
-  char host[URL_MAX_HOST_SIZE];
+  char *host;
 
   /**
    *
    * The string after the hostname.
    *
    */
-  char context[URL_MAX_CONTEXT_SIZE];
+  char *context;
 };
 
 #ifdef __cplusplus
@@ -94,6 +102,7 @@ extern "C" {
 /**
  *
  * Parses the given 'urlstr' and fills the given hurl_t object.
+ * Parse an URI URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
  *
  * @param obj the destination URL object to fill
  * @param url the URL in string format
@@ -109,6 +118,8 @@ extern herror_t hurl_parse(struct hurl_t * obj, const char *url);
 /**
  *
  * Frees the resources within a url and the url itself.
+ *
+ * @param url pointer to an hurl_t
  *
  */
 extern void hurl_free(struct hurl_t *url);

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.7 2006/12/02 21:50:47 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.8 2006/12/10 19:21:06 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -67,6 +67,14 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 }
 
 static void
+_httpd_admin_send_footer(httpd_conn_t *conn)
+{
+  http_output_stream_write_string(conn->out, "</body></html>");
+
+  return;
+}
+
+static void
 _httpd_admin_list_services(httpd_conn_t *conn)
 {
   char buffer[1024];
@@ -91,7 +99,7 @@ _httpd_admin_list_services(httpd_conn_t *conn)
   }
   http_output_stream_write_string(conn->out, "</ul>");
   
-  http_output_stream_write_string(conn->out, "</body></html>");
+  _httpd_admin_send_footer(conn);
 
   return;
 }
@@ -108,8 +116,10 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
   if (!(service = httpd_find_service(service_name)))
   {
     http_output_stream_write_string(conn->out,
-      "<p>Service not found!</p>"
-      "</body></html>");
+      "<p>"
+        "Service not found!"
+      "</p>");
+    _httpd_admin_send_footer(conn);
     return;
   }
 
@@ -129,7 +139,7 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
 
   http_output_stream_write_string(conn->out, buffer);
 
-  http_output_stream_write_string(conn->out, "</body></html>");
+  _httpd_admin_send_footer(conn);
 
   return;
 }
@@ -146,16 +156,22 @@ _httpd_admin_enable_service(httpd_conn_t *conn, const char *service_name)
   if (!(service = httpd_find_service(service_name)))
   {
     http_output_stream_write_string(conn->out,
-      "<p>Service not found!</p>"
-      "</body></html>");
+      "<p>"
+        "Service not found!"
+      "</p>");
+
+    _httpd_admin_send_footer(conn);
     return;   
   }
 
   httpd_enable_service(service);
 
   http_output_stream_write_string(conn->out,
-    "<p>Service enabled</p>"
-    "</body></html>");
+    "<p>"
+      "Service enabled"
+    "</p>");
+
+  _httpd_admin_send_footer(conn);
 
   return;
 }
@@ -172,16 +188,20 @@ _httpd_admin_disable_service(httpd_conn_t *conn, const char *service_name)
   if (!(service = httpd_find_service(service_name)))
   {
     http_output_stream_write_string(conn->out,
-      "<p>service not found!</p>"
-      "</body></html>");
+      "<p>"
+        "Service not found!"
+      "</p>");
+    _httpd_admin_send_footer(conn);
     return;
   }
 
   httpd_disable_service(service);
 
   http_output_stream_write_string(conn->out,
-    "<p>Service disabled</p>"
-    "</body></html>");
+    "<p>"
+      "Service disabled"
+    "</p>");
+  _httpd_admin_send_footer(conn);
 
   return;
 }
@@ -211,12 +231,17 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
   {
     _httpd_admin_send_title(conn, "Welcome to the admin site");
 
-    http_output_stream_write_string(conn->out, "<ul>");
     http_output_stream_write_string(conn->out,
-     "<li><a href=\"?" NHTTPD_ADMIN_QUERY_SERVICES "\">Services</a></li>");
-    http_output_stream_write_string(conn->out, "</ul>");
+      "<ul>"
+        "<li>"
+          "<a href=\"?" NHTTPD_ADMIN_QUERY_SERVICES "\">Services</a>"
+        "</li>"
+        "<li>"
+          "<a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "\">Statistics</a>"
+        "</li>"
+      "</ul>");
 
-    http_output_stream_write_string(conn->out, "</body></html>");
+    _httpd_admin_send_footer(conn);
   }
 
   return;
@@ -233,15 +258,15 @@ _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
   {
     httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
-              "<html>"
-                  "<head>"
-                  "</head>"
-                  "<body>"
-                      "<h1>Sorry!</h1>"
-                      "<hr />"
-                      "<div>POST Service is not implemented now. Use your browser.</div>"
-                  "</body>"
-              "</html>");
+      "<html>"
+        "<head>"
+        "</head>"
+      "<body>"
+        "<h1>Sorry!</h1>"
+        "<hr />"
+        "<div>POST Service is not implemented now. Use your browser.</div>"
+      "</body>"
+    "</html>");
   }
   return;
 }
@@ -251,10 +276,10 @@ httpd_admin_init_args(int argc, char **argv)
 {
   int i;
 
-  for (i=0; i<argc; i++) {
-
-    if (!strcmp(argv[i], NHTTPD_ARG_ENABLE_ADMIN)) {
-
+  for (i=0; i<argc; i++)
+  {
+    if (!strcmp(argv[i], NHTTPD_ARG_ENABLE_ADMIN))
+    {
       httpd_register("/nhttp", _httpd_admin_entry);
       break;
     }

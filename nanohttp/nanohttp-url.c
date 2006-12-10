@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-url.c,v 1.1 2006/12/08 21:21:41 m0gg Exp $
+*  $Id: nanohttp-url.c,v 1.2 2006/12/10 19:21:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -29,32 +29,40 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+
 #include "nanohttp-logging.h"
 #include "nanohttp-error.h"
 #include "nanohttp-url.h"
       
-/* TODO (#1#): find proper ports */
-#define URL_DEFAULT_PORT_HTTP 80
-#define URL_DEFAULT_PORT_HTTPS 81
-#define URL_DEFAULT_PORT_FTP 120
+#define HTTP_DEFAULT_PORT		80
+#define HTTPS_DEFAULT_PORT		443
 
 static void
-_hurl_dump(const struct hurl_t * url)
+_hurl_dump(const struct hurl_t *url)
 {
-
-  if (url == NULL)
+  if (!url)
   {
-    log_error1("url is NULL!");
+    log_error1("parameter url is NULL");
     return;
   }
-  log_verbose2("PROTOCOL : %d", url->protocol);
-  log_verbose2("    HOST : %s", url->host);
-  log_verbose2("    PORT : %d", url->port);
-  log_verbose2(" CONTEXT : %s", url->context);
+
+  log_verbose2("PROTOCOL: %d", url->protocol);
+  log_verbose2("    HOST: \"%s\"", url->host);
+  log_verbose2("    PORT: %d", url->port);
+  log_verbose2(" CONTEXT: \"%s\"", url->context);
+
+  return;
 }
 
 herror_t
-hurl_parse(struct hurl_t * url, const char *urlstr)
+hurl_parse(struct hurl_t *url, const char *urlstr)
 {
   int iprotocol;
   int ihost;
@@ -63,6 +71,7 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
   int size;
   char tmp[8];
   char protocol[1024];
+  struct servent *entry;
 
   iprotocol = 0;
   len = strlen(urlstr);
@@ -89,6 +98,7 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
     log_error1("no protocol");
     return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
   }
+
   /* find host */
   ihost = iprotocol + 3;
   while (urlstr[ihost] != ':'
@@ -102,6 +112,7 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
     log_error1("no host");
     return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
   }
+
   /* find port */
   iport = ihost;
   if (ihost + 1 < len)
@@ -118,17 +129,39 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
   /* find protocol */
   strncpy(protocol, urlstr, iprotocol);
   protocol[iprotocol] = '\0';
-  if (strcasecmp(protocol, "http"))
+  if (!strncasecmp(protocol, "http", 5))
     url->protocol = PROTOCOL_HTTP;
-  else if (strcasecmp(protocol, "https"))
+  else if (!strncasecmp(protocol, "https", 6))
     url->protocol = PROTOCOL_HTTPS;
-  else if (strcasecmp(protocol, "ftp"))
-    url->protocol = PROTOCOL_FTP;
   else
-    return herror_new("hurl_parse", URL_ERROR_UNKNOWN_PROTOCOL, "Unknown protocol '%s'", protocol);
+    return herror_new("hurl_parse", URL_ERROR_UNKNOWN_PROTOCOL, "Unknown protocol \"%s\"", protocol);
 
-  /* TODO (#1#): add max of size and URL_MAX_HOST_SIZE */
+  /* find right port */
+  if (!(entry = getservbyname(protocol, "tcp")))
+  {
+    log_warn2("getservbyname(\"%s\", \"tcp\") returned NULL, please edit services database", protocol);
+
+    switch (url->protocol)
+    {
+    case PROTOCOL_HTTP:
+      url->port = HTTP_DEFAULT_PORT;
+      break;
+    case PROTOCOL_HTTPS:
+      url->port = HTTPS_DEFAULT_PORT;
+      break;
+    }
+  }
+  else
+  {
+    url->port = ntohs(entry->s_port);
+  }
+
   size = ihost - iprotocol - 3;
+  if (!(url->host = (char *)malloc(size + 1)))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return herror_new("hurl_parse", URL_ERROR, "malloc failed (%s)", strerror(errno));
+  }
   strncpy(url->host, &urlstr[iprotocol + 3], size);
   url->host[size] = '\0';
 
@@ -138,33 +171,23 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
     strncpy(tmp, &urlstr[ihost + 1], size);
     url->port = atoi(tmp);
   }
-  else
-  {
-    switch (url->protocol)
-    {
-    case PROTOCOL_HTTP:
-      url->port = URL_DEFAULT_PORT_HTTP;
-      break;
-    case PROTOCOL_HTTPS:
-      url->port = URL_DEFAULT_PORT_HTTPS;
-      break;
-    case PROTOCOL_FTP:
-      url->port = URL_DEFAULT_PORT_FTP;
-      break;
-    }
-  }
 
+  /* find path */
   len = strlen(urlstr);
   if (len > iport)
   {
-    /* TODO (#1#): find max of size and URL_MAX_CONTEXT_SIZE */
     size = len - iport;
+    if (!(url->context = (char *)malloc(size + 1)))
+    {
+      log_error2("malloc failed (%s)", strerror(errno));
+      return herror_new("hurl_parse", URL_ERROR, "malloc failed (%s)", strerror(errno));
+    }
     strncpy(url->context, &urlstr[iport], size);
     url->context[size] = '\0';
   }
   else
   {
-    url->context[0] = '\0';
+    url->context = strdup("");
   }
 
   _hurl_dump(url);
@@ -175,10 +198,16 @@ hurl_parse(struct hurl_t * url, const char *urlstr)
 void
 hurl_free(struct hurl_t *url)
 {
-  if (!url)
-    return;
+  if (url)
+  {
+    if (url->host)
+      free(url->host);
 
-  free(url);
+    if (url->context)
+      free(url->context);
+
+    free(url);
+  }
 
   return;
 }

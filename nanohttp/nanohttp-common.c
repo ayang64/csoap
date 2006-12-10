@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.35 2006/12/09 09:04:16 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.36 2006/12/10 19:21:06 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -225,11 +225,12 @@ hpairnode_get_ignore_case(hpair_t * pair, const char *key)
     log_error1("key is NULL");
     return NULL;
   }
+
   while (pair != NULL)
   {
     if (pair->key != NULL)
     {
-      if (strcasecmp(pair->key, key))
+      if (!strcasecmp(pair->key, key))
       {
         return pair->value;
       }

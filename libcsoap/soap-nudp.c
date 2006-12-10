@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.7 2006/12/06 11:27:21 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.8 2006/12/10 19:21:06 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -103,7 +103,7 @@ _soap_nudp_server_set_port(void)
   }
   else
   {
-    _soap_nudp_port = entry->s_port;
+    _soap_nudp_port = ntohs(entry->s_port);
   }
   return _soap_nudp_port;
 }

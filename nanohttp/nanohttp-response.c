@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.16 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.17 2006/12/10 19:21:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -54,13 +54,12 @@
 #include "nanohttp-response.h"
 
 static hresponse_t *
-hresponse_new(void)
+_hresponse_new(void)
 {
   hresponse_t *res;
 
   if (!(res = (hresponse_t *) malloc(sizeof(hresponse_t))))
   {
-
     log_error2("malloc failed (%s)", strerror(errno));
     return NULL;
   }
@@ -83,7 +82,7 @@ _hresponse_parse_header(const char *buffer)
   char *s1, *s2, *str;
 
   /* create response object */
-  res = hresponse_new();
+  res = _hresponse_new();
 
   /* *** parse spec *** */
   /* [HTTP/1.1 | 1.2] [CODE] [DESC] */
@@ -153,7 +152,6 @@ _hresponse_parse_header(const char *buffer)
   /* return response object */
   return res;
 }
-
 
 herror_t
 hresponse_new_from_socket(struct hsocket_t *sock, hresponse_t ** out)
@@ -239,24 +237,24 @@ read_header:                   /* for errorcode: 100 (continue) */
   return H_OK;
 }
 
-
-
 void
 hresponse_free(hresponse_t * res)
 {
-  if (res == NULL)
-    return;
+  if (res)
+  {
+    if (res->header)
+      hpairnode_free_deep(res->header);
 
-  if (res->header)
-    hpairnode_free_deep(res->header);
+    if (res->in)
+      http_input_stream_free(res->in);
 
-  if (res->in)
-    http_input_stream_free(res->in);
+    if (res->content_type)
+      content_type_free(res->content_type);
 
-  if (res->content_type)
-    content_type_free(res->content_type);
+    if (res->attachments)
+      attachments_free(res->attachments);
 
-  if (res->attachments)
-    attachments_free(res->attachments);
-  free(res);
+    free(res);
+  }
+  return;
 }

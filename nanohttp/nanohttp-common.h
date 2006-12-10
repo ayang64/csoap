@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.42 2006/12/10 13:20:38 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.43 2006/12/10 19:21:06 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -1371,6 +1371,7 @@ extern void hpairnode_dump(const hpair_t *pair);
  *         content_type_free();
  *
  * @see content_type_free
+ *
  */
 extern content_type_t *content_type_new(const char *content_type_str);
 

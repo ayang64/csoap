@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.13 2006/12/03 17:30:58 m0gg Exp $
+ *  $Id: nanohttp-stream.h,v 1.14 2006/12/10 19:21:07 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,14 +24,14 @@
 #ifndef __nanohttp_stream_h
 #define __nanohttp_stream_h
 
-/**
+/** @file
  *
- * HTTP Stream modul:
+ * \section HTTP Stream modul
  *
  * nanohttp supports 2 different streams:
  *
- * 1. http_input_stream_t
- * 2. http_output_stream_t
+ * -# http_input_stream_t
+ * -# http_output_stream_t
  *
  * These are not regular streams. They will care about transfer styles while
  * sending/receiving data.
@@ -235,10 +235,9 @@ extern void http_output_stream_free(struct http_output_stream_t * stream);
  * @param bytes bytes to send
  * @param size size of bytes to send
  *
- * @returns H_OK if success. One of the followings otherwise
- *
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_SEND
+ * @returns H_OK on success. One of the followings otherwise
+ *          - HSOCKET_ERROR_NOT_INITIALIZED
+ *          - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_write(struct http_output_stream_t *stream, const unsigned char* bytes, int size);
@@ -250,10 +249,9 @@ extern herror_t http_output_stream_write(struct http_output_stream_t *stream, co
  * @param stream the stream to use to send data
  * @param str a null terminated string to send
  *
- * @returns H_OK if success. One of the followings otherwise
- *
- *  - HSOCKET_ERROR_NOT_INITIALIZED
- *  - HSOCKET_ERROR_SEND
+ * @returns H_OK on success. One of the followings otherwise
+ *          - HSOCKET_ERROR_NOT_INITIALIZED
+ *          - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_write_string(struct http_output_stream_t *stream, const char *str);
@@ -265,10 +263,9 @@ extern herror_t http_output_stream_write_string(struct http_output_stream_t *str
  *
  * @param stream the stream to send post data.
  *
- * @returns H_OK if success. One of the followings otherwise
- *
- *   - HSOCKET_ERROR_NOT_INITIALIZED
- *   - HSOCKET_ERROR_SEND
+ * @returns H_OK on success. One of the followings otherwise
+ *          - HSOCKET_ERROR_NOT_INITIALIZED
+ *          - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_flush(struct http_output_stream_t *stream);

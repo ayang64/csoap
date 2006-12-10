@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.73 2006/12/02 21:50:47 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.74 2006/12/10 19:21:07 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -630,11 +630,9 @@ _httpd_authenticate_request(struct hrequest_t * req, httpd_auth auth)
   if (!auth)
     return 1;
 
-  if (!
-      (authorization =
-       hpairnode_get_ignore_case(req->header, HEADER_AUTHORIZATION)))
+  if (!(authorization = hpairnode_get_ignore_case(req->header, HEADER_AUTHORIZATION)))
   {
-    log_debug2("%s header not set", HEADER_AUTHORIZATION);
+    log_debug2("\"%s\" header not set", HEADER_AUTHORIZATION);
     return 0;
   }
 

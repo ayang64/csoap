@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.16 2006/11/30 14:23:59 m0gg Exp $
+ *  $Id: soap-client.h,v 1.17 2006/12/10 19:21:06 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -31,6 +31,91 @@
 #include <libcsoap/soap-env.h>
 #include <libcsoap/soap-addressing.h>
 #endif
+
+/** @page nanohttp_client Howto write a SOAP client
+ *
+ * @section toc_sec Table of contents
+ *
+ * - @ref soap_client_init
+ * - @ref envelope_sec
+ * - @ref invoke_sec
+ * - @ref result_sec
+ * - @ref soap_request_cleanup_sec
+ * - @ref soap_client_cleanup_sec
+ *
+ * @section soap_client_init Client initialization
+ *
+ * @code
+ * static char *url = "http://localhost:10000/csoapserver";
+ * static char *urn = "urn:examples";
+ * static char *method = "sayHello";
+ *
+ * int * main(int argc, char **argv)
+ * {
+ *   struct SoapCtx *request;
+ *   struct SoapCtx *response;
+ *   herror_t err;
+ *
+ *   if ((err = soap_client_init_args(argc, argv)) != H_OK)
+ *   {
+ *     printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
+ *     herror_release(err);
+ *     exit(1);
+ *   }
+ * @endcode
+ *
+ * @section envelope_sec Envelope creation
+ *
+ * @code
+ *   if ((err = soap_ctx_new_with_method(urn, method, &request)) != H_OK)
+ *   {
+ *     printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
+ *     herror_release(err);
+ *     soap_client_destroy();
+ *     exit(1);
+ *   }
+ *
+ *   soap_env_add_item(request->env, "xsd:string", "name", "Jonny B. Good");
+ * @endcode
+ *
+ * @section invoke_sec Invocation
+ *
+ * @code
+ *   if ((err = soap_client_invoke(request, &response, url, "")) != H_OK)
+ *   {
+ *     printf("[%d] %s(): %s\n", herror_code(err), herror_func(err), herror_message(err));
+ *     herror_release(err);
+ *     soap_ctx_free(request);
+ *     soap_client_destroy();
+ *     exit(1);
+ *   }
+ * @endcode
+ *
+ * @section result_sec Printout result
+ *
+ * @code
+ *   printf("**** received from \"%s\" ****\n", soap_addressing_get_from_address_string(response->env));
+ *   xmlDocFormatDump(stdout, response->env->root->doc, 1);
+ * @endcode
+ *
+ * @section soap_request_cleanup_sec Request cleanup
+ *
+ * @code
+ *   soap_ctx_free(response);
+ *   soap_ctx_free(request);
+ * @endcode
+ *
+ * @section soap_client_cleanup_sec Client cleanup
+ *
+ * @code
+ *   soap_client_destroy();
+ *
+ *   exit(0);
+ * }
+ * @endcode
+ *
+ */
+
 
 #define SOAP_ERROR_CLIENT		5000
 #define SOAP_ERROR_CLIENT_GENERIC	(SOAP_ERROR_CLIENT + 0)

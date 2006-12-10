@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-error.h,v 1.3 2006/12/03 17:30:57 m0gg Exp $
+ *  $Id: nanohttp-error.h,v 1.4 2006/12/10 19:21:06 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -39,17 +39,19 @@
  *
  * Example:
  *
+ * @code
  * herror_t err;
  *
- * if ((err = soap_client_invoke(...)) != H_OK)
+ * if ((err = http_client_invoke("http://somewhere")) != H_OK)
  * {
  *   printf("Message: %s\n", herror_message(err));
  *   printf("Error code: %d\n", herror_code(err));
  *   printf("In function: %s\n", herror_func(err));
  *   herror_release(err);
  * }
+ * @endcode
  *
- * Note that you "must" call herror_release() to free the resources.
+ * Note that you MUST call herror_release() to free the resources.
  *
  */
 
@@ -59,18 +61,6 @@
  *
  */
 #define H_OK				0
-
-/**
- *
- * XXX: Move this to nanohttp-url.h
- *
- * URL errors
- *
- */
-#define URL_ERROR			1100
-#define URL_ERROR_UNKNOWN_PROTOCOL	(URL_ERROR + 1)
-#define URL_ERROR_NO_PROTOCOL		(URL_ERROR + 2)
-#define URL_ERROR_NO_HOST		(URL_ERROR + 3)
 
 /**
  *
@@ -100,7 +90,7 @@
 
 /**
  *
- * XXX: Remove me.
+ * @todo Remove me.
  *
  * Dummy deklaration to hide the implementation.
  *
