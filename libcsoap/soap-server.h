@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.20 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: soap-server.h,v 1.21 2006/12/11 08:13:19 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -28,20 +28,71 @@
  *
  * @mainpage Project overview
  *
- * @section seq_intro Introduction
+ * @section project_intro_sec Introduction
  *
  * cSOAP is a client/server SOAP library implemented in pure C. It comes with
- * embedded transport servers for UDP and HTTP (nanohttp). The transferred XML
+ * embedded transport servers for UDP and HTTP (nanoHTTP). The transferred XML
  * structures are handled by libxml2.
  *
- * @section seq_features Features
+ * @section project_features_sec Features
  *
+ * - @subpage soap_page
  * - different transport services
- *   - @ref nanohttp_page (HTTP including SSL)
+ *   - @subpage nanohttp_page (HTTP including SSL)
  *   - client/server UDP transport service (multicast)
  * - attachments via MIME
  * - message based security (XML encryption/signation)
  * - automatic generation of WS-Inspection
+ *
+ * @section howto_sec HOWTOs and coding examples
+ *
+ * - @ref nanohttp_client_page
+ * - @ref nanohttp_server_page
+ * - @ref nanohttp_mime_page
+ * - @ref csoap_client_page
+ * - @ref csoap_server_page
+ * - @ref csoap_mime_page
+ *
+ * @section help_sec How to help
+ *
+ * The development of cSOAP highly depends on your input! If you are trying
+ * cSOAP let us know what you think of it (do you miss certain features?). Even
+ * if you decide not to use it, please let us know why.
+ *
+ * @section projects_sec Projects that use cSOAP
+ *
+ * @subsection CompLearn (http://complearn.org/)
+ *
+ * CompLear is a suite of simple-to-use utilities that you can use to apply
+ * compression techniques to the process of discovering and learning patterns.
+ *
+ * @section downloads_sec Downloads
+ *
+ * @subsection Download stable release
+ *
+ * A stable release is a tested version of cSOAP. Download this package if you
+ * want to use it in your productive projects. 
+ *
+ * Download source code of libsoap-1.1.0.tar.gz:
+ * http://prdownloads.sourceforge.net/csoap/libsoap-1.1.0.tar.gz?download
+ *
+ * @subsection Download latest snapshot (nightly build)
+ *
+ * Latest snapshots are build nightly on a detected CVS commit. This is sometimes
+ * not very stable but in some case are snapshots the better choice then the
+ * stable version. This can happen if a very important bug was fixed or a new
+ * feature was introduced. It is recommend to join the mailinglist.
+ *
+ * Download latest snapshot (nightly build):
+ * http://csoap.sourceforge.net/downloads/libsoap-snapshot.tar.gz
+ *
+ * @subsection Checkout from CVS
+ *
+ * Do you want the latest source codes? You want to contribute a patch? Have you
+ * found a bug? Or whatever. You should check out csoap from CVS to play the game
+ * with us csoap developers.
+ *
+ * Web CVS access: http://csoap.cvs.sourceforge.net/csoap/libsoap/
  *
  * @author	Ferhat Ayaz
  * @author	Michael Rans
@@ -54,6 +105,19 @@
  * @see		http://www.libxml.org/
  * @see		http://www.openssl.org/
  * @see		http://www.aleksey.com/xmlsec/
+ *
+ */
+
+/** @page soap_page
+ *
+ * T.B.D.
+ *
+ * @section soap_howto_sec HOWTOs and coding examples
+ *
+ * - @ref csoap_client_page
+ * - @ref csoap_server_page
+ * - @ref csoap_mime_page
+ *
  */
 
 /** @page soap_server_page Howto write an SOAP server
@@ -149,8 +213,7 @@
  *
  *   xmlDocFormatDump(stdout, req->env->root->doc, 1);
  *
- *   err = soap_env_new_with_response(req->env, &res->env);
- *   if (err != H_OK)
+ *   if ((err = soap_env_new_with_response(req->env, &res->env)) != H_OK)
  *   {
  *     printf("soap_env_new_with_response failed (%s)\n", herror_message(err));
  *     return err;

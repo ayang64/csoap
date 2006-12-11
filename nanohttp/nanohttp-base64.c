@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.c,v 1.3 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: nanohttp-base64.c,v 1.4 2006/12/11 08:13:19 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -128,6 +128,7 @@ void base64_decode_string(const unsigned char *instr, unsigned char *outstr)
 
 #ifdef BASE64_TEST_CASE_FROM_RFC2617
 #include <stdio.h>
+#include <strings.h>
 int main(int argc, char **argv) {
 
   unsigned char *instr = "QWxhZGRpbjpvcGVuIHNlc2FtZQ==";

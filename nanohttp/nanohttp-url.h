@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-url.h,v 1.2 2006/12/10 19:21:07 m0gg Exp $
+ *  $Id: nanohttp-url.h,v 1.3 2006/12/11 08:13:19 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -47,9 +47,6 @@ typedef enum _hprotocol
   PROTOCOL_HTTP,
   PROTOCOL_HTTPS
 } hprotocol_t;
-
-#define URL_MAX_HOST_SIZE      120
-#define URL_MAX_CONTEXT_SIZE  1024
 
 /**
  *

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.13 2006/12/10 12:23:45 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.14 2006/12/11 08:13:19 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -34,7 +34,7 @@
  * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
-/*{*/
+/*@{*/
 
 /**
  *
@@ -252,7 +252,7 @@
  */
 #define HEADER_USER_AGENT		"User-Agent"
 
-/*}*/
+/*@}*/
 
 #ifdef __NHTTP_INTERNAL
 struct request_statistics

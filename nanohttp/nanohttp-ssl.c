@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.c,v 1.36 2006/12/06 11:27:21 m0gg Exp $
+*  $Id: nanohttp-ssl.c,v 1.37 2006/12/11 08:13:19 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -83,6 +83,8 @@
 #include "nanohttp-logging.h"
 
 #include "nanohttp-ssl.h"
+
+#define CERT_SUBJECT	1
 
 static char *_hssl_certificate = NULL;
 static char *_hssl_certpass = NULL;

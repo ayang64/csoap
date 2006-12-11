@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.34 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.35 2006/12/11 08:13:19 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -38,21 +38,22 @@
  *
  * @section client_sec Table of contents
  *
- * - Client initialization
- * - Connection initialization
- *   - SSL related functions
- * - Setting HTTP headers (optional)
- *   - Setting an HTTP header with uniq key
- *   - Setting multiple headers
- * - Fetch the network resource
- *   - @ref get_sec
- *   - @ref post_sec
- *   - MIME attachments
- * - Print out the result
- * - Connection cleanup
- * - Client cleanup
+ * - @ref nanohttp_client_init_sec
+ * - @ref nanohttp_client_conn_init_sec
+ *   - @ref nanohttp_client_ssl_sec
+ * - @ref nanohttp_client_header_sec
+ *   - @ref nanohttp_client_header_uniq_sec
+ *   - @ref nanohttp_client_header_mult_sec
+ *   - @ref nanohttp_client_authorization_sec
+ * - @ref nanohttp_client_invoke_sec
+ *   - @ref nanohttp_client_get_sec
+ *   - @ref nanohttp_client_post_sec
+ *   - @ref nanohttp_client_mime_sec
+ * - @ref nanohttp_client_result_sec
+ * - @ref nanohttp_client_conn_cleanup_sec
+ * - @ref nanohttp_client_cleanup_sec
  *
- * @section init_sec Client initialization
+ * @section nanohttp_client_init_sec Client initialization
  *
  * @code
  * int main(int argc, char **argv)
@@ -75,7 +76,7 @@
  *   }
  * @endcode
  *
- * @section conn_sec Connection initialization
+ * @section nanohttp_client_conn_init_sec Connection initialization
  *
  * @code
  *   if (!(conn = httpc_new()))
@@ -86,15 +87,21 @@
  *   }
  * @endcode
  *
- * @section ssl_sec SSL related functions
+ * @section nanohttp_client_ssl_sec SSL related functions
  *
  * T.B.D.
  *
- * @section header_sec Setting HTTP headers (optional)
+ * @ref nanohttp_ssl_page
+ *
+ * @section nanohttp_client_header_sec Setting HTTP headers (optional)
+ *
+ * @subsection nanohttp_client_header_uniq_sec Setting an header with uniq key
  *
  * @code
  *   httpc_set_header(conn, "my-key", "my-value");
  * @endcode
+ *
+ * @subsection nanohttp_client_header_mult_sec Setting headers with the same key
  *
  * @code
  *   httpc_add_header(conn, "Cookie", "name1:value1");
@@ -104,9 +111,19 @@
  * Please see @ref general_header_fields and @ref request_header_fields for more
  * information.
  *
- * @section fetch_sec Fetch the network resource
+ * @subsection nanohttp_client_authorization_sec HTTP autorization
  *
- * @subsection get_sec HTTP GET method
+ * @code
+ *   httpc_set_basic_authorization(conn, "username", "password");
+ * @endcode
+ *
+ * @code
+ *   httpc_set_basic_proxy_authorization(conn, "username", "password");
+ * @endcode
+ *
+ * @section nanohttp_client_invoke_sec Fetch the network resource
+ *
+ * @subsection nanohttp_client_get_sec HTTP GET method
  *
  * @code
  *   if ((status = httpc_get(conn, &result, argv[1])) != H_OK)
@@ -118,7 +135,7 @@
  *   }
  * @endcode
  *
- * @subsection post_sec HTTP POST method
+ * @subsection nanohttp_client_post_sec HTTP POST method
  *
  * @code
  *   if ((status = httpc_post_begin(conn, argv[1])) != H_OK)
@@ -146,11 +163,13 @@
  *   }
  * @endcode
  *
- * @section mime_sec MIME attachments
+ * @section nanohttp_client_mime_sec MIME attachments
  *
  * T.B.D.
  *
- * @section output_sec Print out the result
+ * @ref nanohttp_mime_page
+ *
+ * @section nanohttp_client_result_sec Print out the result
  *
  * @code
  *   while (http_input_stream_is_read(res->in))
@@ -160,13 +179,13 @@
  *   }
  * @endcode
  *
- * @section conn_clean_sec Connection cleanup
+ * @section nanohttp_client_conn_cleanup_sec Connection cleanup
  *
  * @code
  *   hresponse_free(res);
  * @endcode
  *
- * @section client_clean Client cleanup
+ * @section nanohttp_client_cleanup_sec Client cleanup
  *
  * @code
  *   httpc_free(conn);

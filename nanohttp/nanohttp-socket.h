@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-socket.h,v 1.37 2006/12/10 19:21:07 m0gg Exp $
+ *  $Id: nanohttp-socket.h,v 1.38 2006/12/11 08:13:19 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,7 @@
 /** @defgroup socket_errors Socket errors
  *
  */
-/*{*/
+/*@{*/
 
 /**
  *
@@ -45,6 +45,8 @@
 #define HSOCKET_ERROR_ACCEPT		(HSOCKET_ERROR + 8)
 #define HSOCKET_ERROR_NOT_INITIALIZED	(HSOCKET_ERROR + 9)
 #define HSOCKET_ERROR_IOCTL		(HSOCKET_ERROR + 10)
+
+/*@}*/
 
 /**
  *

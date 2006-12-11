@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.43 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.44 2006/12/11 08:13:19 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -458,13 +458,15 @@ typedef enum _hreq_method
  * defines the class of response. The last two digits do not have any
  * categorization role. There are 5 values for the first digit: 
  *
- * - 1xx: Informational - Request received, continuing process
- * - 2xx: Success - The action was successfully received, understood, and
- *        accepted 
- * - 3xx: Redirection - Further action must be taken in order to complete the
- *        request
- * - 4xx: Client Error - The request contains bad syntax or cannot be fulfilled
- * - 5xx: Server Error - The server failed to fulfill an apparently valid request
+ * - @ref status_informational_sec - Request received, continuing process
+ * - @ref status_success_sec - The action was successfully received, understood,
+ *        and accepted 
+ * - @ref status_redirection_sec - Further action must be taken in order to
+ *        complete the request
+ * - @ref status_client_error_sec - The request contains bad syntax or cannot be
+ *        fulfilled
+ * - @ref status_server_error_sec - The server failed to fulfill an apparently
+ *        valid request
  *
  * The individual values of the numeric status codes defined for HTTP/1.1, and an
  * example set of corresponding Reason-Phrase's, are presented below. The reason
@@ -484,7 +486,7 @@ typedef enum _hreq_method
  * since that entity is likely to include human-readable information which will
  * explain the unusual status.
  *
- * \subsection status_informational_sec Informational 1xx
+ * @section status_informational_sec Informational 1xx
  *
  * This class of status code indicates a provisional response, consisting only
  * of the Status-Line and optional headers, and is terminated by an empty line.
@@ -503,12 +505,12 @@ typedef enum _hreq_method
  * "Expect: 100-continue" field when it forwards a request, then it need not
  * forward the corresponding 100 (Continue) response(s).)
  *
- * \subsection status_successful_sec Successful 2xx
+ * @section status_successful_sec Successful 2xx
  *
  * This class of status code indicates that the client's request was
  * successfully received, understood, and accepted.
  *
- * \subsection status_refirection_sec Redirection 3xx
+ * @section status_redirection_sec Redirection 3xx
  *
  * This class of status code indicates that further action needs to be taken by
  * the user agent in order to fulfill the request.  The action required MAY be
@@ -517,7 +519,7 @@ typedef enum _hreq_method
  * detect infinite redirection loops, since such loops generate network traffic
  * for each redirection.
  *
- * \subsection status_client_error_sec Client Error 4xx
+ * @section status_client_error_sec Client Error 4xx
  *
  * The 4xx class of status code is intended for cases in which the client seems
  * to have erred. Except when responding to a HEAD request, the server SHOULD
@@ -534,7 +536,7 @@ typedef enum _hreq_method
  * unacknowledged input buffers before they can be read and interpreted by the
  * HTTP application.
  *
- * \subsection status_server_error_sec Server Error 5xx
+ * @section status_server_error_sec Server Error 5xx
  *
  * Response status codes beginning with the digit "5" indicate cases in which
  * the server is aware that it has erred or is incapable of performing the
@@ -549,7 +551,7 @@ typedef enum _hreq_method
  * @see http://www.ietf.org/rfc/rfc2616.txt
  *
  */
-/*{*/
+/*@{*/
 
 /**
  *
@@ -1200,7 +1202,7 @@ typedef enum _hreq_method
  */
 #define HTTP_STATUS_505_REASON_PHRASE	"HTTP Version not supported"
 
-/*}*/
+/*@}*/
 
 /**
  *
