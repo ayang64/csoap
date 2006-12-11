@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.14 2006/12/10 19:21:07 m0gg Exp $
+ *  $Id: nanohttp-stream.h,v 1.15 2006/12/11 08:35:58 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -26,10 +26,9 @@
 
 /** @file
  *
- * \section HTTP Stream modul
+ * @section HTTP Stream modul
  *
- * nanohttp supports 2 different streams:
- *
+ * nanoHTTP supports 2 different streams:
  * -# http_input_stream_t
  * -# http_output_stream_t
  *
@@ -50,9 +49,14 @@
  *
  */
 
+/** @defgroup stream_errors_group Stream errors
+ *
+ */
+/*@{*/
+
 /**
  *
- * Stream errors
+ * Generic stream error.
  *
  */
 #define STREAM_ERROR			1200
@@ -60,6 +64,8 @@
 #define STREAM_ERROR_SOCKET_ERROR	(STREAM_ERROR + 2)
 #define STREAM_ERROR_NO_CHUNK_SIZE	(STREAM_ERROR + 3)
 #define STREAM_ERROR_WRONG_CHUNK_SIZE	(STREAM_ERROR + 4)
+
+/*@}*/
 
 /**
  *
@@ -126,16 +132,16 @@ extern "C" {
 
 /**
  *
- * Creates a new input stream. The transfer style will be 
- * choosen from the given header.
+ * Creates a new input stream. The transfer style will be choosen from the given
+ * header.
  *
  * @param sock the socket to receive data from
- * @param header the http header. This must be received before
- *        creating a http_input_stream_t.
+ * @param header the http header. This must be received before creating a
+ *        http_input_stream_t.
  *
- * @returns a newly created http_input_stream_t object. If no transfer style was
- *          found in the header, HTTP_TRANSFER_CONNECTION_CLOSE  will be used as
- *          default.
+ * @return a newly created http_input_stream_t object. If no transfer style was
+ *         found in the header, HTTP_TRANSFER_CONNECTION_CLOSE  will be used as
+ *         default.
  *
  * @see http_input_stream_free
  *
@@ -149,8 +155,8 @@ extern struct http_input_stream_t *http_input_stream_new(struct hsocket_t *sock,
  *
  * @param filename the name of the file to open and read. 
  *
- * @returns The return value is a http_input_stream_t object if the file exists
- *          and could be opened. NULL otherwise.
+ * @return The return value is a http_input_stream_t object if the file exists
+ *         and could be opened. NULL otherwise.
  *
  * @see http_input_stream_free
  *
@@ -172,8 +178,8 @@ extern void http_input_stream_free(struct http_input_stream_t * stream);
  *
  * @param stream the stream to check its status
  *
- * @returns <br>1 if there are still data to read. 
- *          <br>0 if no more data exists.
+ * @return - 1, if there is still data to read. 
+ *         - 0, if no more data exists.
  */
 extern int http_input_stream_is_ready(struct http_input_stream_t * stream);
 
@@ -192,10 +198,10 @@ extern int http_input_stream_is_ready(struct http_input_stream_t * stream);
  * - HSOCKET_ERROR_RECEIVE  
  *
  * @param stream the stream to read data from
- * @param dest destination memory to store readed bytes
+ * @param dest destination memory to store read bytes
  * @param size maximum size of 'dest' (size to read)
  *
- * @returns the actual readed bytes or -1 on error.
+ * @return the actual read bytes or -1 on error.
  *
  */
 extern int http_input_stream_read(struct http_input_stream_t * stream, unsigned char *dest, int size);
@@ -208,8 +214,8 @@ extern int http_input_stream_read(struct http_input_stream_t * stream, unsigned 
  * @param sock the socket to to send data to
  * @param header the header which must be sent before
  *
- * @returns a http_output_stream_t object. If no proper transfer style was found
- *          in the header, HTTP_TRANSFER_CONNECTION_CLOSE will be used as default.
+ * @return a http_output_stream_t object. If no proper transfer style was found
+ *         in the header, HTTP_TRANSFER_CONNECTION_CLOSE will be used as default.
  *
  * @see http_output_stream_free
  *
@@ -235,9 +241,9 @@ extern void http_output_stream_free(struct http_output_stream_t * stream);
  * @param bytes bytes to send
  * @param size size of bytes to send
  *
- * @returns H_OK on success. One of the followings otherwise
- *          - HSOCKET_ERROR_NOT_INITIALIZED
- *          - HSOCKET_ERROR_SEND
+ * @return H_OK on success. One of the followings otherwise
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_write(struct http_output_stream_t *stream, const unsigned char* bytes, int size);
@@ -249,9 +255,9 @@ extern herror_t http_output_stream_write(struct http_output_stream_t *stream, co
  * @param stream the stream to use to send data
  * @param str a null terminated string to send
  *
- * @returns H_OK on success. One of the followings otherwise
- *          - HSOCKET_ERROR_NOT_INITIALIZED
- *          - HSOCKET_ERROR_SEND
+ * @return H_OK on success. One of the followings otherwise
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_write_string(struct http_output_stream_t *stream, const char *str);
@@ -263,9 +269,9 @@ extern herror_t http_output_stream_write_string(struct http_output_stream_t *str
  *
  * @param stream the stream to send post data.
  *
- * @returns H_OK on success. One of the followings otherwise
- *          - HSOCKET_ERROR_NOT_INITIALIZED
- *          - HSOCKET_ERROR_SEND
+ * @return H_OK on success. One of the followings otherwise
+ *         - HSOCKET_ERROR_NOT_INITIALIZED
+ *         - HSOCKET_ERROR_SEND
  *
  */
 extern herror_t http_output_stream_flush(struct http_output_stream_t *stream);

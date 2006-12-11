@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.17 2006/11/25 15:06:58 m0gg Exp $
+*  $Id: nanohttp-mime.c,v 1.18 2006/12/11 08:35:58 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -149,7 +149,7 @@ MIME_read_status
 MIME_reader_read(MIME_reader * reader, unsigned char *buffer, int size)
 {
   MIME_read_status status;
-  int readed_size;
+  int len;
   unsigned char tempBuffer[MIME_READER_MAX_BUFFER_SIZE];
   int rest_size;
 
@@ -178,14 +178,14 @@ MIME_reader_read(MIME_reader * reader, unsigned char *buffer, int size)
     else
       reader->current = 0;
 
-    readed_size = MIME_READER_MAX_BUFFER_SIZE - reader->current - 1;
+    len = MIME_READER_MAX_BUFFER_SIZE - reader->current - 1;
     status = reader->read_function(reader->userdata,
                                    reader->buffer + reader->current,
-                                   &readed_size);
+                                   &len);
 
     if (status == MIME_READ_OK)
     {
-      reader->size = readed_size + reader->current;
+      reader->size = len + reader->current;
     }
     else
       return status;
@@ -518,22 +518,22 @@ typedef struct _mime_callback_data
 MIME_read_status
 mime_streamreader_function(void *userdata, unsigned char *dest, int *size)
 {
-  int readed = 0;
+  int len = 0;
   struct http_input_stream_t *in = (struct http_input_stream_t *) userdata;
 
   if (!http_input_stream_is_ready(in))
     return MIME_READ_EOF;
 
-  readed = http_input_stream_read(in, dest, *size);
+  len = http_input_stream_read(in, dest, *size);
   /* 
      log_info1("http_input_stream_read() returned 0"); */
-  if (readed == -1)
+  if (len == -1)
   {
     log_error4("[%d] %s():%s ", herror_code(in->err), herror_func(in->err),
                herror_message(in->err));
   }
 
-  *size = readed;
+  *size = len;
   if (*size != -1)
   {
     return MIME_READ_OK;
@@ -552,6 +552,8 @@ _mime_parse_begin(void *data)
   mime_callback_data_t *cbdata = (mime_callback_data_t)data;
  */
   log_verbose2("Begin parse (%p)", data);
+
+  return;
 }
 
 
@@ -562,6 +564,8 @@ _mime_parse_end(void *data)
   mime_callback_data_t *cbdata = (mime_callback_data_t)data;
  */
   log_verbose2("End parse (%p)", data);
+
+  return;
 }
 
 
@@ -622,6 +626,8 @@ _mime_part_end(void *data)
     fclose(cbdata->current_fd);
     cbdata->current_fd = NULL;
   }
+
+  return;
 }
 
 
@@ -797,6 +803,8 @@ _mime_received_bytes(void *data, const unsigned char *bytes, int size)
      disabled in this version) */
   if (cbdata->current_fd)
     fwrite(&(bytes[i]), 1, size - i, cbdata->current_fd);
+
+  return;
 }
 
 
