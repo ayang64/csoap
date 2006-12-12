@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.31 2006/12/11 08:13:19 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.32 2006/12/12 07:23:11 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -46,11 +46,11 @@
  * - attachments via MIME
  * - HTTPS support (SSL/TLS) using OpenSSL
  *
- * @section links_sec Howto to the nanoHTTP library
+ * @section links_sec Howto to use the nanoHTTP library
  *
- * - @ref nanohttp_client_page
- * - @ref nanohttp_server_page
- * - @ref nanohttp_mime_page
+ * - @subpage nanohttp_client_page
+ * - @subpage nanohttp_server_page
+ * - @subpage nanohttp_mime_page
  *
  * @author	Ferhat Ayaz
  * @author	Michael Rans
@@ -68,13 +68,13 @@
  *
  * @section server_sec Table of contents
  * 
- * - @ref init_sec
- * - @ref service_sec
- * - @ref running_sec
- * - @ref cleanup_sec
- * - @ref function_sec
+ * - @ref nanohttp_server_init_sec
+ * - @ref nanohttp_server_service_sec
+ * - @ref nanohttp_server_running_sec
+ * - @ref nanohttp_server_cleanup_sec
+ * - @ref nanohttp_server_function_sec
  *
- * @section init_sec Server initialization
+ * @section nanohttp_server_init_sec Server initialization
  *
  * @code
  * int main(int argc, char **argv)
@@ -89,7 +89,7 @@
  *   }
  * @endcode
  *
- * @section service_sec Service registration
+ * @section nanohttp_server_service_sec Service registration
  *
  * @code
  *   if ((status = httpd_register("/", root_service)) != H_OK)
@@ -131,7 +131,7 @@
  *   }
  * @endcode
  *
- * @section running_sec Running the server
+ * @section nanohttp_server_running_sec Running the server
  *
  * @code
  *   if ((status = httpd_run()) != H_OK)
@@ -143,7 +143,7 @@
  *   }
  * @endcode
  *
- * @section cleanup_sec Server cleanup
+ * @section nanohttp_server_cleanup_sec Server cleanup
  *
  * @code
  *   httpd_destroy();
@@ -152,7 +152,7 @@
  * }
  * @endcode
  *
- * @section function_seq Sample service function
+ * @section nanohttp_server_function_sec Sample service function
  *
  * @code
  * static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)

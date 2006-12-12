@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.21 2006/12/11 08:13:19 m0gg Exp $
+ *  $Id: soap-server.h,v 1.22 2006/12/12 07:23:11 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,7 +36,7 @@
  *
  * @section project_features_sec Features
  *
- * - @subpage soap_page
+ * - @subpage csoap_page
  * - different transport services
  *   - @subpage nanohttp_page (HTTP including SSL)
  *   - client/server UDP transport service (multicast)
@@ -68,7 +68,7 @@
  *
  * @section downloads_sec Downloads
  *
- * @subsection Download stable release
+ * @subsection download_stable_sec Download stable release
  *
  * A stable release is a tested version of cSOAP. Download this package if you
  * want to use it in your productive projects. 
@@ -76,7 +76,7 @@
  * Download source code of libsoap-1.1.0.tar.gz:
  * http://prdownloads.sourceforge.net/csoap/libsoap-1.1.0.tar.gz?download
  *
- * @subsection Download latest snapshot (nightly build)
+ * @subsection download_snapshot_sec Download latest snapshot (nightly build)
  *
  * Latest snapshots are build nightly on a detected CVS commit. This is sometimes
  * not very stable but in some case are snapshots the better choice then the
@@ -86,7 +86,7 @@
  * Download latest snapshot (nightly build):
  * http://csoap.sourceforge.net/downloads/libsoap-snapshot.tar.gz
  *
- * @subsection Checkout from CVS
+ * @subsection download_cvs_sec Checkout from CVS
  *
  * Do you want the latest source codes? You want to contribute a patch? Have you
  * found a bug? Or whatever. You should check out csoap from CVS to play the game
@@ -108,19 +108,19 @@
  *
  */
 
-/** @page soap_page
+/** @page csoap_page
  *
  * T.B.D.
  *
  * @section soap_howto_sec HOWTOs and coding examples
  *
- * - @ref csoap_client_page
- * - @ref csoap_server_page
- * - @ref csoap_mime_page
+ * - @subpage csoap_client_page
+ * - @subpage csoap_server_page
+ * - @subpage csoap_mime_page
  *
  */
 
-/** @page soap_server_page Howto write an SOAP server
+/** @page csoap_server_page Howto write a SOAP server
  *
  * @section soap_server_toc_sec Table of contents
  *

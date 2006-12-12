@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-client.h,v 1.17 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: soap-client.h,v 1.18 2006/12/12 07:23:11 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -32,7 +32,7 @@
 #include <libcsoap/soap-addressing.h>
 #endif
 
-/** @page nanohttp_client Howto write a SOAP client
+/** @page csoap_client_page Howto write a SOAP client
  *
  * @section toc_sec Table of contents
  *
