@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.45 2006/12/13 08:21:43 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.46 2006/12/13 08:26:01 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -447,7 +447,7 @@ typedef enum _hreq_method
   HTTP_REQUEST_UNKOWN
 } hreq_method_t;
 
-/** @defgroup http_status HTTP status-codes
+/** @defgroup http_status_codes HTTP status-codes
  *
  * The Status-Code element is a 3-digit integer result code of the attempt to
  * understand and satisfy the request. These codes are fully defined in section

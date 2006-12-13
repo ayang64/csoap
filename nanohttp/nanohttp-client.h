@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.36 2006/12/13 08:18:53 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.37 2006/12/13 08:26:01 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -277,6 +277,8 @@ extern void httpc_close_free(httpc_conn_t * conn);
  *
  * @see httpc_add_header
  * @see httpc_add_headers
+ * @see http_general_header_fields
+ * @see http_request_header_fields
  *
  */
 extern int httpc_set_header(httpc_conn_t * conn, const char *key, const char *value);
@@ -289,6 +291,8 @@ extern int httpc_set_header(httpc_conn_t * conn, const char *key, const char *va
  *
  * @see httpc_set_header
  * @see httpc_add_headers
+ * @see http_general_header_fields
+ * @see http_request_header_fields
  *
  */
 extern int httpc_add_header(httpc_conn_t *conn, const char *key, const char *value);
@@ -299,6 +303,8 @@ extern int httpc_add_header(httpc_conn_t *conn, const char *key, const char *val
  *
  * @see httpc_set_header
  * @see httpc_add_header
+ * @see http_general_header_fields
+ * @see http_request_header_fields
  *
  */
 extern void httpc_add_headers(httpc_conn_t *conn, const hpair_t *values);
@@ -337,6 +343,8 @@ extern int httpc_set_basic_proxy_authorization(httpc_conn_t *conn, const char *u
  *
  * @return H_OK on success
  *
+ * @see HTTP_REQUEST_GET
+ *
  */
 extern herror_t httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *urlstr);
 
@@ -345,6 +353,9 @@ extern herror_t httpc_get(httpc_conn_t * conn, hresponse_t ** out, const char *u
  * Start a "POST" method request
  *
  * @return H_OK on success or error flag
+ *
+ * @see HTTP_REQUEST_POST
+ * @see httpc_post_end
  *
  */
 extern herror_t httpc_post_begin(httpc_conn_t * conn, const char *url);
@@ -356,7 +367,8 @@ extern herror_t httpc_post_begin(httpc_conn_t * conn, const char *url);
  *
  * @return H_OK on success
  *
- * @see httpc_post_end
+ * @see httpc_post_begin
+ * @see HTTP_REQUEST_POST
  *
  */
 extern herror_t httpc_post_end(httpc_conn_t * conn, hresponse_t ** out);
@@ -366,6 +378,8 @@ extern herror_t httpc_post_end(httpc_conn_t * conn, hresponse_t ** out);
  * Begin MIME multipart/related POST request
  *
  * @return H_OK on success or error flag
+ *
+ * @see nanohttp_mime_page
  *
  */
 extern herror_t httpc_mime_begin(httpc_conn_t * conn, const char *url,
@@ -379,6 +393,8 @@ extern herror_t httpc_mime_begin(httpc_conn_t * conn, const char *url,
  *
  * @return H_OK on success
  *
+ * @see nanohttp_mime_page
+ *
  */
 extern herror_t httpc_mime_next(httpc_conn_t * conn,
                          const char *content_id,
@@ -391,6 +407,8 @@ extern herror_t httpc_mime_next(httpc_conn_t * conn,
  *
  * @return H_OK on success
  *
+ * @see nanohttp_mime_page
+ *
  */
 extern herror_t httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out);
 
@@ -399,6 +417,8 @@ extern herror_t httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out);
  * Send boundary and part header and continue with next part
  *
  * @return H_OK on success
+ *
+ * @see nanohttp_mime_page
  *
  */
 extern herror_t httpc_mime_send_file(httpc_conn_t * conn,
