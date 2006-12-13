@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.44 2006/12/11 08:13:19 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.45 2006/12/13 08:21:43 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -459,8 +459,8 @@ typedef enum _hreq_method
  * categorization role. There are 5 values for the first digit: 
  *
  * - @ref status_informational_sec - Request received, continuing process
- * - @ref status_success_sec - The action was successfully received, understood,
- *        and accepted 
+ * - @ref status_successful_sec - The action was successfully received,
+ *        understood, and accepted 
  * - @ref status_redirection_sec - Further action must be taken in order to
  *        complete the request
  * - @ref status_client_error_sec - The request contains bad syntax or cannot be

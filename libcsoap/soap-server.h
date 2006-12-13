@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.23 2006/12/12 07:36:58 m0gg Exp $
+ *  $Id: soap-server.h,v 1.24 2006/12/13 08:18:53 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -36,15 +36,14 @@
  *
  * @section project_features_sec Features
  *
- * - @subpage csoap_page
- * - SOAP 1.1 compliant
- * - Platform independent: Windows, Unix, Linux, MacOS, OpenVMS
- * - different transport services
- *   - @subpage nanohttp_page (HTTP including SSL)
+ * - SOAP 1.1 compliant (@subpage csoap_page)
+ * - supports different transport services
+ *   - HTTP including SSL (@subpage nanohttp_page)
  *   - client/server UDP transport service (multicast, SOAP-over-UDP)
  * - attachments via MIME
  * - message based security (XML encryption/signation)
- * - automatic generation of WS-Inspection document
+ * - automatic generation of a WS-Inspection document
+ * - Platform independent: Windows, Unix, Linux, MacOS, OpenVMS
  * - Written in pure C.
  *
  * @section howto_sec HOWTOs and coding examples
@@ -64,10 +63,11 @@
  *
  * @section projects_sec Projects that use cSOAP
  *
- * @subsection complearn_sec CompLearn (http://complearn.org/)
+ * @subsection complearn_sec CompLearn
  *
- * CompLear is a suite of simple-to-use utilities that you can use to apply
- * compression techniques to the process of discovering and learning patterns.
+ * CompLearn (http://complearn.org/) is a suite of simple-to-use utilities that
+ * you can use to apply compression techniques to the process of discovering and
+ * learning patterns.
  *
  * @section downloads_sec Downloads
  *
@@ -111,7 +111,7 @@
  *
  */
 
-/** @page csoap_page
+/** @page csoap_page cSOAP
  *
  * T.B.D.
  *

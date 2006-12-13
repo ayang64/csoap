@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.h,v 1.3 2006/11/28 23:45:57 m0gg Exp $
+*  $Id: nanohttp-base64.h,v 1.4 2006/12/13 08:18:53 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,7 +26,7 @@
 
 /** @file
  *
- * Base64 data encoding
+ * \section base64_data_enc_sec Base64 data encoding
  *
  * Base encoding of data is used in many situations to store or transfer data in
  * environments that, perhaps for legacy reasons, are restricted to US-ASCII
@@ -43,7 +43,7 @@
  * characters.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
  * @see http://www.ietf.org/rfc/rfc4648.txt
  *

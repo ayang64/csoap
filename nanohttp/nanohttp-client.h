@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.35 2006/12/11 08:13:19 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.36 2006/12/13 08:18:53 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -111,7 +111,7 @@
  * Please see @ref general_header_fields and @ref request_header_fields for more
  * information.
  *
- * @subsection nanohttp_client_authorization_sec HTTP autorization
+ * @subsection nanohttp_client_authorization_sec HTTP authorization
  *
  * @code
  *   httpc_set_basic_authorization(conn, "username", "password");
@@ -121,7 +121,7 @@
  *   httpc_set_basic_proxy_authorization(conn, "username", "password");
  * @endcode
  *
- * @section nanohttp_client_invoke_sec Fetch the network resource
+ * @section nanohttp_client_invoke_sec Request the network resource
  *
  * @subsection nanohttp_client_get_sec HTTP GET method
  *
@@ -169,7 +169,7 @@
  *
  * @ref nanohttp_mime_page
  *
- * @section nanohttp_client_result_sec Print out the result
+ * @section nanohttp_client_result_sec Fetch and print out the result
  *
  * @code
  *   while (http_input_stream_is_read(res->in))
@@ -215,21 +215,22 @@ extern "C" {
 
 /**
  *
- * Initializes the httpc_* module. This is called from
- * soap_client_init_args().
+ * Initializes the nanoHTTP client module.
  *
  * @param argc		Argument count.
  * @param argv		Argument vector.
  *
  * @return H_OK on succes or a herror_t struct on failure.
  *
- * @see httpc_destroy, herror_t, soap_client_init_args
+ * @see httpc_destroy
+ * @see herror_t
+ *
  */
 extern herror_t httpc_init(int argc, char **argv);
 
 /**
  *
- * Destroys the httpc_* module
+ * Destroys the nanoHTTP client module.
  *
  * @see httpc_init
  *
