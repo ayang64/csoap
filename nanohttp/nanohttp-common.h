@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.46 2006/12/13 08:26:01 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.47 2006/12/13 08:36:53 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -178,6 +178,8 @@
  * header field. Content-Encoding is primarily used to allow a document to be
  * compressed without losing the identity of its underlying media type.
  *
+ * @see HEADER_CONTENT_TYPE
+ *
  */
 #define HEADER_CONTENT_ENCODING		"Content-Encoding"
 
@@ -196,6 +198,9 @@
  * in decimal number of OCTETs, sent to the recipient or, in the case of the HEAD
  * method, the size of the entity-body that would have been sent had the request
  * been a GET.
+ *
+ * @see HTTP_REQUEST_GET
+ * @see HTTP_REQUEST_HEAD
  *
  */
 #define HEADER_CONTENT_LENGTH		"Content-Length"
@@ -218,9 +223,10 @@
  *
  * The Content-MD5 entity-header field, as defined in RFC 1864, is an MD5 digest
  * of the entity-body for the purpose of providing an end-to-end message
- * integrity check (MIC) of the entity-body. (Note: a MIC is good for detecting
- * accidental modification of the entity-body in transit, but is not proof
- * against malicious attacks.)
+ * integrity check (MIC) of the entity-body.
+ *
+ * Note: a MIC is good for detecting accidental modification of the entity-body
+ * in transit, but is not proof against malicious attacks.
  *
  * @see http://www.ietf.org/rfc/rfc1864.txt
  *
@@ -323,7 +329,11 @@ typedef enum _http_version
  *
  * Example:
  *
- * text/xml; key="value" key2="value2' ...
+ * @code
+ * Content-Type: text/xml; key="value" key2="value2' ...
+ * @endcode
+ *
+ * @see HEADER_CONTENT_TYPE
  *
  */
 typedef struct _content_type
@@ -486,7 +496,7 @@ typedef enum _hreq_method
  * since that entity is likely to include human-readable information which will
  * explain the unusual status.
  *
- * @section status_informational_sec Informational 1xx
+ * @section status_informational_sec 1xx Informational
  *
  * This class of status code indicates a provisional response, consisting only
  * of the Status-Line and optional headers, and is terminated by an empty line.
@@ -505,12 +515,12 @@ typedef enum _hreq_method
  * "Expect: 100-continue" field when it forwards a request, then it need not
  * forward the corresponding 100 (Continue) response(s).)
  *
- * @section status_successful_sec Successful 2xx
+ * @section status_successful_sec 2xx Successful
  *
  * This class of status code indicates that the client's request was
  * successfully received, understood, and accepted.
  *
- * @section status_redirection_sec Redirection 3xx
+ * @section status_redirection_sec 3xx Redirection
  *
  * This class of status code indicates that further action needs to be taken by
  * the user agent in order to fulfill the request.  The action required MAY be
@@ -519,7 +529,7 @@ typedef enum _hreq_method
  * detect infinite redirection loops, since such loops generate network traffic
  * for each redirection.
  *
- * @section status_client_error_sec Client Error 4xx
+ * @section status_client_error_sec 4xx Client Error
  *
  * The 4xx class of status code is intended for cases in which the client seems
  * to have erred. Except when responding to a HEAD request, the server SHOULD
@@ -536,7 +546,7 @@ typedef enum _hreq_method
  * unacknowledged input buffers before they can be read and interpreted by the
  * HTTP application.
  *
- * @section status_server_error_sec Server Error 5xx
+ * @section status_server_error_sec 5xx Server Error
  *
  * Response status codes beginning with the digit "5" indicate cases in which
  * the server is aware that it has erred or is incapable of performing the
@@ -1247,8 +1257,8 @@ extern "C" {
  * @param value the value of the (key,value) pair
  * @param next next pair node in the linked list
  *
- * @returns A newly crated hpair_t object. Use hpair_free() or hpair_free_deep()
- *          to free the pair.
+ * @return A newly crated hpair_t object. Use hpair_free() or hpair_free_deep()
+ *         to free the pair.
  *
  */
 extern hpair_t *hpairnode_new(const char *key, const char *value, hpair_t * next);
@@ -1264,8 +1274,8 @@ extern hpair_t *hpairnode_new(const char *key, const char *value, hpair_t * next
  * @param delim a delimiter to use while splitting into key,value
  * @param next next pair node in the linked list
  *
- * @returns A newly crated hpair_t object. Use hpair_free() or hpair_free_deep()
- *          to free the pair.
+ * @return A newly crated hpair_t object. Use hpair_free() or hpair_free_deep()
+ *         to free the pair.
  *
  */
 extern hpair_t *hpairnode_parse(const char *str, const char *delim, hpair_t * next);
@@ -1325,8 +1335,8 @@ extern char *hpairnode_get_ignore_case(hpair_t * pair, const char *key);
  *
  * @param src the source pair object to copy.
  *
- * @returns a newly created pair with the same (key,value) pairs as in 'src'.
- *          This fields will be cloned. The'next' field will be set to NULL.
+ * @return a newly created pair with the same (key,value) pairs as in 'src'.
+ *         This fields will be cloned. The'next' field will be set to NULL.
  *
  * @see hpairnode_copy_deep
  *
@@ -1394,8 +1404,7 @@ extern struct attachments_t *attachments_new(void);
 
 /**
  *
- * Free a attachment. Create attachments with MIME and DIME (DIME is not
- * supported yet).
+ * Free a attachment. Create attachments with MIME
  *
  * @see mime_get_attachments
  *
