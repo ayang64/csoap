@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.10 2006/12/14 19:36:49 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.11 2006/12/14 19:39:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -84,7 +84,7 @@ _soap_addressing_uuid_error(uint32_t status)
       /* XXX: From FreeBSD 6.2 UUID(3) ??? */  
       return "The meaning of the code escaped the writers mind";
     default:
-      return "Unkown error";
+      return "Unkown error during UUID creation";
   }
 }
 
@@ -137,7 +137,7 @@ _soap_addressing_generate_id(void)
   }
 
   pthread_mutex_lock(&counter_lock);
-  sprintf("%s/%i", soap_server_get_name(), counter);
+  sprintf("%s/%li", soap_server_get_name(), counter);
   pthread_mutex_unlock(&counter_lock);
 
   return ret;
