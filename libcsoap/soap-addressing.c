@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.9 2006/11/29 11:04:24 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.10 2006/12/14 19:36:49 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -45,6 +45,10 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
@@ -66,6 +70,7 @@
 #include "soap-server.h"
 #include "soap-addressing.h"
 
+#ifdef HAVE_UUID_CREATE
 static const xmlChar *
 _soap_addressing_uuid_error(uint32_t status)
 {
@@ -117,6 +122,27 @@ _soap_addressing_generate_id(void)
 
   return ret;
 }
+#else
+static char *
+_soap_addressing_generate_id(void)
+{
+  char *ret;
+  static long counter = 0;
+  static pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
+
+  if (!(ret = (char *)malloc(128)))
+  {
+    log_error2("malloc failed (%s)", strerror(errno));
+    return NULL;
+  }
+
+  pthread_mutex_lock(&counter_lock);
+  sprintf("%s/%i", soap_server_get_name(), counter);
+  pthread_mutex_unlock(&counter_lock);
+
+  return ret;
+}
+#endif
 
 static xmlNsPtr
 _soap_addressing_get_namespace(xmlNodePtr node)

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xmlsec.c,v 1.7 2006/12/06 11:27:21 m0gg Exp $
+*  $Id: soap-xmlsec.c,v 1.8 2006/12/14 19:36:49 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -43,6 +43,10 @@
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
 #endif
 
 #ifdef HAVE_FCNTL_H
