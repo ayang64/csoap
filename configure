@@ -20310,7 +20310,8 @@ rm -f conftest*
 
 
 
-for ac_func in gethostbyname inet_ntoa memmove memset mkdir select socket strchr strdup strncasecmp strpbrk strspn strstr strtol
+
+for ac_func in gethostbyname inet_ntoa memmove memset mkdir select socket strchr strdup strcasecmp strncasecmp strpbrk strspn strstr strtol
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -21862,6 +21863,12 @@ fi
 
 
 fi;
+
+
+
+# ---------------------------------------
+# Check xmlsec library
+# ---------------------------------------
 
 
 
