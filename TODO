@@ -1,4 +1,4 @@
-$Id: TODO,v 1.11 2006/12/16 16:09:45 m0gg Exp $
+$Id: TODO,v 1.12 2006/12/16 17:42:46 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -7,9 +7,8 @@ Things to do _before_ 1.2 release:
 nanohttp:
 ---------
 - improve error handling!!!!
-- optimize mime API
 - cleanup/improve nanohttp request parsing (add GET http://fdqn/service HTTP/1.1)
-- Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
+- Check portability to Win32/MaxOS (only tested on FreeBSD/Solaris/Linux)
 - Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
 - delete or fix broken examples (see Makefile.am)
 - Improve API documentation
@@ -28,17 +27,18 @@ Things to do _after_ 1.2 release:
 
 additional:
 -----------
-- publish {Open,Net,Free,Dragonfly}BSD port
-- publish Debian package
+- publish FreeBSD port
 
 Additional things that could be done:
 =====================================
 
 nanohttp:
 ---------
+- optimize mime API
 - add DIME attachments
 - add BASE64 decoding for MIME attachments
-- cleanup circular module dependencies (e.g. hsocket <-> hssl)
+- cleanup circular module dependencies
+  e.g. nanohttp-stream should hide hsocket, hssl
 
 csoap:
 ------
@@ -48,4 +48,5 @@ csoap:
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
   create an automated testsuite (?)
 - http://www.w3.org/Submission/WS-Enumeration/
+- WS-Reliability support
 
