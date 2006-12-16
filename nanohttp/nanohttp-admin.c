@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.8 2006/12/10 19:21:06 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.9 2006/12/16 17:38:19 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -23,6 +23,10 @@
 ******************************************************************/
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
 #endif
 
 #ifdef HAVE_STDIO_H
