@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.8 2006/12/10 19:21:06 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.9 2006/12/16 15:55:24 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -130,17 +130,22 @@ static herror_t
 _soap_nudp_send_document(int socket, xmlDocPtr doc, const struct sockaddr *addr, socklen_t addr_len)
 {
   xmlChar *buf;
+  herror_t ret;
   int size;
+  size_t sent;
+
+  ret = H_OK;
 
   xmlDocDumpMemory(doc, &buf, &size);
-  if (sendto(socket, buf, size, 0, addr, addr_len) < 0)
+  if ((sent = sendto(socket, buf, size, 0, addr, addr_len)) == -1)
   {
     log_error2("sendto failed (%s)", strerror(errno));
-    return herror_new("soap_nudp_client_invoke", 0, "Cannot send message");
+    ret = herror_new("soap_nudp_client_invoke", 0, "Cannot send message");
   }
+
   xmlFree(buf);
 
-  return H_OK;
+  return ret;
 }
 
 static herror_t
@@ -149,11 +154,13 @@ _soap_nudp_receive_document(int socket, xmlDocPtr *doc, struct sockaddr *addr, s
   int cnt;
   char buf[4096];
 
-  if ((cnt = recvfrom(socket, buf, 4096, 0, addr, addr_len)) < 0)
+  /** @todo: use a timeout ??? */
+  if ((cnt = recvfrom(socket, buf, 4095, 0, addr, addr_len)) < 0)
   {
     log_error2("recvfrom failed (%s)", strerror(errno));
     return herror_new("_soap_nudp_receive_document", 0, "Receiving document failed");
   }
+  buf[cnt] = '\0';
 
   if (!(*doc = xmlReadDoc(buf, NULL, NULL, XML_PARSE_NONET)))
   {
@@ -165,15 +172,17 @@ _soap_nudp_receive_document(int socket, xmlDocPtr *doc, struct sockaddr *addr, s
 }
 
 static herror_t
-_soap_nudp_client_invoke(void *unused, struct SoapCtx *req, struct SoapCtx **res)
+_soap_nudp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx **response)
 {
   xmlURI *to;
   xmlDocPtr doc;
   int sd;
   herror_t status;
   struct sockaddr_in addr;
+  struct sockaddr saddr;
+  socklen_t saddr_len;
 
-  if (!(to = soap_addressing_get_to_address(req->env)))
+  if (!(to = soap_addressing_get_to_address(request->env)))
   {
     log_error1("soap_addressing_get_to_address returned NULL");
     return herror_new("soap_nudp_client_invoke", 0, "Destination address is missing");
@@ -198,19 +207,23 @@ _soap_nudp_client_invoke(void *unused, struct SoapCtx *req, struct SoapCtx **res
     return herror_new("soap_nudp_client_invoke", 0, "Cannot create socket");
   }
 
-  _soap_nudp_send_document(sd, req->env->root->doc, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+  _soap_nudp_send_document(sd, request->env->root->doc, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 
-  if ((status = _soap_nudp_receive_document(sd, &doc, NULL, NULL)) != H_OK)
+  saddr_len = sizeof(struct sockaddr);
+  if ((status = _soap_nudp_receive_document(sd, &doc, &saddr, &saddr_len)) != H_OK)
   {
     log_error2("_soap_nudp_receive_document failed (%s)", herror_message(status));
     return status;
   }
 
-  if ((status = soap_env_new_from_doc(doc, &(*res)->env)) != H_OK)
+  *response = soap_ctx_new(NULL);
+  if ((status = soap_env_new_from_doc(doc, &(*response)->env)) != H_OK)
   {
     log_error2("soap_env_new_from_doc failed (%s)", herror_message(status));
     return status;
   }
+
+  /** @todo: set saddr in SOAP:Header */
 
   return H_OK;
 }
@@ -259,12 +272,19 @@ soap_nudp_server_run(void *unused)
   struct SoapCtx *req;
   struct SoapCtx *res;
   xmlURI *to;
+  herror_t status;
 
   while (_soap_nudp_running)
   {
     /* XXX: select with timeout */
 
-    _soap_nudp_receive_document(_soap_nudp_socket, &doc, &addr, &addr_len);
+    addr_len = sizeof(struct sockaddr);
+    if (_soap_nudp_receive_document(_soap_nudp_socket, &doc, &addr, &addr_len) != H_OK)
+    {
+      log_error2("_soap_nudp_receive_document failed (%s)", herror_message(status));
+      herror_release(status);
+      continue;
+    }
 
     /* log_error1(__FUNCTION__);
      xmlDocFormatDump(stdout, doc, 1); */
@@ -277,9 +297,11 @@ soap_nudp_server_run(void *unused)
     to = soap_addressing_get_to_address(req->env);
     soap_addressing_set_to_address_string(req->env, to->path);
 
-    xmlFreeDoc(doc);
+    // xmlFreeDoc(doc);
 
     soap_transport_process(req, &res);
+
+    xmlDocFormatDump(stderr, res->env->root->doc, 1);
 
     _soap_nudp_send_document(_soap_nudp_socket, res->env->root->doc, &addr, addr_len);
 

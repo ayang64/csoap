@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.36 2006/12/10 19:21:06 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.37 2006/12/16 15:55:24 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -193,8 +193,11 @@ hpairnode_free(hpair_t * pair)
   if (pair == NULL)
     return;
 
-  free(pair->key);
-  free(pair->value);
+  if (pair->key)
+    free(pair->key);
+
+  if (pair->value)
+    free(pair->value);
 
   free(pair);
 
@@ -462,7 +465,7 @@ attachments_free(struct attachments_t *message)
 {
   struct part_t *tmp, *part;
 
-  if (message == NULL)
+  if (!message)
     return;
 
   part = message->parts;

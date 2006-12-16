@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.74 2006/12/10 19:21:07 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.75 2006/12/16 15:55:24 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -749,7 +749,7 @@ httpd_session_main(void *data)
             {
               char buffer[256];
 
-              sprintf(buffer, "service '%s' not registered properly (func == NULL)", req->path);
+              sprintf(buffer, "service '%s' not registered properly (service function is NULL)", req->path);
               log_verbose1(buffer);
               httpd_send_internal_error(rconn, buffer);
             }

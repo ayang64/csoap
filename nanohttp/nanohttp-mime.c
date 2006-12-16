@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.18 2006/12/11 08:35:58 m0gg Exp $
+*  $Id: nanohttp-mime.c,v 1.19 2006/12/16 15:55:24 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -964,8 +964,7 @@ mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
                       "'start' not set for multipart/related");
   }
 
-  mimeMessage =
-    mime_message_parse(in, root_id, boundary, ".");
+  mimeMessage = mime_message_parse(in, root_id, boundary, ".");
   if (mimeMessage == NULL)
   {
     /* TODO (#1#): Handle Error in http form */

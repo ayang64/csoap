@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.17 2006/12/10 19:21:07 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.18 2006/12/16 15:55:24 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -203,7 +203,6 @@ read_header:                   /* for errorcode: 100 (continue) */
 
   /* Create input stream */
   res->in = http_input_stream_new(sock, res->header);
-
 
   /* Check for MIME message */
   if ((res->content_type &&
