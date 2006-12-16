@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.10 2006/12/06 11:27:20 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.11 2006/12/16 16:09:45 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -99,18 +99,13 @@ _soap_nhttp_send_fault(httpd_conn_t *conn, const char *message)
   return ret;
 }
 
-static herror_t
-_soap_nhttp_send(httpd_conn_t *conn, struct SoapCtx *context, struct SoapEnv *env)
-{
-  return _soap_nhttp_send_document(conn, env->root->doc);
-}
-
 static int
 _soap_nhttp_xml_io_read(void *ctx, char *buffer, int len)
 {
   int ret;
-
-  struct http_input_stream_t *in = (struct http_input_stream_t *)ctx;
+  struct http_input_stream_t *in;
+ 
+  in = (struct http_input_stream_t *)ctx;
   if (!http_input_stream_is_ready(in))
     return 0;
 
@@ -147,11 +142,11 @@ soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
 {
   char *action;
   struct SoapEnv *env;
-  struct SoapCtx *ctx;
+  struct SoapCtx *request;
   struct SoapCtx *response;
   herror_t err;
 
-/*  if (req->method == HTTP_REQUEST_GET && router->wsdl)
+  /* if (req->method == HTTP_REQUEST_GET && router->wsdl)
   {
     _soap_nhttp_send_document(conn, router->wsdl);
     return;
@@ -182,35 +177,31 @@ soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
 
   if (env == NULL)
   {
-    _soap_nhttp_send_fault(conn, "Can not receive POST data!");
+    _soap_nhttp_send_fault(conn, "Cannot receive POST data!");
     return;
   }
 
-  ctx = soap_ctx_new(env);
+  request = soap_ctx_new(env);
 
   if ((action = hpairnode_get_ignore_case(req->header, SOAP_NHTTP_SOAP_ACTION)))
   {
-    xmlURI *uri;
-
-    uri = xmlParseURI(action);
-    soap_addressing_set_action(env, uri);
-    xmlFree(uri);
+    soap_addressing_set_action_string(env, action);
   }
 
-  xmlDocFormatDump(stdout, ctx->env->root->doc, 1);
+  /* xmlDocFormatDump(stdout, ctx->env->root->doc, 1); */
 
-  soap_ctx_add_files(ctx, req->attachments);
+  soap_ctx_add_files(request, req->attachments);
 
   /* only local part is interesting...
   soap_addressing_set_to_address_string(ctx->env, req->path); */
 
-  soap_transport_process(ctx, &response);
+  soap_transport_process(request, &response);
 
   _soap_nhttp_send_document(conn, response->env->root->doc);
 
   soap_ctx_free(response);
 
-  soap_ctx_free(ctx);
+  soap_ctx_free(request);
 
   return;
 }
@@ -232,7 +223,13 @@ soap_nhttp_server_init_args(int argc, char **argv)
     return err;
   }
 
-  return soap_admin_init_args(argc, argv);
+  if ((err = soap_admin_init_args(argc, argv)) != H_OK)
+  {
+    log_error2("soap_admin_init_args failed (%s)", herror_message(err));
+    return err;
+  }
+
+  return H_OK;
 }
 
 static herror_t
@@ -280,7 +277,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   /* for copy attachments */
   char href[MAX_HREF_SIZE];
 
-  log_verbose1("nanohttp client");
+  /* log_verbose1("nanohttp client"); */
 
   xmlDocDumpMemory(request->env->root->doc, &buffer, &size);
 
@@ -406,7 +403,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   hresponse_free(res);
   httpc_close_free(conn);
 
-  log_verbose1("done");
+  /* log_verbose1("done"); */
 
   return H_OK;
 }

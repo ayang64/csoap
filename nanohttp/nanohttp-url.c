@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-url.c,v 1.2 2006/12/10 19:21:07 m0gg Exp $
+*  $Id: nanohttp-url.c,v 1.3 2006/12/16 16:09:45 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,18 @@
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
 #ifdef HAVE_ERRNO_H
