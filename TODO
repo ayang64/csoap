@@ -1,4 +1,4 @@
-$Id: TODO,v 1.12 2006/12/16 17:42:46 m0gg Exp $
+$Id: TODO,v 1.13 2006/12/18 09:41:14 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -7,16 +7,20 @@ Things to do _before_ 1.2 release:
 nanohttp:
 ---------
 - improve error handling!!!!
-- cleanup/improve nanohttp request parsing (add GET http://fdqn/service HTTP/1.1)
+- cleanup/improve nanohttp request parsing
+  - "GET http://fdqn/service HTTP/1.1" segfaults
+  - other HTTP methods (OPTIONS, CONNECT) should return HTTP 501
 - Check portability to Win32/MaxOS (only tested on FreeBSD/Solaris/Linux)
+  - remove CFLAGS="-D_XOPEN_SOURCE=600" ./configure on Linux
 - Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
+  - move this documentation to nanohttp-ssl.h
 - delete or fix broken examples (see Makefile.am)
 - Improve API documentation
 
 csoap:
 ------
-- move service description documents from router to service (???)
 - Re-enable WSDL via HTTP GET
+  - move service description documents from router to service (???)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments
@@ -44,9 +48,15 @@ csoap:
 ------
 - add examples from http://www.xmethods.org (Google, UDDI)
 - soap-nudp.c one thread per request (see soap_nudp_server_run)
-- soap-nudp message re-transmission
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
   create an automated testsuite (?)
 - http://www.w3.org/Submission/WS-Enumeration/
-- WS-Reliability support
+- soap-nudp message re-transmission
+  - WS-Reliability support (?)
+
+wsdl2c:
+=======
+
+xsd2c:
+======
 
