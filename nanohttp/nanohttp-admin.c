@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.9 2006/12/16 17:38:19 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.10 2006/12/19 08:55:17 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -91,12 +91,12 @@ _httpd_admin_list_services(httpd_conn_t *conn)
   {
     switch (node->status)
     {
-      case NHTTPD_SERVICE_DISABLED:
-        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_ENABLE_SERVICE "=%s\">[Enable]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+      case NHTTPD_SERVICE_DOWN:
+        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE "=%s\">[Activate]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
         break;
-      case NHTTPD_SERVICE_ENABLED:
+      case NHTTPD_SERVICE_UP:
       default:
-        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_DISABLE_SERVICE "=%s\">[Disable]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE "=%s\">[Passivate]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
         break;
     }
     http_output_stream_write_string(conn->out, buffer);
@@ -154,7 +154,7 @@ _httpd_admin_enable_service(httpd_conn_t *conn, const char *service_name)
   hservice_t *service;
   char buffer[1024];
 
-  sprintf(buffer, "Enabling service <b>%s</b>", service_name);
+  sprintf(buffer, "Activating service <b>%s</b>", service_name);
   _httpd_admin_send_title(conn, buffer);
 
   if (!(service = httpd_find_service(service_name)))
@@ -172,7 +172,7 @@ _httpd_admin_enable_service(httpd_conn_t *conn, const char *service_name)
 
   http_output_stream_write_string(conn->out,
     "<p>"
-      "Service enabled"
+      "Service is up"
     "</p>");
 
   _httpd_admin_send_footer(conn);
@@ -186,7 +186,7 @@ _httpd_admin_disable_service(httpd_conn_t *conn, const char *service_name)
   hservice_t *service;
   char buffer[1024];
 
-  sprintf(buffer, "Disabling service <b>%s</b>", service_name);
+  sprintf(buffer, "Passivating service <b>%s</b>", service_name);
   _httpd_admin_send_title(conn, buffer);
 
   if (!(service = httpd_find_service(service_name)))
@@ -203,7 +203,7 @@ _httpd_admin_disable_service(httpd_conn_t *conn, const char *service_name)
 
   http_output_stream_write_string(conn->out,
     "<p>"
-      "Service disabled"
+      "Service is down"
     "</p>");
   _httpd_admin_send_footer(conn);
 
@@ -223,11 +223,11 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
   {
     _httpd_admin_list_statistics(conn, param);
   }
-  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_ENABLE_SERVICE)))
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE)))
   {
     _httpd_admin_enable_service(conn, param);
   }
-  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_DISABLE_SERVICE)))
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE)))
   {
     _httpd_admin_disable_service(conn, param);
   }
@@ -260,7 +260,7 @@ _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
   }
   else
   {
-    httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
+    httpd_send_header(conn, 501, HTTP_STATUS_501_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
       "<html>"
         "<head>"

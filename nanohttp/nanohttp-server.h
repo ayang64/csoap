@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.32 2006/12/12 07:23:11 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.33 2006/12/19 08:55:17 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -241,16 +241,18 @@ struct service_statistics
 /**
  *
  * @see hservice_t
+ * @see http://www.w3.org/TR/wslc/
  *
  */
-#define NHTTPD_SERVICE_DISABLED	0
+#define NHTTPD_SERVICE_DOWN	0
 
 /**
  *
  * @see hservice_t
+ * @see http://www.w3.org/TR/wslc/
  *
  */
-#define NHTTPD_SERVICE_ENABLED	1
+#define NHTTPD_SERVICE_UP	1
 
 /**
  *

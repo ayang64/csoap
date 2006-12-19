@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.76 2006/12/16 17:30:36 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.77 2006/12/19 08:55:17 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -327,7 +327,7 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   service->next = NULL;
   service->auth = auth;
   service->func = func;
-  service->status = NHTTPD_SERVICE_ENABLED;
+  service->status = NHTTPD_SERVICE_UP;
   strcpy(service->ctx, ctx);
 
   log_verbose3("register service (%p) for \"%s\"", service, SAVE_STR(ctx));
@@ -434,7 +434,7 @@ int httpd_enable_service(hservice_t *service)
   int ret;
 
   ret = service->status;
-  service->status = NHTTPD_SERVICE_ENABLED;
+  service->status = NHTTPD_SERVICE_UP;
 
   return ret;
 }
@@ -444,7 +444,7 @@ int httpd_disable_service(hservice_t *service)
   int ret;
   
   ret = service->status;
-  service->status = NHTTPD_SERVICE_DISABLED;
+  service->status = NHTTPD_SERVICE_DOWN;
 
   return ret;
 }
@@ -741,7 +741,7 @@ httpd_session_main(void *data)
       {
         log_verbose3("service '%s' for '%s' found", service->ctx, req->path);
 
-	if (service->status == NHTTPD_SERVICE_ENABLED)
+	if (service->status == NHTTPD_SERVICE_UP)
 	{
           pthread_rwlock_wrlock(&(service->statistics->lock));
           service->statistics->requests++;

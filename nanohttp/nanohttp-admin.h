@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-admin.h,v 1.5 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.6 2006/12/19 08:55:17 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -83,11 +83,11 @@
  * Example query:
  *
  * @code
- *   http://localhost:10000/nhttp?enable=SERVICE_CONTEXT
+ *   http://localhost:10000/nhttp?activate=SERVICE_CONTEXT
  * @endcode
  *
  */
-#define NHTTPD_ADMIN_QUERY_ENABLE_SERVICE	"enable"
+#define NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE	"activate"
 
 /**
  *
@@ -96,11 +96,11 @@
  * Example query:
  *
  * @code
- *   http://localhost:10000/nhttp?disable=SERVICE_CONTEXT
+ *   http://localhost:10000/nhttp?passivate=SERVICE_CONTEXT
  * @endcode
  *
  */
-#define NHTTPD_ADMIN_QUERY_DISABLE_SERVICE	"disable"
+#define NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE	"passivate"
 
 #ifdef __cplusplus
 extern "C" {
