@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-service.h,v 1.9 2006/11/27 10:49:57 m0gg Exp $
+ *  $Id: soap-service.h,v 1.10 2006/12/31 17:24:22 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -33,12 +33,31 @@
  * messages, typically conveyed using HTTP with an XML serialization in
  * conjunction with other Web-related standards.
  *
- * @see http://www.w3.org/TR/wslc/,
- *      http://www.w3.org/TR/wsdl,
- *      http://www.w3.org/TR/owl-ref/
+ * @see http://www.w3.org/TR/wslc/
+ * @see http://www.w3.org/TR/wsdl
+ * @see http://www.w3.org/TR/owl-ref/
  *
  */
 
+/**
+ *
+ * This service status shows that the provider agent is not capable of accepting
+ * any requests (i.e. the service is not available).
+ *
+ * @see http://www.w3.org/TR/wslc/
+ *
+ */
+#define CSOAP_SERVICE_DOWN	0
+
+/**
+ *
+ * This service status shows that the provider agent is capable of accepting and
+ * processing requests (i.e. the service is available)
+ *
+ * @see http://www.w3.org/TR/wslc/
+ *
+ */
+#define CSOAP_SERVICE_UP	1
 
 typedef herror_t (*SoapServiceFunc)(struct SoapCtx *request, struct SoapCtx *response);
 
@@ -46,6 +65,7 @@ typedef struct _SoapService
 {
   char *urn;
   char *method;
+  int status;
   SoapServiceFunc func;
 } SoapService;
 

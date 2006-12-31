@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.10 2006/12/19 08:55:17 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.11 2006/12/31 17:24:22 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -53,24 +53,31 @@ static void
 _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 {
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
+
   http_output_stream_write_string(conn->out,
-   "<html><head><style>");
+   "<html>"
+     "<head>");
   http_output_stream_write_string(conn->out,
-   ".logo {"
-   " color: #005177;"
-   " background-color: transparent;"
-   " font-family: Calligraphic, arial, sans-serif;"
-   " font-size: 36px;"
-   "}");
+       "<style>"
+         ".logo {"
+         " color: #005177;"
+         " background-color: transparent;"
+         " font-family: Calligraphic, arial, sans-serif;"
+         " font-size: 36px;"
+         "}"
+       "</style>");
+
   http_output_stream_write_string(conn->out,
-   "</style></head><body><span class=\"logo\">nhttpd</span> ");
+   "</head>"
+   "<body>"
+     "<span class=\"logo\">nhttpd</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
 
   return;
 }
 
-static void
+static inline void
 _httpd_admin_send_footer(httpd_conn_t *conn)
 {
   http_output_stream_write_string(conn->out, "</body></html>");
@@ -92,11 +99,23 @@ _httpd_admin_list_services(httpd_conn_t *conn)
     switch (node->status)
     {
       case NHTTPD_SERVICE_DOWN:
-        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE "=%s\">[Activate]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+        sprintf(buffer,
+          "<li>"
+            "<a href=\"%s\">%s</a> "
+            "<a href=\"?" NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE "=%s\">[Activate]</a> "
+            "<a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a>"
+          "</li>",
+          node->context, node->context, node->context, node->context);
         break;
       case NHTTPD_SERVICE_UP:
       default:
-        sprintf(buffer, "<li><a href=\"%s\">%s</a> <a href=\"?" NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE "=%s\">[Passivate]</a> <a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>", node->ctx, node->ctx, node->ctx, node->ctx);
+        sprintf(buffer,
+          "<li>"
+            "<a href=\"%s\">%s</a> "
+            "<a href=\"?" NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE "=%s\">[Passivate]</a> "
+            "<a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a> "
+          "</li>",
+          node->context, node->context, node->context, node->context);
         break;
     }
     http_output_stream_write_string(conn->out, buffer);

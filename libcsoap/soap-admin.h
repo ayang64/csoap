@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-admin.h,v 1.4 2006/11/23 15:27:33 m0gg Exp $
+ *  $Id: soap-admin.h,v 1.5 2006/12/31 17:24:22 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,11 +24,17 @@
 #ifndef __csoap_admin_h
 #define __csoap_admin_h
 
-#define CSOAP_ENABLE_ADMIN	"-CSOAPadmin"
+#define CSOAP_ENABLE_ADMIN		"-CSOAPadmin"
 
-#define SOAP_ADMIN_QUERY_ROUTERS	"routers"
-#define SOAP_ADMIN_QUERY_ROUTER		"router"
-#define SOAP_ADMIN_QUERY_SERVICES	"services"
+#define CSOAP_ADMIN_QUERY_ROUTERS	"routers"
+#define CSOAP_ADMIN_QUERY_ROUTER	"router"
+#define CSOAP_ADMIN_QUERY_SERVICES	"services"
+
+#define CSOAP_ADMIN_QUERY_ACTIVATE	"activate"
+#define CSOAP_ADMIN_QUERY_PASSIVATE	"passivate"
+
+#define CSOAP_ADMIN_URN			"urn"
+#define CSOAP_ADMIN_METHOD		"method"
 
 #ifdef __cplusplus
 extern "C" {

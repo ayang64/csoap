@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.33 2006/12/19 08:55:17 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.34 2006/12/31 17:24:22 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -261,7 +261,7 @@ struct service_statistics
  */
 typedef struct tag_hservice
 {
-  char ctx[255];
+  char *context;
   int status;
   httpd_service func;
   httpd_auth auth;
@@ -292,11 +292,11 @@ extern void httpd_destroy(void);
 
 extern herror_t httpd_run(void);
 
-extern herror_t httpd_register(const char *ctx, httpd_service service);
-extern herror_t httpd_register_secure(const char *ctx, httpd_service service, httpd_auth auth);
+extern herror_t httpd_register(const char *context, httpd_service service);
+extern herror_t httpd_register_secure(const char *context, httpd_service service, httpd_auth auth);
 
-extern herror_t httpd_register_default(const char *ctx, httpd_service service);
-extern herror_t httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth);
+extern herror_t httpd_register_default(const char *context, httpd_service service);
+extern herror_t httpd_register_default_secure(const char *context, httpd_service service, httpd_auth auth);
 
 extern short httpd_get_port(void);
 extern int httpd_get_timeout(void);

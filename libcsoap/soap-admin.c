@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-admin.c,v 1.10 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-admin.c,v 1.11 2006/12/31 17:24:22 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -62,23 +62,38 @@ static void
 _soap_admin_send_title(httpd_conn_t *conn, const char *title)
 {
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
+
   http_output_stream_write_string(conn->out,
-   "<html><head><style>");
+   "<html>"
+     "<head>");
+
   http_output_stream_write_string(conn->out,
-   ".logo {"
-   " color: #005177;"
-   " background-color: transparent;"
-   " font-family: Calligraphic, arial, sans-serif;"
-   " font-size: 36px;"
-   "}");
+     "<style>"
+       ".logo {"
+       " color: #005177;"
+       " background-color: transparent;"
+       " font-family: Calligraphic, arial, sans-serif;"
+       " font-size: 36px;"
+       "}"
+     "</style>");
+
   http_output_stream_write_string(conn->out,
-   "</style></head><body><span class=\"logo\">csoap</span> ");
+   "</head>"
+   "<body>"
+     "<span class=\"logo\">csoap</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
 
   return;
 }
 
+static inline void
+_soap_admin_send_footer(httpd_conn_t *conn)
+{
+  http_output_stream_write_string(conn->out, "</body></html>");
+
+  return;
+}
 
 static void
 _soap_admin_list_routers(httpd_conn_t *conn)
@@ -91,17 +106,21 @@ _soap_admin_list_routers(httpd_conn_t *conn)
   http_output_stream_write_string(conn->out, "<ul>");
   for (node = soap_server_get_routers(); node; node = node->next)
   {
-    sprintf(buffer, "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTER "=%s\">%s</a> - <a href=\"%s\">[Service Description]</a> - <a href=\"../nhttp?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a></li>",
-	    node->context, node->context, node->context, node->context);
+    sprintf(buffer,
+      "<li>"
+        "<a href=\"?" CSOAP_ADMIN_QUERY_ROUTER "=%s\">%s</a> - "
+        "<a href=\"%s\">[Service Description]</a> - "
+        "<a href=\"../nhttp?" NHTTPD_ADMIN_QUERY_STATISTICS "=%s\">[Statistics]</a>"
+      "</li>",
+      node->context, node->context, node->context, node->context);
     http_output_stream_write_string(conn->out, buffer);
   }
   http_output_stream_write_string(conn->out, "</ul>");
   
-  http_output_stream_write_string(conn->out, "</body></html>");
+  _soap_admin_send_footer(conn);
 
   return;
 }
-
 
 static void
 _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
@@ -124,34 +143,65 @@ _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
   node = router->service_head;
 
   http_output_stream_write_string(conn->out, "<ul>");
-  while (node)
+  for (node = router->service_head; node; node = node->next)
   {
-    sprintf(buffer, "<li> [%s] (%s) </li>",
-	    node->service->urn,
-	    node->service->method);
+    switch (node->service->status)
+    {
+      case CSOAP_SERVICE_DOWN:
+        sprintf(buffer,
+          "<li>"
+            "%s (%s) <a href=\"?" CSOAP_ADMIN_QUERY_ACTIVATE "=%s&amp;" CSOAP_ADMIN_URN "=%s\">[Activate]</a>"
+          "</li>",
+          node->service->urn,
+          node->service->method,
+	  node->service->method,
+	  node->service->urn);
+        break;
+      case CSOAP_SERVICE_UP:
+      default:
+        sprintf(buffer,
+        "<li>"
+          "%s (%s) <a href=\"?" CSOAP_ADMIN_QUERY_PASSIVATE "=%s&amp;" CSOAP_ADMIN_URN "=%s\">[Passivate]</a>"
+        "</li>",
+        node->service->urn,
+        node->service->method,
+	node->service->method,
+	node->service->urn);
+	break;
+    }
     http_output_stream_write_string(conn->out, buffer);
-    node = node->next;
   }
   http_output_stream_write_string(conn->out, "</ul>");
 
-  http_output_stream_write_string(conn->out, "</body></html>");
+  _soap_admin_send_footer(conn);
 
   return;
 }
-
 
 static void
 _soap_admin_handle_get(httpd_conn_t * conn, struct hrequest_t * req)
 {
   char *param;
 
-  if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTERS)))
+  if ((param = hpairnode_get_ignore_case(req->query, CSOAP_ADMIN_QUERY_ROUTERS)))
   {
     _soap_admin_list_routers(conn);
   }
-  else if ((param = hpairnode_get_ignore_case(req->query, SOAP_ADMIN_QUERY_ROUTER)))
+  else if ((param = hpairnode_get_ignore_case(req->query, CSOAP_ADMIN_QUERY_ROUTER)))
   {
     _soap_admin_list_services(conn, param);
+  }
+  else if ((param = hpairnode_get_ignore_case(req->query, CSOAP_ADMIN_QUERY_ACTIVATE)))
+  {
+    _soap_admin_send_title(conn, "Not implemented");
+    _soap_admin_send_footer(conn);
+    // _soap_admin_activate_service(conn, param);
+  }
+  else if ((param = hpairnode_get_ignore_case(req->query, CSOAP_ADMIN_QUERY_PASSIVATE)))
+  {
+    _soap_admin_send_title(conn, "Not implemented");
+    _soap_admin_send_footer(conn);
+    // _soap_admin_passivate_service(conn, param);
   }
   else
   {
@@ -159,12 +209,12 @@ _soap_admin_handle_get(httpd_conn_t * conn, struct hrequest_t * req)
 
     http_output_stream_write_string(conn->out,
       "<ul>"
-        "<li><a href=\"?" SOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>"
+        "<li><a href=\"?" CSOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>"
 	"<li><a href=\"../inspection.wsil\">inspection.wsil</a> (try: -CSOAPwsil)</li>"
         "<li><a href=\"../nhttp\">nanoHTTP</a></li>"
       "</ul>");
 
-    http_output_stream_write_string(conn->out, "</body></html>");
+    _soap_admin_send_footer(conn);
   }
 
   return;
@@ -192,6 +242,7 @@ _soap_admin_entry(httpd_conn_t * conn, struct hrequest_t * req)
                   "</body>"
               "</html>");
   }
+
   return;
 }
 

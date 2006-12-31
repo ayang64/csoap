@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.77 2006/12/19 08:55:17 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.78 2006/12/31 17:24:22 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -303,7 +303,7 @@ httpd_init(int argc, char **argv)
 }
 
 herror_t
-httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
+httpd_register_secure(const char *context, httpd_service func, httpd_auth auth)
 {
   hservice_t *service;
 
@@ -328,9 +328,9 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
   service->auth = auth;
   service->func = func;
   service->status = NHTTPD_SERVICE_UP;
-  strcpy(service->ctx, ctx);
+  service->context = strdup(context);
 
-  log_verbose3("register service (%p) for \"%s\"", service, SAVE_STR(ctx));
+  log_verbose3("register service (%p) for \"%s\"", service, context);
   if (_httpd_services_head == NULL)
   {
     _httpd_services_head = _httpd_services_tail = service;
@@ -345,17 +345,17 @@ httpd_register_secure(const char *ctx, httpd_service func, httpd_auth auth)
 }
 
 herror_t
-httpd_register(const char *ctx, httpd_service service)
+httpd_register(const char *context, httpd_service service)
 {
-  return httpd_register_secure(ctx, service, NULL);
+  return httpd_register_secure(context, service, NULL);
 }
 
 herror_t
-httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth auth)
+httpd_register_default_secure(const char *context, httpd_service service, httpd_auth auth)
 {
   herror_t ret;
 
-  ret = httpd_register_secure(ctx, service, auth);
+  ret = httpd_register_secure(context, service, auth);
 
   /* XXX: this is broken, but working */
   _httpd_services_default = _httpd_services_tail;
@@ -364,9 +364,9 @@ httpd_register_default_secure(const char *ctx, httpd_service service, httpd_auth
 }
 
 herror_t
-httpd_register_default(const char *ctx, httpd_service service)
+httpd_register_default(const char *context, httpd_service service)
 {
-  return httpd_register_default_secure(ctx, service, NULL);
+  return httpd_register_default_secure(context, service, NULL);
 }
 
 short
@@ -456,7 +456,7 @@ httpd_find_service(const char *context)
 
   for (cur = _httpd_services_head; cur; cur = cur->next)
   {
-    if (!strcmp(cur->ctx, context))
+    if (!strcmp(cur->context, context))
       return cur;
   }
 
@@ -739,7 +739,7 @@ httpd_session_main(void *data)
 
       if ((service = httpd_find_service(req->path)))
       {
-        log_verbose3("service '%s' for '%s' found", service->ctx, req->path);
+        log_verbose3("service '%s' for '%s' found", service->context, req->path);
 
 	if (service->status == NHTTPD_SERVICE_UP)
 	{

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.35 2006/11/29 11:04:25 m0gg Exp $
+*  $Id: soap-server.c,v 1.36 2006/12/31 17:24:22 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -179,19 +179,30 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
           if ((service = soap_router_find_service(router, urn, method)))
           {
             log_verbose3("service (%p) found, function (%p)", service, service->func);
-            if ((err = service->func(request, *response)) == H_OK)
+	    switch (service->status)
             {
-              if ((*response)->env == NULL)
-              {
-                sprintf(buffer, "Service for \"%s\" returned no envelope", urn);
-                _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
-              }
-            }
-            else
-            {
-              sprintf(buffer, "Service returned following error message: \"%s\"", herror_message(err));
-              herror_release(err);
-              _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+              case CSOAP_SERVICE_UP:
+ 
+                if ((err = service->func(request, *response)) == H_OK)
+                {
+                  if ((*response)->env == NULL)
+                  {
+                    sprintf(buffer, "Service for \"%s\" returned no envelope", urn);
+                    _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+                  }
+                }
+                else
+                {
+                  sprintf(buffer, "Service returned following error message: \"%s\"", herror_message(err));
+                  herror_release(err);
+                  _soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+                }
+                break;
+ 	      case CSOAP_SERVICE_DOWN:
+              default:
+		sprintf(buffer, "Service for \"%s\" is down", urn);
+		_soap_server_env_new_with_fault("Internal service error", buffer, &((*response)->env));
+		break;
             }
           }
           else

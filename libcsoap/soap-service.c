@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.12 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: soap-service.c,v 1.13 2006/12/31 17:24:22 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -99,6 +99,8 @@ soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
     method = "";
   }
   service->method = strdup(method);
+
+  service->status = CSOAP_SERVICE_UP;
 
   return service;
 }
