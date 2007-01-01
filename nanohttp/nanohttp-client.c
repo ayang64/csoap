@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.52 2007/01/01 15:29:48 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.53 2007/01/01 22:54:46 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -390,7 +390,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
   httpc_set_header(conn, HEADER_HOST, conn->url->host);
 
   ssl = conn->url->protocol == PROTOCOL_HTTPS ? 1 : 0;
-  log_error4("ssl = %i (%i %i)", ssl, conn->url->protocol, PROTOCOL_HTTPS);
+  log_verbose4("ssl = %i (%i %i)", ssl, conn->url->protocol, PROTOCOL_HTTPS);
 
   /* Open connection */
   if ((status = hsocket_open(conn->sock, conn->url->host, conn->url->port, ssl)) != H_OK)

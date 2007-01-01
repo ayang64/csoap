@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.12 2006/11/25 15:06:57 m0gg Exp $
+ * $Id: echoattachments-server.c,v 1.13 2007/01/01 22:54:46 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -57,6 +57,7 @@ echo_attachments(struct SoapCtx * req, struct SoapCtx * res)
   {
     for (part = req->attachments->parts; part != NULL; part = part->next)
     {
+      printf("attaching \"%s\"\n", part->filename);
       soap_ctx_add_file(res, part->filename, part->content_type, href);
       soap_env_add_attachment(res->env, "echoFile", href);
     }
@@ -76,7 +77,7 @@ main(int argc, char **argv)
   err = soap_server_init_args(argc, argv);
   if (err != H_OK)
   {
-    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }
@@ -85,10 +86,10 @@ main(int argc, char **argv)
   soap_router_register_service(router, echo_attachments, method, urn);
   soap_server_register_router(router, url);
 
-  log_info1("send SIGTERM to shutdown");
+  printf("send SIGTERM to shutdown");
   soap_server_run();
 
-  log_info1("shutting down\n");
+  printf("shutting down\n");
   soap_server_destroy();
 
   return 0;

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.15 2007/01/01 18:58:05 m0gg Exp $
+$Id: TODO,v 1.16 2007/01/01 22:54:46 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -9,7 +9,6 @@ nanohttp:
 - improve error handling!!!!
 - cleanup/improve nanohttp request parsing
   - "GET http://fdqn/service HTTP/1.1" segfaults
-  - other HTTP methods (OPTIONS, CONNECT) should return HTTP 501
 - Check portability to Win32/MaxOS (only tested on FreeBSD/Solaris/Linux)
   - remove CFLAGS="-D_XOPEN_SOURCE=600" ./configure on Linux
 - Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
@@ -19,6 +18,8 @@ nanohttp:
 
 csoap:
 ------
+- MIME functions are broken (example only?)
+  - optimize mime API
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments
@@ -36,18 +37,17 @@ Additional things that could be done:
 
 nanohttp:
 ---------
-- optimize mime API
-- add DIME attachments
-- add BASE64 decoding for MIME attachments
+- add DIME attachments (SOAP MTOM)
+- add BASE64 decoding for MIME attachments (?)
 - cleanup circular module dependencies
-  e.g. nanohttp-stream should hide hsocket, hssl
+  - e.g. nanohttp-stream should hide hsocket, hssl
 
 csoap:
 ------
 - add examples from http://www.xmethods.org (Google, UDDI)
 - soap-nudp.c one thread per request (see soap_nudp_server_run)
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
-  create an automated testsuite (?)
+  - create an automated testsuite (?)
 - http://www.w3.org/Submission/WS-Enumeration/
 - soap-nudp message re-transmission
   - WS-Reliability support (?)

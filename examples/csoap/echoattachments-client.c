@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-client.c,v 1.16 2006/11/30 14:23:59 m0gg Exp $
+ * $Id: echoattachments-client.c,v 1.17 2007/01/01 22:54:46 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -101,6 +101,7 @@ compareFiles(const char *received, const char *sent)
   fclose(f1);
   fclose(f2);
 
+  return;
 }
 
 int
@@ -122,7 +123,7 @@ main(int argc, char **argv)
   err = soap_client_init_args(argc, argv);
   if (err != H_OK)
   {
-    printf("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
+    printf("[%d] %s():%s \n", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     return 1;
   }
@@ -132,7 +133,7 @@ main(int argc, char **argv)
   err = soap_ctx_new_with_method(urn, method, &ctx);
   if (err != H_OK)
   {
-    printf("[%d] %s():%s ", herror_code(err), herror_func(err), herror_message(err));
+    printf("[%d] %s():%s \n", herror_code(err), herror_func(err), herror_message(err));
     herror_release(err);
     return 1;
   }
@@ -142,7 +143,7 @@ main(int argc, char **argv)
   err = soap_ctx_add_file(ctx, argv[1], "application/octet-stream", href);
   if (err != H_OK)
   {
-    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }
@@ -161,7 +162,7 @@ main(int argc, char **argv)
 
   if (err != H_OK)
   {
-    printf("%s():%s [%d]", herror_func(err), herror_message(err), herror_code(err));
+    printf("%s():%s [%d]\n", herror_func(err), herror_message(err), herror_code(err));
     herror_release(err);
     return 1;
   }
@@ -179,7 +180,7 @@ main(int argc, char **argv)
   }
   else
   {
-    printf("No attachments!");
+    printf("No attachments!\n");
     xmlDocDump(stdout, ctx2->env->root->doc);
   }
 

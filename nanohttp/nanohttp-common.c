@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.37 2006/12/16 15:55:24 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.38 2007/01/01 22:54:46 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -71,8 +71,7 @@ hpairnode_new(const char *key, const char *value, hpair_t * next)
 
   if (key != NULL)
   {
-    pair->key = (char *) malloc(strlen(key) + 1);
-    strcpy(pair->key, key);
+    pair->key = strdup(key);
   }
   else
   {
@@ -81,8 +80,7 @@ hpairnode_new(const char *key, const char *value, hpair_t * next)
 
   if (value != NULL)
   {
-    pair->value = (char *) malloc(strlen(value) + 1);
-    strcpy(pair->value, value);
+    pair->value = strdup(value);
   }
   else
   {
@@ -99,7 +97,6 @@ hpairnode_parse(const char *str, const char *delim, hpair_t * next)
 {
   hpair_t *pair;
   char *key, *value;
-  int c;
 
   pair = (hpair_t *) malloc(sizeof(hpair_t));
   pair->key = "";
@@ -110,18 +107,17 @@ hpairnode_parse(const char *str, const char *delim, hpair_t * next)
 
   if (key != NULL)
   {
-    pair->key = (char *) malloc(strlen(key) + 1);
-    strcpy(pair->key, key);
+    pair->key = strdup(key);
   }
   if (value != NULL)
   {
-    for (c = 0; value[c] == ' '; c++);  /* skip white space */
-    pair->value = (char *) malloc(strlen(&value[c]) + 1);
-    strcpy(pair->value, &value[c]);
+    /* skip white space */
+    for (; *value == ' '; value++) ;
+
+    pair->value = strdup(value);
   }
   return pair;
 }
-
 
 hpair_t *
 hpairnode_copy(const hpair_t * src)

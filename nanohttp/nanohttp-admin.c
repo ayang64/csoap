@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.11 2006/12/31 17:24:22 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.12 2007/01/01 22:54:46 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -68,9 +68,9 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
        "</style>");
 
   http_output_stream_write_string(conn->out,
-   "</head>"
-   "<body>"
-     "<span class=\"logo\">nhttpd</span> ");
+     "</head>"
+     "<body>"
+       "<span class=\"logo\">nhttpd</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
 
@@ -80,7 +80,9 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
 static inline void
 _httpd_admin_send_footer(httpd_conn_t *conn)
 {
-  http_output_stream_write_string(conn->out, "</body></html>");
+  http_output_stream_write_string(conn->out,
+      "</body>"
+    "</html>");
 
   return;
 }

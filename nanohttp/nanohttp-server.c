@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.79 2007/01/01 15:29:48 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.80 2007/01/01 22:54:46 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -549,18 +549,6 @@ _httpd_send_html_message(httpd_conn_t *conn, int reason, const char *phrase, con
 }
 
 herror_t
-httpd_send_internal_error(httpd_conn_t * conn, const char *msg)
-{
-  return _httpd_send_html_message(conn, 500, HTTP_STATUS_500_REASON_PHRASE, msg);
-}
-
-herror_t
-httpd_send_not_implemented(httpd_conn_t *conn, const char *msg)
-{
-  return _httpd_send_html_message(conn, 501, HTTP_STATUS_501_REASON_PHRASE, msg);
-}
-
-herror_t
 httpd_send_bad_request(httpd_conn_t *conn, const char *msg)
 {
   return _httpd_send_html_message(conn, 400, HTTP_STATUS_400_REASON_PHRASE, msg);
@@ -575,6 +563,24 @@ httpd_send_unauthorized(httpd_conn_t *conn, const char *realm)
   httpd_set_header(conn, HEADER_WWW_AUTHENTICATE, buf);
 
   return _httpd_send_html_message(conn, 401, HTTP_STATUS_401_REASON_PHRASE, "Unauthorized request logged");
+}
+
+herror_t
+httpd_send_not_found(httpd_conn_t *conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 404, HTTP_STATUS_404_REASON_PHRASE, msg);
+}
+
+herror_t
+httpd_send_internal_error(httpd_conn_t *conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 500, HTTP_STATUS_500_REASON_PHRASE, msg);
+}
+
+herror_t
+httpd_send_not_implemented(httpd_conn_t *conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 501, HTTP_STATUS_501_REASON_PHRASE, msg);
 }
 
 static void

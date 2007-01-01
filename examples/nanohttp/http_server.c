@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.12 2006/12/10 12:23:45 m0gg Exp $
+*  $Id: http_server.c,v 1.13 2007/01/01 22:54:46 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -22,6 +22,7 @@
 * Email: hero@persua.de
 ******************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <nanohttp/nanohttp-server.h>
@@ -63,29 +64,20 @@ static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
 
 static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
-  httpd_send_header(conn, 404, HTTP_STATUS_404_REASON_PHRASE);
-  http_output_stream_write_string(conn->out,
-    "<html>"
-      "<head>"
-        "<title>Default error page</title>"
-      "</head>"
-      "<body>"
-        "<h1>Default error page</h1>"
-        "<div>");
+  char buf[512];
 
-  http_output_stream_write_string(conn->out, req->path);
+  snprintf(buf, 512, "Resource \"%s\" not found", req->path);
 
-  http_output_stream_write_string(conn->out, " cannot be found"
-               "</div>"
-      "</body>"
-    "</html>");
+  httpd_send_not_found(conn, buf);
 
   return;
-}  
+}
 
 static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   hpair_t *walker;
+  char buf[512];
+  int len;
 
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
   http_output_stream_write_string(conn->out,
@@ -99,11 +91,8 @@ static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 
   for (walker=req->header; walker; walker=walker->next)
   {
-    http_output_stream_write_string(conn->out, "<li>");
-    http_output_stream_write_string(conn->out, walker->key);
-    http_output_stream_write_string(conn->out, " = ");
-    http_output_stream_write_string(conn->out, walker->value);
-    http_output_stream_write_string(conn->out, "</li>");
+    len = snprintf(buf, 512, "<li>%s: %s</li>", walker->key, walker->value);
+    http_output_stream_write(conn->out, buf, len);
   }
 
   http_output_stream_write_string(conn->out,
