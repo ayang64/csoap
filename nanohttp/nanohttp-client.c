@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.51 2006/12/10 19:21:06 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.52 2007/01/01 15:29:48 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -303,13 +303,14 @@ httpc_send_header(httpc_conn_t * conn)
   hpair_t *walker;
   herror_t status;
   char buffer[1024];
+  int len;
 
   for (walker = conn->header; walker; walker = walker->next)
   {
     if (walker->key && walker->value)
     {
-      sprintf(buffer, "%s: %s\r\n", walker->key, walker->value);
-      if ((status = hsocket_send_string(conn->sock, buffer)) != H_OK)
+      len = snprintf(buffer, 1024, "%s: %s\r\n", walker->key, walker->value);
+      if ((status = hsocket_send(conn->sock, buffer, len)) != H_OK)
         return status;
     }
   }
@@ -367,6 +368,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
 {
   char buffer[4096];
   herror_t status;
+  int len;
   int ssl;
 
   if (conn == NULL)
@@ -401,16 +403,16 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
   {
     case HTTP_REQUEST_GET:
 
-      sprintf(buffer, "GET %s HTTP/%s\r\n",
-        (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
-        (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+      len = sprintf(buffer, "GET %s HTTP/%s\r\n",
+          (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
+          (conn->version == HTTP_1_0) ? "1.0" : "1.1");
       break;
 
     case HTTP_REQUEST_POST:
 
-      sprintf(buffer, "POST %s HTTP/%s\r\n",
-        (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
-        (conn->version == HTTP_1_0) ? "1.0" : "1.1");
+      len = sprintf(buffer, "POST %s HTTP/%s\r\n",
+          (conn->url->context[0] != '\0') ? conn->url->context : ("/"),
+          (conn->version == HTTP_1_0) ? "1.0" : "1.1");
       break;
 
     default:
@@ -421,7 +423,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
   }
 
   log_verbose1("Sending request...");
-  if ((status = hsocket_send_string(conn->sock, buffer)) != H_OK)
+  if ((status = hsocket_send(conn->sock, buffer, len)) != H_OK)
   {
     log_error2("Cannot send request (%s)", herror_message(status));
     hsocket_close(conn->sock);
@@ -556,26 +558,24 @@ httpc_mime_next(httpc_conn_t * conn, const char *content_id, const char *content
   herror_t status;
   char buffer[512];
   char boundary[75];
+  int len;
 
   /* Get the boundary string */
   _httpc_mime_get_boundary(conn, boundary);
-  sprintf(buffer, "\r\n--%s\r\n", boundary);
+  len = sprintf(buffer, "\r\n--%s\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write(conn->out, buffer, strlen(buffer));
-
-  if (status != H_OK)
+  if ((status = http_output_stream_write(conn->out, buffer, len)) != H_OK)
     return status;
 
   /* Send Content header */
-  sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
-          HEADER_CONTENT_TYPE, content_type,
-          HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
-          HEADER_CONTENT_ID, content_id);
+  len = sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
+            HEADER_CONTENT_TYPE, content_type,
+            HEADER_CONTENT_TRANSFER_ENCODING, transfer_encoding,
+            HEADER_CONTENT_ID, content_id);
 
-  return http_output_stream_write(conn->out, buffer, strlen(buffer));
+  return http_output_stream_write(conn->out, buffer, len);
 }
-
 
 herror_t
 httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
@@ -583,15 +583,14 @@ httpc_mime_end(httpc_conn_t * conn, hresponse_t ** out)
   herror_t status;
   char buffer[512];
   char boundary[75];
+  int len;
 
   /* Get the boundary string */
   _httpc_mime_get_boundary(conn, boundary);
-  sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
+  len = sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
 
   /* Send boundary */
-  status = http_output_stream_write(conn->out, buffer, strlen(buffer));
-
-  if (status != H_OK)
+  if ((status = http_output_stream_write(conn->out, buffer, len)) != H_OK)
     return status;
 
   if ((status = http_output_stream_flush(conn->out)) != H_OK)

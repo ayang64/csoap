@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.78 2006/12/31 17:24:22 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.79 2007/01/01 15:29:48 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -498,7 +498,7 @@ httpd_send_header(httpd_conn_t * res, int code, const char *text)
    */
 
   /* set server name */
-  strcat(header, "Server: Nano HTTPD library\r\n");
+  strcat(header, "Server: nanoHTTP library\r\n");
 
   /* set _httpd_connection status */
   /* strcat (header, "Connection: close\r\n"); */
@@ -521,30 +521,60 @@ httpd_send_header(httpd_conn_t * res, int code, const char *text)
   return H_OK;
 }
 
-herror_t
-httpd_send_internal_error(httpd_conn_t * conn, const char *errmsg)
+static herror_t
+_httpd_send_html_message(httpd_conn_t *conn, int reason, const char *phrase, const char *msg)
 {
-  const char *template1 =
+  const char const *tmpl =
     "<html>"
       "<head>"
+        "<title>%s</title>"
       "</head>"
       "<body>"
-        "<h3>Error!</h3>"
+        "<h3>%s</h3>"
 	"<hr/>"
         "<div>Message: '%s'</div>"
       "</body>"
     "</html>";
+  char buf[4096];
+  char slen[5];
+  int len;
 
-  char buffer[4096];
-  char buflen[5];
+  len = snprintf(buf, 4096, tmpl, phrase, phrase, msg);
+  snprintf(slen, 5, "%d", len);
 
-  sprintf(buffer, template1, errmsg);
-  snprintf(buflen, 5, "%d", strlen(buffer));
+  httpd_set_header(conn, HEADER_CONTENT_LENGTH, slen);
+  httpd_send_header(conn, reason, phrase);
 
-  httpd_set_header(conn, HEADER_CONTENT_LENGTH, buflen);
-  httpd_send_header(conn, 500, HTTP_STATUS_500_REASON_PHRASE);
+  return http_output_stream_write(conn->out, buf, len);
+}
 
-  return http_output_stream_write_string(conn->out, buffer);
+herror_t
+httpd_send_internal_error(httpd_conn_t * conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 500, HTTP_STATUS_500_REASON_PHRASE, msg);
+}
+
+herror_t
+httpd_send_not_implemented(httpd_conn_t *conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 501, HTTP_STATUS_501_REASON_PHRASE, msg);
+}
+
+herror_t
+httpd_send_bad_request(httpd_conn_t *conn, const char *msg)
+{
+  return _httpd_send_html_message(conn, 400, HTTP_STATUS_400_REASON_PHRASE, msg);
+}
+
+herror_t
+httpd_send_unauthorized(httpd_conn_t *conn, const char *realm)
+{
+  char buf[128];
+
+  snprintf(buf, 128, "Basic realm=\"%s\"", realm);
+  httpd_set_header(conn, HEADER_WWW_AUTHENTICATE, buf);
+
+  return _httpd_send_html_message(conn, 401, HTTP_STATUS_401_REASON_PHRASE, "Unauthorized request logged");
 }
 
 static void
@@ -713,13 +743,13 @@ httpd_session_main(void *data)
 
       switch ((code = herror_code(status)))
       {
-      case HSOCKET_ERROR_SSLCLOSE:
-      case HSOCKET_ERROR_RECEIVE:
-        log_error2("hrequest_new_from_socket failed (%s)", herror_message(status));
-        break;
-      default:
-        httpd_send_internal_error(rconn, herror_message(status));
-        break;
+        case HSOCKET_ERROR_SSLCLOSE:
+        case HSOCKET_ERROR_RECEIVE:
+          log_error2("hrequest_new_from_socket failed (%s)", herror_message(status));
+          break;
+        default:
+          httpd_send_bad_request(rconn, herror_message(status));
+          break;
       }
       herror_release(status);
       done = 1;
@@ -773,26 +803,14 @@ httpd_session_main(void *data)
             {
               char buffer[256];
 
-              sprintf(buffer, "service '%s' not registered properly (service function is NULL)", req->path);
+              snprintf(buffer, 256, "service '%s' is not registered properly (service function is NULL)", req->path);
               log_verbose1(buffer);
-              httpd_send_internal_error(rconn, buffer);
+              httpd_send_not_implemented(rconn, buffer);
             }
 	  }
           else
           {
-            char *template =
-              "<html>"
-                "<head>"
-                  "<title>Unauthorized</title>"
-                "</head>"
-                "<body>"
-                  "<h1>Unauthorized request logged</h1>"
-                "</body>"
-              "</html>";
-
-            httpd_set_header(rconn, HEADER_WWW_AUTHENTICATE, "Basic realm=\"nanoHTTP\"");
-            httpd_send_header(rconn, 401, HTTP_STATUS_401_REASON_PHRASE);
-            http_output_stream_write_string(rconn->out, template);
+            httpd_send_unauthorized(rconn, req->path);
             done = 1;
           }
         }
@@ -810,7 +828,7 @@ httpd_session_main(void *data)
         char buffer[256];
         sprintf(buffer, "no service for '%s' found", req->path);
         log_verbose1(buffer);
-        httpd_send_internal_error(rconn, buffer);
+	httpd_send_not_implemented(rconn, buffer);
         done = 1;
       }
       hrequest_free(req);
@@ -914,6 +932,12 @@ httpd_add_headers(httpd_conn_t * conn, const hpair_t * values)
 static void
 _httpd_register_signal_handler(void)
 {
+
+#ifndef WIN32
+  sigemptyset(&thrsigset);
+  sigaddset(&thrsigset, SIGALRM);
+#endif
+
   log_verbose2("registering termination signal handler (SIGNAL:%d)",
                _httpd_terminate_signal);
 #ifdef WIN32
@@ -1006,11 +1030,6 @@ httpd_run(void)
   fd_set fds;
 
   log_verbose1("starting run routine");
-
-#ifndef WIN32
-  sigemptyset(&thrsigset);
-  sigaddset(&thrsigset, SIGALRM);
-#endif
 
   _httpd_register_signal_handler();
 
@@ -1221,30 +1240,25 @@ httpd_mime_next(httpd_conn_t * conn, const char *content_id,
   herror_t status;
   char buffer[512];
   char boundary[75];
+  int len;
 
   /* Get the boundary string */
   _httpd_mime_get_boundary(conn, boundary);
-  sprintf(buffer, "\r\n--%s\r\n", boundary);
+  len = sprintf(buffer, "\r\n--%s\r\n", boundary);
 
   /* Send boundary */
-  status =
-    http_output_stream_write(conn->out, buffer, strlen(buffer));
-
-  if (status != H_OK)
+  if ((status = http_output_stream_write(conn->out, buffer, len)) != H_OK)
     return status;
 
   /* Send Content header */
-  sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
-          HEADER_CONTENT_TYPE, content_type ? content_type : "text/plain",
-          HEADER_CONTENT_TRANSFER_ENCODING,
-          transfer_encoding ? transfer_encoding : "binary",
-          HEADER_CONTENT_ID,
-          content_id ? content_id : "<content-id-not-set>");
+  len = sprintf(buffer, "%s: %s\r\n%s: %s\r\n%s: %s\r\n\r\n",
+            HEADER_CONTENT_TYPE, content_type ? content_type : "text/plain",
+            HEADER_CONTENT_TRANSFER_ENCODING,
+            transfer_encoding ? transfer_encoding : "binary",
+            HEADER_CONTENT_ID,
+            content_id ? content_id : "<content-id-not-set>");
 
-  status =
-    http_output_stream_write(conn->out, buffer, strlen(buffer));
-
-  return status;
+  return http_output_stream_write(conn->out, buffer, len);
 }
 
 /**
@@ -1303,20 +1317,15 @@ httpd_mime_end(httpd_conn_t * conn)
   herror_t status;
   char buffer[512];
   char boundary[75];
+  int len;
 
   /* Get the boundary string */
   _httpd_mime_get_boundary(conn, boundary);
-  sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
+  len = sprintf(buffer, "\r\n--%s--\r\n\r\n", boundary);
 
   /* Send boundary */
-  status =
-    http_output_stream_write(conn->out, buffer, strlen(buffer));
-
-  if (status != H_OK)
+  if ((status = http_output_stream_write(conn->out, buffer, len)) != H_OK)
     return status;
 
-  /* Flush put stream */
-  status = http_output_stream_flush(conn->out);
-
-  return status;
+  return http_output_stream_flush(conn->out);
 }
