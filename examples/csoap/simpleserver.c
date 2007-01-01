@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.28 2006/12/10 19:21:05 m0gg Exp $
+ * $Id: simpleserver.c,v 1.29 2007/01/01 18:58:05 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -44,7 +44,7 @@ herror_t
 say_hello(struct SoapCtx *req, struct SoapCtx *res)
 {
   herror_t err;
-  char *name;
+  xmlChar *name;
   xmlNodePtr method, node;
 
   printf("processing service request\n");
@@ -70,11 +70,11 @@ say_hello(struct SoapCtx *req, struct SoapCtx *res)
   node = soap_xml_get_children(method);
   while (node)
   {
-    name = (char *) xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
+    name = xmlNodeListGetString(node->doc, node->xmlChildrenNode, 1);
     soap_env_add_itemf(res->env, "xsd:string", "echo", "Hello '%s'", name);
-    node = soap_xml_get_next(node);
     if (name)
       xmlFree(name);
+    node = soap_xml_get_next(node);
   }
 
   printf("service request done\n");

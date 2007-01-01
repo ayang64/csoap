@@ -1,4 +1,4 @@
-$Id: TODO,v 1.14 2007/01/01 15:29:48 m0gg Exp $
+$Id: TODO,v 1.15 2007/01/01 18:58:05 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -19,9 +19,6 @@ nanohttp:
 
 csoap:
 ------
-- Map corrent HTTP status codes in soap_server_process (404, 500, etc.)
-- Re-enable WSDL via HTTP GET
-  - move service description documents from router to service (???)
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments

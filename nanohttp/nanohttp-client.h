@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.37 2006/12/13 08:26:01 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.38 2007/01/01 18:58:05 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -372,6 +372,12 @@ extern herror_t httpc_post_begin(httpc_conn_t * conn, const char *url);
  *
  */
 extern herror_t httpc_post_end(httpc_conn_t * conn, hresponse_t ** out);
+
+/**
+ *
+ * @todo move to nanohttp-mime.c merge with httpc_mime_* functions
+ *
+ */
 
 /**
  *

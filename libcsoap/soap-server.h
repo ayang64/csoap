@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.24 2006/12/13 08:18:53 m0gg Exp $
+ *  $Id: soap-server.h,v 1.25 2007/01/01 18:58:05 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -113,13 +113,38 @@
 
 /** @page csoap_page cSOAP
  *
- * T.B.D.
+ * @section csoap_sec cSOAP
+ *
+ * cSOAP is a C-based implementation of the Simple Object Access Protocol (SOAP)
+ * version 1.1.
+ *
+ * SOAP is a lightweight protocol for exchange of information in a decentralized,
+ * distributed environment. It is an XML based protocol that consists of three
+ * parts:
+ * - an envelope that defines a framework for describing what is in a message and
+ *   how to process it,
+ * - a set of encoding rules for expressing instances of application-defined
+ *   datatypes,
+ * - and a convention for representing remote procedure calls and responses.
+ * SOAP can potentially be used in combination with a variety of other protocols;
+ * however, the only bindings defined in this document describe how to use SOAP
+ * in combination with HTTP and HTTP Extension Framework.
  *
  * @section soap_howto_sec HOWTOs and coding examples
  *
  * - @subpage csoap_client_page
  * - @subpage csoap_server_page
  * - @subpage csoap_mime_page
+ *
+ * @version	1.2
+ *
+ * @author	Ferhat Ayaz
+ * @author	Michael Rans
+ * @author	Matt Campbell
+ * @author	Heiko Ronsdorf
+ *
+ * @see		http://www.w3.org/TR/soap/
+ * @see		http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
  *
  */
 
@@ -137,6 +162,10 @@
  * @section soap_server_init_sec Server initialization
  *
  * @code
+ * static const char const *url = "/csoapserver";
+ * static const char const *urn = "urn:examples";
+ * static const char const *method = "sayHello";
+ *
  * int main(int argc, char **argv)
  * {
  *   herror_t err;

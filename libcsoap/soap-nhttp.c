@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.11 2006/12/16 16:09:45 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.12 2007/01/01 18:58:05 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -59,6 +59,8 @@
 #include "soap-transport.h"
 #include "soap-addressing.h"
 #include "soap-xml.h"
+#include "soap-router.h"
+#include "soap-server.h"
 
 #include "soap-admin.h"
 #include "soap-wsil.h"
@@ -146,25 +148,21 @@ soap_nhttp_process(httpd_conn_t * conn, struct hrequest_t * req)
   struct SoapCtx *response;
   herror_t err;
 
-  /* if (req->method == HTTP_REQUEST_GET && router->wsdl)
+  if (req->method == HTTP_REQUEST_GET)
   {
-    _soap_nhttp_send_document(conn, router->wsdl);
-    return;
-  } */
+    struct SoapRouter *router;
+
+    router = soap_server_find_router(req->path);
+    if (router && router->description)
+    {
+      _soap_nhttp_send_document(conn, router->description);
+      return;
+    }
+  }
 
   if (req->method != HTTP_REQUEST_POST)
   {
-    httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
-    http_output_stream_write_string(conn->out,
-      "<html>"
-        "<head>"
-        "</head>"
-        "<body>"
-          "<h1>Sorry!</h1>"
-          "<hr />"
-          "<div>I only speak with 'POST' method.</div>"
-        "</body>"
-      "</html>");
+    httpd_send_not_implemented(conn, "I only speak with 'POST' method.");
     return;
   }
 

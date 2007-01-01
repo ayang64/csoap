@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.34 2006/12/31 17:24:22 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.35 2007/01/01 18:58:05 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -321,10 +321,9 @@ extern void httpd_set_headers(httpd_conn_t * conn, hpair_t * header);
 extern int httpd_add_header(httpd_conn_t * conn, const char *key, const char *value);
 extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
 
-/*
- * XXX: move to nanohttp-mime.c
+/**
  *
- * MIME support httpd_mime_* function set
+ * @todo move to nanohttp-mime.c merge with httpc_mime_* functions
  *
  */
 
@@ -358,6 +357,42 @@ extern herror_t httpd_mime_send_file(httpd_conn_t * conn, const char *content_id
  *
  */
 extern herror_t httpd_mime_end(httpd_conn_t * conn);
+
+/**
+ *
+ * Send a minimalistic HTML error document with HTTP status 500.
+ *
+ * @see HTTP_STATUS_500_REASON_PHRASE
+ *
+ */
+extern herror_t httpd_send_internal_error(httpd_conn_t * conn, const char *msg);
+
+/**
+ *
+ * Send a minimalistic HTML error document with HTTP status 501.
+ *
+ * @see HTTP_STATUS_501_REASON_PHRASE
+ *
+ */
+extern herror_t httpd_send_not_implemented(httpd_conn_t *conn, const char *msg);
+
+/**
+ *
+ * Send a minimalistic HTML error document with HTTP status 404.
+ *
+ * @see HTTP_STATUS_401_REASON_PHRASE
+ *
+ */
+extern herror_t httpd_send_bad_request(httpd_conn_t *conn, const char *msg);
+
+/**
+ *
+ * Send a minimalistc HTML error document with HTTP status 401.
+ *
+ * @see HTTP_STATUS_404_REASON_PHRASE
+ *
+ */
+extern herror_t httpd_send_unauthorized(httpd_conn_t *conn, const char *realm);
 
 #ifdef __cplusplus
 }

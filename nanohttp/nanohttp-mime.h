@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.14 2006/12/09 09:27:11 m0gg Exp $
+*  $Id: nanohttp-mime.h,v 1.15 2007/01/01 18:58:05 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,10 +28,50 @@
 #ifndef __nanohttp_mime_h
 #define __nanohttp_mime_h
 
-/** @file
+/** @page nanohttp_mime_page nanoHTTP MIME attachments
+ *
+ * @section Table of contents
+ *
+ * - @ref nanohttp_mime_client_sec
+ *   - @ref nanohttp_mime_client_init_sec
+ *   - @ref nanohttp_mime_client_request_sec
+ *   - @ref nanohttp_mime_client_response_sec
+ *   - @ref nanohttp_mime_client_cleanup_sec
+ * - @ref nanohttp_mime_server_sec
+ *   - @ref nanohttp_mime_server_init_sec
+ *   - @ref nanohttp_mime_server_cleanup_sec
+ *
+ * @section nanohttp_mime_client_sec nanoHTTP client with MIME attachments
+ *
+ * @subsection nanohttp_mime_client_init_sec Client initialization
+ *
+ * See @ref nanohttp_client_init_sec for more information about client
+ * initialization.
+ *
+ * @subsection nanohttp_mime_client_request_sec Request the server
+ *
+ * The following functions can be used to transmit MIME attachments:
+ *
+ * @code
+ * httpc_mime_begin(conn, url, start_id, "", "text/tml")
+ * httpc_mime_next(conn, start_id, "text/xml", "binary")
+ * http_output_stream_write(conn->out, buffer, size)
+ * http_mime_send_file()
+ * http_mime_end(conn, &res)
+ * @endcode
+ *
+ * @subsection nanohttp_mime_client_response_sec Read the server response
+ *
+ * @subsection nanohttp_mime_client_cleanup_sec Client cleanup
+ *
+ * @secion nanohttp_mime_server_sec nanoHTTP server with MIME attachments
+ *
+ * @subsection nanohttp_mime_server_init_sec Server initialization
+ *
+ * @subsection nanohttp_mime_server_cleanup_sec Server cleanup
  *
  * @author	Ferhat Ayaz
- * @version	$Revision: 1.14 $
+ * @version	$Revision: 1.15 $
  *
  * @see		http://www.ietf.org/rfc/rfc2045.txt
  * @see		http://www.ietf.org/rfc/rfc2046.txt
