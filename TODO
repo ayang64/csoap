@@ -1,4 +1,4 @@
-$Id: TODO,v 1.17 2007/01/03 12:16:02 m0gg Exp $
+$Id: TODO,v 1.18 2007/01/03 13:41:52 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -11,8 +11,8 @@ nanohttp:
   - "GET http://fdqn/service HTTP/1.1" segfaults
 - Check portability to Win32/MaxOS (only tested on FreeBSD/Solaris/Linux)
   - remove CFLAGS="-D_XOPEN_SOURCE=600" ./configure on Linux
-- Elaborate README.ssl (more text and references to csoap API docs, OpenSSL)
-  - move this documentation to nanohttp-ssl.h
+- Elaborate nanohttp_ssl_page
+  - (more text and references OpenSSL (project and man pages))
 - delete or fix broken examples (see Makefile.am)
 - Improve API documentation
 
@@ -23,7 +23,15 @@ csoap:
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
 - Improve API documentation
   - Add reference to http://www.w3.org/TR/SOAP-attachments
-- Write README.xmlsec like README.ssl
+- document xmlsec (like nanohttp_ssl_page)
+
+xsd2c:
+======
+- Check portability
+
+wsdl2c:
+=======
+- Check portability
 
 Things to do _after_ 1.2 release:
 =================================
@@ -54,12 +62,13 @@ csoap:
 
 wsdl2c:
 =======
+- generate csoap client/server skeletons
 
 xsd2c:
 ======
-
-+ Add extension base functionality OK
-+ Add deserialize functionality OK
-+ Add simpleTypes (list, restriction?, ...)
-+ List free must use ( <Obj>_Free(..->value) ) instead of ( free() )
+- Check if this is already done:
+  - Add extension base functionality OK
+  - Add deserialize functionality OK
+  - Add simpleTypes (list, restriction?, ...)
+  - List free must use ( <Obj>_Free(..->value) ) instead of ( free() )
  

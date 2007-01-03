@@ -1,4 +1,12 @@
-SUBDIRS=nanohttp libcsoap xsd2c wsdl2c examples 
+#
+# $Revision: 1.14 $
+#
+
+SUBDIRS=nanohttp \
+        libcsoap \
+        xsd2c    \
+        wsdl2c   \
+        examples 
 
 bin_SCRIPTS=csoap-config
 
@@ -28,6 +36,11 @@ win32_env=win32/MinGW/Makefile    \
           win32/MinGW/readme.txt  \
           win32/include/wsockcompat.h
 
-EXTRA_DIST=$(documentation) $(win32_env) libcsoap.pc.in libcsoap.m4 \
-           indent.pro README.ssl README.xmlsec $(broken_examples)
+EXTRA_DIST=$(documentation) \
+           $(win32_env)     \
+           libcsoap.pc.in   \
+           libcsoap.m4      \
+           indent.pro       \
+           README.xmlsec    \
+           $(broken_examples)
 

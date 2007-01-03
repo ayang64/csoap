@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.36 2007/01/01 22:54:46 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.37 2007/01/03 13:41:52 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -51,6 +51,7 @@
  * - @subpage nanohttp_client_page
  * - @subpage nanohttp_server_page
  * - @subpage nanohttp_mime_page
+ * - @subpage nanohttp_ssl_page
  *
  * @author	Ferhat Ayaz
  * @author	Michael Rans

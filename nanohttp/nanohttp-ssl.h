@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.26 2006/12/11 08:13:19 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.27 2007/01/03 13:41:52 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -23,6 +23,114 @@
 ******************************************************************/
 #ifndef __nanohttp_ssl_h
 #define __nanohttp_ssl_h
+
+/** @page nanohttp_ssl_page How to use SSL with nanoHTTP/cSOAP
+ *
+ * @section nanohttp_ssl_toc_sec Table of contents
+ *
+ * - @ref nanohttp_ssl_key_generation_sec
+ * - @ref nanohttp_ssl_cert_generation_sec
+ * - @ref nanohttp_ssl_ca_generation_sec
+ *   - @ref nanohttp_ssl_ca_dir_sec
+ *   - @ref nanohttp_ssl_ca_key_sec
+ *   - @ref nanohttp_ssl_sign_sec
+ * - @ref nanohttp_cmdline_sec
+ * - @ref nanohttp_faq_sec
+ *
+ * @section nanohttp_ssl_key_generation_sec Simple key generation
+ *
+ * @code
+ * $ openssl req -nodes -days 1825 -subj "/CN=`hostname`" -newkey rsa:1024 -keyout sslkey.pem -out sslreq.pem
+ * @endcode
+ *
+ * @section nanohttp_ssl_cert_generation_sec Generate a key with a certificate
+ *
+ * @subsection nanohttp_ssl_a_sec Create a key and a certification request
+ * @subsection nanohttp_ssl_b_sec Post the sslreq.pem to your favorite CA
+ * @subsection nanohttp_ssl_c_sec Join your key with the certificate from yout CA
+ *
+ * @code
+ * $ cat ssl.cert >> sslkey.pem
+ * @endcode
+ *
+ * @section nanohttp_ssl_ca_generation_sec Generate a certification authority
+ *
+ * @subsection nanohttp_ssl_ca_dir_sec Create the directory structure
+ *
+ * @code
+ * $ mkdir ca
+ * $ echo '01' > $1 ca/serial
+ * $ touch ca/index.txt
+ * $ mkdir ca/crl
+ * $ mkdir ca/newcerts
+ * $ mkdir ca/private
+ * $ chmod 700 ca/private
+ * @endcode
+ *
+ * @subsection nanohttp_ssl_ca_key_sec Generate the CA key
+ *
+ * @code
+ * $ openssl req -x509 -nodes -days 1826 -subj "/CN=myCa" -newkey rsa:1024 -keyout ca/private/cakey.pem -out ca/cacert.pem
+ * @endcode
+ *
+ * @subsection nanohttp_ssl_sign_sec Sign a certification request
+ *
+ * @code
+ * $ openssl ca -in sslreq.pem -out ssl.cert
+ * @endcode
+ *
+ * @section nanohttp_cmdline_sec Commandline arguments at startup
+ *
+ * @code
+ * -NHTTPS                 Enable https protocol in the nanoHTTP server
+ * 
+ * -NHTTPcert CERTfile     A file containing a certificate chain from file. The
+ *                         certificates must be in PEM format and must be sorted
+ *                         starting with the subject's certificate (actual client
+ *                         or server certificate), followed by intermediate CA
+ *                         certificates if applicable, and ending at the highest
+ *                         level (root) CA.
+ * 
+ * -NHTTPcertpass password The password to be used during decryption of the
+ *                         certificate.
+ * 
+ * -NHTTPCA CAfile         File pointing to a file of CA certificates in PEM
+ *                         format. The file can contain several CA certificates
+ *                         identified by
+ * 
+ *                          -----BEGIN CERTIFICATE-----
+ *                          ... (CA certificate in base64 encoding) ...
+ *                          -----END CERTIFICATE-----
+ * 
+ *                         sequences. Before, between, and after the certificates
+ *                         text is allowed which can be used e.g. for descriptions
+ *                         of the certificates. 
+ * @endcode
+ *
+ * @section nanohttp_ssl_faq_sec Frequently asked questions
+ *
+ * - Howto hide the password
+ * You can use the following functions before calling httpd_init, httpc_init
+ * and accordingly soap_server_init, soap_client_init. The are roughly the same
+ * then the commandline versions.
+ *
+ * @code
+ * hssl_enable(void)
+ * hssl_set_certificate(const char *CERTfile)
+ * hssl_set_certpass(const char *pass)
+ * hssl_set_ca(const char *CAfile)
+ * @endcode
+ * 
+ * NOTE: If you use this functions an specify the commandline arguments, then
+ * the commandline arguments take precedence.
+ *
+ * - What else?
+ *
+ * @code
+ * int hssl_enabled(void)
+ * @endcode
+ *
+ */
 
 /**
  *
