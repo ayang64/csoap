@@ -1,5 +1,5 @@
 #
-# $Revision: 1.14 $
+# $Revision: 1.15 $
 #
 
 SUBDIRS=nanohttp \
@@ -41,6 +41,5 @@ EXTRA_DIST=$(documentation) \
            libcsoap.pc.in   \
            libcsoap.m4      \
            indent.pro       \
-           README.xmlsec    \
            $(broken_examples)
 

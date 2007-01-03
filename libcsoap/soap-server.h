@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.25 2007/01/01 18:58:05 m0gg Exp $
+ *  $Id: soap-server.h,v 1.26 2007/01/03 13:46:32 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -135,6 +135,7 @@
  * - @subpage csoap_client_page
  * - @subpage csoap_server_page
  * - @subpage csoap_mime_page
+ * - @subpage csoap_xmlsec_page
  *
  * @version	1.2
  *

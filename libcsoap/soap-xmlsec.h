@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xmlsec.h,v 1.6 2006/12/09 09:35:00 m0gg Exp $
+ *  $Id: soap-xmlsec.h,v 1.7 2007/01/03 13:46:32 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2006 Heiko Ronsdorf
@@ -24,14 +24,28 @@
 #ifndef __csoap_xmlsec_h
 #define __csoap_xmlsec_h
 
+/** @page csoap_xmlsec_page How to use xmlsec with csoap
+ *
+ * @section csoap_xmlsec_toc
+ *
+ * - @ref csoap_xmlsec_key_sec
+ * - @ref csoap_xmlsec_cert_sec
+ * - @ref csoap_xmlsec_cmdline_sec
+ *
+ * @section csoap_xmlsec_key_sec Simple key generation
+ * @section csoap_xmlsec_cert_sec Generate a key with a certificate
+ * @section csoap_xmlsec_cmdline_sec Commandline arguments for startup
+ *
+ */
+
 /** @file
  *
- * \section Web Services Security
+ * @section soap_wss_sec Web Services Security
  *
  * This module is implemented using the xmlsec1 library.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  *
  * @see		http://www.w3.org/TR/SOAP-dsig/
  * @see		http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss
