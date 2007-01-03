@@ -1,4 +1,4 @@
-SUBDIRS=nanohttp libcsoap examples
+SUBDIRS=nanohttp libcsoap xsd2c wsdl2c examples 
 
 bin_SCRIPTS=csoap-config
 

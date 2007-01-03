@@ -566,6 +566,8 @@ AM_PATH_XMLSEC1(1.2.10,
 AC_OUTPUT(Makefile 
 libcsoap/Makefile 
 nanohttp/Makefile 
+xsd2c/Makefile
+wsdl2c/Makefile
 examples/Makefile
 examples/nanohttp/Makefile
 examples/csoap/Makefile

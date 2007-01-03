@@ -1,7 +1,14 @@
+#
+# $Revision: 1.11 $
+#
 LDADD=../../nanohttp/libnanohttp.la ../../libcsoap/libcsoap.la
 INCLUDES=-I${top_srcdir}
 
-noinst_PROGRAMS=simpleclient simpleserver echoattachments-client echoattachments-server
+noinst_PROGRAMS=simpleclient \
+                simpleserver \
+                echoattachments-client \
+                echoattachments-server \
+
 bin_PROGRAMS=soapclient
 
 simpleclient_SOURCES=simpleclient.c

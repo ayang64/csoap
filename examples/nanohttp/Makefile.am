@@ -1,3 +1,6 @@
+#
+# $Revision: 1.14 $
+#
 LDADD=../../nanohttp/libnanohttp.la
 INCLUDES=-I${top_srcdir}
 

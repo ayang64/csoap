@@ -22181,7 +22181,7 @@ fi
   rm -f conf.xmlsec1test
 
 
-                                                                                ac_config_files="$ac_config_files Makefile libcsoap/Makefile nanohttp/Makefile examples/Makefile examples/nanohttp/Makefile examples/csoap/Makefile libcsoap.pc csoap-config"
+                                                                                                    ac_config_files="$ac_config_files Makefile libcsoap/Makefile nanohttp/Makefile xsd2c/Makefile wsdl2c/Makefile examples/Makefile examples/nanohttp/Makefile examples/csoap/Makefile libcsoap.pc csoap-config"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -22769,6 +22769,8 @@ do
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "libcsoap/Makefile" ) CONFIG_FILES="$CONFIG_FILES libcsoap/Makefile" ;;
   "nanohttp/Makefile" ) CONFIG_FILES="$CONFIG_FILES nanohttp/Makefile" ;;
+  "xsd2c/Makefile" ) CONFIG_FILES="$CONFIG_FILES xsd2c/Makefile" ;;
+  "wsdl2c/Makefile" ) CONFIG_FILES="$CONFIG_FILES wsdl2c/Makefile" ;;
   "examples/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
   "examples/nanohttp/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/nanohttp/Makefile" ;;
   "examples/csoap/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/csoap/Makefile" ;;

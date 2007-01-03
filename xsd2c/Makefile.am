@@ -1,3 +1,6 @@
+#
+# $Revision: 1.6 $
+#
 bin_PROGRAMS=xsd2c
 
 INCLUDES=$(LIBXML_CFLAGS)

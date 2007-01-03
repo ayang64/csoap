@@ -1,3 +1,7 @@
+#
+# $Revision: 1.6 $
+#
+
 bin_PROGRAMS=wsdl2c
 
 INCLUDES=$(LIBXML_CFLAGS) -I$(top_srcdir)
