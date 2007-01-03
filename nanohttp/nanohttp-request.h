@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.14 2006/12/11 08:13:19 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.15 2007/01/03 08:33:44 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __nhttp_request_h
 #define __nhttp_request_h
 
-/** @defgroup request_header_fields Request Header Fields
+/** @defgroup http_request_header_fields Request Header Fields
  *
  * The request-header fields allow the client to pass additional information
  * about the request, and about the client itself, to the server. These fields

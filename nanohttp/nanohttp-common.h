@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.47 2006/12/13 08:36:53 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.48 2007/01/03 08:33:44 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,7 +28,7 @@
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define TRANSFER_ENCODING_CHUNKED	"chunked"
 
-/** @defgroup general_header_fields General Header Fields
+/** @defgroup http_general_header_fields General Header Fields
  *
  * There are a few header fields which have general applicability for both
  * request and response messages, but which do not apply to the entity being

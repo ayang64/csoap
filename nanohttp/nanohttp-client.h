@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.38 2007/01/01 18:58:05 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.39 2007/01/03 08:33:44 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -108,8 +108,8 @@
  *   httpc_add_header(conn, "Cookie", "name2:value2");
  * @endcode
  *
- * Please see @ref general_header_fields and @ref request_header_fields for more
- * information.
+ * Please see @ref http_general_header_fields and @ref http_request_header_fields
+ * for more information.
  *
  * @subsection nanohttp_client_authorization_sec HTTP authorization
  *
@@ -172,7 +172,7 @@
  * @section nanohttp_client_result_sec Fetch and print out the result
  *
  * @code
- *   while (http_input_stream_is_read(res->in))
+ *   while (http_input_stream_is_ready(res->in))
  *   {
  *     len = http_input_stream_read(res->in, buffer, MAX_BUFFER_SIZE);
  *     fwrite(buffer, len, 1, stdout);
