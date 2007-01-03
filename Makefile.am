@@ -1,5 +1,5 @@
 #
-# $Revision: 1.15 $
+# $Revision: 1.16 $
 #
 
 SUBDIRS=nanohttp \
@@ -24,11 +24,9 @@ documentation=doc/Doxyfile.api \
               doc/tutorial.xml \
               doc/images/logo02.gif
 
-broken_examples=examples/nanohttp/client_mime.c  \
-                examples/nanohttp/httpcpost.c    \
+broken_examples=examples/nanohttp/httpcpost.c    \
                 examples/nanohttp/httppost.c     \
-                examples/nanohttp/postserver.c   \
-                examples/nanohttp/client_post_chunked.c
+                examples/nanohttp/postserver.c
 
 win32_env=win32/MinGW/Makefile    \
           win32/MinGW/compile.bat \
