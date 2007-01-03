@@ -1,4 +1,4 @@
-$Id: TODO,v 1.16 2007/01/01 22:54:46 m0gg Exp $
+$Id: TODO,v 1.17 2007/01/03 12:16:02 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -58,3 +58,8 @@ wsdl2c:
 xsd2c:
 ======
 
++ Add extension base functionality OK
++ Add deserialize functionality OK
++ Add simpleTypes (list, restriction?, ...)
++ List free must use ( <Obj>_Free(..->value) ) instead of ( free() )
+ 
