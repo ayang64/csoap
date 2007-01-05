@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.27 2007/01/03 13:41:52 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.28 2007/01/05 09:03:34 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -34,8 +34,8 @@
  *   - @ref nanohttp_ssl_ca_dir_sec
  *   - @ref nanohttp_ssl_ca_key_sec
  *   - @ref nanohttp_ssl_sign_sec
- * - @ref nanohttp_cmdline_sec
- * - @ref nanohttp_faq_sec
+ * - @ref nanohttp_ssl_cmdline_sec
+ * - @ref nanohttp_ssl_faq_sec
  *
  * @section nanohttp_ssl_key_generation_sec Simple key generation
  *
@@ -79,7 +79,7 @@
  * $ openssl ca -in sslreq.pem -out ssl.cert
  * @endcode
  *
- * @section nanohttp_cmdline_sec Commandline arguments at startup
+ * @section nanohttp_ssl_cmdline_sec Commandline arguments at startup
  *
  * @code
  * -NHTTPS                 Enable https protocol in the nanoHTTP server
@@ -110,25 +110,26 @@
  * @section nanohttp_ssl_faq_sec Frequently asked questions
  *
  * - Howto hide the password
- * You can use the following functions before calling httpd_init, httpc_init
- * and accordingly soap_server_init, soap_client_init. The are roughly the same
- * then the commandline versions.
  *
- * @code
- * hssl_enable(void)
- * hssl_set_certificate(const char *CERTfile)
- * hssl_set_certpass(const char *pass)
- * hssl_set_ca(const char *CAfile)
- * @endcode
+ *   You can use the following functions before calling httpd_init, httpc_init
+ *   and accordingly soap_server_init, soap_client_init. The are roughly the same
+ *   then the commandline versions.
+ *
+ *   @code
+ *   hssl_enable(void)
+ *   hssl_set_certificate(const char *CERTfile)
+ *   hssl_set_certpass(const char *pass)
+ *   hssl_set_ca_list(const char *CAfile)
+ *   @endcode
  * 
- * NOTE: If you use this functions an specify the commandline arguments, then
- * the commandline arguments take precedence.
+ *   NOTE: If you use this functions an specify the commandline arguments, then
+ *   the commandline arguments take precedence.
  *
  * - What else?
  *
- * @code
- * int hssl_enabled(void)
- * @endcode
+ *   @code
+ *   hssl_enabled(void)
+ *   @endcode
  *
  */
 
