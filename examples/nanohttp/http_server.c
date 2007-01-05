@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.13 2007/01/01 22:54:46 m0gg Exp $
+*  $Id: http_server.c,v 1.14 2007/01/05 09:02:50 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,7 +27,8 @@
 
 #include <nanohttp/nanohttp-server.h>
 
-static int simple_authenticator(struct hrequest_t *req, const char *user, const char *password)
+static int
+simple_authenticator(struct hrequest_t *req, const char *user, const char *password)
 {
   fprintf(stdout, "logging in user=\"%s\" password=\"%s\"\n", user, password);
 
@@ -46,7 +47,8 @@ static int simple_authenticator(struct hrequest_t *req, const char *user, const 
   return 1;
 }
 
-static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
+static void
+secure_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
   http_output_stream_write_string(conn->out,
@@ -62,7 +64,8 @@ static void secure_service(httpd_conn_t *conn, struct hrequest_t *req)
   return;
 }
 
-static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
+static void
+default_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   char buf[512];
 
@@ -73,7 +76,8 @@ static void default_service(httpd_conn_t *conn, struct hrequest_t *req)
   return;
 }
 
-static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
+static void
+headers_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   hpair_t *walker;
   char buf[512];
@@ -103,7 +107,14 @@ static void headers_service(httpd_conn_t *conn, struct hrequest_t *req)
   return;
 }
 
-static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
+static void
+mime_service(httpd_conn_t *conn, struct hrequest_t *req)
+{
+  httpd_send_not_implemented(conn, "mime_service");
+}
+
+static void
+root_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
   http_output_stream_write_string(conn->out,
@@ -117,6 +128,7 @@ static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
           "<li><a href=\"/\">Simple service</a></li>"
           "<li><a href=\"/secure\">Secure service</a> (try: bob/builder)</li>"
           "<li><a href=\"/headers\">Request headers</a></li>"
+	  "<li><a href=\"/mime\">MIME service</a></li>"
           "<li><a href=\"/not_existent\">The default service</a></li>"
           "<li><a href=\"/nhttp\">Admin page</a> (try -NHTTPDadmin on the command line)</li>"
         "</ul>"
@@ -126,7 +138,8 @@ static void root_service(httpd_conn_t *conn, struct hrequest_t *req)
   return;
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
   herror_t status;
   hlog_set_level(HLOG_INFO);
@@ -160,6 +173,14 @@ int main(int argc, char **argv)
     herror_release(status);
     httpd_destroy();
     exit(1);
+  }
+
+  if ((status = httpd_register("/mime", mime_service)) != H_OK)
+  {
+    fprintf(stderr, "Cannot register MIME service (%s)\n", herror_message(status));
+    herror_release(status);
+    httpd_destroy();
+    exit(1); 
   }
 
   if ((status = httpd_register_default("/error", default_service)) != H_OK)
