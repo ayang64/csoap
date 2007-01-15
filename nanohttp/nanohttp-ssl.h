@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.28 2007/01/05 09:03:34 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.29 2007/01/15 18:29:44 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -28,6 +28,8 @@
  *
  * @section nanohttp_ssl_toc_sec Table of contents
  *
+ * - @ref nanohttp_ssl_overview_sec
+ * - @ref nanohttp_ssl_configuration_sec
  * - @ref nanohttp_ssl_key_generation_sec
  * - @ref nanohttp_ssl_cert_generation_sec
  * - @ref nanohttp_ssl_ca_generation_sec
@@ -35,7 +37,31 @@
  *   - @ref nanohttp_ssl_ca_key_sec
  *   - @ref nanohttp_ssl_sign_sec
  * - @ref nanohttp_ssl_cmdline_sec
+ * - @ref nanohttp_ssl_verification_sec
  * - @ref nanohttp_ssl_faq_sec
+ *
+ * @section nanohttp_ssl_overview_sec How to create an SSL enabled HTTP service
+ *
+ * There are tow basic steps involved in using nanoHTTP to create an SSL enabled
+ * HTTP service.
+ *
+ * -# @ref nanohttp_ssl_configuration_sec
+ * -# @ref nanohttp_ssl_key_generation_sec
+ *
+ * Additionally you may:
+ *
+ * - Add the requisite command line arguments to your application
+ * - Write a certifcate verification routine
+ *
+ * @section nanohttp_ssl_configuration_sec Compilation with SSL support
+ *
+ * nanoHTTP uses OpenSSL for its SSL support, therefore OpenSSL must be installed
+ * first. To compile in SSL support, simply provide the --with-ssl argument to
+ * configure.
+ *
+ * @code
+ * $ ./configure --with-ssl
+ * @endcode
  *
  * @section nanohttp_ssl_key_generation_sec Simple key generation
  *
@@ -105,6 +131,67 @@
  *                         sequences. Before, between, and after the certificates
  *                         text is allowed which can be used e.g. for descriptions
  *                         of the certificates. 
+ * @endcode
+ *
+ * @section nanohttp_ssl_verification_sec Write a certificate verification routine
+ *
+ * Your verification script must take an X509 * as its only argument and it
+ * should return an int. The CSOAP library provides a helper function verify_sn()
+ * to assist in writing certificate verification routines. You by no means need
+ * to use it! verify_sn() takes the following arguments:
+ *
+ * - X509 *cert - a pointer to the X509 cert passed into your verify function 
+ * - int who - one of two values, CERT_SUBJECT or CERT_ISSUER to specify if you
+ *   wish to verify the issuer line or the subject line in the certificate file. 
+ * - int nid - the NID of the attribute you wish to compare
+ *   (see http://www.openssl.org/docs/crypto/OBJ_nid2obj.html) 
+ * - char *str - the string you wish to compare
+ *
+ * @code
+ * int my_user_verify(X509* cert)
+ * {
+ *   ASN1_TIME *notAfter = X509_get_notAfter(cert);
+ *         
+ *   if (X509_cmp_current_time(notAfter) <= 0)
+ *   {
+ *     fprintf(stderr,"SSL Certificate has expired");
+ *     return 0;
+ *   }   
+ *                                     
+ *   if (!verify_sn(cert, CERT_ISSUER, NID_commonName, "My Common Name") )
+ *   {
+ *     fprintf(stderr, "issuer commonName does not match");
+ *     return 0;
+ *   }
+ * 
+ *   if (!verify_sn(cert, CERT_ISSUER, NID_organizationName, "My Organization") )
+ *   {
+ *     fprintf(stderr, "issuer organizationName does not match");
+ *     return 0;
+ *   }   
+ * 
+ *   if (!verify_sn(cert, CERT_SUBJECT, NID_commonName, "My Web Service") )
+ *   {
+ *     fprintf(stderr, "subject commonName does not match");
+ *     return 0;
+ *   }
+ *
+ *   if (!verify_sn(cert, CERT_SUBJECT, NID_organizationName, "My Organization") )
+ *   {
+ *     fprintf(stderr, "subject organizationName does not match");
+ *     return 0;
+ *   }
+ *
+ *   fprintf(stderr, "Certificate checks out");
+ *   return 1;
+ * }
+ *
+ * @endcode
+ *
+ * To register your verification function, simply:
+ *
+ * @code
+ * hssl_set_verify_cert(my_user_verify);
  * @endcode
  *
  * @section nanohttp_ssl_faq_sec Frequently asked questions
