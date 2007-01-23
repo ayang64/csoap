@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.69 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.70 2007/01/23 23:21:47 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -27,6 +27,10 @@
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H

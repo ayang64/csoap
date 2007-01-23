@@ -18922,7 +18922,8 @@ fi
 
 
 
-for ac_header in arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h time.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h
+
+for ac_header in arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/wait.h time.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
