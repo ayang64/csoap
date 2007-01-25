@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.26 2007/01/03 13:46:32 m0gg Exp $
+ *  $Id: soap-server.h,v 1.27 2007/01/25 10:28:30 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -43,8 +43,8 @@
  * - attachments via MIME
  * - message based security (XML encryption/signation)
  * - automatic generation of a WS-Inspection document
- * - Platform independent: Windows, Unix, Linux, MacOS, OpenVMS
- * - Written in pure C.
+ * - Platform independent: Windows, Unix, Linux, MacOS, OpenVMS, AIX
+ * - Written in pure ANSI C (compiles with gcc -ansi).
  *
  * @section howto_sec HOWTOs and coding examples
  *
@@ -54,6 +54,7 @@
  * - @ref csoap_client_page
  * - @ref csoap_server_page
  * - @ref csoap_mime_page
+ * - @ref csoap_xmlsec_page
  *
  * @section help_sec How to help
  *
@@ -92,8 +93,8 @@
  * @subsection download_cvs_sec Checkout from CVS
  *
  * Do you want the latest source codes? You want to contribute a patch? Have you
- * found a bug? Or whatever. You should check out csoap from CVS to play the game
- * with us csoap developers.
+ * found a bug? Or whatever. You should check out cSOAP from CVS to play the game
+ * with us cSOAP developers.
  *
  * Web CVS access: http://csoap.cvs.sourceforge.net/csoap/libsoap/
  *

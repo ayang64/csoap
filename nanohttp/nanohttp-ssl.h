@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.29 2007/01/15 18:29:44 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.30 2007/01/25 10:24:10 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -24,34 +24,35 @@
 #ifndef __nanohttp_ssl_h
 #define __nanohttp_ssl_h
 
-/** @page nanohttp_ssl_page How to use SSL with nanoHTTP/cSOAP
+/** @page nanohttp_ssl_page How to use SSL with nanoHTTP
  *
  * @section nanohttp_ssl_toc_sec Table of contents
  *
  * - @ref nanohttp_ssl_overview_sec
  * - @ref nanohttp_ssl_configuration_sec
- * - @ref nanohttp_ssl_key_generation_sec
- * - @ref nanohttp_ssl_cert_generation_sec
- * - @ref nanohttp_ssl_ca_generation_sec
- *   - @ref nanohttp_ssl_ca_dir_sec
- *   - @ref nanohttp_ssl_ca_key_sec
- *   - @ref nanohttp_ssl_sign_sec
+ * - @ref nanohttp_ssl_key_management_sec
+ *   - @ref nanohttp_ssl_key_generation_sec
+ *   - @ref nanohttp_ssl_cert_generation_sec
+ *   - @ref nanohttp_ssl_ca_generation_sec
+ *     - @ref nanohttp_ssl_ca_dir_sec
+ *     - @ref nanohttp_ssl_ca_key_sec
+ *     - @ref nanohttp_ssl_sign_sec
  * - @ref nanohttp_ssl_cmdline_sec
  * - @ref nanohttp_ssl_verification_sec
  * - @ref nanohttp_ssl_faq_sec
  *
  * @section nanohttp_ssl_overview_sec How to create an SSL enabled HTTP service
  *
- * There are tow basic steps involved in using nanoHTTP to create an SSL enabled
- * HTTP service.
+ * There are two basic steps involved in using nanoHTTP to create a SSL enabled
+ * HTTP services:
  *
  * -# @ref nanohttp_ssl_configuration_sec
- * -# @ref nanohttp_ssl_key_generation_sec
+ * -# @ref nanohttp_ssl_key_management_sec
  *
  * Additionally you may:
  *
- * - Add the requisite command line arguments to your application
- * - Write a certifcate verification routine
+ * -# @ref nanohttp_ssl_cmdline_sec
+ * -# @ref nanohttp_ssl_verification_sec
  *
  * @section nanohttp_ssl_configuration_sec Compilation with SSL support
  *
@@ -63,13 +64,15 @@
  * $ ./configure --with-ssl
  * @endcode
  *
- * @section nanohttp_ssl_key_generation_sec Simple key generation
+ * @section nanohttp_ssl_key_management_sec Create an SSL key/certificate
+ *
+ * @subsection nanohttp_ssl_key_generation_sec Simple key generation
  *
  * @code
  * $ openssl req -nodes -days 1825 -subj "/CN=`hostname`" -newkey rsa:1024 -keyout sslkey.pem -out sslreq.pem
  * @endcode
  *
- * @section nanohttp_ssl_cert_generation_sec Generate a key with a certificate
+ * @subsection nanohttp_ssl_cert_generation_sec Generate a key with a certificate
  *
  * @subsection nanohttp_ssl_a_sec Create a key and a certification request
  * @subsection nanohttp_ssl_b_sec Post the sslreq.pem to your favorite CA
@@ -79,9 +82,9 @@
  * $ cat ssl.cert >> sslkey.pem
  * @endcode
  *
- * @section nanohttp_ssl_ca_generation_sec Generate a certification authority
+ * @subsection nanohttp_ssl_ca_generation_sec Generate a certification authority
  *
- * @subsection nanohttp_ssl_ca_dir_sec Create the directory structure
+ * @subsubsection nanohttp_ssl_ca_dir_sec Create the directory structure
  *
  * @code
  * $ mkdir ca
@@ -93,13 +96,13 @@
  * $ chmod 700 ca/private
  * @endcode
  *
- * @subsection nanohttp_ssl_ca_key_sec Generate the CA key
+ * @subsubsection nanohttp_ssl_ca_key_sec Generate the CA key
  *
  * @code
  * $ openssl req -x509 -nodes -days 1826 -subj "/CN=myCa" -newkey rsa:1024 -keyout ca/private/cakey.pem -out ca/cacert.pem
  * @endcode
  *
- * @subsection nanohttp_ssl_sign_sec Sign a certification request
+ * @subsubsection nanohttp_ssl_sign_sec Sign a certification request
  *
  * @code
  * $ openssl ca -in sslreq.pem -out ssl.cert
