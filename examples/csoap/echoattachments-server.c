@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: echoattachments-server.c,v 1.13 2007/01/01 22:54:46 m0gg Exp $
+ * $Id: echoattachments-server.c,v 1.14 2007/11/03 22:40:09 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -72,7 +72,7 @@ main(int argc, char **argv)
   herror_t err;
   struct SoapRouter *router;
 
-  hlog_set_level(HLOG_VERBOSE);
+  nanohttp_log_set_loglevel(NANOHTTP_LOG_VERBOSE);
 
   err = soap_server_init_args(argc, argv);
   if (err != H_OK)

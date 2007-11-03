@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-fault.c,v 1.16 2006/12/14 19:36:49 m0gg Exp $
+*  $Id: soap-fault.c,v 1.17 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -33,11 +33,11 @@
 #include <errno.h>
 #endif
 
-#include <libxml/xpath.h>
-
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include <libxml/tree.h>
+
+#include "soap-logging.h"
 #include "soap-xml.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -91,7 +91,7 @@ soap_fault_build(int fault_code, const char *fault_string, const char *fault_act
   char *buffer;
   xmlDocPtr fault;              /* result */
 
-  log_verbose1("Build fault");
+  log_verbose("Build fault");
 
   switch (fault_code)
   {
@@ -121,10 +121,10 @@ soap_fault_build(int fault_code, const char *fault_string, const char *fault_act
   if (detail)
     bufferlen += strlen(detail);
 
-  log_verbose2("Creating buffer with %d bytes", bufferlen);
+  log_verbose("Creating buffer with %d bytes", bufferlen);
   if (!(buffer = (char *) malloc(bufferlen)))
   {
-    log_error2("malloc failed (%s)", errno);
+    log_error("malloc failed (%s)", errno);
     return NULL;
   }
 
@@ -139,11 +139,11 @@ soap_fault_build(int fault_code, const char *fault_string, const char *fault_act
 
   if (fault == NULL)
   {
-    log_error1("Cannot create XML document!");
+    log_error("Cannot create XML document!");
 
     return soap_fault_build(fault_code, "Cannot create fault object in XML", soap_server_get_name(), NULL);
   }
 
-  log_verbose2("Returning fault (%p)", fault);
+  log_verbose("Returning fault (%p)", fault);
   return fault;
 }

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-client.h,v 1.39 2007/01/03 08:33:44 m0gg Exp $
+ *  $Id: nanohttp-client.h,v 1.40 2007/11/03 22:40:10 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -31,7 +31,6 @@
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-logging.h>
 #endif
 
 /** @page nanohttp_client_page Howto write an HTTP client
@@ -195,6 +194,14 @@
  * @endcode
  *
  */
+
+/** @file nanohttp-client.h nanoHTTP client interface
+ *
+ * @defgroup NANOHTTP_CLIENT Client
+ * @ingroup NANOHTTP
+ *
+ */
+/**@{*/
 
 typedef struct httpc_conn
 {
@@ -436,5 +443,7 @@ extern herror_t httpc_mime_send_file(httpc_conn_t * conn,
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

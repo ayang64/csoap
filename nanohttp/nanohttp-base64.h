@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-base64.h,v 1.4 2006/12/13 08:18:53 m0gg Exp $
+*  $Id: nanohttp-base64.h,v 1.5 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -24,56 +24,50 @@
 #ifndef __nanohttp_base64_h
 #define __nanohttp_base64_h
 
-/** @file
+/** @file nanohttp-base64.h Base64 data encoding/decoding
  *
- * \section base64_data_enc_sec Base64 data encoding
+ * @section base64_data_enc_sec Base64 data encoding/decoding
  *
- * Base encoding of data is used in many situations to store or transfer data in
- * environments that, perhaps for legacy reasons, are restricted to US-ASCII
- * data. Base64 encoding can also be used in new applications that do not have
- * legacy restrictions, simply because it makes it possible to manipulate objects
- * with text editors.
+ * Base encoding of data is used in many situations to store or
+ * transfer data in environments that, perhaps for legacy reasons,
+ * are restricted to US-ASCII data. Base64 encoding can also be used
+ * in new applications that do not have legacy restrictions, simply
+ * because it makes it possible to manipulate objects with text
+ * editors.
  *
- * In the past, different applications have had different requirements and thus
- * sometimes implemented base encodings in slightly different ways. Today,
- * protocol specifications sometimes use base encodings in general, and "base64"
- * in particular, without a precise description or reference.  Multipurpose
- * Internet Mail Extensions (MIME) is often used as a reference for base64
- * without considering the consequences for line-wrapping or non-alphabet
- * characters.
+ * In the past, different applications have had different requirements
+ * and thus sometimes implemented base encodings in slightly different
+ * ways. Today, protocol specifications sometimes use base encodings
+ * in general, and "base64" in particular, without a precise
+ * description or reference.  Multipurpose Internet Mail Extensions
+ * (MIME) is often used as a reference for base64 without considering
+ * the consequences for line-wrapping or non-alphabet characters.
  *
  * @author	H. Ronsdorf
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  *
  * @see http://www.ietf.org/rfc/rfc4648.txt
- *
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- *
- * Base64 encodes a NUL terminated array of characters.
+/** Base64 encodes a NUL terminated array of characters.
  *
  * @param instr		Pointer to the input string.
  * @param outstr	Pointer to the output destination.
  *
  * @see base64_decode_string
- *
  */
 extern void base64_encode_string(const unsigned char *instr, unsigned char *outstr);
 
-/**
- *
- * Base64 decodes a NUL terminated array of characters.
+/** Base64 decodes a NUL terminated array of characters.
  *
  * @param instr		Pointer to the input string.
  * @param outstr	Pointer to the output destination.
  *
  * @see base64_encode_string
- *
  */
 extern void base64_decode_string(const unsigned char *instr, unsigned char *outstr);
 

@@ -1,5 +1,6 @@
+/** @file nanohttp-request.c HTTP request handling */
 /******************************************************************
-*  $Id: nanohttp-request.c,v 1.20 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-request.c,v 1.21 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -64,19 +65,19 @@ hrequest_new(void)
  
   if (!(req = (struct hrequest_t *) malloc(sizeof(struct hrequest_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
   if (!(req->statistics = (struct request_statistics *)malloc(sizeof(struct request_statistics))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(req);
     return NULL;
   }
 
   if (gettimeofday(&(req->statistics->time), NULL) < 0)
-    log_error2("gettimeofday failed (%s)", strerror(errno));
+    log_error("gettimeofday failed (%s)", strerror(errno));
 
   req->method = HTTP_REQUEST_GET;
   req->version = HTTP_1_1;
@@ -197,7 +198,7 @@ _hrequest_parse_header(char *data)
           {
             if (!(tmppair = (hpair_t *) malloc(sizeof(hpair_t))))
             {
-              log_error2("malloc failed (%s)", strerror(errno));
+              log_error("malloc failed (%s)", strerror(errno));
               return NULL;
             }
 
@@ -284,13 +285,13 @@ hrequest_new_from_socket(struct hsocket_t *sock, struct hrequest_t ** out)
   {
     if ((status = hsocket_recv(sock, &(buffer[i]), 1, 1, &readed)) != H_OK)
     {
-      log_error2("hsocket_recv failed (%s)", herror_message(status));
+      log_error("hsocket_recv failed (%s)", herror_message(status));
       return status;
     }
 
     buffer[i + 1] = '\0';       /* for strmp */
 
-/*    log_error2("buffer=\"%s\"", buffer); */
+/*    log_error("buffer=\"%s\"", buffer); */
 
     if (i > 3)
     {

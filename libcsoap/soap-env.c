@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-env.c,v 1.27 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-env.c,v 1.28 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -50,12 +50,11 @@
 #endif
 
 #include <libxml/tree.h>
-#include <libxml/xpath.h>
 #include <libxml/xmlstring.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-xml.h"
 #include "soap-fault.h"
 #include "soap-env.h"
@@ -172,7 +171,7 @@ soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
 
   if (doc == NULL)
   {
-    log_error1("Cannot create XML document!");
+    log_error("Cannot create XML document!");
     return herror_new("soap_env_new_from_doc",
                       GENERAL_INVALID_PARAM,
                       "XML Document (xmlDocPtr) is NULL");
@@ -180,14 +179,14 @@ soap_env_new_from_doc(xmlDocPtr doc, struct SoapEnv ** out)
 
   if (!(root = xmlDocGetRootElement(doc)))
   {
-    log_error1("XML document is empty!");
+    log_error("XML document is empty!");
     return herror_new("soap_env_new_from_doc",
                       XML_ERROR_EMPTY_DOCUMENT, "XML Document is empty!");
   }
 
   if (!(env = (struct SoapEnv *) malloc(sizeof(struct SoapEnv))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return herror_new("soap_env_from_doc", GENERAL_INVALID_PARAM, "malloc failed (%s)", strerror(errno));
   }
 
@@ -294,8 +293,8 @@ soap_env_new_with_method(const char *urn, const char *method, struct SoapEnv ** 
   xmlDocPtr env;
   xmlChar buffer[1054];
 
-  log_verbose2("URN = '%s'", urn);
-  log_verbose2("Method = '%s'", method);
+  log_verbose("URN = '%s'", urn);
+  log_verbose("Method = '%s'", method);
 
   if (!strcmp(urn, ""))
   {
@@ -327,7 +326,7 @@ soap_env_add_item(struct SoapEnv * call, const char *type, const char *name, con
 
   if (newNode == NULL)
   {
-    log_error1("Can not create new XML node");
+    log_error("Can not create new XML node");
     return NULL;
   }
 
@@ -335,7 +334,7 @@ soap_env_add_item(struct SoapEnv * call, const char *type, const char *name, con
   {
     if (!xmlNewProp(newNode, BAD_CAST "xsi:type", BAD_CAST type))
     {
-      log_error1("Can not create new XML attribute");
+      log_error("Can not create new XML attribute");
       return NULL;
     }
   }
@@ -368,7 +367,7 @@ soap_env_add_attachment(struct SoapEnv * call, const char *name, const char *hre
 
   if (newNode == NULL)
   {
-    log_error1("Can not create new xml node");
+    log_error("Can not create new xml node");
     return NULL;
   }
 
@@ -376,7 +375,7 @@ soap_env_add_attachment(struct SoapEnv * call, const char *name, const char *hre
   {
     if (!xmlNewProp(newNode, BAD_CAST "href", BAD_CAST href))
     {
-      log_error1("Can not create new xml attribute");
+      log_error("Can not create new xml attribute");
       return NULL;
     }
   }
@@ -437,7 +436,6 @@ soap_env_free(struct SoapEnv * env)
   return;
 }
 
-
 xmlNodePtr
 soap_env_get_body(struct SoapEnv * env)
 {
@@ -445,24 +443,24 @@ soap_env_get_body(struct SoapEnv * env)
 
   if (env == NULL)
   {
-    log_error1("SOAP envelope is NULL");
+    log_error("SOAP envelope is NULL");
     return NULL;
   }
 
   if (env->root == NULL)
   {
-    log_error1("SOAP envelope contains no XML");
+    log_error("SOAP envelope contains no XML");
     return NULL;
   }
 
-  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next(node))
+  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next_element(node))
   {
     if (!xmlStrcmp(node->name, BAD_CAST "Body")
      && !xmlStrcmp(node->ns->href, BAD_CAST soap_env_ns))
       return node;
   }
 
-  log_error1("Body tag not found!");
+  log_error("Body tag not found!");
   return NULL;
 }
 
@@ -474,17 +472,17 @@ soap_env_get_header(struct SoapEnv *env)
 
   if (!env)
   {
-    log_error1("SoapEnv is NULL");
+    log_error("SoapEnv is NULL");
     return NULL;
   }
 
   if (!env->root)
   {
-    log_error1("SoapEnv contains no document");
+    log_error("SoapEnv contains no document");
     return NULL;
   }
 
-  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next(node))
+  for (node = soap_xml_get_children(env->root); node; node = soap_xml_get_next_element(node))
   {
     if (!xmlStrcmp(node->name, BAD_CAST "Header")
      && !xmlStrcmp(node->ns->href, BAD_CAST soap_env_ns))
@@ -500,19 +498,19 @@ soap_env_get_fault(struct SoapEnv * env)
 {
   xmlNodePtr node;
 
-  node = soap_env_get_body(env);
-
-  if (!node)
+  if (!(node = soap_env_get_body(env)))
+  {
     return NULL;
+  }
 
   while (node != NULL)
   {
     if (!xmlStrcmp(node->name, BAD_CAST "Fault"))
       return node;
-    node = soap_xml_get_next(node);
+    node = soap_xml_get_next_element(node);
   }
 
-/*  log_warn1 ("Node Fault tag found!");*/
+/*  log_warn("Node Fault tag found!");*/
   return NULL;
 }
 
@@ -524,62 +522,12 @@ soap_env_get_method(struct SoapEnv * env)
 
   if (!(body = soap_env_get_body(env)))
   {
-    log_verbose1("SoapEnv contains no Body element");
+    log_verbose("SoapEnv contains no Body element");
     return NULL;
   }
 
-  /* method is the first child */
+  /* The method element has to be the first child element */
   return soap_xml_get_children(body);
-}
-
-
-/* XXX: unused function? */
-xmlNodePtr
-_soap_env_get_body(struct SoapEnv * env)
-{
-  xmlNodePtr body;
-  xmlNodeSetPtr nodeset;
-  xmlXPathObjectPtr xpathobj;
-
-  if (env == NULL)
-  {
-    log_error1("struct SoapEnv is NULL");
-    return NULL;
-  }
-
-  if (env->root == NULL)
-  {
-    log_error1("struct SoapEnv contains no XML document");
-    return NULL;
-  }
-
-  /* 
-     find <Body> tag find out namespace xpath: //Envelope/Body/ */
-  xpathobj = soap_xpath_eval(env->root->doc, "//Envelope/Body");
-
-  if (!xpathobj)
-  {
-    log_error1("No Body (xpathobj)!");
-    return NULL;
-  }
-
-  if (!(nodeset = xpathobj->nodesetval))
-  {
-    log_error1("No Body (nodeset)!");
-    xmlXPathFreeObject(xpathobj);
-    return NULL;
-  }
-
-  if (nodeset->nodeNr < 1)
-  {
-    log_error1("No Body (nodeNr)!");
-    xmlXPathFreeObject(xpathobj);
-    return NULL;
-  }
-
-  body = nodeset->nodeTab[0];   /* body is <Body> */
-  xmlXPathFreeObject(xpathobj);
-  return body;
 }
 
 
@@ -591,14 +539,14 @@ soap_env_find_urn(struct SoapEnv * env)
 
   if (!(body = soap_env_get_body(env)))
   {
-    log_verbose1("body is NULL");
+    log_verbose("body is NULL");
     return NULL;
   }
 
   /* node is the first child */
   if (!(node = soap_xml_get_children(body)))
   {
-    log_error1("No namespace found");
+    log_error("No namespace found");
     return NULL;
   }
 
@@ -613,8 +561,8 @@ soap_env_find_urn(struct SoapEnv * env)
   }
   else
   {
-    static char *empty = "";
-    log_warn1("No namespace found");
+    static const char *empty = "";
+    log_warn("No namespace found");
     return(empty);
   }
 
@@ -630,19 +578,17 @@ soap_env_find_methodname(struct SoapEnv * env)
   if (!(body = soap_env_get_body(env)))
     return NULL;
 
-  node = soap_xml_get_children(body);   /* node is the first child */
-
-  if (node == NULL)
+  /* node is the first child */
+  if (!(node = soap_xml_get_children(body)))
   {
-    log_error1("No method found");
+    log_error("No method found");
     return NULL;
   }
 
   if (node->name == NULL)
   {
-    log_error1("No methodname found");
+    log_error("No methodname found");
     return NULL;
-
   }
 
   return ((char *) node->name);

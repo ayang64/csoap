@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-response.h,v 1.15 2007/01/03 08:33:44 m0gg Exp $
+ *  $Id: nanohttp-response.h,v 1.16 2007/11/03 22:40:11 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,15 @@
 #ifndef __nanohttp_response_h
 #define __nanohttp_response_h
 
-/** @defgroup http_response_header_fields Response Header Fields
+/** @file nanohttp-response.h HTTP response handling
+ *
+ * @defgroup NANOHTTP_RESPONSE HTTP response handling
+ * @ingroup NANOHTTP_RESPONSE
+ */
+/**@{*/
+
+/** @defgroup HTTP_RESPONSE_HEADER_FIELDS Response Header Fields
+ * @ingroup HTTP_HEADER_FIELDS
  *
  * The response-header fields allow the server to pass additional information
  * about the response which cannot be placed in the Status-Line. These header
@@ -32,7 +40,6 @@
  * resource identified by the Request-URI. (see RFC 2616)
  *
  * @see	http://www.ietf.org/rfc/rfc2616.txt
- *
  */
 /*@{*/
 
@@ -129,24 +136,25 @@
  */
 #define HEADER_VARY			"Vary"
 
-/**
+/** The WWW-Authenticate response-header field MUST be included in 401
+ * Unauthorized response messages (@ref HTTP_STATUS_401_REASON_PHRASE).
+ * The field value consists of at least one challenge that indicates
+ * the authentication scheme(s) and parameters applicable to the
+ * Request-URI.
  *
- * The WWW-Authenticate response-header field MUST be included in 401
- * (Unauthorized) response messages. The field value consists of at least one
- * challenge that indicates the authentication scheme(s) and parameters
- * applicable to the Request-URI.
+ @verbatim
+   WWW-Authenticate  = "WWW-Authenticate" ":" 1#challenge
+ @endverbatim
  *
- *   WWW-Authenticate  = "WWW-Authenticate" ":" 1#challenge
- *
- * The HTTP access authentication process is described in "HTTP Authentication:
- * Basic and Digest Access Authentication" [43]. User agents are advised to take
- * special care in parsing the WWW-Authenticate field value as it might contain
- * more than one challenge, or if more than one WWW-Authenticate header field is
- * provided, the contents of a challenge itself can contain a comma-separated
- * list of authentication parameters.
+ * The HTTP access authentication process is described in "HTTP
+ * Authentication: Basic and Digest Access Authentication". User agents
+ * are advised to take special care in parsing the WWW-Authenticate
+ * field value as it might contain more than one challenge, or if more
+ * than one WWW-Authenticate header field is provided, the contents of
+ * a challenge itself can contain a comma-separated list of
+ * authentication parameters.
  *
  * @see http://www.ietf.org/rfc/rfc2617.txt
- *
  */
 #define HEADER_WWW_AUTHENTICATE		"WWW-Authenticate"
 
@@ -184,5 +192,7 @@ extern void hresponse_free(hresponse_t * res);
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

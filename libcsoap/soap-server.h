@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-server.h,v 1.27 2007/01/25 10:28:30 m0gg Exp $
+ *  $Id: soap-server.h,v 1.28 2007/11/03 22:40:09 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -279,71 +279,14 @@
  *
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
+/** @file soap-server.h SOAP server interface
  *
- * Initializes the soap server with commandline arguments.
- *
- * @param argc commandline arg count
- * @param argv commandline arg vector
- *
- * @returns H_OK on success
- *
- * @see httpd_init_args
- * @see udpd_init_args
- *
+ * @defgroup CSOAP cSOAP
  */
-herror_t soap_server_init_args(int argc, char **argv);
 
-/**
- *
- * Register a router to the SOAP server. 
- *
- * <p><i>scheme</i>://<i>host</i>:<i>port</i>/<b>[context]</b>
- *
- * @param router The router to register
- * @param context the url context 
- *
- * @returns H_OK on success
- * 
- * @see soap_router_new
- * @see soap_router_register_service
- *
- */
-extern herror_t soap_server_register_router(struct SoapRouter * router, const char *context);
-
-/**
- *
- * Returns an URI name of the server.
- *
- */
-extern const char *soap_server_get_name(void);
-
-/**
- *
- * Enters the server loop and starts to listen to incoming requests.
- *
- * @see httpd_run
- * @see udpd_run
- * @see smptd_run
- *
- */
-extern herror_t soap_server_run(void);
-
-/**
- *
- * Frees the SOAP server.
- *
- * @see httpd_destroy
- * @see udpd_destroy
- *
- */
-extern void soap_server_destroy(void);
-
-#ifdef __CSOAP_INTERNAL
+/** @defgroup CSOAP_SERVER Server
+ * @ingroup CSOAP */
+/**@{*/
 
 typedef struct _SoapRouterNode
 {
@@ -352,6 +295,62 @@ typedef struct _SoapRouterNode
   struct _SoapRouterNode *next;
 
 } SoapRouterNode;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** This function initializes the soap server with commandline
+ * arguments.
+ *
+ * @param argc commandline arg count
+ * @param argv commandline arg vector
+ *
+ * @return H_OK on success.
+ *
+ * @see httpd_init_args()
+ * @see udpd_init_args()
+ */
+herror_t soap_server_init_args(int argc, char **argv);
+
+/** This function registers a router to the SOAP server. 
+ *
+ @verbatim
+   scheme://host:port/[context]
+ @endverbatim
+ *
+ * @param router The router to register
+ * @param context the url context 
+ *
+ * @return H_OK on success.
+ * 
+ * @see soap_router_new()
+ * @see soap_router_register_service()
+ */
+extern herror_t soap_server_register_router(struct SoapRouter * router, const char *context);
+
+/** This function returns an URI name of the server.
+ */
+extern const char *soap_server_get_name(void);
+
+/** This function enters the server loop and starts to listen to
+ * incoming requests.
+ *
+ * @see httpd_run()
+ * @see udpd_run()
+ * @see smptd_run()
+ */
+extern herror_t soap_server_run(void);
+
+/** This function frees the SOAP server.
+ *
+ * @see httpd_destroy()
+ * @see udpd_destroy()
+ * @see smtpd_destroy()
+ */
+extern void soap_server_destroy(void);
+
+#ifdef __CSOAP_INTERNAL
 
 extern struct SoapRouter *soap_server_find_router(const char *context);
 
@@ -364,5 +363,7 @@ extern herror_t soap_server_process(struct SoapCtx *request, struct SoapCtx **re
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

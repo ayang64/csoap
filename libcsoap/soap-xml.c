@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xml.c,v 1.13 2006/11/26 20:13:05 m0gg Exp $
+*  $Id: soap-xml.c,v 1.14 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -26,11 +26,8 @@
 #endif
 
 #include <libxml/tree.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
 
-#include <nanohttp/nanohttp-logging.h>
-
+#include "soap-logging.h"
 #include "soap-xml.h"
 
 xmlNodePtr
@@ -40,26 +37,28 @@ soap_xml_get_children(xmlNodePtr node)
 
   if (node == NULL)
   {
-    log_error1("Invalid node (null)");
+    log_error("Invalid node (null)");
     return NULL;
   }
 
   for (child = node->children; child; child=child->next)
   {
     if (child->type == XML_ELEMENT_NODE)
+    {
       return child;
+    }
   }
 
   return NULL;
 }
 
 xmlNodePtr
-soap_xml_get_next(xmlNodePtr param)
+soap_xml_get_next_element(xmlNodePtr param)
 {
 
   if (param == NULL)
   {
-    log_error1("Invalid node (null)");
+    log_error("Invalid node (null)");
     return NULL;
   }
 
@@ -74,24 +73,6 @@ soap_xml_get_next(xmlNodePtr param)
   }
 
   return node;
-}
-
-xmlXPathObjectPtr
-soap_xpath_eval(xmlDocPtr doc, const char *xpath)
-{
-  xmlXPathContextPtr context;
-  xmlXPathObjectPtr result;
-
-  context = xmlXPathNewContext(doc);
-  result = xmlXPathEvalExpression(BAD_CAST xpath, context);
-  if (xmlXPathNodeSetIsEmpty(result->nodesetval))
-  {
-    /* no result */
-    return NULL;
-  }
-
-  xmlXPathFreeContext(context);
-  return result;
 }
 
 char *

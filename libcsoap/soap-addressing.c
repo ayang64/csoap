@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-addressing.c,v 1.11 2006/12/14 19:39:05 m0gg Exp $
+*  $Id: soap-addressing.c,v 1.12 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -58,15 +58,15 @@
 #endif
 
 #include <libxml/tree.h>
-#include <libxml/xpath.h>
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-xml.h"
 #include "soap-fault.h"
 #include "soap-env.h"
+#include "soap-ctx.h"
 #include "soap-server.h"
 #include "soap-addressing.h"
 
@@ -81,7 +81,7 @@ _soap_addressing_uuid_error(uint32_t status)
     case uuid_s_invalid_string_uuid:
       return "The string representation of an UUID is not valid";
     case uuid_s_no_memory:
-      /* XXX: From FreeBSD 6.2 UUID(3) ??? */  
+      /** @todo: From FreeBSD 6.2 UUID(3), replace with app. msg! */  
       return "The meaning of the code escaped the writers mind";
     default:
       return "Unkown error during UUID creation";
@@ -98,20 +98,20 @@ _soap_addressing_generate_id(void)
   uuid_create(&uuid, &status);
   if (status != uuid_s_ok)
   {
-    log_error2("uuidcreate failed (%s)", _soap_addressing_uuid_error(status));
+    log_error("uuidcreate failed (%s)", _soap_addressing_uuid_error(status));
     return NULL;
   }
 
   uuid_to_string(&uuid, &buf, &status);
   if (status != uuid_s_ok)
   {
-    log_error2("uuid_to_string failed (%s)", _soap_addressing_uuid_error(status));
+    log_error("uuid_to_string failed (%s)", _soap_addressing_uuid_error(status));
     return NULL;
   }
 
   if (!(ret = (char *)malloc(128)))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(buf);
     return NULL;
   }
@@ -132,7 +132,7 @@ _soap_addressing_generate_id(void)
 
   if (!(ret = (char *)malloc(128)))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -192,7 +192,7 @@ _soap_addressing_get_child_element(xmlNodePtr parent, const xmlChar *name)
 {
   xmlNodePtr walker;
 
-  for (walker = soap_xml_get_children(parent); walker; walker = soap_xml_get_next(walker))
+  for (walker = soap_xml_get_children(parent); walker; walker = soap_xml_get_next_element(walker))
   {
     if (!xmlStrcmp(walker->name, name) && !xmlStrcmp(walker->ns->href, WSA_NAMESPACE))
       return walker;
@@ -338,7 +338,7 @@ soap_addressing_set_message_id_string(struct SoapEnv *envelope, xmlChar *id)
   else
     tmp = id;
 
-  log_verbose2("setting message id = \"%s\"", tmp);
+  log_verbose("setting message id = \"%s\"", tmp);
 
   node = _soap_addressing_get_child_element(envelope->header, WSA_MESSAGE_ID);
   if (node == NULL)

@@ -1,5 +1,6 @@
+/** @file nanohttp-socket.c Socket wrapper */
 /******************************************************************
-*  $Id: nanohttp-socket.c,v 1.70 2007/01/23 23:21:47 m0gg Exp $
+*  $Id: nanohttp-socket.c,v 1.71 2007/11/03 22:40:14 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -179,7 +180,7 @@ _hsocket_sys_accept(struct hsocket_t * sock, struct hsocket_t * dest)
 
   if ((dest->sock = accept(sock->sock, (struct sockaddr *) &(dest->addr), &len)) == -1)
   {
-    log_warn2("accept failed (%s)", strerror(errno));
+    log_warn("accept failed (%s)", strerror(errno));
     return herror_new("hsocket_accept", HSOCKET_ERROR_ACCEPT, "Cannot accept network connection (%s)", strerror(errno));
   }
 
@@ -209,7 +210,7 @@ hsocket_module_init(int argc, char **argv)
 #ifdef HAVE_SSL
   if ((status = hssl_module_init(argc, argv)) != H_OK)
   {
-    log_error2("hssl_module_init failed (%s)", herror_message(status));
+    log_error("hssl_module_init failed (%s)", herror_message(status));
     return status;
   }
 #endif
@@ -265,7 +266,7 @@ hsocket_open(struct hsocket_t * dsock, const char *hostname, int port, int ssl)
   address.sin_family = host->h_addrtype;
   address.sin_port = htons((unsigned short) port);
 
-  log_verbose4("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
+  log_verbose("Opening %s://%s:%i", ssl ? "https" : "http", hostname, port);
 
   /* connect to the server */
   if (connect(dsock->sock, (struct sockaddr *) &address, sizeof(address)) != 0)
@@ -278,7 +279,7 @@ hsocket_open(struct hsocket_t * dsock, const char *hostname, int port, int ssl)
 
     if ((status = hssl_client_ssl(dsock)) != H_OK)
     {
-      log_error2("hssl_client_ssl failed (%s)", herror_message(status));
+      log_error("hssl_client_ssl failed (%s)", herror_message(status));
       return status;
     }
 #else
@@ -298,7 +299,7 @@ hsocket_bind(struct hsocket_t *dsock, unsigned short port)
   /* create socket */
   if ((sock.sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
   {
-    log_error2("Cannot create socket (%s)", strerror(errno));
+    log_error("Cannot create socket (%s)", strerror(errno));
     return herror_new("hsocket_bind", HSOCKET_ERROR_CREATE,
                       "Socket error (%s)", strerror(errno));
   }
@@ -312,7 +313,7 @@ hsocket_bind(struct hsocket_t *dsock, unsigned short port)
 
   if (bind(sock.sock, (struct sockaddr *) &addr, sizeof(struct sockaddr)) == -1)
   {
-    log_error2("Cannot bind socket (%s)", strerror(errno));
+    log_error("Cannot bind socket (%s)", strerror(errno));
     return herror_new("hsocket_bind", HSOCKET_ERROR_BIND, "Socket error (%s)",
                       strerror(errno));
   }
@@ -335,12 +336,12 @@ hsocket_accept(struct hsocket_t * sock, struct hsocket_t * dest)
 #ifdef HAVE_SSL
   if ((status = hssl_server_ssl(dest)) != H_OK)
   {
-    log_warn2("SSL startup failed (%s)", herror_message(status));
+    log_warn("SSL startup failed (%s)", herror_message(status));
     return status;
   }
 #endif
 
-  log_verbose3("accepting connection from '%s' socket=%d",
+  log_verbose("accepting connection from '%s' socket=%d",
                SAVE_STR(((char *) inet_ntoa(dest->addr.sin_addr))),
                dest->sock);
 
@@ -356,7 +357,7 @@ hsocket_listen(struct hsocket_t * sock)
 
   if (listen(sock->sock, 15) == -1)
   {
-    log_error2("listen failed (%s)", strerror(errno));
+    log_error("listen failed (%s)", strerror(errno));
     return herror_new("hsocket_listen", HSOCKET_ERROR_LISTEN,
                       "Cannot listen on this socket (%s)", strerror(errno));
   }
@@ -367,7 +368,7 @@ hsocket_listen(struct hsocket_t * sock)
 void
 hsocket_close(struct hsocket_t * sock)
 {
-  log_verbose3("closing socket %p (%d)...", sock, sock->sock);
+  log_verbose("closing socket %p (%d)...", sock, sock->sock);
 
 #ifdef HAVE_SSL
   hssl_cleanup(sock);
@@ -378,7 +379,7 @@ hsocket_close(struct hsocket_t * sock)
   sock->bytes_received = 0;
   sock->bytes_transmitted = 0;
 
-  log_verbose1("socket closed");
+  log_verbose("socket closed");
 
   return;
 }
@@ -396,14 +397,14 @@ hsocket_send(struct hsocket_t * sock, const unsigned char * bytes, int n)
     return herror_new("hsocket_send", HSOCKET_ERROR_NOT_INITIALIZED,
                       "hsocket not initialized");
 
-  /* log_verbose2( "SENDING %s", bytes ); */
+  /* log_verbose( "SENDING %s", bytes ); */
 
   while (1)
   {
 #ifdef HAVE_SSL
     if ((status = hssl_write(sock, bytes + total, n, &size)) != H_OK)
     {
-      log_warn2("hssl_write failed (%s)", herror_message(status));
+      log_warn("hssl_write failed (%s)", herror_message(status));
       return status;
     }
 #else
@@ -442,7 +443,7 @@ hsocket_select_recv(int sock, char *buf, size_t len)
   if (select(sock + 1, &fds, NULL, NULL, &timeout) == 0)
   {
     errno = ETIMEDOUT;
-    log_verbose2("Socket %d timed out", sock);
+    log_verbose("Socket %d timed out", sock);
     return -1;
   }
 
@@ -456,7 +457,7 @@ hsocket_recv(struct hsocket_t * sock, unsigned char * buffer, int total, int for
   size_t totalRead;
   size_t count;
 
-/* log_verbose3("Entering hsocket_recv(total=%d,force=%d)", total, force); */
+/* log_verbose("Entering hsocket_recv(total=%d,force=%d)", total, force); */
 
   totalRead = 0;
   do
@@ -465,7 +466,7 @@ hsocket_recv(struct hsocket_t * sock, unsigned char * buffer, int total, int for
 #ifdef HAVE_SSL
     if ((status = hssl_read(sock, buffer + totalRead, (size_t) total - totalRead, &count)) != H_OK)
     {
-      log_warn2("hssl_read failed (%s)", herror_message(status));
+      log_warn("hssl_read failed (%s)", herror_message(status));
       return status;
     }
 #else
@@ -476,7 +477,7 @@ hsocket_recv(struct hsocket_t * sock, unsigned char * buffer, int total, int for
 
     if (!force)
     {
-      /* log_verbose3("Leaving !force (received=%d)(status=%d)", *received,
+      /* log_verbose("Leaving !force (received=%d)(status=%d)", *received,
          status); */
       *received = count;
       return H_OK;
@@ -488,7 +489,7 @@ hsocket_recv(struct hsocket_t * sock, unsigned char * buffer, int total, int for
     {
       *received = totalRead;
       /* 
-         log_verbose4("Leaving totalRead == total
+         log_verbose("Leaving totalRead == total
          (received=%d)(status=%d)(totalRead=%d)", *received, status,
          totalRead); */
       return H_OK;

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.38 2007/01/25 10:24:10 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.39 2007/11/03 22:40:14 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -31,11 +31,9 @@
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
-#include <nanohttp/nanohttp-logging.h>
 #endif
 
 /**
- *
  * @page nanohttp_page nanoHTTP
  *
  * @section nanohttp_sec nanoHTTP
@@ -61,7 +59,6 @@
  * @author	Heiko Ronsdorf
  *
  * @version	1.2
- *
  */
 
 /** @page nanohttp_server_page Howto write an HTTP server
@@ -80,7 +77,7 @@
  * int main(int argc, char **argv)
  * {
  *   herror_t status;
- *   hlog_set_level(HLOG_INFO);
+ *   nanohttp_set_level(NANOHTTP_LOG_INFO);
  *
  *   if (httpd_init(argc, argv))
  *   {
@@ -189,15 +186,32 @@
  *
  */
 
-/**
+/** @file nanohttp-server.h HTTP server interface
  *
- * nanoHTTP command line flags
- *
+ * @defgroup NANOHTTP nanoHTTP
  */
-#define NHTTPD_ARG_PORT		"-NHTTPport"
-#define NHTTPD_ARG_TERMSIG	"-NHTTPtsig"
-#define NHTTPD_ARG_MAXCONN	"-NHTTPmaxconn"
-#define NHTTPD_ARG_TIMEOUT	"-NHTTPtimeout"
+/**@{*/
+
+/** @defgroup NAONHTTP_CMDLINE_FLAGS Command line flags
+ */
+/**@{*/
+/** @defgroup NANOHTTP_SERVER_CMDLINE_FLAGS Server command line flags
+ */
+/**@{*/
+#define NHTTPD_ARG_PORT	   "-NHTTPport"     /**< Port the server is
+					         listening on */
+#define NHTTPD_ARG_TERMSIG "-NHTTPtsig"     /**< Signal which may used
+					         to terminate the server */
+#define NHTTPD_ARG_MAXCONN  "-NHTTPmaxconn" /**< Maximum number of
+					         simultanous connections */
+#define NHTTPD_ARG_TIMEOUT  "-NHTTPtimeout" /**< Timeout on reads */
+/**@}*/
+/**@}*/
+
+/** @defgroup NANOHTTP_CLIENT Client */
+
+/** @defgroup NANOHTTP_SERVER Server */
+/**@{*/
 
 typedef struct httpd_conn
 {
@@ -208,26 +222,14 @@ typedef struct httpd_conn
 }
 httpd_conn_t;
 
-/**
- *
- * Service callback function for a nanoHTTP service.
- *
- */
+/** Service callback function for a nanoHTTP service. */
 typedef void (*httpd_service) (httpd_conn_t *conn, struct hrequest_t *req);
 
-/**
- *
- * Authentication callback function for a nanoHTTP service.
- *
- */
+/** Authentication callback function for a nanoHTTP service. */
 typedef int (*httpd_auth) (struct hrequest_t *req, const char *user, const char *pass);
 
 #ifdef __NHTTP_INTERNAL
-/**
- *
- * Service statistics per nanoHTTP service.
- *
- */
+/** Service statistics per nanoHTTP service. */
 struct service_statistics
 {
   unsigned long requests;
@@ -238,35 +240,33 @@ struct service_statistics
 };
 #endif
 
+/** @defgroup NANOHTTP_SERVICE_STATUS Service status
+ */ 
+/**@{*/
+
 /**
- *
  * @see hservice_t
  * @see http://www.w3.org/TR/wslc/
- *
  */
 #define NHTTPD_SERVICE_DOWN	0
 
 /**
- *
  * @see hservice_t
  * @see http://www.w3.org/TR/wslc/
- *
  */
 #define NHTTPD_SERVICE_UP	1
+/**@}*/
 
-/**
- *
- * Service representation object
- *
+/** Service representation object
  */
 typedef struct tag_hservice
 {
-  char *context;
-  int status;
-  httpd_service func;
-  httpd_auth auth;
-  struct tag_hservice *next;
-  struct service_statistics *statistics;
+  char *context;                         /**< Path where service is connected */
+  int status;                            /**< Current status of this service */
+  httpd_service func;                    /**< Service function */
+  httpd_auth auth;                       /**< Authentication function */
+  struct tag_hservice *next;             /**< Next service in service list */
+  struct service_statistics *statistics; /**< Service statistics */
 }
 hservice_t;
 
@@ -275,34 +275,76 @@ extern "C"
 {
 #endif
 
-/**
+/** This function initializes the nanoHTTP server.
  *
- * Initialize the nanoHTTP server.
- *
+ * @see httpd_destroy()
  */
 extern herror_t httpd_init(int argc, char *argv[]);
 
-/**
+/** This function destroys the nanoHTTP server.
  *
- * @see httpd_init
- *
+ * @see httpd_init()
  */
 extern void httpd_destroy(void);
 
-
+/** This function executes the nanoHTTP server in an endless loop.
+ *
+ * @return H_OK on success.
+ */
 extern herror_t httpd_run(void);
 
+/** This function registers a service routine.
+ *
+ * @return H_OK on success.
+ */
 extern herror_t httpd_register(const char *context, httpd_service service);
+
+/** This function registers a service routing which is secured by
+ * a password (HTTP basic authentication).
+ *
+ * @return H_OK on success.
+ */
 extern herror_t httpd_register_secure(const char *context, httpd_service service, httpd_auth auth);
 
+/** This function registers a service routing which is executed if
+ * no matching service is found.
+ *
+ * @return H_OK on success.
+ */
 extern herror_t httpd_register_default(const char *context, httpd_service service);
+
+/** This function registers a serivce routing which is executed if
+ * no matching service is found, it is protected by a password.
+ *
+ * @return H_OK on success.
+ */
 extern herror_t httpd_register_default_secure(const char *context, httpd_service service, httpd_auth auth);
 
+/** This function returns the port the service is listening on.
+ *
+ * @return The port the service is listening on.
+ */
 extern short httpd_get_port(void);
+
+/** This function returns the timeout which is used for read's.
+ *
+ * @return The read timeout used.
+ */
 extern int httpd_get_timeout(void);
+
+/** This function sets the timeout which is used for read.
+ */
 extern void httpd_set_timeout(int secs);
 
+/** This function returns a string representation of the underlying
+ * protocol used.
+ *
+ * @return "http" or "https"
+ */
 extern const char *httpd_get_protocol(void);
+
+/** This function returns the actual connection count.
+ */
 extern int httpd_get_conncount(void);
 
 extern hservice_t *httpd_get_services(void);
@@ -349,62 +391,61 @@ extern herror_t httpd_mime_next(httpd_conn_t * conn, const char *content_id, con
  */
 extern herror_t httpd_mime_send_file(httpd_conn_t * conn, const char *content_id, const char *content_type, const char *transfer_encoding, const char *filename);
 
-/**
+/** This function finishes a MIME request.
  *
- * Finish MIME request 
- *
- * @return H_OK on success or error flag
- *
+ * @return H_OK on success.
  */
 extern herror_t httpd_mime_end(httpd_conn_t * conn);
 
-/**
- *
- * Send a minimalistic HTML error document with HTTP status 400.
+/** This function sends a minimalistic HTML error document with HTTP
+ * status 400.
  *
  * @see HTTP_STATUS_400_REASON_PHRASE
  *
+ * @return H_OK on success.
  */
 extern herror_t httpd_send_bad_request(httpd_conn_t *conn, const char *msg);
 
-/**
- *
- * Send a minimalistc HTML error document with HTTP status 401.
+/** This function sends a minimalistc HTML error document with HTTP
+ * status 401.
  *
  * @see HTTP_STATUS_401_REASON_PHRASE
  *
+ * @return H_OK on success.
  */
 extern herror_t httpd_send_unauthorized(httpd_conn_t *conn, const char *realm);
 
-/**
- *
- * Send a minimalistic HTML error document with HTTP status 404.
+/** This function sends a minimalistic HTML error document with HTTP
+ * status 404.
  *
  * @see HTTP_STATUS_404_REASON_PHRASE
  *
+ * @return H_OK on success.
  */
 extern herror_t httpd_send_not_found(httpd_conn_t *conn, const char *msg);
 
-/**
- *
- * Send a minimalistic HTML error document with HTTP status 500.
+/** This function sends a minimalistic HTML error document with HTTP
+ * status 500.
  *
  * @see HTTP_STATUS_500_REASON_PHRASE
  *
+ * @return H_OK on success.
  */
 extern herror_t httpd_send_internal_error(httpd_conn_t * conn, const char *msg);
 
-/**
- *
- * Send a minimalistic HTML error document with HTTP status 501.
+/** This functions sends a minimalistic HTML error document with HTTP
+ * status 501.
  *
  * @see HTTP_STATUS_501_REASON_PHRASE
  *
+ * @return H_OK on success.
  */
 extern herror_t httpd_send_not_implemented(httpd_conn_t *conn, const char *msg);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

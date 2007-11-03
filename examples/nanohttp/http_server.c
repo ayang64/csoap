@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.14 2007/01/05 09:02:50 m0gg Exp $
+*  $Id: http_server.c,v 1.15 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-server.h>
 
 static int
@@ -142,12 +143,12 @@ int
 main(int argc, char **argv)
 {
   herror_t status;
-  hlog_set_level(HLOG_INFO);
+
+  nanohttp_log_set_loglevel(NANOHTTP_LOG_INFO);
 
   if (httpd_init(argc, argv))
   {
     fprintf(stderr, "Cannot init httpd\n");
-    httpd_destroy();
     exit(1);
   }
 

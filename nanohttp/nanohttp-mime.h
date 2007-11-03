@@ -3,7 +3,7 @@
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.h,v 1.17 2007/01/03 08:33:44 m0gg Exp $
+*  $Id: nanohttp-mime.h,v 1.18 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -74,39 +74,46 @@
  * @subsection nanohttp_mime_server_cleanup_sec Server cleanup
  *
  * @author	Ferhat Ayaz
- * @version	$Revision: 1.17 $
+ * @version	$Revision: 1.18 $
  *
  * @see		http://www.ietf.org/rfc/rfc2045.txt
  * @see		http://www.ietf.org/rfc/rfc2046.txt
  * @see		http://www.ietf.org/rfc/rfc4288.txt
  * @see		http://www.ietf.org/rfc/rfc4289.txt
- *
  */
 
-/**
+/** @file nanohttp-mime.h MIME handling 
  *
- * MIME errors
+ * @defgroup NANOHTTP_MIME MIME handling
+ * @ingroup NANOHTTP
  *
  */
+/**@{*/
+
+/** @defgroup NANOHTTP_MIME_ERRORS MIME errors
+ */
+/**@{*/
 #define MIME_ERROR			1300
 #define MIME_ERROR_NO_BOUNDARY_PARAM	(MIME_ERROR + 1)
 #define MIME_ERROR_NO_START_PARAM	(MIME_ERROR + 2)
 #define MIME_ERROR_PARSE_ERROR		(MIME_ERROR + 3)
 #define MIME_ERROR_NO_ROOT_PART		(MIME_ERROR + 4)
 #define MIME_ERROR_NOT_MIME_MESSAGE	(MIME_ERROR + 5)
+/**@}*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* ------------------------------------------------------------------
-  "multipart/related"  MIME Message Builder
- ------------------------------------------------------------------*/
-
+/** "multipart/related"  MIME Message Builder
+ *
+ */
 extern herror_t mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in, struct attachments_t ** dest);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

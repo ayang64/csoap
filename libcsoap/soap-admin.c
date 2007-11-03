@@ -1,5 +1,6 @@
+/** @file soap-admin.c SOAP administrator application */
 /******************************************************************
-*  $Id: soap-admin.c,v 1.11 2006/12/31 17:24:22 m0gg Exp $
+*  $Id: soap-admin.c,v 1.12 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -44,8 +45,8 @@
 #include <libxml/tree.h>
 #include <libxml/uri.h>
 
-#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
+#include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-server.h>
@@ -68,31 +69,31 @@ _soap_admin_send_title(httpd_conn_t *conn, const char *title)
      "<head>");
 
   http_output_stream_write_string(conn->out,
-     "<style>"
-       ".logo {"
-       " color: #005177;"
-       " background-color: transparent;"
-       " font-family: Calligraphic, arial, sans-serif;"
-       " font-size: 36px;"
-       "}"
-     "</style>");
+       "<style>"
+         ".logo {"
+         " color: #005177;"
+         " background-color: transparent;"
+         " font-family: Calligraphic, arial, sans-serif;"
+         " font-size: 36px;"
+         "}"
+       "</style>"
+     "</head>"
+     "<body>"
+       "<span class=\"logo\">csoap</span> ");
 
-  http_output_stream_write_string(conn->out,
-   "</head>"
-   "<body>"
-     "<span class=\"logo\">csoap</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
-
-  return;
 }
 
 static inline void
 _soap_admin_send_footer(httpd_conn_t *conn)
 {
-  http_output_stream_write_string(conn->out, "</body></html>");
-
-  return;
+  http_output_stream_write_string(conn->out,
+        "<hr />"
+	"<a href=\"" CSOAP_ADMIN_CONTEXT "\">Admin page</a> "
+        "<a href=\"http://csoap.sf.net/\">cSOAP Home</a>"
+      "</body>"
+    "</html>");
 }
 
 static void
@@ -118,8 +119,6 @@ _soap_admin_list_routers(httpd_conn_t *conn)
   http_output_stream_write_string(conn->out, "</ul>");
   
   _soap_admin_send_footer(conn);
-
-  return;
 }
 
 static void
@@ -136,7 +135,7 @@ _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
   if (!router)
   {
     http_output_stream_write_string(conn->out, "Router not found!");
-    http_output_stream_write_string(conn->out, "</body></html>");
+    _soap_admin_send_footer(conn);
     return;
   }
 
@@ -174,8 +173,6 @@ _soap_admin_list_services(httpd_conn_t *conn, const char *routername)
   http_output_stream_write_string(conn->out, "</ul>");
 
   _soap_admin_send_footer(conn);
-
-  return;
 }
 
 static void
@@ -211,15 +208,12 @@ _soap_admin_handle_get(httpd_conn_t * conn, struct hrequest_t * req)
       "<ul>"
         "<li><a href=\"?" CSOAP_ADMIN_QUERY_ROUTERS "\">Routers</a></li>"
 	"<li><a href=\"../inspection.wsil\">inspection.wsil</a> (try: -CSOAPwsil)</li>"
-        "<li><a href=\"../nhttp\">nanoHTTP</a></li>"
+        "<li><a href=\"" NHTTPD_ADMIN_CONTEXT "\">nanoHTTP</a> (try: -NHTTPDadmin)</li>"
       "</ul>");
 
     _soap_admin_send_footer(conn);
   }
-
-  return;
 }
-
 
 static void
 _soap_admin_entry(httpd_conn_t * conn, struct hrequest_t * req)
@@ -232,20 +226,17 @@ _soap_admin_entry(httpd_conn_t * conn, struct hrequest_t * req)
   {
     httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
     http_output_stream_write_string(conn->out,
-              "<html>"
-                  "<head>"
-                  "</head>"
-                  "<body>"
-                      "<h1>Sorry!</h1>"
-                      "<hr />"
-                      "<div>POST Service is not implemented now. Use your browser</div>"
-                  "</body>"
-              "</html>");
+      "<html>"
+        "<head>"
+        "</head>"
+        "<body>"
+          "<h1>Sorry!</h1>"
+          "<hr />"
+          "<div>Only GET method is implemented now. Use your browser.</div>"
+          "</body>"
+        "</html>");
   }
-
-  return;
 }
-
 
 herror_t
 soap_admin_init_args(int argc, char **argv)
@@ -256,10 +247,9 @@ soap_admin_init_args(int argc, char **argv)
 
     if (!strcmp(argv[i], CSOAP_ENABLE_ADMIN)) {
 
-      httpd_register("/csoap", _soap_admin_entry);
+      httpd_register(CSOAP_ADMIN_CONTEXT, _soap_admin_entry);
       break;
     }
   }
-
   return H_OK;
 }

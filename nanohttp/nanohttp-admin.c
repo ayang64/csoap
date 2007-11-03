@@ -1,5 +1,6 @@
+/** @file nanohttp-admin.c Administrator application */
 /******************************************************************
-*  $Id: nanohttp-admin.c,v 1.12 2007/01/01 22:54:46 m0gg Exp $
+*  $Id: nanohttp-admin.c,v 1.13 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -21,6 +22,7 @@
 * 
 * Email: ayaz@jprogrammer.net
 ******************************************************************/
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -42,6 +44,7 @@
 #endif
 
 #include "nanohttp-error.h"
+#include "nanohttp-logging.h"
 #include "nanohttp-common.h"
 #include "nanohttp-stream.h"
 #include "nanohttp-request.h"
@@ -73,18 +76,17 @@ _httpd_admin_send_title(httpd_conn_t *conn, const char *title)
        "<span class=\"logo\">nhttpd</span> ");
   http_output_stream_write_string(conn->out, title);
   http_output_stream_write_string(conn->out, "<hr />");
-
-  return;
 }
 
 static inline void
 _httpd_admin_send_footer(httpd_conn_t *conn)
 {
   http_output_stream_write_string(conn->out,
+        "<hr />"
+        "<a href=\"" NHTTPD_ADMIN_CONTEXT "\">Admin page</a> "
+	"<a href=\"http://csoap.sf.net/\">cSOAP Home</a>"
       "</body>"
     "</html>");
-
-  return;
 }
 
 static void
@@ -125,8 +127,6 @@ _httpd_admin_list_services(httpd_conn_t *conn)
   http_output_stream_write_string(conn->out, "</ul>");
   
   _httpd_admin_send_footer(conn);
-
-  return;
 }
 
 static void
@@ -135,10 +135,12 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
   char buffer[1024];
   hservice_t *service;
   
+  log_verbose("Client requested statistics for \"%s\"", service_name);
+
   sprintf(buffer, "Listing statistics for service <b>%s</b>", service_name);
   _httpd_admin_send_title(conn, buffer);
 
-  if (!(service = httpd_find_service(service_name)))
+  if (!service_name || !(service = httpd_find_service(service_name)))
   {
     http_output_stream_write_string(conn->out,
       "<p>"
@@ -154,7 +156,7 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
                     "<li>Bytes read: %lu</li>"
                     "<li>Bytes sent: %lu</li>"
                     "<li>Time used: %li.%li sec</li>"
-                  "<ul>",
+                  "</ul>",
                   service->statistics->requests,
                   service->statistics->bytes_received,
                   service->statistics->bytes_transmitted,
@@ -165,8 +167,6 @@ _httpd_admin_list_statistics(httpd_conn_t *conn, const char *service_name)
   http_output_stream_write_string(conn->out, buffer);
 
   _httpd_admin_send_footer(conn);
-
-  return;
 }
 
 static void
@@ -197,8 +197,6 @@ _httpd_admin_enable_service(httpd_conn_t *conn, const char *service_name)
     "</p>");
 
   _httpd_admin_send_footer(conn);
-
-  return;
 }
 
 static void
@@ -227,8 +225,84 @@ _httpd_admin_disable_service(httpd_conn_t *conn, const char *service_name)
       "Service is down"
     "</p>");
   _httpd_admin_send_footer(conn);
+}
 
-  return;
+static void
+_httpd_admin_set_loglevel(httpd_conn_t *conn, const char *loglevel)
+{
+  nanohttp_loglevel_t old;
+  char buffer[256];
+  char *tmp;
+
+  if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_OFF_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_OFF);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_VERBOSE_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_VERBOSE);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_DEBUG_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_DEBUG);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_INFO_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_INFO);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_WARN_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_WARN);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_ERROR_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_ERROR);
+  }
+  else if (strcmp(loglevel, NANOHTTP_LOG_LEVEL_FATAL_STRING) == 0)
+  {
+    old = nanohttp_log_set_loglevel(NANOHTTP_LOG_FATAL);
+  }
+  else
+  {
+    old = nanohttp_log_get_loglevel();
+    loglevel = NANOHTTP_LOG_LEVEL_UNKNOWN_STRING;
+    log_error("unknown loglevel requested");
+  }
+
+  switch (old)
+  {
+    case NANOHTTP_LOG_OFF:
+      tmp = NANOHTTP_LOG_LEVEL_OFF_STRING;
+      break;
+    case NANOHTTP_LOG_VERBOSE:
+      tmp = NANOHTTP_LOG_LEVEL_VERBOSE_STRING;
+      break;
+    case NANOHTTP_LOG_DEBUG:
+      tmp = NANOHTTP_LOG_LEVEL_DEBUG_STRING;
+      break;
+    case NANOHTTP_LOG_INFO:
+      tmp = NANOHTTP_LOG_LEVEL_INFO_STRING;
+      break;
+    case NANOHTTP_LOG_WARN:
+      tmp = NANOHTTP_LOG_LEVEL_WARN_STRING;
+      break;
+    case NANOHTTP_LOG_ERROR:
+      tmp = NANOHTTP_LOG_LEVEL_ERROR_STRING;
+      break;
+    case NANOHTTP_LOG_FATAL:
+      tmp = NANOHTTP_LOG_LEVEL_FATAL_STRING;
+      break;
+    default:
+      tmp = NANOHTTP_LOG_LEVEL_UNKNOWN_STRING;
+      break;
+  }
+
+  _httpd_admin_send_title(conn, "Adjusting loglevel");
+
+  sprintf(buffer, "<p>Switching from %s to %s</p>", tmp, loglevel);
+  http_output_stream_write_string(conn->out, buffer);
+
+  _httpd_admin_send_footer(conn);
 }
 
 static void
@@ -252,9 +326,13 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
   {
     _httpd_admin_disable_service(conn, param);
   }
+  else if ((param = hpairnode_get_ignore_case(req->query, NHTTPD_ADMIN_QUERY_SET_LOGLEVEL)))
+  {
+    _httpd_admin_set_loglevel(conn, param);
+  }
   else
   {
-    _httpd_admin_send_title(conn, "Welcome to the admin site");
+    _httpd_admin_send_title(conn, "Welcome to the admin page");
 
     http_output_stream_write_string(conn->out,
       "<ul>"
@@ -264,12 +342,19 @@ _httpd_admin_handle_get(httpd_conn_t * conn, struct hrequest_t *req)
         "<li>"
           "<a href=\"?" NHTTPD_ADMIN_QUERY_STATISTICS "\">Statistics</a>"
         "</li>"
+	"<li>Set loglevel: "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_OFF_STRING "\">OFF</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_VERBOSE_STRING "\">VERBOSE</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_DEBUG_STRING "\">DEBUG</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_INFO_STRING "\">INFO</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_WARN_STRING "\">WARN</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_ERROR_STRING "\">ERROR</a> "
+	  "<a href=\"?" NHTTPD_ADMIN_QUERY_SET_LOGLEVEL "=" NANOHTTP_LOG_LEVEL_FATAL_STRING "\">FATAL</a> "
+	"</li>"
       "</ul>");
 
     _httpd_admin_send_footer(conn);
   }
-
-  return;
 }
 
 static void
@@ -289,11 +374,10 @@ _httpd_admin_entry(httpd_conn_t * conn, struct hrequest_t *req)
       "<body>"
         "<h1>Sorry!</h1>"
         "<hr />"
-        "<div>POST Service is not implemented now. Use your browser.</div>"
+        "<div>Only GET method is implemented now. Use your browser.</div>"
       "</body>"
     "</html>");
   }
-  return;
 }
 
 herror_t
@@ -305,7 +389,7 @@ httpd_admin_init_args(int argc, char **argv)
   {
     if (!strcmp(argv[i], NHTTPD_ARG_ENABLE_ADMIN))
     {
-      httpd_register("/nhttp", _httpd_admin_entry);
+      httpd_register(NHTTPD_ADMIN_CONTEXT, _httpd_admin_entry);
       break;
     }
   }

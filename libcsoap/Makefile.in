@@ -59,19 +59,21 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libcsoap_ladir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcsoap_la_LIBADD =
-am__libcsoap_la_SOURCES_DIST = soap-xml.c soap-fault.c soap-env.c \
-	soap-service.c soap-router.c soap-client.c soap-server.c \
-	soap-ctx.c soap-admin.c soap-addressing.c soap-transport.c \
-	soap-nudp.c soap-nhttp.c soap-wsil.c soap-xmlsec.c
+am__libcsoap_la_SOURCES_DIST = soap-addressing.c soap-admin.c \
+	soap-client.c soap-ctx.c soap-env.c soap-fault.c \
+	soap-logging.c soap-nhttp.c soap-nudp.c soap-router.c \
+	soap-service.c soap-server.c soap-transport.c soap-wsil.c \
+	soap-xml.c soap-xmlsec.c
 @BUILD_WITH_XMLSEC1_TRUE@am__objects_1 = libcsoap_la-soap-xmlsec.lo
-am_libcsoap_la_OBJECTS = libcsoap_la-soap-xml.lo \
-	libcsoap_la-soap-fault.lo libcsoap_la-soap-env.lo \
-	libcsoap_la-soap-service.lo libcsoap_la-soap-router.lo \
-	libcsoap_la-soap-client.lo libcsoap_la-soap-server.lo \
-	libcsoap_la-soap-ctx.lo libcsoap_la-soap-admin.lo \
-	libcsoap_la-soap-addressing.lo libcsoap_la-soap-transport.lo \
-	libcsoap_la-soap-nudp.lo libcsoap_la-soap-nhttp.lo \
-	libcsoap_la-soap-wsil.lo $(am__objects_1)
+am_libcsoap_la_OBJECTS = libcsoap_la-soap-addressing.lo \
+	libcsoap_la-soap-admin.lo libcsoap_la-soap-client.lo \
+	libcsoap_la-soap-ctx.lo libcsoap_la-soap-env.lo \
+	libcsoap_la-soap-fault.lo libcsoap_la-soap-logging.lo \
+	libcsoap_la-soap-nhttp.lo libcsoap_la-soap-nudp.lo \
+	libcsoap_la-soap-router.lo libcsoap_la-soap-service.lo \
+	libcsoap_la-soap-server.lo libcsoap_la-soap-transport.lo \
+	libcsoap_la-soap-wsil.lo libcsoap_la-soap-xml.lo \
+	$(am__objects_1)
 libcsoap_la_OBJECTS = $(am_libcsoap_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -86,10 +88,11 @@ LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libcsoap_la_SOURCES)
 DIST_SOURCES = $(am__libcsoap_la_SOURCES_DIST)
-am__libcsoap_la_HEADERS_DIST = soap-fault.h soap-env.h soap-service.h \
-	soap-router.h soap-client.h soap-server.h soap-ctx.h \
-	soap-addressing.h soap-transport.h soap-admin.h soap-wsil.h \
-	soap-nudp.h soap-nhttp.h soap-xml.h soap-xmlsec.h
+am__libcsoap_la_HEADERS_DIST = soap-addressing.h soap-admin.h \
+	soap-client.h soap-ctx.h soap-env.h soap-fault.h \
+	soap-logging.h soap-nhttp.h soap-nudp.h soap-router.h \
+	soap-service.h soap-server.h soap-transport.h soap-wsil.h \
+	soap-xml.h soap-xmlsec.h
 libcsoap_laHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libcsoap_la_HEADERS)
 ETAGS = etags
@@ -217,18 +220,18 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 #
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 #
 lib_LTLIBRARIES = libcsoap.la
 libcsoap_ladir = $(includedir)/libcsoap-@csoap_release@/libcsoap
-libcsoap_la_SOURCES = soap-xml.c soap-fault.c soap-env.c \
-	soap-service.c soap-router.c soap-client.c soap-server.c \
-	soap-ctx.c soap-admin.c soap-addressing.c soap-transport.c \
-	soap-nudp.c soap-nhttp.c soap-wsil.c $(am__append_1)
-libcsoap_la_HEADERS = soap-fault.h soap-env.h soap-service.h \
-	soap-router.h soap-client.h soap-server.h soap-ctx.h \
-	soap-addressing.h soap-transport.h soap-admin.h soap-wsil.h \
-	soap-nudp.h soap-nhttp.h soap-xml.h $(am__append_2)
+libcsoap_la_SOURCES = soap-addressing.c soap-admin.c soap-client.c \
+	soap-ctx.c soap-env.c soap-fault.c soap-logging.c soap-nhttp.c \
+	soap-nudp.c soap-router.c soap-service.c soap-server.c \
+	soap-transport.c soap-wsil.c soap-xml.c $(am__append_1)
+libcsoap_la_HEADERS = soap-addressing.h soap-admin.h soap-client.h \
+	soap-ctx.h soap-env.h soap-fault.h soap-logging.h soap-nhttp.h \
+	soap-nudp.h soap-router.h soap-service.h soap-server.h \
+	soap-transport.h soap-wsil.h soap-xml.h $(am__append_2)
 libcsoap_la_LDFLAGS = -version-info @csoap_version@ -release @csoap_release@
 libcsoap_la_CFLAGS = -I${top_srcdir} -D__CSOAP_INTERNAL=1
 all: all-am
@@ -306,6 +309,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-ctx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-env.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-fault.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-logging.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-nhttp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-nudp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcsoap_la-soap-router.Plo@am__quote@
@@ -337,61 +341,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-libcsoap_la-soap-xml.lo: soap-xml.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-xml.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-xml.Tpo" -c -o libcsoap_la-soap-xml.lo `test -f 'soap-xml.c' || echo '$(srcdir)/'`soap-xml.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-xml.Tpo" "$(DEPDIR)/libcsoap_la-soap-xml.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-xml.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-xml.c' object='libcsoap_la-soap-xml.lo' libtool=yes @AMDEPBACKSLASH@
+libcsoap_la-soap-addressing.lo: soap-addressing.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-addressing.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo" -c -o libcsoap_la-soap-addressing.lo `test -f 'soap-addressing.c' || echo '$(srcdir)/'`soap-addressing.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo" "$(DEPDIR)/libcsoap_la-soap-addressing.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-addressing.c' object='libcsoap_la-soap-addressing.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-xml.lo `test -f 'soap-xml.c' || echo '$(srcdir)/'`soap-xml.c
-
-libcsoap_la-soap-fault.lo: soap-fault.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-fault.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-fault.Tpo" -c -o libcsoap_la-soap-fault.lo `test -f 'soap-fault.c' || echo '$(srcdir)/'`soap-fault.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-fault.Tpo" "$(DEPDIR)/libcsoap_la-soap-fault.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-fault.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-fault.c' object='libcsoap_la-soap-fault.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-fault.lo `test -f 'soap-fault.c' || echo '$(srcdir)/'`soap-fault.c
-
-libcsoap_la-soap-env.lo: soap-env.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-env.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-env.Tpo" -c -o libcsoap_la-soap-env.lo `test -f 'soap-env.c' || echo '$(srcdir)/'`soap-env.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-env.Tpo" "$(DEPDIR)/libcsoap_la-soap-env.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-env.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-env.c' object='libcsoap_la-soap-env.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-env.lo `test -f 'soap-env.c' || echo '$(srcdir)/'`soap-env.c
-
-libcsoap_la-soap-service.lo: soap-service.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-service.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-service.Tpo" -c -o libcsoap_la-soap-service.lo `test -f 'soap-service.c' || echo '$(srcdir)/'`soap-service.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-service.Tpo" "$(DEPDIR)/libcsoap_la-soap-service.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-service.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-service.c' object='libcsoap_la-soap-service.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-service.lo `test -f 'soap-service.c' || echo '$(srcdir)/'`soap-service.c
-
-libcsoap_la-soap-router.lo: soap-router.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-router.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-router.Tpo" -c -o libcsoap_la-soap-router.lo `test -f 'soap-router.c' || echo '$(srcdir)/'`soap-router.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-router.Tpo" "$(DEPDIR)/libcsoap_la-soap-router.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-router.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-router.c' object='libcsoap_la-soap-router.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-router.lo `test -f 'soap-router.c' || echo '$(srcdir)/'`soap-router.c
-
-libcsoap_la-soap-client.lo: soap-client.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-client.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-client.Tpo" -c -o libcsoap_la-soap-client.lo `test -f 'soap-client.c' || echo '$(srcdir)/'`soap-client.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-client.Tpo" "$(DEPDIR)/libcsoap_la-soap-client.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-client.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-client.c' object='libcsoap_la-soap-client.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-client.lo `test -f 'soap-client.c' || echo '$(srcdir)/'`soap-client.c
-
-libcsoap_la-soap-server.lo: soap-server.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-server.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-server.Tpo" -c -o libcsoap_la-soap-server.lo `test -f 'soap-server.c' || echo '$(srcdir)/'`soap-server.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-server.Tpo" "$(DEPDIR)/libcsoap_la-soap-server.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-server.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-server.c' object='libcsoap_la-soap-server.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-server.lo `test -f 'soap-server.c' || echo '$(srcdir)/'`soap-server.c
-
-libcsoap_la-soap-ctx.lo: soap-ctx.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-ctx.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo" -c -o libcsoap_la-soap-ctx.lo `test -f 'soap-ctx.c' || echo '$(srcdir)/'`soap-ctx.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo" "$(DEPDIR)/libcsoap_la-soap-ctx.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-ctx.c' object='libcsoap_la-soap-ctx.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-ctx.lo `test -f 'soap-ctx.c' || echo '$(srcdir)/'`soap-ctx.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-addressing.lo `test -f 'soap-addressing.c' || echo '$(srcdir)/'`soap-addressing.c
 
 libcsoap_la-soap-admin.lo: soap-admin.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-admin.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-admin.Tpo" -c -o libcsoap_la-soap-admin.lo `test -f 'soap-admin.c' || echo '$(srcdir)/'`soap-admin.c; \
@@ -400,26 +355,40 @@ libcsoap_la-soap-admin.lo: soap-admin.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-admin.lo `test -f 'soap-admin.c' || echo '$(srcdir)/'`soap-admin.c
 
-libcsoap_la-soap-addressing.lo: soap-addressing.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-addressing.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo" -c -o libcsoap_la-soap-addressing.lo `test -f 'soap-addressing.c' || echo '$(srcdir)/'`soap-addressing.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo" "$(DEPDIR)/libcsoap_la-soap-addressing.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-addressing.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-addressing.c' object='libcsoap_la-soap-addressing.lo' libtool=yes @AMDEPBACKSLASH@
+libcsoap_la-soap-client.lo: soap-client.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-client.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-client.Tpo" -c -o libcsoap_la-soap-client.lo `test -f 'soap-client.c' || echo '$(srcdir)/'`soap-client.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-client.Tpo" "$(DEPDIR)/libcsoap_la-soap-client.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-client.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-client.c' object='libcsoap_la-soap-client.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-addressing.lo `test -f 'soap-addressing.c' || echo '$(srcdir)/'`soap-addressing.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-client.lo `test -f 'soap-client.c' || echo '$(srcdir)/'`soap-client.c
 
-libcsoap_la-soap-transport.lo: soap-transport.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-transport.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-transport.Tpo" -c -o libcsoap_la-soap-transport.lo `test -f 'soap-transport.c' || echo '$(srcdir)/'`soap-transport.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-transport.Tpo" "$(DEPDIR)/libcsoap_la-soap-transport.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-transport.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-transport.c' object='libcsoap_la-soap-transport.lo' libtool=yes @AMDEPBACKSLASH@
+libcsoap_la-soap-ctx.lo: soap-ctx.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-ctx.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo" -c -o libcsoap_la-soap-ctx.lo `test -f 'soap-ctx.c' || echo '$(srcdir)/'`soap-ctx.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo" "$(DEPDIR)/libcsoap_la-soap-ctx.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-ctx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-ctx.c' object='libcsoap_la-soap-ctx.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-transport.lo `test -f 'soap-transport.c' || echo '$(srcdir)/'`soap-transport.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-ctx.lo `test -f 'soap-ctx.c' || echo '$(srcdir)/'`soap-ctx.c
 
-libcsoap_la-soap-nudp.lo: soap-nudp.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-nudp.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo" -c -o libcsoap_la-soap-nudp.lo `test -f 'soap-nudp.c' || echo '$(srcdir)/'`soap-nudp.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo" "$(DEPDIR)/libcsoap_la-soap-nudp.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-nudp.c' object='libcsoap_la-soap-nudp.lo' libtool=yes @AMDEPBACKSLASH@
+libcsoap_la-soap-env.lo: soap-env.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-env.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-env.Tpo" -c -o libcsoap_la-soap-env.lo `test -f 'soap-env.c' || echo '$(srcdir)/'`soap-env.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-env.Tpo" "$(DEPDIR)/libcsoap_la-soap-env.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-env.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-env.c' object='libcsoap_la-soap-env.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-nudp.lo `test -f 'soap-nudp.c' || echo '$(srcdir)/'`soap-nudp.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-env.lo `test -f 'soap-env.c' || echo '$(srcdir)/'`soap-env.c
+
+libcsoap_la-soap-fault.lo: soap-fault.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-fault.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-fault.Tpo" -c -o libcsoap_la-soap-fault.lo `test -f 'soap-fault.c' || echo '$(srcdir)/'`soap-fault.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-fault.Tpo" "$(DEPDIR)/libcsoap_la-soap-fault.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-fault.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-fault.c' object='libcsoap_la-soap-fault.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-fault.lo `test -f 'soap-fault.c' || echo '$(srcdir)/'`soap-fault.c
+
+libcsoap_la-soap-logging.lo: soap-logging.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-logging.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-logging.Tpo" -c -o libcsoap_la-soap-logging.lo `test -f 'soap-logging.c' || echo '$(srcdir)/'`soap-logging.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-logging.Tpo" "$(DEPDIR)/libcsoap_la-soap-logging.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-logging.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-logging.c' object='libcsoap_la-soap-logging.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-logging.lo `test -f 'soap-logging.c' || echo '$(srcdir)/'`soap-logging.c
 
 libcsoap_la-soap-nhttp.lo: soap-nhttp.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-nhttp.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-nhttp.Tpo" -c -o libcsoap_la-soap-nhttp.lo `test -f 'soap-nhttp.c' || echo '$(srcdir)/'`soap-nhttp.c; \
@@ -428,12 +397,54 @@ libcsoap_la-soap-nhttp.lo: soap-nhttp.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-nhttp.lo `test -f 'soap-nhttp.c' || echo '$(srcdir)/'`soap-nhttp.c
 
+libcsoap_la-soap-nudp.lo: soap-nudp.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-nudp.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo" -c -o libcsoap_la-soap-nudp.lo `test -f 'soap-nudp.c' || echo '$(srcdir)/'`soap-nudp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo" "$(DEPDIR)/libcsoap_la-soap-nudp.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-nudp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-nudp.c' object='libcsoap_la-soap-nudp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-nudp.lo `test -f 'soap-nudp.c' || echo '$(srcdir)/'`soap-nudp.c
+
+libcsoap_la-soap-router.lo: soap-router.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-router.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-router.Tpo" -c -o libcsoap_la-soap-router.lo `test -f 'soap-router.c' || echo '$(srcdir)/'`soap-router.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-router.Tpo" "$(DEPDIR)/libcsoap_la-soap-router.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-router.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-router.c' object='libcsoap_la-soap-router.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-router.lo `test -f 'soap-router.c' || echo '$(srcdir)/'`soap-router.c
+
+libcsoap_la-soap-service.lo: soap-service.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-service.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-service.Tpo" -c -o libcsoap_la-soap-service.lo `test -f 'soap-service.c' || echo '$(srcdir)/'`soap-service.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-service.Tpo" "$(DEPDIR)/libcsoap_la-soap-service.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-service.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-service.c' object='libcsoap_la-soap-service.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-service.lo `test -f 'soap-service.c' || echo '$(srcdir)/'`soap-service.c
+
+libcsoap_la-soap-server.lo: soap-server.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-server.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-server.Tpo" -c -o libcsoap_la-soap-server.lo `test -f 'soap-server.c' || echo '$(srcdir)/'`soap-server.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-server.Tpo" "$(DEPDIR)/libcsoap_la-soap-server.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-server.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-server.c' object='libcsoap_la-soap-server.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-server.lo `test -f 'soap-server.c' || echo '$(srcdir)/'`soap-server.c
+
+libcsoap_la-soap-transport.lo: soap-transport.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-transport.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-transport.Tpo" -c -o libcsoap_la-soap-transport.lo `test -f 'soap-transport.c' || echo '$(srcdir)/'`soap-transport.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-transport.Tpo" "$(DEPDIR)/libcsoap_la-soap-transport.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-transport.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-transport.c' object='libcsoap_la-soap-transport.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-transport.lo `test -f 'soap-transport.c' || echo '$(srcdir)/'`soap-transport.c
+
 libcsoap_la-soap-wsil.lo: soap-wsil.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-wsil.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-wsil.Tpo" -c -o libcsoap_la-soap-wsil.lo `test -f 'soap-wsil.c' || echo '$(srcdir)/'`soap-wsil.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-wsil.Tpo" "$(DEPDIR)/libcsoap_la-soap-wsil.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-wsil.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-wsil.c' object='libcsoap_la-soap-wsil.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-wsil.lo `test -f 'soap-wsil.c' || echo '$(srcdir)/'`soap-wsil.c
+
+libcsoap_la-soap-xml.lo: soap-xml.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-xml.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-xml.Tpo" -c -o libcsoap_la-soap-xml.lo `test -f 'soap-xml.c' || echo '$(srcdir)/'`soap-xml.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libcsoap_la-soap-xml.Tpo" "$(DEPDIR)/libcsoap_la-soap-xml.Plo"; else rm -f "$(DEPDIR)/libcsoap_la-soap-xml.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='soap-xml.c' object='libcsoap_la-soap-xml.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -c -o libcsoap_la-soap-xml.lo `test -f 'soap-xml.c' || echo '$(srcdir)/'`soap-xml.c
 
 libcsoap_la-soap-xmlsec.lo: soap-xmlsec.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcsoap_la_CFLAGS) $(CFLAGS) -MT libcsoap_la-soap-xmlsec.lo -MD -MP -MF "$(DEPDIR)/libcsoap_la-soap-xmlsec.Tpo" -c -o libcsoap_la-soap-xmlsec.lo `test -f 'soap-xmlsec.c' || echo '$(srcdir)/'`soap-xmlsec.c; \

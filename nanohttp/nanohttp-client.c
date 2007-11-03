@@ -1,5 +1,6 @@
+/** @file nanohttp-client.c nanoHTTP client interface */
 /******************************************************************
-*  $Id: nanohttp-client.c,v 1.53 2007/01/01 22:54:46 m0gg Exp $
+*  $Id: nanohttp-client.c,v 1.54 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -99,20 +100,20 @@ httpc_new(void)
  
   if (!(res = (httpc_conn_t *) malloc(sizeof(httpc_conn_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
   if (!(res->sock = (struct hsocket_t *)malloc(sizeof(struct hsocket_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(res);
     return NULL;
   }
 
   if (!(res->url = (struct hurl_t *)malloc(sizeof(struct hurl_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(res->sock);
     free(res);
     return NULL;
@@ -120,7 +121,7 @@ httpc_new(void)
 
   if ((status = hsocket_init(res->sock)) != H_OK)
   {
-    log_warn2("hsocket_init failed (%s)", herror_message(status));
+    log_warn("hsocket_init failed (%s)", herror_message(status));
     hurl_free(res->url);
     free(res->sock);
     free(res);
@@ -183,7 +184,7 @@ httpc_add_header(httpc_conn_t *conn, const char *key, const char *value)
 {
   if (!conn)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return -1;
   }
 
@@ -197,7 +198,7 @@ httpc_add_headers(httpc_conn_t *conn, const hpair_t *values)
 {
   if (conn == NULL)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return;
   }
 
@@ -220,7 +221,7 @@ httpc_set_header(httpc_conn_t *conn, const char *key, const char *value)
 
   if (conn == NULL)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return 0;
   }
 
@@ -381,7 +382,7 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
 
   if ((status = hurl_parse(conn->url, urlstr)) != H_OK)
   {
-    log_error2("Cannot parse URL \"%s\"", SAVE_STR(urlstr));
+    log_error("Cannot parse URL \"%s\"", SAVE_STR(urlstr));
     return status;
   }
 /* TODO (#1#): Check for HTTP protocol in URL */
@@ -390,12 +391,12 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
   httpc_set_header(conn, HEADER_HOST, conn->url->host);
 
   ssl = conn->url->protocol == PROTOCOL_HTTPS ? 1 : 0;
-  log_verbose4("ssl = %i (%i %i)", ssl, conn->url->protocol, PROTOCOL_HTTPS);
+  log_verbose("ssl = %i (%i %i)", ssl, conn->url->protocol, PROTOCOL_HTTPS);
 
   /* Open connection */
   if ((status = hsocket_open(conn->sock, conn->url->host, conn->url->port, ssl)) != H_OK)
   {
-    log_error2("hsocket_open failed (%s)", herror_message(status));
+    log_error("hsocket_open failed (%s)", herror_message(status));
     return status;
   }
 
@@ -416,24 +417,24 @@ _httpc_talk_to_server(hreq_method_t method, httpc_conn_t * conn, const char *url
       break;
 
     default:
-      log_error1("Unknown method type!");
+      log_error("Unknown method type!");
       return herror_new("httpc_talk_to_server",
         GENERAL_INVALID_PARAM,
         "hreq_method_t must be  HTTP_REQUEST_GET or HTTP_REQUEST_POST");
   }
 
-  log_verbose1("Sending request...");
+  log_verbose("Sending request...");
   if ((status = hsocket_send(conn->sock, buffer, len)) != H_OK)
   {
-    log_error2("Cannot send request (%s)", herror_message(status));
+    log_error("Cannot send request (%s)", herror_message(status));
     hsocket_close(conn->sock);
     return status;
   }
 
-  log_verbose1("Sending header...");
+  log_verbose("Sending header...");
   if ((status = httpc_send_header(conn)) != H_OK)
   {
-    log_error2("Cannot send header (%s)", herror_message(status));
+    log_error("Cannot send header (%s)", herror_message(status));
     hsocket_close(conn->sock);
     return status;
   }
@@ -448,13 +449,13 @@ httpc_get(httpc_conn_t *conn, hresponse_t **out, const char *urlstr)
 
   if ((status = _httpc_talk_to_server(HTTP_REQUEST_GET, conn, urlstr)) != H_OK)
   {
-    log_error2("_httpc_talk_to_server failed (%s)", herror_message(status));
+    log_error("_httpc_talk_to_server failed (%s)", herror_message(status));
     return status;
   }
 
   if ((status = hresponse_new_from_socket(conn->sock, out)) != H_OK)
   {
-    log_error2("hresponse_new_from_socket failed (%s)", herror_message(status));
+    log_error("hresponse_new_from_socket failed (%s)", herror_message(status));
     return status;
   }
 
@@ -468,7 +469,7 @@ httpc_post_begin(httpc_conn_t * conn, const char *url)
 
   if ((status = _httpc_talk_to_server(HTTP_REQUEST_POST, conn, url)) != H_OK)
   {
-    log_error2("_httpc_talk_to_server failed (%s)", herror_message(status));
+    log_error("_httpc_talk_to_server failed (%s)", herror_message(status));
     return status;
   }
 
@@ -504,7 +505,7 @@ static void
 _httpc_mime_get_boundary(httpc_conn_t * conn, char *dest)
 {
   sprintf(dest, "---=.Part_NH_%d", conn->id);
-  log_verbose2("boundary= \"%s\"", dest);
+  log_verbose("boundary= \"%s\"", dest);
 
   return;
 }
@@ -617,7 +618,7 @@ httpc_mime_send_file(httpc_conn_t * conn, const char *content_id, const char *co
 
   if ((fd = fopen(filename, "rb")) == NULL)
   {
-    log_error2("fopen failed (%s)", strerror(errno));
+    log_error("fopen failed (%s)", strerror(errno));
     return herror_new("httpc_mime_send_file", FILE_ERROR_OPEN,
                       "Can not open file \"%s\" (%s)", filename, strerror(errno));
   }
@@ -652,7 +653,7 @@ httpc_mime_send_file(httpc_conn_t * conn, const char *content_id, const char *co
   }
 
   fclose(fd);
-  log_verbose1("file sent!");
+  log_verbose("file sent!");
 
   return H_OK;
 }

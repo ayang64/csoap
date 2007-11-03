@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xmlsec.c,v 1.8 2006/12/14 19:36:49 m0gg Exp $
+*  $Id: soap-xmlsec.c,v 1.9 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -70,8 +70,6 @@
 #include <libxml/parser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xmlstring.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
 
 #ifndef XMLSEC_NO_XSLT
 #include <libxslt/xslt.h>
@@ -85,7 +83,6 @@
 #include <xmlsec/crypto.h>
 #include <xmlsec/errors.h>
 
-#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
 #include <nanohttp/nanohttp-stream.h>
@@ -94,6 +91,7 @@
 #include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-server.h>
 
+#include "soap-logging.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
@@ -115,7 +113,7 @@ static xmlSecKeyPtr _soap_xmlsec_key = NULL;
 
 static void _soap_xmlsec_error_callback(const char *file, int line, const char *func, const char *errorObject, const char *errorSubject, int reason, const char *msg)
 {
-  log_error5("xmlsec error func=\"%s\" obj=\"%s\" sub=\"%s\" %s", func, errorObject, errorSubject, msg);
+  log_error("xmlsec error func=\"%s\" obj=\"%s\" sub=\"%s\" %s", func, errorObject, errorSubject, msg);
 
   return;
 }
@@ -139,7 +137,7 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
   xmlURI *uri;
   char *file;
 
-  log_verbose2("trying to find key \"%s\"\n", name);
+  log_verbose("trying to find key \"%s\"\n", name);
 
   /*
    * it's possible to do not have the key name or desired key type but we could
@@ -205,7 +203,7 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
 
       if ((status = (httpc_get(conn, &res, name))) != H_OK)
       {
-        log_error2("httpc_get failed (%s)", herror_message(status));
+        log_error("httpc_get failed (%s)", herror_message(status));
         herror_release(status);
         return NULL;
       }
@@ -254,7 +252,7 @@ _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * 
 
   if (unlink(file) < 0)
   {
-    log_error2("unlink file failed (%s)", strerror(errno));
+    log_error("unlink file failed (%s)", strerror(errno));
   }
   free(file);
 
@@ -289,14 +287,14 @@ _soap_xmlsec_create_key_manager(void)
   keysStore = xmlSecKeyStoreCreate(_soap_xmlsec_files_keys_store_get_klass());
   if (keysStore == NULL)
   {
-    log_error1("failed to create keys store");
+    log_error("failed to create keys store");
     return herror_new("_soap_xmlxec_create_key_manager", XMLSEC_ERROR_KEYSTORE, "failed to create keys store");
   }
 
   /* create keys manager */
   if ((_soap_xmlsec_key_manager = xmlSecKeysMngrCreate()) == NULL)
   {
-    log_error1("failed to create keys manager");
+    log_error("failed to create keys manager");
     xmlSecKeyStoreDestroy(keysStore);
     return herror_new("_soap_xmlsec_key_manager", XMLSEC_ERROR_KEYMANAGER, "failed to create keys manager");
   }
@@ -307,7 +305,7 @@ _soap_xmlsec_create_key_manager(void)
    */
   if (xmlSecKeysMngrAdoptKeysStore(_soap_xmlsec_key_manager, keysStore) < 0)
   {
-    log_error1("failed to add keys store to keys manager");
+    log_error("failed to add keys store to keys manager");
     xmlSecKeyStoreDestroy(keysStore);
     xmlSecKeysMngrDestroy(_soap_xmlsec_key_manager);
     _soap_xmlsec_key_manager = NULL;
@@ -317,7 +315,7 @@ _soap_xmlsec_create_key_manager(void)
   /* initialize crypto library specific data in keys manager */
   if (xmlSecCryptoKeysMngrInit(_soap_xmlsec_key_manager) < 0)
   {
-    log_error1("failed to initialize crypto data in keys manager");
+    log_error("failed to initialize crypto data in keys manager");
     xmlSecKeysMngrDestroy(_soap_xmlsec_key_manager);
     _soap_xmlsec_key_manager = NULL;
     return herror_new("_soap_xmlsec_create_key_manager", XMLSEC_ERROR_KEYMANAGER, "failed to initialize crypto data in keys manager");
@@ -337,7 +335,7 @@ _soap_xmlsec_load_key(void)
 
   if ((_soap_xmlsec_key = xmlSecCryptoAppKeyLoad(_soap_xmlsec_keyfile, xmlSecKeyDataFormatPem, _soap_xmlsec_password, NULL, NULL)) == NULL)
   {
-    log_error2("xmlSecCryptoAppKeyLoad(\"%s\") failed", _soap_xmlsec_keyfile);
+    log_error("xmlSecCryptoAppKeyLoad(\"%s\") failed", _soap_xmlsec_keyfile);
     return herror_new("_soap_xmlsec_load_key", XMLSEC_ERROR_KEY, "xmlSecCryptoAppKeyLoad(\"%s\") failed", _soap_xmlsec_keyfile);
   }
 
@@ -345,18 +343,18 @@ _soap_xmlsec_load_key(void)
   {
     if (xmlSecCryptoAppKeyCertLoad(_soap_xmlsec_key, _soap_xmlsec_certfile, xmlSecKeyDataFormatPem) < 0)
     {
-      log_error2("xmlSecCryptoAppKeyCertLoad(\"%s\") failed", _soap_xmlsec_certfile);
+      log_error("xmlSecCryptoAppKeyCertLoad(\"%s\") failed", _soap_xmlsec_certfile);
       xmlSecKeyDestroy(_soap_xmlsec_key);
       return herror_new("_soap_xmlsec_load_key", XMLSEC_ERROR_CERTIFICATE, "xmlSecCryptoAppKeyCertLoad(\"%s\") failed", _soap_xmlsec_certfile);
     }
   }
 
   xmlStrPrintf(keyName, 256, "%s/key.pem", soap_server_get_name());
-  log_error2("keyName is \"%s\"", keyName);
+  log_error("keyName is \"%s\"", keyName);
   if ((err = xmlSecKeySetName(_soap_xmlsec_key, keyName)) < 0)
   {
     xmlSecKeyDestroy(_soap_xmlsec_key);
-    log_error3("xmlSecKeySetName(\"%s\") failed (%i)", keyName, err);
+    log_error("xmlSecKeySetName(\"%s\") failed (%i)", keyName, err);
     return herror_new("_soap_xmlsec_load_key", XMLSEC_ERROR_KEY, "xmlSecKeySetName(\"%s\") failed (%i)", keyName, err);
   }
 
@@ -397,7 +395,7 @@ _soap_xmlsec_publish_key(void)
 
   if ((status = httpd_register("/key.pem", _soap_xmlsec_key_service)) != H_OK)
   {
-    log_error2("Cannot register key service (%s)", herror_message(status));
+    log_error("Cannot register key service (%s)", herror_message(status));
     return status;
   }
 
@@ -441,59 +439,59 @@ _soap_xmlsec_init(void)
   if (initialized)
     return H_OK;
 
-  log_info1("initializing xmlsec1");
+  log_info("initializing xmlsec1");
 
   xmlSecErrorsDefaultCallbackEnableOutput(1);
   xmlSecErrorsSetCallback(_soap_xmlsec_error_callback);
 
   if (xmlSecInit() < 0)
   {
-    log_error1("xmlSecInit failed");
+    log_error("xmlSecInit failed");
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_INIT, "xmlSecInit failed");
   }
 
   if (xmlSecCheckVersion() != 1)
   {
-    log_error1("xmlSecCheckVersion failed, wrong xmlsec version");
+    log_error("xmlSecCheckVersion failed, wrong xmlsec version");
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_VERSION, "Wrong xmlsec version");
   }
 
 #ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
-  log_verbose2("loading \"%s\" dynamic", XMLSEC_CRYPTO);
+  log_verbose("loading \"%s\" dynamic", XMLSEC_CRYPTO);
   if (xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0)
   {
-    log_error1("xmlSecCryptoDLLoadLibrary failed");
+    log_error("xmlSecCryptoDLLoadLibrary failed");
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_DLLOAD, "xmlSecCryptoDLLoadLibrary failed");
   }
 #endif
 
   if (xmlSecCryptoAppInit(NULL) < 0)
   {
-    log_error1("xmlSecCryptoAppInit failed");
+    log_error("xmlSecCryptoAppInit failed");
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_INIT, "xmlSecCryptoAppInit failed");
   }
 
   if (xmlSecCryptoInit() < 0)
   {
-    log_error1("xmlSecCryptoInit failed");
+    log_error("xmlSecCryptoInit failed");
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_INIT, "xmlSecCryptoInit failed");
   }
 
   if ((status = _soap_xmlsec_create_key_manager()) != H_OK)
   {
-    log_error2("_soap_xmlsec_create_key_manager failed (%s)", herror_message(status));
+    log_error("_soap_xmlsec_create_key_manager failed (%s)", herror_message(status));
     return status;
   }
 
   if ((err = pthread_mutex_init(&_soap_xmlsec_lock, NULL)) < 0)
   {
-    log_error2("pthread_mutex_init failed (%s)", strerror(err));
+    log_error("pthread_mutex_init failed (%s)", strerror(err));
     return herror_new("soap_xmlsec_init", XMLSEC_ERROR_INIT, "pthread_mutex_init failed (%s)", strerror(err));
   }
 
   if ((status = _soap_xmlsec_load_key()) != H_OK)
   {
-    log_error2("_soap_xmlsec_load_key failed (%s)", herror_message(status));
+    log_error("_soap_xmlsec_load_key failed (%s)", herror_message(status));
     return status;
   }
 
@@ -525,13 +523,13 @@ soap_xmlsec_server_init_args(int argc, char **argv)
 
   if ((status = _soap_xmlsec_init()) != H_OK)
   {
-    log_error2("_soap_xmlsec_init failed (%s)", herror_message(status));
+    log_error("_soap_xmlsec_init failed (%s)", herror_message(status));
     return status;
   }
 
   if ((status = _soap_xmlsec_publish_key()) != H_OK)
   {
-    log_error2("_soap_xmlsec_publish_key failed (%s)", herror_message(status));
+    log_error("_soap_xmlsec_publish_key failed (%s)", herror_message(status));
     return status;
   }
 
@@ -560,7 +558,7 @@ herror_t soap_xmlsec_sign(struct SoapCtx *context)
 
   if (!(signNode = xmlSecTmplSignatureCreate(envelope->root->doc, xmlSecTransformExclC14NId, xmlSecTransformRsaSha1Id, NULL)))
   {
-    log_error1("xmlSecTmplSignatureCreate failed");
+    log_error("xmlSecTmplSignatureCreate failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN_INIT, "xmlSecTmplSignatureCreate failed");
     goto out;
   }
@@ -578,28 +576,28 @@ herror_t soap_xmlsec_sign(struct SoapCtx *context)
 
   if (!(refNode = xmlSecTmplSignatureAddReference(signNode, xmlSecTransformSha1Id, "#Body", NULL, NULL)))
   {
-    log_error1("xmlSecTmplSignatureAddReference failed");
+    log_error("xmlSecTmplSignatureAddReference failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN_INIT, "xmlSecTmplSignatureAddReference failed");
     goto out;
   }
 
   if (!(keyInfoNode = xmlSecTmplSignatureEnsureKeyInfo(signNode, NULL)))
   {
-    log_error1("xmlSecTmplSignatureEnsureKeyInfo failed");
+    log_error("xmlSecTmplSignatureEnsureKeyInfo failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN_INIT, "xmlSecTmplSignatureEnsureKeyInfo failed");
     goto out;
   }
 
   if (xmlSecTmplKeyInfoAddKeyName(keyInfoNode, soap_server_get_name()) == NULL)
   {
-    log_error1("xmlSecTmplKeyInfoAddKeyName failed");
+    log_error("xmlSecTmplKeyInfoAddKeyName failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN_INIT, "xmlSecTmplKeyInfoAddKeyName failed");
     goto out;
   }
 
   if (!(dsigCtx = xmlSecDSigCtxCreate(_soap_xmlsec_key_manager)))
   {
-    log_error1("xmlSecDSigCtxCreate failed");
+    log_error("xmlSecDSigCtxCreate failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN_INIT, "xmlSecDSigCtxCreate failed");
     goto out;
   }
@@ -608,7 +606,7 @@ herror_t soap_xmlsec_sign(struct SoapCtx *context)
 
   if (xmlSecDSigCtxSign(dsigCtx, signNode) < 0)
   {
-    log_error1("xmlSecDSigCtxSign failed");
+    log_error("xmlSecDSigCtxSign failed");
     ret = herror_new("soap_xmlsec_sign", XMLSEC_ERROR_SIGN, "xmlSecDSigCtxSign failed");
     goto out;
   }
@@ -651,14 +649,14 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   encDataNode = xmlSecTmplEncDataCreate(doc, xmlSecTransformDes3CbcId, NULL, xmlSecTypeEncElement, NULL, NULL);
   if (encDataNode == NULL)
   {
-    log_error1("xmlSecTmplEnvDataCreate failed");
+    log_error("xmlSecTmplEnvDataCreate failed");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "xmlSecTmplEnvDataCreate failed");
     goto out;
   }
 
   if (xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL)
   {
-    log_error1("failed to add CipherValue node");
+    log_error("failed to add CipherValue node");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add CipherValue node");
     goto out;
   }
@@ -666,7 +664,7 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
   if (keyInfoNode == NULL)
   {
-    log_error1("failed to add KeyInfo node");
+    log_error("failed to add KeyInfo node");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add KeyInfo node");
     goto out;
   }
@@ -674,14 +672,14 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, xmlSecTransformRsaOaepId, NULL, NULL, NULL);
   if (encKeyNode == NULL)
   {
-    log_error1("failed to add KeyInfo");
+    log_error("failed to add KeyInfo");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add KeyInfo");
     goto out;
   }
 
   if (xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL)
   {
-    log_error1("failed to add CipherValue node");
+    log_error("failed to add CipherValue node");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add CipherValue node");
     goto out;
   }
@@ -689,24 +687,24 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
   if (keyInfoNode2 == NULL)
   {
-    log_error1("failed to add key info (2)\n");
+    log_error("failed to add key info (2)\n");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add key info (2)");
     goto out;
   }
 
   if (!(to = soap_addressing_get_to_address(envelope)))
   {
-    log_error1("cannot get to address");
+    log_error("cannot get to address");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT, "cannot get to address");
     goto out;
   }
   xmlStrPrintf(buf, 256, "http://%s:%i/key.pem", to->server, to->port);
-  log_error2("adding key \"%s\"", buf);
+  log_error("adding key \"%s\"", buf);
   xmlFreeURI(to);
 
   if (xmlSecTmplKeyInfoAddKeyName(keyInfoNode2, buf) == NULL)
   {
-    log_error2("failed to add key name \"%s\"", buf);
+    log_error("failed to add key name \"%s\"", buf);
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to add key name \"%s\"", buf);
     goto out;
   }
@@ -714,7 +712,7 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   encCtx = xmlSecEncCtxCreate(_soap_xmlsec_key_manager);
   if (encCtx == NULL)
   {
-    log_error1("failed to create encryption context");
+    log_error("failed to create encryption context");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to create encryption context");
     goto out;
   }
@@ -722,7 +720,7 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
   encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
   if (encCtx->encKey == NULL)
   {
-    log_error1("failed to generate session key");
+    log_error("failed to generate session key");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT_INIT, "failed to generate session key");
     goto out;
   }
@@ -733,7 +731,7 @@ herror_t soap_xmlsec_encrypt(struct SoapCtx *context)
 
   if (xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, soap_env_get_method(envelope)) < 0)
   {
-    log_error1("encryption failed");
+    log_error("encryption failed");
     ret = herror_new("soap_xmlsec_encrypt", XMLSEC_ERROR_ENCRYPT, "encryption failed");
     goto out;
   }
@@ -772,19 +770,19 @@ herror_t soap_xmlsec_decrypt(struct SoapCtx *context)
 
   if (!(method = soap_env_get_method(envelope)))
   {
-    log_error1("cannot find messages method");
+    log_error("cannot find messages method");
     return herror_new("soap_xmlsec_decrypt", 0, "cannot find message method");
   }
 
   if (xmlStrcmp(method->name, BAD_CAST "EncryptedData"))
   {
-    log_error2("message doesn't contain encrypted data (%s)", method->name);
+    log_error("message doesn't contain encrypted data (%s)", method->name);
     return H_OK;
   }
  
   if (xmlStrcmp(method->ns->href, "http://www.w3.org/2001/04/xmlenc#"))
   {
-    log_error2("message encryption isn't understood (%s)", method->ns->href);
+    log_error("message encryption isn't understood (%s)", method->ns->href);
     return herror_new("soap_xmlsec_decrypt", 0, "message encryption isn't understood (%s)", method->ns->href);
   }
 
@@ -794,7 +792,7 @@ herror_t soap_xmlsec_decrypt(struct SoapCtx *context)
   node = xmlSecFindNode(envelope->root, xmlSecNodeEncryptedData, xmlSecEncNs);
   if (node == NULL)
   {
-    log_error1("start node not found");
+    log_error("start node not found");
     ret = herror_new("soap_xmlsec_decrypt", 0, "start node not found");
     goto done;
   }
@@ -803,7 +801,7 @@ herror_t soap_xmlsec_decrypt(struct SoapCtx *context)
   encCtx = xmlSecEncCtxCreate(_soap_xmlsec_key_manager);
   if (encCtx == NULL)
   {
-    log_error1("failed to create encryption context");
+    log_error("failed to create encryption context");
     ret = herror_new("soap_xmlsec_decrypt", 0, "failed to create encryption context");
     goto done;
   }
@@ -811,7 +809,7 @@ herror_t soap_xmlsec_decrypt(struct SoapCtx *context)
   /* decrypt the data */
   if ((xmlSecEncCtxDecrypt(encCtx, node) < 0) || (encCtx->result == NULL))
   {
-    log_error1("decryption failed");
+    log_error("decryption failed");
     ret = herror_new("soap_xmlsec_decrypt", 0, "decryption failed");
     goto done;
   }
@@ -855,7 +853,7 @@ herror_t soap_xmlsec_verify(struct SoapCtx *context)
 
   if (!envelope->header)
   {
-    log_error1("message doesn't contain a SOAP header");
+    log_error("message doesn't contain a SOAP header");
     return herror_new("soap_xmlsec_verify", 0, "message doesn't contain a SOAP header");
   }
 
@@ -873,20 +871,20 @@ herror_t soap_xmlsec_verify(struct SoapCtx *context)
           node = xmlSecFindNode(envelope->root, xmlSecNodeSignature, xmlSecDSigNs);
 	  if (node == NULL)
 	  {
-            log_error1("cannot find message signature");
+            log_error("cannot find message signature");
 	    return herror_new("soap_xmlsec_verify", 0, "message signature wasn't found");
 	  }
 
           dsigCtx = xmlSecDSigCtxCreate(_soap_xmlsec_key_manager);
           if (dsigCtx == NULL)
           {
-            log_error1("cannot create signature context");
+            log_error("cannot create signature context");
             return herror_new("soap_xmlsec_verify", 0, "cannot create signatur context");
           }
 
           if (xmlSecDSigCtxVerify(dsigCtx, node) < 0)
           {
-            log_error1("xmlsecDSigCtxVerify failed");
+            log_error("xmlsecDSigCtxVerify failed");
 	    return herror_new("soap_xmlsec_verify", 0, "verification failed");
           }
 
@@ -896,13 +894,13 @@ herror_t soap_xmlsec_verify(struct SoapCtx *context)
           }
           else
           {
-            log_error1("signature invalid");
+            log_error("signature invalid");
 	    return herror_new("soap_xmlsec_verify", 0, "signature invalid");
           }
 	}
 	else
 	{
-          log_error2("message signature isn't understood (%s)", walker->ns->href);
+          log_error("message signature isn't understood (%s)", walker->ns->href);
           return herror_new("soap_xmlsec_verify", 0, "message signature isn't understood (%s)", walker->ns->href);
 	}
       }

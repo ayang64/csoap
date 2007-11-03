@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-common.h,v 1.48 2007/01/03 08:33:44 m0gg Exp $
+ *  $Id: nanohttp-common.h,v 1.49 2007/11/03 22:40:10 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -28,7 +28,15 @@
 #define HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define TRANSFER_ENCODING_CHUNKED	"chunked"
 
-/** @defgroup http_general_header_fields General Header Fields
+/** @file nanohttp-common.h Common definitions and functions
+ * 
+ * @defgroup NANOHTTP_COMMON Common stuff
+ * @ingroup NANOHTTP
+ */
+/**@{*/
+
+/** @defgroup HTTP_HEADER_FIELDS Header Fields
+ * @ingroup NANOHTTP
  *
  * There are a few header fields which have general applicability for both
  * request and response messages, but which do not apply to the entity being
@@ -40,20 +48,17 @@
  * entity-header fields.
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
- *
  */
 /*@{*/
 
-/**
- *
- * The Cache-Control general-header field is used to specify directives that MUST
- * be obeyed by all caching mechanisms along the request/response chain. The
- * directives specify behavior intended to prevent caches from adversely
- * interfering with the request or response. These directives typically override
- * the default caching algorithms. Cache directives are unidirectional in that
- * the presence of a directive in a request does not imply that the same
- * directive is to be given in the response.
- *
+/** The Cache-Control general-header field is used to specify
+ * directives that MUST be obeyed by all caching mechanisms along the
+ * request/response chain. The directives specify behavior intended to
+ * prevent caches from adversely interfering with the request or
+ * response. These directives typically override the default caching
+ * algorithms. Cache directives are unidirectional in that the presence
+ * of a directive in a request does not imply that the same directive
+ * is to be given in the response.
  */
 #define HEADER_CACHE_CONTROL		"Cache-Control"
 
@@ -323,18 +328,15 @@ typedef enum _http_version
 } http_version_t;
 
 
-/**
- *
- * Object representation of the content-type field in a HTTP header: 
+/** Object representation of the content-type field in a HTTP header: 
  *
  * Example:
  *
- * @code
- * Content-Type: text/xml; key="value" key2="value2' ...
- * @endcode
+ * @verbatim
+    Content-Type: text/xml; key="value" key2="value2' ...
+ * @endverbatim
  *
  * @see HEADER_CONTENT_TYPE
- *
  */
 typedef struct _content_type
 {
@@ -342,11 +344,9 @@ typedef struct _content_type
   hpair_t *params;
 } content_type_t;
 
-/**
- *
- * The set of common methods for HTTP/1.1 is defined below. Although this set
- * can be expanded, additional methods cannot be assumed to share the same
- * semantics for separately extended clients and servers.
+/** The set of common methods for HTTP/1.1 is defined below. Although
+ * this set can be expanded, additional methods cannot be assumed to
+ * share the same semantics for separately extended clients and servers.
  *
  * The Host request-header field MUST accompany all HTTP/1.1 requests.
  *
@@ -356,7 +356,6 @@ typedef struct _content_type
 typedef enum _hreq_method
 {
   /**
-   *
    * The POST method is used to request that the origin server accept the entity
    * enclosed in the request as a new subordinate of the resource identified by
    * the Request-URI in the Request-Line. POST is designed to allow a uniform
@@ -367,32 +366,26 @@ typedef enum _hreq_method
    * - Providing a block of data, such as the result of submitting a form, to a
    *   data-handling process;
    * - Extending a database through an append operation.
-   *
    */
  HTTP_REQUEST_POST,
   /**
-   *
    * The GET method means retrieve whatever information (in the form of an entity)
    * is identified by the Request-URI. If the Request-URI refers to a
    * data-producing process, it is the produced data which shall be returned as
    * the entity in the response and not the source text of the process, unless
    * that text happens to be the output of the process.
-   *
    */
   HTTP_REQUEST_GET,
   /**
-   *
    * The OPTIONS method represents a request for information about the
    * communication options available on the request/response chain identified by
    * the Request-URI. This method allows the client to determine the options
    * and/or requirements associated with a resource, or the capabilities of a
    * server, without implying a resource action or initiating a resource
    * retrieval.
-   *
    */
   HTTP_REQUEST_OPTIONS,
   /**
-   *
    * The HEAD method is identical to GET except that the server MUST NOT return
    * a message-body in the response. The metainformation contained in the HTTP
    * headers in response to a HEAD request SHOULD be identical to the information
@@ -400,11 +393,9 @@ typedef enum _hreq_method
    * metainformation about the entity implied by the request without transferring
    * the entity-body itself. This method is often used for testing hypertext
    * links for validity, accessibility, and recent modification.
-   *
    */
   HTTP_REQUEST_HEAD,
   /**
-   *
    * The PUT method requests that the enclosed entity be stored under the
    * supplied Request-URI. If the Request-URI refers to an already existing
    * resource, the enclosed entity SHOULD be considered as a modified version of
@@ -420,11 +411,9 @@ typedef enum _hreq_method
    * problem. The recipient of the entity MUST NOT ignore any Content-* (e.g.
    * Content-Range) headers that it does not understand or implement and MUST
    * return a 501 (Not Implemented) response in such cases.
-   *
    */
   HTTP_REQUEST_PUT,
   /**
-   *
    * The DELETE method requests that the origin server delete the resource
    * identified by the Request-URI. This method MAY be overridden by human
    * intervention (or other means) on the origin server. The client cannot be
@@ -433,31 +422,27 @@ typedef enum _hreq_method
    * successfully. However, the server SHOULD NOT indicate success unless, at the
    * time the response is given, it intends to delete the resource or move it to
    * an inaccessible location.
-   *
    */
   HTTP_REQUEST_DELETE,
   /**
-   *
    * The TRACE method is used to invoke a remote, application-layer loop-back of
    * the request message. The final recipient of the request SHOULD reflect the
    * message received back to the client as the entity-body of a 200 (OK)
    * response. The final recipient is either the origin server or the first proxy
    * or gateway to receive a Max-Forwards value of zero (0) in the request (see
    * section 14.31). A TRACE request MUST NOT include an entity.
-   *
    */
   HTTP_REQUEST_TRACE,
   /**
-   *
    * This specification reserves the method name CONNECT for use with a proxy
    * that can dynamically switch to being a tunnel (e.g. SSL tunneling [44]).
-   *
    */
   HTTP_REQUEST_CONNECT,
   HTTP_REQUEST_UNKOWN
 } hreq_method_t;
 
-/** @defgroup http_status_codes HTTP status-codes
+/** @defgroup HTTP_STATUS_CODES HTTP status-codes
+ * @ingroup NANOHTTP
  *
  * The Status-Code element is a 3-digit integer result code of the attempt to
  * understand and satisfy the request. These codes are fully defined in section
@@ -563,113 +548,95 @@ typedef enum _hreq_method
  */
 /*@{*/
 
-/**
- *
- * The client SHOULD continue with its request. This interim response is used to
- * inform the client that the initial part of the request has been received and
- * has not yet been rejected by the server. The client SHOULD continue by sending
- * the remainder of the request or, if the request has already been completed,
- * ignore this response. The server MUST send a final response after the request
- * has been completed. See RFC 2616 section 8.2.3 for detailed discussion of the
+/** The client SHOULD continue with its request. This interim response
+ * is used to inform the client that the initial part of the request
+ * has been received and has not yet been rejected by the server. The
+ * client SHOULD continue by sending the remainder of the request or,
+ * if the request has already been completed, ignore this response. The
+ * server MUST send a final response after the request has been
+ * completed. See RFC 2616 section 8.2.3 for detailed discussion of the
  * use and handling of this status code.
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
- *
  */
 #define HTTP_STATUS_100_REASON_PHRASE	"Continue"
 
-/**
+/** The server understands and is willing to comply with the client's
+ * request, via the Upgrade message header field (RFC 2616 section 14.42),
+ * for a change in the application protocol being used on this
+ * connection. The server will switch protocols to those defined by
+ * the response's Upgrade header field immediately after the empty line
+ * which terminates the 101 response.
  *
- * The server understands and is willing to comply with the client's request,
- * via the Upgrade message header field (RFC 2616 section 14.42), for a change
- * in the application protocol being used on this connection. The server will
- * switch protocols to those defined by the response's Upgrade header field
- * immediately after the empty line which terminates the 101 response.
- *
- * The protocol SHOULD be switched only when it is advantageous to do so. For
- * example, switching to a newer version of HTTP is advantageous over older
- * versions, and switching to a real-time, synchronous protocol might be
- * advantageous when delivering resources that use such features.
- *
+ * The protocol SHOULD be switched only when it is advantageous to do
+ * so. For example, switching to a newer version of HTTP is
+ * advantageous over older versions, and switching to a real-time,
+ * synchronous protocol might be advantageous when delivering resources
+ * that use such features.
  */
 #define HTTP_STATUS_101_REASON_PHRASE	"Switching Protocols"
 
-/**
+/** The request has succeeded. The information returned with the response
+ * is dependent on the method used in the request, for example:
  *
- * The request has succeeded. The information returned with the response is
- * dependent on the method used in the request, for example:
- *
- * GET    an entity corresponding to the requested resource is sent in
- *        the response;
- *
- * HEAD   the entity-header fields corresponding to the requested
+ * - GET an entity corresponding to the requested resource is sent in
+ *       the response;
+ * - HEAD the entity-header fields corresponding to the requested
  *        resource are sent in the response without any message-body;
- *
- * POST   an entity describing or containing the result of the action;
- *
- * TRACE  an entity containing the request message as received by the
- *        end server.
- *
+ * - POST an entity describing or containing the result of the action;
+ * - TRACE an entity containing the request message as received by the
+ *         end server.
  */
 #define HTTP_STATUS_200_REASON_PHRASE	"OK"
 
-/**
+/** The request has been fulfilled and resulted in a new resource being
+ * created. The newly created resource can be referenced by the URI(s)
+ * returned in the entity of the response, with the most specific URI
+ * for the resource given by a Location header field. The response
+ * SHOULD include an entity containing a list of resource
+ * characteristics and location(s) from which the user or user agent
+ * can choose the one most appropriate. The entity format is specified
+ * by the media type given in the Content-Type header field. The origin
+ * server MUST create the resource before returning the 201 status code.
+ * If the action cannot be carried out immediately, the server SHOULD
+ * respond with 202 (Accepted) response instead.
  *
- * The request has been fulfilled and resulted in a new resource being created.
- * The newly created resource can be referenced by the URI(s) returned in the
- * entity of the response, with the most specific URI for the resource given by
- * a Location header field. The response SHOULD include an entity containing a
- * list of resource characteristics and location(s) from which the user or user
- * agent can choose the one most appropriate. The entity format is specified by
- * the media type given in the Content-Type header field. The origin server MUST
- * create the resource before returning the 201 status code. If the action cannot
- * be carried out immediately, the server SHOULD respond with 202 (Accepted)
- * response instead.
- *
- * A 201 response MAY contain an ETag response header field indicating the
- * current value of the entity tag for the requested variant just created, see
- * RFC 2616 section 14.19.
+ * A 201 response MAY contain an ETag response header field indicating
+ * the current value of the entity tag for the requested variant just
+ * created, see RFC 2616 section 14.19.
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
- *
  */
 #define HTTP_STATUS_201_REASON_PHRASE	"Created"
 
-/**
+/** The request has been accepted for processing, but the processing
+ * has not been completed. The request might or might not eventually be
+ * acted upon, as it might be disallowed when processing actually takes
+ * place. There is no facility for re-sending a status code from an
+ * asynchronous operation such as this.
  *
- * The request has been accepted for processing, but the processing has not been
- * completed.  The request might or might not eventually be acted upon, as it
- * might be disallowed when processing actually takes place. There is no
- * facility for re-sending a status code from an asynchronous operation such as
- * this.
- *
- * The 202 response is intentionally non-committal. Its purpose is to allow a
- * server to accept a request for some other process (perhaps a batch-oriented
- * process that is only run once per day) without requiring that the user
- * agent's connection to the server persist until the process is completed. The
- * entity returned with this response SHOULD include an indication of the
- * request's current status and either a pointer to a status monitor or some
- * estimate of when the user can expect the request to be fulfilled.
- *
+ * The 202 response is intentionally non-committal. Its purpose is to
+ * allow a server to accept a request for some other process (perhaps a
+ * batch-oriented process that is only run once per day) without
+ * requiring that the user agent's connection to the server persist
+ * until the process is completed. The entity returned with this
+ * response SHOULD include an indication of the request's current
+ * status and either a pointer to a status monitor or some estimate of
+ * when the user can expect the request to be fulfilled.
  */
 #define HTTP_STATUS_202_REASON_PHRASE	"Accepted"
 
-/**
- *
- * The returned metainformation in the entity-header is not the definitive set
+/** The returned metainformation in the entity-header is not the definitive set
  * as available from the origin server, but is gathered from a local or a
  * third-party copy. The set presented MAY be a subset or superset of the
  * original version. For example, including local annotation information about
  * the resource might result in a superset of the metainformation known by the
  * origin server. Use of this response code is not required and is only
  * appropriate when the response would otherwise be 200 (OK).
- *
  */
 #define HTTP_STATUS_203_REASON_PHRASE	"Non-Authoritative Information"
 
-/**
- *
- * The server has fulfilled the request but does not need to return an
+/** The server has fulfilled the request but does not need to return an
  * entity-body, and might want to return updated metainformation. The response
  * MAY include new or updated metainformation in the form of entity-headers,
  * which if present SHOULD be associated with the requested variant.
@@ -682,25 +649,19 @@ typedef enum _hreq_method
  *
  * The 204 response MUST NOT include a message-body, and thus is always
  * terminated by the first empty line after the header fields.
- *
  */
 #define HTTP_STATUS_204_REASON_PHRASE	"No Content"
 
-/**
- *
- * The server has fulfilled the request and the user agent SHOULD reset the
+/** The server has fulfilled the request and the user agent SHOULD reset the
  * document view which caused the request to be sent. This response is primarily
  * intended to allow input for actions to take place via user input, followed by
  * a clearing of the form in which the input is given so that the user can
  * easily initiate another input action. The response MUST NOT include an
  * entity.
- *
  */
 #define HTTP_STATUS_205_REASON_PHRASE	"Reset Content"
 
-/**
- *
- * The server has fulfilled the partial GET request for the resource. The request
+/** The server has fulfilled the partial GET request for the resource. The request
  * MUST have included a Range header field (RFC 2616 section 14.35) indicating
  * the desired range, and MAY have included an If-Range header field (RFC 2616 
  * section 14.27) to make the request conditional.
@@ -733,13 +694,10 @@ typedef enum _hreq_method
  *
  * A cache that does not support the Range and Content-Range headers MUST NOT
  * cache 206 (Partial) responses.
- *
  */
 #define HTTP_STATUS_206_REASON_PHRASE	"Partial Content"
 
-/**
- *
- * The requested resource corresponds to any one of a set of representations,
+/** The requested resource corresponds to any one of a set of representations,
  * each with its own specific location, and agent-driven negotiation information
  * (RFC 2616 section 12) is being provided so that the user (or user agent) can
  * select a preferred representation and redirect its request to that location.
@@ -756,13 +714,10 @@ typedef enum _hreq_method
  * specific URI for that representation in the Location field; user agents MAY
  * use the Location field value for automatic redirection. This response is
  * cacheable unless indicated otherwise.
- *
  */
 #define HTTP_STATUS_300_REASON_PHRASE	"Multiple Choices"
 
-/**
- *
- * The requested resource has been assigned a new permanent URI and any future
+/** The requested resource has been assigned a new permanent URI and any future
  * references to this resource SHOULD use one of the returned URIs.  Clients
  * with link editing capabilities ought to automatically re-link references to
  * the Request-URI to one or more of the new references returned by the server,
@@ -776,13 +731,10 @@ typedef enum _hreq_method
  * HEAD, the user agent MUST NOT automatically redirect the request unless it can
  * be confirmed by the user, since this might change the conditions under which
  * the request was issued.
- *
  */
 #define HTTP_STATUS_301_REASON_PHRASE	"Moved Permanently"
 
-/**
- *
- * The requested resource resides temporarily under a different URI. Since the
+/** The requested resource resides temporarily under a different URI. Since the
  * redirection might be altered on occasion, the client SHOULD continue to use
  * the Request-URI for future requests.  This response is only cacheable if
  * indicated by a Cache-Control or Expires header field.
@@ -806,9 +758,7 @@ typedef enum _hreq_method
  */
 #define HTTP_STATUS_302_REASON_PHRASE	"Found"
 
-/**
- *
- * The response to the request can be found under a different URI and SHOULD be
+/** The response to the request can be found under a different URI and SHOULD be
  * retrieved using a GET method on that resource. This method exists primarily to
  * allow the output of a POST-activated script to redirect the user agent to a
  * selected resource. The new URI is not a substitute reference for the
@@ -823,13 +773,10 @@ typedef enum _hreq_method
  * interoperability with such clients is a concern, the 302 status code may be
  * used instead, since most user agents react to a 302 response as described
  * here for 303.
- *
  */
 #define HTTP_STATUS_303_REASON_PHRASE	"See Other"
 
-/**
- *
- * If the client has performed a conditional GET request and access is allowed,
+/** If the client has performed a conditional GET request and access is allowed,
  * but the document has not been modified, the server SHOULD respond with this
  * status code. The 304 response MUST NOT contain a message-body, and thus is
  * always terminated by the first empty line after the header fields.
@@ -858,13 +805,10 @@ typedef enum _hreq_method
  *
  * If a cache uses a received 304 response to update a cache entry, the cache
  * MUST update the entry to reflect any new field values given in the response.
- *
  */
 #define HTTP_STATUS_304_REASON_PHRASE	"Not Modified"
 
-/**
- *
- * The requested resource MUST be accessed through the proxy given by the
+/** The requested resource MUST be accessed through the proxy given by the
  * Location field. The Location field gives the URI of the proxy. The recipient
  * is expected to repeat this single request via the proxy. 305 responses MUST
  * only be generated by origin servers.
@@ -872,13 +816,10 @@ typedef enum _hreq_method
  * Note: RFC 2068 was not clear that 305 was intended to redirect a single
  * request, and to be generated by origin servers only.  Not observing these
  * limitations has significant security consequences.
- *
  */
 #define HTTP_STATUS_305_REASON_PHRASE	"Use Proxy"
 
-/**
- *
- * The requested resource resides temporarily under a different URI. Since the
+/** The requested resource resides temporarily under a different URI. Since the
  * redirection MAY be altered on occasion, the client SHOULD continue to use the
  * Request-URI for future requests.  This response is only cacheable if indicated
  * by a Cache-Control or Expires header field.
@@ -894,21 +835,15 @@ typedef enum _hreq_method
  * HEAD, the user agent MUST NOT automatically redirect the request unless it can
  * be confirmed by the user, since this might change the conditions under which
  * the request was issued.
- *
  */
 #define HTTP_STATUS_307_REASON_PHRASE	"Temporary Redirect"
 
-/**
- *
- * The request could not be understood by the server due to malformed syntax.
+/** The request could not be understood by the server due to malformed syntax.
  * The client SHOULD NOT repeat the request without modifications.
- *
  */
 #define HTTP_STATUS_400_REASON_PHRASE	"Bad Request"
 
-/**
- *
- * The request requires user authentication. The response MUST include a
+/** The request requires user authentication. The response MUST include a
  * WWW-Authenticate header field (RFC 2616 section 14.47) containing a challenge
  * applicable to the requested resource. The client MAY repeat the request with
  * a suitable Authorization header field (RFC 2616 section 14.8). If the request
@@ -923,54 +858,39 @@ typedef enum _hreq_method
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
  * @see http://www.ietf.org/rfc/rfc2617.txt
- *
  */
 #define HTTP_STATUS_401_REASON_PHRASE	"Unauthorized"
 
-/**
- *
- * This code is reserved for future use.
- *
+/** This code is reserved for future use.
  */
 #define HTTP_STATUS_402_REASON_PHRASE	"Payment Required"
 
-/**
- *
- * The server understood the request, but is refusing to fulfill it.
+/** The server understood the request, but is refusing to fulfill it.
  * Authorization will not help and the request SHOULD NOT be repeated. If the
  * request method was not HEAD and the server wishes to make public why the
  * request has not been fulfilled, it SHOULD describe the reason for the refusal
  * in the entity.  If the server does not wish to make this information
  * available to the client, the status code 404 (Not Found) can be used instead.
- *
  */
 #define HTTP_STATUS_403_REASON_PHRASE	"Forbidden"
 
-/**
- *
- * The server has not found anything matching the Request-URI. No indication is
+/** The server has not found anything matching the Request-URI. No indication is
  * given of whether the condition is temporary or permanent. The 410 (Gone)
  * status code SHOULD be used if the server knows, through some internally
  * configurable mechanism, that an old resource is permanently unavailable and
  * has no forwarding address. This status code is commonly used when the server
  * does not wish to reveal exactly why the request has been refused, or when no
  * other response is applicable.
- *
  */
 #define HTTP_STATUS_404_REASON_PHRASE	"Not Found"
 
-/**
- *
- * The method specified in the Request-Line is not allowed for the resource
+/** The method specified in the Request-Line is not allowed for the resource
  * identified by the Request-URI. The response MUST include an Allow header
  * containing a list of valid methods for the requested resource.
- *
  */
 #define HTTP_STATUS_405_REASON_PHRASE	"Method Not Allowed"
 
-/**
- *
- * The resource identified by the request is only capable of generating response
+/** The resource identified by the request is only capable of generating response
  * entities which have content characteristics not acceptable according to the
  * accept headers sent in the request.
  *
@@ -990,13 +910,10 @@ typedef enum _hreq_method
  *
  * If the response could be unacceptable, a user agent SHOULD temporarily stop
  * receipt of more data and query the user for a decision on further actions.
- *
  */
 #define HTTP_STATUS_406_REASON_PHRASE	"Not Acceptable"
 
-/**
- *
- * This code is similar to 401 (Unauthorized), but indicates that the client
+/** This code is similar to 401 (Unauthorized), but indicates that the client
  * must first authenticate itself with the proxy. The proxy MUST return a
  * Proxy-Authenticate header field (RFC 2616 section 14.33) containing a
  * challenge applicable to the proxy for the requested resource. The client MAY
@@ -1006,22 +923,17 @@ typedef enum _hreq_method
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
  * @see http://www.ietf.org/rfc/rfc2617.txt
- *
  */
 #define HTTP_STATUS_407_REASON_PHRASE	"Proxy Authentication Required"
 
-/**
- *
- * The client did not produce a request within the time that the server was
+/** The client did not produce a request within the time that the server was
  * prepared to wait. The client MAY repeat the request without modifications at
  * any later time.
  *
  */
 #define HTTP_STATUS_408_REASON_PHRASE	"Request Time-out"
 
-/**
- *
- * The request could not be completed due to a conflict with the current state
+/** The request could not be completed due to a conflict with the current state
  * of the resource. This code is only allowed in situations where it is expected
  * that the user might be able to resolve the conflict and resubmit the request.
  * The response body SHOULD include enough information for the user to recognize
@@ -1036,13 +948,10 @@ typedef enum _hreq_method
  * request. In this case, the response entity would likely contain a list of the
  * differences between the two versions in a format defined by the response
  * Content-Type.
- *
  */
 #define HTTP_STATUS_409_REASON_PHRASE	"Conflict"
 
-/**
- *
- * The requested resource is no longer available at the server and no forwarding
+/** The requested resource is no longer available at the server and no forwarding
  * address is known. This condition is expected to be considered permanent.
  * Clients with link editing capabilities SHOULD delete references to the
  * Request-URI after user approval. If the server does not know, or has no
@@ -1058,46 +967,34 @@ typedef enum _hreq_method
  * is not necessary to mark all permanently unavailable resources as "gone" or to
  * keep the mark for any length of time -- that is left to the discretion of the
  * server owner.
- *
  */
 #define HTTP_STATUS_410_REASON_PHRASE	"Gone"
 
-/**
- *
- * The server refuses to accept the request without a defined Content- Length.
+/** The server refuses to accept the request without a defined Content- Length.
  * The client MAY repeat the request if it adds a valid Content-Length header
  * field containing the length of the message-body in the request message.
- *
  */
 #define HTTP_STATUS_411_REASON_PHRASE	"Length Required"
 
-/**
- *
- * The precondition given in one or more of the request-header fields evaluated
+/** The precondition given in one or more of the request-header fields evaluated
  * to false when it was tested on the server. This response code allows the
  * client to place preconditions on the current resource metainformation (header
  * field data) and thus prevent the requested method from being applied to a
  * resource other than the one intended.
- *
  */
 #define HTTP_STATUS_412_REASON_PHRASE	"Precondition Failed"
 
-/**
- *
- * The server is refusing to process a request because the request entity is
+/** The server is refusing to process a request because the request entity is
  * larger than the server is willing or able to process. The server MAY close
  * the connection to prevent the client from continuing the request.
  *
  * If the condition is temporary, the server SHOULD include a Retry-After header
  * field to indicate that it is temporary and after what time the client MAY try
  * again.
- *
  */
 #define HTTP_STATUS_413_REASON_PHRASE	"Request Entity Too Large"
 
-/**
- *
- * The server is refusing to service the request because the Request-URI is
+/** The server is refusing to service the request because the Request-URI is
  * longer than the server is willing to interpret. This rare condition is only
  * likely to occur when a client has improperly converted a POST request to a
  * GET request with long query information, when the client has descended into a
@@ -1109,18 +1006,13 @@ typedef enum _hreq_method
  */
 #define HTTP_STATUS_414_REASON_PHRASE	"Request-URI Too Large"
 
-/**
- *
- * The server is refusing to service the request because the entity of the
+/** The server is refusing to service the request because the entity of the
  * request is in a format not supported by the requested resource for the
  * requested method.
- *
  */
 #define HTTP_STATUS_415_REASON_PHRASE	"Unsupported Media Type"
 
-/**
- *
- * A server SHOULD return a response with this status code if a request included
+/** A server SHOULD return a response with this status code if a request included
  * a Range request-header field (RFC 2616 section 14.35), and none of the
  * range-specifier values in this field overlap the current extent of the
  * selected resource, and the request did not include an If-Range request-header
@@ -1132,48 +1024,33 @@ typedef enum _hreq_method
  * SHOULD include a Content-Range entity-header field specifying the current
  * length of the selected resource (see RFC 2616 section 14.16). This response
  * MUST NOT use the multipart/byteranges content-type.
- *
  */
 #define HTTP_STATUS_416_REASON_PHRASE	"Requested range not satisfiable"
 
-/**
- *
- * The expectation given in an Expect request-header field (see RFC 2616 section
+/** The expectation given in an Expect request-header field (see RFC 2616 section
  * 14.20) could not be met by this server, or, if the server is a proxy, the
  * server has unambiguous evidence that the request could not be met by the
  * next-hop server.
- *
  */
 #define HTTP_STATUS_417_REASON_PHRASE	"Expectation Failed"
 
-/**
- *
- * The server encountered an unexpected condition which prevented it from
+/** The server encountered an unexpected condition which prevented it from
  * fulfilling the request.
- *
  */
 #define HTTP_STATUS_500_REASON_PHRASE	"Internal Server Error"
 
-/**
- *
- * The server does not support the functionality required to fulfill the request.
+/** The server does not support the functionality required to fulfill the request.
  * This is the appropriate response when the server does not recognize the
  * request method and is not capable of supporting it for any resource.
- *
  */
 #define HTTP_STATUS_501_REASON_PHRASE	"Not Implemented"
 
-/**
- *
- * The server, while acting as a gateway or proxy, received an invalid response
+/** The server, while acting as a gateway or proxy, received an invalid response
  * from the upstream server it accessed in attempting to fulfill the request.
- *
  */
 #define HTTP_STATUS_502_REASON_PHRASE	"Bad Gateway"
 
-/**
- *
- * The server is currently unable to handle the request due to a temporary
+/** The server is currently unable to handle the request due to a temporary
  * overloading or maintenance of the server. The implication is that this is a
  * temporary condition which will be alleviated after some delay. If known, the
  * length of the delay MAY be indicated in a Retry-After header. If no
@@ -1183,32 +1060,25 @@ typedef enum _hreq_method
  * Note: The existence of the 503 status code does not imply that a server must
  * use it when becoming overloaded. Some servers may wish to simply refuse the
  * connection.
- *
  */
 #define HTTP_STATUS_503_REASON_PHRASE	"Service Unavailable"
 
-/**
- *
- * The server, while acting as a gateway or proxy, did not receive a timely
+/** The server, while acting as a gateway or proxy, did not receive a timely
  * response from the upstream server specified by the URI (e.g. HTTP, FTP, LDAP)
  * or some other auxiliary server (e.g. DNS) it needed to access in attempting
  * to complete the request.
  *
  * Note: Note to implementors: some deployed proxies are known to return 400 or
  * 500 when DNS lookups time out.
- *
  */
 #define HTTP_STATUS_504_REASON_PHRASE	"Gateway Time-out"
 
-/**
- *
- * The server does not support, or refuses to support, the HTTP protocol version
+/** The server does not support, or refuses to support, the HTTP protocol version
  * that was used in the request message. The server is indicating that it is
  * unable or unwilling to complete the request using the same major version as
  * the client, as described in RFC 2616 section 3.1, other than with this error
  * message. The response SHOULD contain an entity describing why that version is
  * not supported and what other protocols are supported by that server.
- *
  */
 #define HTTP_STATUS_505_REASON_PHRASE	"HTTP Version not supported"
 
@@ -1415,5 +1285,7 @@ extern void attachments_add_part(struct attachments_t * attachments, struct part
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

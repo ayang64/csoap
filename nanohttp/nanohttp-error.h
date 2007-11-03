@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-error.h,v 1.4 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: nanohttp-error.h,v 1.5 2007/11/03 22:40:11 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,7 +24,7 @@
 #ifndef __nanohttp_error_h
 #define __nanohttp_error_h
 
-/** @file
+/** @file nanohttp-error.h Error handling
  *
  * nanoHTTP error handling 
  *
@@ -55,38 +55,37 @@
  *
  */
 
-/**
- *
- * Success flag
- *
+/** @defgroup NANOHTTP_ERRORS nanoHTTP errors
+ * @ingroup NANOHTTP
  */
-#define H_OK				0
+/**@{*/
 
-/**
- *
- * General errors
- *
+/** @defgroup NANOHTTP_GENERAL_ERROS General errors
  */ 
+/**@{*/
+#define H_OK				0 /**< Success flag */
+
 #define GENERAL_ERROR			1400
 #define GENERAL_INVALID_PARAM		(GENERAL_ERROR + 1)
 #define GENERAL_HEADER_PARSE_ERROR	(GENERAL_ERROR + 2)
+/**@}*/
 
-/**
- *
- * Thread errors
- *
+/** @defgroup NANOHTTP_THREAD_ERRORS Thread errors
  */
+/**@{*/
 #define THREAD_ERROR			1500
 #define THREAD_BEGIN_ERROR		(THREAD_ERROR)
+/**@}*/
 
-/**
- *
- * File errors
- *
+/** @defgroup NANOHTTP_FILE_ERRORS File errors
  */
+/**@{*/
 #define FILE_ERROR			8000
 #define FILE_ERROR_OPEN			(FILE_ERROR + 1)
 #define FILE_ERROR_READ			(FILE_ERROR + 2)
+/**@}*/
+
+/**@}*/
 
 /**
  *
@@ -119,7 +118,7 @@ extern int herror_code(herror_t err);
 
 /**
  *
- * Returns the name of the function, where the error was produced.
+ * @return The name of the function, where the error was produced.
  *
  */
 extern const char *herror_func(herror_t err);

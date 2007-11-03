@@ -1,5 +1,6 @@
+/** @file nanohttp-base64.c Base64 data encoding/decoding */
 /******************************************************************
-*  $Id: nanohttp-base64.c,v 1.4 2006/12/11 08:13:19 m0gg Exp $
+*  $Id: nanohttp-base64.c,v 1.5 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -87,7 +88,9 @@ static void _decodeblock(unsigned char in[4], unsigned char out[3])
 }
 
 /** 
+ *
  * decode a base64 encoded string (maybe broken...)
+ *
  */
 void base64_decode_string(const unsigned char *instr, unsigned char *outstr)
 {

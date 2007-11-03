@@ -1,5 +1,6 @@
+/** @file nanohttp-stream.c Stream handling */
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.19 2006/12/01 10:56:00 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.20 2007/11/03 22:40:15 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -88,7 +89,7 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
 
   if (!(result = (struct http_input_stream_t *) malloc(sizeof(struct http_input_stream_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -100,7 +101,7 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Check if Content-type */
   if (_http_stream_is_content_length(header))
   {
-    log_verbose1("Stream transfer with 'Content-length'");
+    log_verbose("Stream transfer with 'Content-length'");
     content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
     result->content_length = atoi(content_length);
     result->received = 0;
@@ -109,7 +110,7 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Check if Chunked */
   else if (_http_stream_is_chunked(header))
   {
-    log_verbose1("Stream transfer with 'chunked'");
+    log_verbose("Stream transfer with 'chunked'");
     result->type = HTTP_TRANSFER_CHUNKED;
     result->chunk_size = -1;
     result->received = -1;
@@ -117,7 +118,7 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Assume connection close */
   else
   {
-    log_verbose1("Stream transfer with 'Connection: close'");
+    log_verbose("Stream transfer with 'Connection: close'");
     result->type = HTTP_TRANSFER_CONNECTION_CLOSE;
     result->connection_closed = 0;
     result->received = 0;
@@ -138,14 +139,14 @@ http_input_stream_new_from_file(const char *filename)
  
   if (!(fd = fopen(filename, "rb"))) {
 
-    log_error2("fopen failed (%s)", strerror(errno));
+    log_error("fopen failed (%s)", strerror(errno));
     return NULL;
   }
 
   /* Create object */
   if (!(result = (struct http_input_stream_t *) malloc(sizeof(struct http_input_stream_t)))) 
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     fclose(fd);
     return NULL;
   }
@@ -165,7 +166,7 @@ http_input_stream_free(struct http_input_stream_t * stream)
   {
     fclose(stream->fd);
     if (stream->deleteOnExit)
-      log_info2("Removing '%s'", stream->filename);
+      log_info("Removing '%s'", stream->filename);
     /* remove(stream->filename); */
   }
 
@@ -238,7 +239,7 @@ _http_input_stream_chunked_read_chunk_size(struct http_input_stream_t * stream)
 
     if (err != H_OK)
     {
-      log_error4("[%d] %s(): %s ", herror_code(err), herror_func(err),
+      log_error("[%d] %s(): %s ", herror_code(err), herror_func(err),
                  herror_message(err));
 
       stream->err = err;
@@ -254,7 +255,7 @@ _http_input_stream_chunked_read_chunk_size(struct http_input_stream_t * stream)
       chunk[i] = '\0';          /* double check */
       chunk_size = strtol(chunk, (char **) NULL, 16);   /* hex to dec */
       /* 
-         log_verbose3("chunk_size: '%s' as dec: '%d'", chunk, chunk_size); */
+         log_verbose("chunk_size: '%s' as dec: '%d'", chunk, chunk_size); */
       return chunk_size;
     }
 
@@ -512,7 +513,7 @@ http_output_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Create object */
   if (!(result = (struct http_output_stream_t *) malloc(sizeof(struct http_output_stream_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -524,7 +525,7 @@ http_output_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Check if Content-type */
   if (_http_stream_is_content_length(header))
   {
-    log_verbose1("Stream transfer with 'Content-length'");
+    log_verbose("Stream transfer with 'Content-length'");
     content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
     result->content_length = atoi(content_length);
     result->type = HTTP_TRANSFER_CONTENT_LENGTH;
@@ -532,13 +533,13 @@ http_output_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Check if Chunked */
   else if (_http_stream_is_chunked(header))
   {
-    log_verbose1("Stream transfer with 'chunked'");
+    log_verbose("Stream transfer with 'chunked'");
     result->type = HTTP_TRANSFER_CHUNKED;
   }
   /* Assume connection close */
   else
   {
-    log_verbose1("Stream transfer with 'Connection: close'");
+    log_verbose("Stream transfer with 'Connection: close'");
     result->type = HTTP_TRANSFER_CONNECTION_CLOSE;
   }
 

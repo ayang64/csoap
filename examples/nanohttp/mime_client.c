@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: mime_client.c,v 1.1 2007/01/03 21:31:44 m0gg Exp $
+*  $Id: mime_client.c,v 1.2 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
   }
 
   /* Set log level to see more information written by the library */
-  // log_set_level(HLOG_VERBOSE);
+  // log_set_level(NANOHTTP_LOG_VERBOSE);
 
   /* Initialize httpc module */
   if ((status = httpc_init(argc, argv)) != H_OK)
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
    */
   if ((status = httpc_mime_begin(conn, argv[1], argv[3], "", argv[4])) != H_OK)
   {
-    log_error2("Can not start MIME: %s\n", herror_message(status));
+    fprintf(stderr, "Can not start MIME: %s\n", herror_message(status));
     herror_release(status);
     exit(1);
   }

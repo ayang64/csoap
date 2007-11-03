@@ -1,5 +1,5 @@
 /******************************************************************
- * $Id: simpleserver.c,v 1.29 2007/01/01 18:58:05 m0gg Exp $
+ * $Id: simpleserver.c,v 1.30 2007/11/03 22:40:09 m0gg Exp $
  *
  * CSOAP Project:  CSOAP examples project 
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -74,7 +74,7 @@ say_hello(struct SoapCtx *req, struct SoapCtx *res)
     soap_env_add_itemf(res->env, "xsd:string", "echo", "Hello '%s'", name);
     if (name)
       xmlFree(name);
-    node = soap_xml_get_next(node);
+    node = soap_xml_get_next_element(node);
   }
 
   printf("service request done\n");

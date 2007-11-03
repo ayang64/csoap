@@ -1,5 +1,6 @@
+/** @file nanohttp-server.c HTTP server */
 /******************************************************************
-*  $Id: nanohttp-server.c,v 1.80 2007/01/01 22:54:46 m0gg Exp $
+*  $Id: nanohttp-server.c,v 1.81 2007/11/03 22:40:12 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -170,7 +171,7 @@ static pthread_mutex_t _httpd_connection_lock;
 BOOL WINAPI
 _httpd_term(DWORD sig)
 {
-  /* log_debug2 ("Got signal %d", sig); */
+  /* log_debug ("Got signal %d", sig); */
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
 
@@ -187,7 +188,7 @@ static void _httpd_sys_sleep(int secs)
 static void
 _httpd_term(int sig)
 {
-  log_debug2("Got signal %d", sig);
+  log_debug("Got signal %d", sig);
 
   if (sig == _httpd_terminate_signal)
     _httpd_run = 0;
@@ -228,7 +229,7 @@ _httpd_parse_arguments(int argc, char **argv)
     }
   }
 
-  log_verbose2("socket bind to port '%d'", _httpd_port);
+  log_verbose("socket bind to port '%d'", _httpd_port);
 
   return;
 }
@@ -259,7 +260,7 @@ _httpd_register_builtin_services(int argc, char **argv)
 
   if ((status = httpd_admin_init_args(argc, argv)) != H_OK)
   {
-    log_error2("httpd_admin_init_args failed (%s)", herror_message(status));
+    log_error("httpd_admin_init_args failed (%s)", herror_message(status));
     return status;
   }
 
@@ -275,7 +276,7 @@ httpd_init(int argc, char **argv)
 
   if ((status = hsocket_module_init(argc, argv)) != H_OK)
   {
-    log_error2("hsocket_modeule_init failed (%s)", herror_message(status));
+    log_error("hsocket_modeule_init failed (%s)", herror_message(status));
     return status;
   } 
 
@@ -283,19 +284,19 @@ httpd_init(int argc, char **argv)
 
   if ((status = _httpd_register_builtin_services(argc, argv)) != H_OK)
   {
-    log_error2("_httpd_register_builtin_services failed (%s)", herror_message(status));
+    log_error("_httpd_register_builtin_services failed (%s)", herror_message(status));
     return status;
   }
 
   if ((status = hsocket_init(&_httpd_socket)) != H_OK)
   {
-    log_error2("hsocket_init failed (%s)", herror_message(status));
+    log_error("hsocket_init failed (%s)", herror_message(status));
     return status;
   }
 
   if ((status = hsocket_bind(&_httpd_socket, _httpd_port)) != H_OK)
   {
-    log_error2("hsocket_bind failed (%s)", herror_message(status));
+    log_error("hsocket_bind failed (%s)", herror_message(status));
     return status;
   }
 
@@ -309,13 +310,13 @@ httpd_register_secure(const char *context, httpd_service func, httpd_auth auth)
 
   if (!(service = (hservice_t *) malloc(sizeof(hservice_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return herror_new("httpd_register_secure", 0, "malloc failed (%s)", strerror(errno));
   }
 
   if (!(service->statistics = (struct service_statistics *)malloc(sizeof(struct service_statistics))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(service);
     return herror_new("httpd_register_secure", 0, "malloc failed (%s)", strerror(errno));
   }    	
@@ -330,7 +331,7 @@ httpd_register_secure(const char *context, httpd_service func, httpd_auth auth)
   service->status = NHTTPD_SERVICE_UP;
   service->context = strdup(context);
 
-  log_verbose3("register service (%p) for \"%s\"", service, context);
+  log_verbose("register service (%p) for \"%s\"", service, context);
   if (_httpd_services_head == NULL)
   {
     _httpd_services_head = _httpd_services_tail = service;
@@ -588,22 +589,22 @@ _httpd_request_print(struct hrequest_t * req)
 {
   hpair_t *pair;
 
-  log_verbose1("++++++ Request +++++++++");
-  log_verbose2(" Method : '%s'",
+  log_verbose("++++++ Request +++++++++");
+  log_verbose(" Method : '%s'",
                (req->method == HTTP_REQUEST_POST) ? "POST" : "GET");
-  log_verbose2(" Path   : '%s'", req->path);
-  log_verbose2(" Spec   : '%s'",
+  log_verbose(" Path   : '%s'", req->path);
+  log_verbose(" Spec   : '%s'",
                (req->version == HTTP_1_0) ? "HTTP/1.0" : "HTTP/1.1");
-  log_verbose1(" Parsed query string :");
+  log_verbose(" Parsed query string :");
 
   for (pair = req->query; pair; pair = pair->next)
-    log_verbose3(" %s = '%s'", pair->key, pair->value);
+    log_verbose(" %s = '%s'", pair->key, pair->value);
 
-  log_verbose1(" Parsed header :");
+  log_verbose(" Parsed header :");
   for (pair = req->header; pair; pair = pair->next)
-    log_verbose3(" %s = '%s'", pair->key, pair->value);
+    log_verbose(" %s = '%s'", pair->key, pair->value);
 
-  log_verbose1("++++++++++++++++++++++++");
+  log_verbose("++++++++++++++++++++++++");
 
   return;
 }
@@ -615,7 +616,7 @@ httpd_new(struct hsocket_t * sock)
 
   if (!(conn = (httpd_conn_t *) malloc(sizeof(httpd_conn_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
   conn->sock = sock;
@@ -652,17 +653,17 @@ _httpd_decode_authorization(const char *value, char **user, char **pass)
   len = strlen(value) * 2;
   if (!(tmp = (char *) calloc(1, len)))
   {
-    log_error2("calloc failed (%s)", strerror(errno));
+    log_error("calloc failed (%s)", strerror(errno));
     return -1;
   }
 
   value = strstr(value, " ") + 1;
 
-  log_verbose2("Authorization (base64) = \"%s\"", value);
+  log_verbose("Authorization (base64) = \"%s\"", value);
 
   base64_decode_string(value, tmp);
 
-  log_verbose2("Authorization (ascii) = \"%s\"", tmp);
+  log_verbose("Authorization (ascii) = \"%s\"", tmp);
 
   if ((tmp2 = strstr(tmp, ":")))
   {
@@ -692,20 +693,20 @@ _httpd_authenticate_request(struct hrequest_t * req, httpd_auth auth)
 
   if (!(authorization = hpairnode_get_ignore_case(req->header, HEADER_AUTHORIZATION)))
   {
-    log_debug2("\"%s\" header not set", HEADER_AUTHORIZATION);
+    log_debug("\"%s\" header not set", HEADER_AUTHORIZATION);
     return 0;
   }
 
   if (_httpd_decode_authorization(authorization, &user, &pass))
   {
-    log_error1("httpd_base64_decode_failed");
+    log_error("httpd_base64_decode_failed");
     return 0;
   }
 
   if ((ret = auth(req, user, pass)))
-    log_debug2("Access granted for user=\"%s\"", user);
+    log_debug("Access granted for user=\"%s\"", user);
   else
-    log_info2("Authentication failed for user=\"%s\"", user);
+    log_info("Authentication failed for user=\"%s\"", user);
 
   free(user);
   free(pass);
@@ -730,18 +731,18 @@ httpd_session_main(void *data)
   int done;
 
   if (gettimeofday(&start, NULL) == -1)
-    log_error2("gettimeofday failed (%s)", strerror(errno));
+    log_error("gettimeofday failed (%s)", strerror(errno));
 
   conn = (conndata_t *) data;
 
-  log_verbose2("starting new httpd session on socket %d", conn->sock);
+  log_verbose("starting new httpd session on socket %d", conn->sock);
 
   rconn = httpd_new(&(conn->sock));
 
   done = 0;
   while (!done)
   {
-    log_verbose3("starting HTTP request on socket %d (%p)", conn->sock, conn->sock.sock);
+    log_verbose("starting HTTP request on socket %d (%p)", conn->sock, conn->sock.sock);
 
     if ((status = hrequest_new_from_socket(&(conn->sock), &req)) != H_OK)
     {
@@ -749,9 +750,9 @@ httpd_session_main(void *data)
 
       switch ((code = herror_code(status)))
       {
-        case HSOCKET_ERROR_SSLCLOSE:
+        case HSSL_ERROR_SSLCLOSE:
         case HSOCKET_ERROR_RECEIVE:
-          log_error2("hrequest_new_from_socket failed (%s)", herror_message(status));
+          log_error("hrequest_new_from_socket failed (%s)", herror_message(status));
           break;
         default:
           httpd_send_bad_request(rconn, herror_message(status));
@@ -775,7 +776,7 @@ httpd_session_main(void *data)
 
       if ((service = httpd_find_service(req->path)))
       {
-        log_verbose3("service '%s' for '%s' found", service->context, req->path);
+        log_verbose("service '%s' for '%s' found", service->context, req->path);
 
 	if (service->status == NHTTPD_SERVICE_UP)
 	{
@@ -790,7 +791,7 @@ httpd_session_main(void *data)
               service->func(rconn, req);
 
               if (gettimeofday(&end, NULL) == -1)
-                log_error2("gettimeofday failed (%s)", strerror(errno));
+                log_error("gettimeofday failed (%s)", strerror(errno));
               timersub(&end, &start, &duration);
 
               pthread_rwlock_wrlock(&(service->statistics->lock));
@@ -801,7 +802,7 @@ httpd_session_main(void *data)
 
               if (rconn->out && rconn->out->type == HTTP_TRANSFER_CONNECTION_CLOSE)
               {
-                log_verbose1("Connection close requested");
+                log_verbose("Connection close requested");
                 done = 1;
               }
             }
@@ -810,7 +811,7 @@ httpd_session_main(void *data)
               char buffer[256];
 
               snprintf(buffer, 256, "service '%s' is not registered properly (service function is NULL)", req->path);
-              log_verbose1(buffer);
+              log_verbose("%s", buffer);
               httpd_send_not_implemented(rconn, buffer);
             }
 	  }
@@ -825,7 +826,7 @@ httpd_session_main(void *data)
           char buffer[256];
 
           sprintf(buffer, "service for '%s' is disabled", req->path);
-          log_verbose1(buffer);
+          log_verbose("%s", buffer);
           httpd_send_internal_error(rconn, buffer);
         }
       }
@@ -833,7 +834,7 @@ httpd_session_main(void *data)
       {
         char buffer[256];
         sprintf(buffer, "no service for '%s' found", req->path);
-        log_verbose1(buffer);
+        log_verbose("%s", buffer);
 	httpd_send_not_implemented(rconn, buffer);
         done = 1;
       }
@@ -869,7 +870,7 @@ httpd_set_header(httpd_conn_t * conn, const char *key, const char *value)
 
   if (conn == NULL)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return 0;
   }
 
@@ -904,7 +905,7 @@ httpd_add_header(httpd_conn_t * conn, const char *key, const char *value)
 {
   if (!conn)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return 0;
   }
 
@@ -918,7 +919,7 @@ httpd_add_headers(httpd_conn_t * conn, const hpair_t * values)
 {
   if (!conn)
   {
-    log_warn1("Connection object is NULL");
+    log_warn("Connection object is NULL");
     return;
   }
 
@@ -944,12 +945,12 @@ _httpd_register_signal_handler(void)
   sigaddset(&thrsigset, SIGALRM);
 #endif
 
-  log_verbose2("registering termination signal handler (SIGNAL:%d)",
+  log_verbose("registering termination signal handler (SIGNAL:%d)",
                _httpd_terminate_signal);
 #ifdef WIN32
   if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) _httpd_term, TRUE) == FALSE)
   {
-    log_error1("Unable to install console event handler!");
+    log_error("Unable to install console event handler!");
   }
 
 #else
@@ -1021,7 +1022,7 @@ _httpd_start_thread(conndata_t * conn)
   pthread_sigmask(SIG_BLOCK, &thrsigset, NULL);
   if ((err =
        pthread_create(&(conn->tid), &(conn->attr), httpd_session_main, conn)))
-    log_error2("pthread_create failed (%s)", strerror(err));
+    log_error("pthread_create failed (%s)", strerror(err));
 #endif
 
   return;
@@ -1035,13 +1036,13 @@ httpd_run(void)
   herror_t err;
   fd_set fds;
 
-  log_verbose1("starting run routine");
+  log_verbose("starting run routine");
 
   _httpd_register_signal_handler();
 
   if ((err = hsocket_listen(&_httpd_socket)) != H_OK)
   {
-    log_error2("hsocket_listen failed (%s)", herror_message(err));
+    log_error("hsocket_listen failed (%s)", herror_message(err));
     return err;
   }
 
@@ -1088,7 +1089,7 @@ httpd_run(void)
 
     if ((err = hsocket_accept(&_httpd_socket, &(conn->sock))) != H_OK)
     {
-      log_error2("hsocket_accept failed (%s)", herror_message(err));
+      log_error("hsocket_accept failed (%s)", herror_message(err));
 
       hsocket_close(&(conn->sock));
 
@@ -1139,7 +1140,7 @@ httpd_get_postdata(httpd_conn_t * conn, struct hrequest_t * req, long *received,
   }
   else
   {
-    log_warn1("Not a POST method");
+    log_warn("Not a POST method");
     return NULL;
   }
 
@@ -1152,7 +1153,7 @@ httpd_get_postdata(httpd_conn_t * conn, struct hrequest_t * req, long *received,
     if (!(postdata = (char *) malloc(1)))
     {
 
-      log_error2("malloc failed (%s)", strerror(errno));
+      log_error("malloc failed (%s)", strerror(errno));
       return NULL;
     }
     postdata[0] = '\0';
@@ -1160,7 +1161,7 @@ httpd_get_postdata(httpd_conn_t * conn, struct hrequest_t * req, long *received,
   }
   if (!(postdata = (unsigned char *) malloc(content_length + 1)))
   {
-    log_error2("malloc failed (%)", strerror(errno));
+    log_error("malloc failed (%)", strerror(errno));
     return NULL;
   }
   if (http_input_stream_read(req->in, postdata, (int) content_length) > 0)
@@ -1182,7 +1183,7 @@ static void
 _httpd_mime_get_boundary(httpd_conn_t * conn, char *dest)
 {
   sprintf(dest, "---=.Part_NH_%p", conn);
-  log_verbose2("boundary= \"%s\"", dest);
+  log_verbose("boundary= \"%s\"", dest);
 
   return;
 }

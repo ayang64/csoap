@@ -1,4 +1,4 @@
-$Id: TODO,v 1.18 2007/01/03 13:41:52 m0gg Exp $
+$Id: TODO,v 1.19 2007/11/03 22:40:09 m0gg Exp $
 ===============================================================================
 
 Things to do _before_ 1.2 release:
@@ -7,6 +7,8 @@ Things to do _before_ 1.2 release:
 nanohttp:
 ---------
 - improve error handling!!!!
+  - write tests (for each??) error case
+  - trigger tests after build
 - cleanup/improve nanohttp request parsing
   - "GET http://fdqn/service HTTP/1.1" segfaults
 - Check portability to Win32/MaxOS (only tested on FreeBSD/Solaris/Linux)
@@ -44,14 +46,14 @@ Additional things that could be done:
 =====================================
 
 nanohttp:
----------
+=========
 - add DIME attachments (SOAP MTOM)
 - add BASE64 decoding for MIME attachments (?)
 - cleanup circular module dependencies
   - e.g. nanohttp-stream should hide hsocket, hssl
 
 csoap:
-------
+======
 - add examples from http://www.xmethods.org (Google, UDDI)
 - soap-nudp.c one thread per request (see soap_nudp_server_run)
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing

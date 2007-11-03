@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-router.c,v 1.14 2006/11/25 15:06:57 m0gg Exp $
+*  $Id: soap-router.c,v 1.15 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -40,8 +40,8 @@
 #include <libxml/tree.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-ctx.h"
 #include "soap-service.h"
@@ -55,7 +55,7 @@ soap_router_new(void)
 
   if (!(router = (struct SoapRouter *) malloc(sizeof(struct SoapRouter))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
   memset(router, 0, sizeof(struct SoapRouter));
@@ -68,7 +68,7 @@ soap_router_register_service(struct SoapRouter *router, SoapServiceFunc func, co
 {
   SoapService *service;
 
-  log_verbose4("registering service (router=%p, method=\"%s\", urn=\"%s\")", router, method, urn);
+  log_verbose("registering service (router=%p, method=\"%s\", urn=\"%s\")", router, method, urn);
 
   if (!(service = soap_service_new(urn, method, func)))
     return herror_new("soap_router_register_service", 0, "soap_service_new failed");
@@ -136,24 +136,24 @@ soap_router_find_service(struct SoapRouter *router, const char *urn, const char 
 
   if (router == NULL)
   {
-    log_verbose1("router is null");
+    log_verbose("router is null");
     return NULL;
   }
 
   if (urn == NULL)
   {
-    log_verbose1("URN is null");
+    log_verbose("URN is null");
     return NULL;
   }
 
   if (method == NULL)
   {
-    log_verbose1("method is null"); 
+    log_verbose("method is null"); 
     return NULL;
   }
 
-  log_verbose2("router = %p", router);
-  log_verbose2("router->service_head = %p", router->service_head);
+  log_verbose("router = %p", router);
+  log_verbose("router->service_head = %p", router->service_head);
 
   node = router->service_head;
 
@@ -161,7 +161,7 @@ soap_router_find_service(struct SoapRouter *router, const char *urn, const char 
   {
     if (node->service && node->service->urn && node->service->method)
     {
-      log_verbose4("checking service (node=%p, method=\"%s\", urn=\"%s\")", node->service, node->service->method, node->service->urn);
+      log_verbose("checking service (node=%p, method=\"%s\", urn=\"%s\")", node->service, node->service->method, node->service->urn);
       if (!strcmp(node->service->urn, urn) && !strcmp(node->service->method, method))
         return node->service;
     }
@@ -174,7 +174,7 @@ void
 soap_router_free(struct SoapRouter * router)
 {
   SoapServiceNode *node;
-  log_verbose2("enter: router=%p", router);
+  log_verbose("enter: router=%p", router);
 
   if (!router)
     return;
@@ -182,7 +182,7 @@ soap_router_free(struct SoapRouter * router)
   while (router->service_head)
   {
     node = router->service_head->next;
-    /* log_verbose2("soap_service_free(%p)\n",
+    /* log_verbose("soap_service_free(%p)\n",
        router->service_head->service); */
     soap_service_free(router->service_head->service);
     free(router->service_head);
@@ -192,7 +192,7 @@ soap_router_free(struct SoapRouter * router)
     xmlFreeDoc(router->description);
 
   free(router);
-  log_verbose1("leave with success");
+  log_verbose("leave with success");
 
   return;
 }

@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-server.c,v 1.36 2006/12/31 17:24:22 m0gg Exp $
+*  $Id: soap-server.c,v 1.37 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -41,8 +41,8 @@
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -66,7 +66,7 @@ router_node_new(struct SoapRouter * router, const char *context, SoapRouterNode 
 
   if (!(node = (SoapRouterNode *) malloc(sizeof(SoapRouterNode))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -76,7 +76,7 @@ router_node_new(struct SoapRouter * router, const char *context, SoapRouterNode 
   }
   else
   {
-    log_warn2("context is null, using '%s'", noname);
+    log_warn("context is null, using '%s'", noname);
     node->context = strdup(noname);
   }
 
@@ -97,7 +97,7 @@ _soap_server_fillup_header(struct SoapEnv *envelope)
 {
   xmlURI *uri;
 
-  log_verbose1(__FUNCTION__);
+  log_verbose("");
 
   if (!(uri = soap_addressing_get_message_id(envelope)))
     soap_addressing_set_message_id_string(envelope, NULL);
@@ -139,16 +139,16 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
   SoapService *service;
   herror_t err;
 
-  log_verbose1("**** processing ****");
+  log_verbose("**** processing ****");
   xmlDocDump(stdout, request->env->root->doc);
-  log_verbose1("********************");
+  log_verbose("********************");
 
   *response = soap_ctx_new(NULL);
 
 #ifdef HAVE_XMLSEC1
   if ((err = soap_xmlsec_verify(request)) != H_OK)
   {
-    log_error2("soap_xmlsec_verify failed (%s)", herror_message(err));
+    log_error("soap_xmlsec_verify failed (%s)", herror_message(err));
     sprintf(buffer, "Verification of message signature failed (%s)", herror_message(err));
 
     _soap_server_env_new_with_fault("Internal server error", buffer, &((*response)->env));
@@ -157,7 +157,7 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 
   if ((err = soap_xmlsec_decrypt(request)) != H_OK)
   {
-    log_error2("soap_xmlsec_decrypt failed (%s)", herror_message(err));
+    log_error("soap_xmlsec_decrypt failed (%s)", herror_message(err));
     sprintf(buffer, "Decryption of message body failed (%s)", herror_message(err));
     _soap_server_env_new_with_fault("Internal server error", buffer, &((*response)->env));
     return H_OK;
@@ -166,19 +166,19 @@ soap_server_process(struct SoapCtx *request, struct SoapCtx **response)
 
   if ((method = soap_env_find_methodname(request->env)))
   {
-    log_verbose2("method: \"%s\"", method);
+    log_verbose("method: \"%s\"", method);
     if ((urn = soap_env_find_urn(request->env)))
     {
-      log_verbose2("urn: \"%s\"", urn);
+      log_verbose("urn: \"%s\"", urn);
       if ((uri = soap_addressing_get_to_address(request->env)))
       {
-        log_verbose2("searching router for \"%s\"", uri->path);
+        log_verbose("searching router for \"%s\"", uri->path);
         if ((router = soap_server_find_router(uri->path)))
         {
-          log_verbose2("router: %p", router);
+          log_verbose("router: %p", router);
           if ((service = soap_router_find_service(router, urn, method)))
           {
-            log_verbose3("service (%p) found, function (%p)", service, service->func);
+            log_verbose("service (%p) found, function (%p)", service, service->func);
 	    switch (service->status)
             {
               case CSOAP_SERVICE_UP:
@@ -251,14 +251,14 @@ soap_server_init_args(int argc, char **argv)
 
   if ((status = soap_transport_server_init_args(argc, argv)) != H_OK)
   {
-    log_error2("soap_transport_server_init_args failed (%s)", herror_message(status));
+    log_error("soap_transport_server_init_args failed (%s)", herror_message(status));
     return status;
   }
 
 #ifdef HAVE_XMLSEC1
   if ((status = soap_xmlsec_server_init_args(argc, argv)) != H_OK)
   {
-    log_error2("soap_xmlsec_server_init_args failed (%s)", herror_message(status));
+    log_error("soap_xmlsec_server_init_args failed (%s)", herror_message(status));
     return status;
   }
 #endif
@@ -279,7 +279,7 @@ soap_server_register_router(struct SoapRouter *router, const char *context)
 
   if ((status = soap_transport_register(context)) != H_OK)
   {
-    log_error2("soap_transport_register failed (%s)", herror_message(status));
+    log_error("soap_transport_register failed (%s)", herror_message(status));
     return status;
   }
 
@@ -322,7 +322,7 @@ soap_server_destroy(void)
   while (node != NULL)
   {
     tmp = node->next;
-    log_verbose2("soap_router_free(%p)", node->router);
+    log_verbose("soap_router_free(%p)", node->router);
     soap_router_free(node->router);
     free(node->context);
     free(node);

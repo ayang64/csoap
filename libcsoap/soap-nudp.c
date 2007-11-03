@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nudp.c,v 1.9 2006/12/16 15:55:24 m0gg Exp $
+*  $Id: soap-nudp.c,v 1.10 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2006 Heiko Ronsdorf
@@ -73,8 +73,8 @@
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -98,7 +98,7 @@ _soap_nudp_server_set_port(void)
 
   if (!(entry = getservbyname("soap", "udp")))
   {
-    log_warn1("getservbyname(\"soap\", \"udp\") returned NULL, please edit services database");
+    log_warn("getservbyname(\"soap\", \"udp\") returned NULL, please edit services database");
     _soap_nudp_port = NUDP_DEFAULT_PORT;
   }
   else
@@ -121,7 +121,7 @@ _soap_nudp_server_parse_arguments(int argc, char **argv)
     }
   }
 
-  log_verbose2("socket bind to port \"%d\"", _soap_nudp_port);
+  log_verbose("socket bind to port \"%d\"", _soap_nudp_port);
 
   return;
 }
@@ -139,7 +139,7 @@ _soap_nudp_send_document(int socket, xmlDocPtr doc, const struct sockaddr *addr,
   xmlDocDumpMemory(doc, &buf, &size);
   if ((sent = sendto(socket, buf, size, 0, addr, addr_len)) == -1)
   {
-    log_error2("sendto failed (%s)", strerror(errno));
+    log_error("sendto failed (%s)", strerror(errno));
     ret = herror_new("soap_nudp_client_invoke", 0, "Cannot send message");
   }
 
@@ -157,14 +157,14 @@ _soap_nudp_receive_document(int socket, xmlDocPtr *doc, struct sockaddr *addr, s
   /** @todo: use a timeout ??? */
   if ((cnt = recvfrom(socket, buf, 4095, 0, addr, addr_len)) < 0)
   {
-    log_error2("recvfrom failed (%s)", strerror(errno));
+    log_error("recvfrom failed (%s)", strerror(errno));
     return herror_new("_soap_nudp_receive_document", 0, "Receiving document failed");
   }
   buf[cnt] = '\0';
 
   if (!(*doc = xmlReadDoc(buf, NULL, NULL, XML_PARSE_NONET)))
   {
-    log_error1("xmlReadDoc failed");
+    log_error("xmlReadDoc failed");
     return herror_new("_soap_nudp_receive_document", 0, "Cannot parse received data");
   }
 
@@ -184,7 +184,7 @@ _soap_nudp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx *
 
   if (!(to = soap_addressing_get_to_address(request->env)))
   {
-    log_error1("soap_addressing_get_to_address returned NULL");
+    log_error("soap_addressing_get_to_address returned NULL");
     return herror_new("soap_nudp_client_invoke", 0, "Destination address is missing");
   }
 
@@ -197,13 +197,13 @@ _soap_nudp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx *
 
   if (inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr) != 1)
   {
-    log_error2("inet_pton failed (%s)", strerror(errno));
+    log_error("inet_pton failed (%s)", strerror(errno));
     return herror_new("soap_nudp_client_invoke", 0, "Cannot resolve destination address");
   }
 
   if ((sd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
-    log_error2("socket failed (%s)", strerror(errno));
+    log_error("socket failed (%s)", strerror(errno));
     return herror_new("soap_nudp_client_invoke", 0, "Cannot create socket");
   }
 
@@ -212,14 +212,14 @@ _soap_nudp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx *
   saddr_len = sizeof(struct sockaddr);
   if ((status = _soap_nudp_receive_document(sd, &doc, &saddr, &saddr_len)) != H_OK)
   {
-    log_error2("_soap_nudp_receive_document failed (%s)", herror_message(status));
+    log_error("_soap_nudp_receive_document failed (%s)", herror_message(status));
     return status;
   }
 
   *response = soap_ctx_new(NULL);
   if ((status = soap_env_new_from_doc(doc, &(*response)->env)) != H_OK)
   {
-    log_error2("soap_env_new_from_doc failed (%s)", herror_message(status));
+    log_error("soap_env_new_from_doc failed (%s)", herror_message(status));
     return status;
   }
 
@@ -239,7 +239,7 @@ soap_nudp_server_init_args(int argc, char **argv)
  
   if ((_soap_nudp_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
-    log_error2("socket failed (%s)", strerror(errno));
+    log_error("socket failed (%s)", strerror(errno));
     return herror_new("soap_nudp_server_init_args", 0, "Cannot create socket (%s)", strerror(errno));
   }
 
@@ -250,7 +250,7 @@ soap_nudp_server_init_args(int argc, char **argv)
 
   if (bind(_soap_nudp_socket, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0)
   {
-    log_error2("bind failed (%s)", strerror(errno));
+    log_error("bind failed (%s)", strerror(errno));
     return herror_new("soap_nudp_server_init_args", 0, "Cannot bind socket (%s)", strerror(errno));
   }
 
@@ -281,12 +281,12 @@ soap_nudp_server_run(void *unused)
     addr_len = sizeof(struct sockaddr);
     if (_soap_nudp_receive_document(_soap_nudp_socket, &doc, &addr, &addr_len) != H_OK)
     {
-      log_error2("_soap_nudp_receive_document failed (%s)", herror_message(status));
+      log_error("_soap_nudp_receive_document failed (%s)", herror_message(status));
       herror_release(status);
       continue;
     }
 
-    /* log_error1(__FUNCTION__);
+    /* log_error(__FUNCTION__);
      xmlDocFormatDump(stdout, doc, 1); */
 
     req = soap_ctx_new(NULL);
@@ -324,7 +324,7 @@ soap_nudp_server_run_threaded(void)
 
   if ((err = pthread_create(&_soap_nudp_thread, &_soap_nudp_attr, soap_nudp_server_run, NULL)) < 0)
   {
-    log_error2("pthread_create failed (%s)", strerror(err));
+    log_error("pthread_create failed (%s)", strerror(err));
     return herror_new("soap_nudp_server_run_threaded", 0, "pthread_create failed (%s)", strerror(err));
   }
 

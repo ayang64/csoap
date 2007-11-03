@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-ctx.c,v 1.14 2006/11/25 15:06:57 m0gg Exp $
+ *  $Id: soap-ctx.c,v 1.15 2007/11/03 22:40:09 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,8 +45,8 @@
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -58,7 +58,7 @@ soap_ctx_new(struct SoapEnv * env)     /* should only be used internally */
  
   if (!(ctx = (struct SoapCtx *) malloc(sizeof(struct SoapCtx))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 

@@ -1,5 +1,6 @@
+/** @file nanohttp-error.c Error handling */
 /******************************************************************
-*  $Id: nanohttp-error.c,v 1.1 2006/12/09 09:36:57 m0gg Exp $
+*  $Id: nanohttp-error.c,v 1.2 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -63,16 +64,12 @@ herror_new(const char *func, int errcode, const char *format, ...)
  
   if (!(impl = (herror_impl_t *) malloc(sizeof(herror_impl_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
   impl->errcode = errcode;
-
-  if (func)
-    impl->func = strdup(func);
-  else
-    func = NULL;
+  impl->func = func ? strdup(func) : NULL;
 
   va_start(ap, format);
   vsprintf(impl->message, format, ap);

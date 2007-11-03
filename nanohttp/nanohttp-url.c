@@ -1,5 +1,6 @@
+/** @file nanohttp-url.c URL parsing functions */
 /******************************************************************
-*  $Id: nanohttp-url.c,v 1.3 2006/12/16 16:09:45 m0gg Exp $
+*  $Id: nanohttp-url.c,v 1.4 2007/11/03 22:40:15 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -61,14 +62,14 @@ _hurl_dump(const struct hurl_t *url)
 {
   if (!url)
   {
-    log_error1("parameter url is NULL");
+    log_error("parameter url is NULL");
     return;
   }
 
-  log_verbose2("PROTOCOL: %d", url->protocol);
-  log_verbose2("    HOST: \"%s\"", url->host);
-  log_verbose2("    PORT: %d", url->port);
-  log_verbose2(" CONTEXT: \"%s\"", url->context);
+  log_verbose("PROTOCOL: %d", url->protocol);
+  log_verbose("    HOST: \"%s\"", url->host);
+  log_verbose("    PORT: %d", url->port);
+  log_verbose(" CONTEXT: \"%s\"", url->context);
 
   return;
 }
@@ -96,18 +97,18 @@ hurl_parse(struct hurl_t *url, const char *urlstr)
 
   if (iprotocol == 0)
   {
-    log_error1("no protocol");
+    log_error("no protocol");
     return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
   }
   if (iprotocol + 3 >= len)
   {
-    log_error1("no host");
+    log_error("no host");
     return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
   }
   if (urlstr[iprotocol] != ':'
       && urlstr[iprotocol + 1] != '/' && urlstr[iprotocol + 2] != '/')
   {
-    log_error1("no protocol");
+    log_error("no protocol");
     return herror_new("hurl_parse", URL_ERROR_NO_PROTOCOL, "No protocol");
   }
 
@@ -121,7 +122,7 @@ hurl_parse(struct hurl_t *url, const char *urlstr)
 
   if (ihost == iprotocol + 1)
   {
-    log_error1("no host");
+    log_error("no host");
     return herror_new("hurl_parse", URL_ERROR_NO_HOST, "No host");
   }
 
@@ -151,7 +152,7 @@ hurl_parse(struct hurl_t *url, const char *urlstr)
   /* find right port */
   if (!(entry = getservbyname(protocol, "tcp")))
   {
-    log_warn2("getservbyname(\"%s\", \"tcp\") returned NULL, please edit services database", protocol);
+    log_warn("getservbyname(\"%s\", \"tcp\") returned NULL, please edit services database", protocol);
 
     switch (url->protocol)
     {
@@ -171,7 +172,7 @@ hurl_parse(struct hurl_t *url, const char *urlstr)
   size = ihost - iprotocol - 3;
   if (!(url->host = (char *)malloc(size + 1)))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return herror_new("hurl_parse", URL_ERROR, "malloc failed (%s)", strerror(errno));
   }
   strncpy(url->host, &urlstr[iprotocol + 3], size);
@@ -191,7 +192,7 @@ hurl_parse(struct hurl_t *url, const char *urlstr)
     size = len - iport;
     if (!(url->context = (char *)malloc(size + 1)))
     {
-      log_error2("malloc failed (%s)", strerror(errno));
+      log_error("malloc failed (%s)", strerror(errno));
       return herror_new("hurl_parse", URL_ERROR, "malloc failed (%s)", strerror(errno));
     }
     strncpy(url->context, &urlstr[iport], size);

@@ -1,5 +1,6 @@
+/** @file nanohttp-common.c Common functions and definitions */
 /******************************************************************
-*  $Id: nanohttp-common.c,v 1.38 2007/01/01 22:54:46 m0gg Exp $
+*  $Id: nanohttp-common.c,v 1.39 2007/11/03 22:40:10 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -62,10 +63,10 @@ hpairnode_new(const char *key, const char *value, hpair_t * next)
 {
   hpair_t *pair;
 
-  log_verbose3("new pair ('%s','%s')", SAVE_STR(key), SAVE_STR(value));
+  log_verbose("new pair ('%s','%s')", SAVE_STR(key), SAVE_STR(value));
   if (!(pair = (hpair_t *) malloc(sizeof(hpair_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -159,10 +160,10 @@ hpairnode_dump(const hpair_t * pair)
 {
   if (pair == NULL)
   {
-    log_verbose1("(NULL)[]");
+    log_verbose("(NULL)[]");
     return;
   }
-  log_verbose5("(%p)['%s','%s','%p']", pair,
+  log_verbose("(%p)['%s','%s','%p']", pair,
                SAVE_STR(pair->key), SAVE_STR(pair->value), pair->next);
 
   return;
@@ -173,12 +174,12 @@ hpairnode_dump_deep(const hpair_t * pairs)
 {
   const hpair_t *p;
 
-  log_verbose1("-- BEGIN dump_deep hpair_t --");
+  log_verbose("-- BEGIN dump_deep hpair_t --");
   for (p = pairs; p != NULL; p = p->next)
   {
     hpairnode_dump(p);
   }
-  log_verbose1("-- END dump_deep hpair_t --\n");
+  log_verbose("-- END dump_deep hpair_t --\n");
 
   return;
 }
@@ -221,7 +222,7 @@ hpairnode_get_ignore_case(hpair_t * pair, const char *key)
 {
   if (key == NULL)
   {
-    log_error1("key is NULL");
+    log_error("key is NULL");
     return NULL;
   }
 
@@ -245,7 +246,7 @@ hpairnode_get(hpair_t * pair, const char *key)
 {
   if (key == NULL)
   {
-    log_error1("key is NULL");
+    log_error("key is NULL");
     return NULL;
   }
   while (pair != NULL)
@@ -369,7 +370,7 @@ part_new(const char *id, const char *filename, const char *content_type, const c
  
   if (!(part = (struct part_t *) malloc(sizeof(struct part_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -426,7 +427,7 @@ attachments_new(void)               /* should be used internally */
  
   if (!(attachments = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 

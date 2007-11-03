@@ -43,7 +43,7 @@ dnl checks for headers
 dnl
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/wait.h time.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h malloc.h netdb.h netinet/in.h stdint.h stdlib.h signal.h pthread.h string.h sys/socket.h sys/wait.h time.h sys/time.h unistd.h io.h stdio.h stdarg.h errno.h ctype.h openssl/ssl.h openssl/rand.h openssl/err.h syslog.h])
 
 dnl
 dnl Checks for typedefs, structures, and compiler characteristics.

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-request.h,v 1.15 2007/01/03 08:33:44 m0gg Exp $
+ *  $Id: nanohttp-request.h,v 1.16 2007/11/03 22:40:11 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -24,15 +24,24 @@
 #ifndef __nhttp_request_h
 #define __nhttp_request_h
 
-/** @defgroup http_request_header_fields Request Header Fields
+/** @file nanohttp-request.h HTTP request handling
  *
- * The request-header fields allow the client to pass additional information
- * about the request, and about the client itself, to the server. These fields
- * act as request modifiers, with semantics equivalent to the parameters on a
- * programming language method invocation.
+ * @defgroup NANOHTTP_REQUEST HTTP request handling
+ * @ingroup NANOHTTP_SERVER
+ *
+ */
+/**@{*/
+
+/** @defgroup HTTP_REQUEST_HEADER_FIELDS Request Header Fields
+ * @ingroup HTTP_HEADER_FIELDS
+ *
+ * The request-header fields allow the client to pass additional
+ * information about the request, and about the client itself, to the
+ * server. These fields act as request modifiers, with semantics
+ * equivalent to the parameters on a programming language method
+ * invocation.
  *
  * @see http://www.ietf.org/rfc/rfc2616.txt
- *
  */
 /*@{*/
 
@@ -297,5 +306,7 @@ extern void hrequest_free(struct hrequest_t *req);
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

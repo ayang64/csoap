@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-admin.h,v 1.6 2006/12/19 08:55:17 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.7 2007/11/03 22:40:10 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,93 +24,90 @@
 #ifndef __nanohttp_admin_h
 #define __nanohttp_admin_h
 
-/**
+/** @file nanohttp-admin.h Administrator application
  *
- * Commandline argument to enabled the nanoHTTP admin interface. This service
- * will be reachable via the NHTTPD_ADMIN_CONTEXT.
+ * @defgroup NANOHTTP_ADMIN Administrator application
+ * @ingroup NANOHTTP_SERVER
+ */
+/**@{*/
+
+/** @defgrup NANOHTTP_ADMIN_CMDLINE_FLAGS Command line flags
+ */
+/**@{*/
+/** Commandline argument to enabled the nanoHTTP admin interface.
+ * This service will be reachable via the NHTTPD_ADMIN_CONTEXT.
  *
  * @see NHTTPD_ADMIN_CONTEXT
- *
  */
 #define NHTTPD_ARG_ENABLE_ADMIN			"-NHTTPDadmin"
 
-/**
- *
- * Context of the nanoHTTP admin interface.
+/**@}*/
+
+/** Context of the nanoHTTP admin interface.
  *
  * Example query:
- *
- * @code
- *   http://localhost:10000/nhttp
- * @endcode
+ @verbatim
+   GET http://localhost:10000/nhttp
+ @endverbatim
  *
  * @see httpd_register
- *
  */
 #define NHTTPD_ADMIN_CONTEXT			"/nhttp"
 
-/**
- *
- * Query parameter for services.
+/** Query parameter for services.
  *
  * Example query:
- *
- * @code
- *   http://localhost:10000/nhttp?services=list
- * @endcode
- *
+ @verbatim
+   GET http://localhost:10000/nhttp?services=list
+ @endverbatim
  */
 #define NHTTPD_ADMIN_QUERY_SERVICES		"services"
 
-/**
- *
- * Parameter to query service statistics.
+/** Parameter to query service statistics.
  *
  * Example query:
- *
- * @code
- *   http://localhost:10000/nhttp?statistics=SERVICE_CONTEXT
- * @endcode
- *
+ @verbatim
+   GET http://localhost:10000/nhttp?statistics=SERVICE_CONTEXT
+ @endverbatim
  */
 #define NHTTPD_ADMIN_QUERY_STATISTICS		"statistics"
 
 
-/**
- *
- * Parameter to enable a server.
+/** Parameter to enable a server.
  *
  * Example query:
- *
- * @code
- *   http://localhost:10000/nhttp?activate=SERVICE_CONTEXT
- * @endcode
- *
+ @verbatim
+   GET http://localhost:10000/nhttp?activate=SERVICE_CONTEXT
+ @endverbatim
  */
 #define NHTTPD_ADMIN_QUERY_ACTIVATE_SERVICE	"activate"
 
-/**
- *
- * Parameter to disable a service.
+/** Parameter to disable a service.
  *
  * Example query:
- *
- * @code
- *   http://localhost:10000/nhttp?passivate=SERVICE_CONTEXT
- * @endcode
- *
+ @verbatim
+   GET http://localhost:10000/nhttp?passivate=SERVICE_CONTEXT
+ @endverbatim
  */
 #define NHTTPD_ADMIN_QUERY_PASSIVATE_SERVICE	"passivate"
+
+/** Parameter to switch loglevels.
+ *
+ * Example query:
+ @verbatim
+   GET http://localhost:10000/nhttp?loglevel=OFF
+ @endverbatim
+ */
+#define NHTTPD_ADMIN_QUERY_SET_LOGLEVEL         "loglevel"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- *
- * Initializes the nanoHTTP admin interface with commandline arguments, if
- * NHTTPD_ARG_ENABLED_ADMIN was specified in the commandline arguments. This
- * service will be reachable via the NHTTP_ADMIN_CONTEXT of the nanohttp server.
+/** This function initializes the nanoHTTP admin interface with
+ * commandline arguments, if NHTTPD_ARG_ENABLED_ADMIN was specified
+ * on the commandline. This service will be reachable via the
+ * NHTTP_ADMIN_CONTEXT of the nanohttp server.
  *
  * @param argc commandline arg count
  * @param argv commandline arg vector
@@ -119,12 +116,13 @@ extern "C" {
  *
  * @see NHTTPD_ADMIN_CONTEXT
  * @see NHTTPD_ARG_ENABLE_ADMIN
- *
  */
 extern herror_t httpd_admin_init_args(int argc, char **argv);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

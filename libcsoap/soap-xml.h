@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-xml.h,v 1.12 2006/12/03 17:30:57 m0gg Exp $
+ *  $Id: soap-xml.h,v 1.13 2007/11/03 22:40:10 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -24,14 +24,21 @@
 #ifndef __csoap_xml_h
 #define __csoap_xml_h
 
-/**
+/** @file soap-xml.h SOAP XML functions
  *
- * XML Errors
- *
+ * @defgroup CSOAP_XML XML handling
+ * @ingroup CSOAP
  */
+/**@{*/
+
+/** @defgroup CSOAP_XML_ERRORS XML errors
+ * @ingroup CSOAP_ERRORS
+ */
+/**@{*/
 #define XML_ERROR			1600
 #define XML_ERROR_EMPTY_DOCUMENT	(XML_ERROR + 1)
 #define XML_ERROR_PARSE			(XML_ERROR + 2)
+/**@}*/
 
 static const char * const soap_env_enc = "http://schemas.xmlsoap.org/soap/encoding/";
 static const char * const soap_xsi_ns = "http://www.w3.org/1999/XMLSchema-instance";
@@ -42,14 +49,15 @@ extern "C" {
 #endif
 
 extern xmlNodePtr soap_xml_get_children(xmlNodePtr param);
-extern xmlNodePtr soap_xml_get_next(xmlNodePtr param);
 
-extern xmlXPathObjectPtr soap_xpath_eval(xmlDocPtr doc, const char *xpath);
+extern xmlNodePtr soap_xml_get_next_element(xmlNodePtr param);
 
 extern char *soap_xml_get_text(xmlNodePtr node);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

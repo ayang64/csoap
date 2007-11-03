@@ -1,5 +1,6 @@
+/** @file nanohttp-response.c HTTP response handling */
 /******************************************************************
-*  $Id: nanohttp-response.c,v 1.18 2006/12/16 15:55:24 m0gg Exp $
+*  $Id: nanohttp-response.c,v 1.19 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -60,7 +61,7 @@ _hresponse_new(void)
 
   if (!(res = (hresponse_t *) malloc(sizeof(hresponse_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -92,7 +93,7 @@ _hresponse_parse_header(const char *buffer)
   s1 = s2;
   if (str == NULL)
   {
-    log_error1("Parse error reading HTTP spec");
+    log_error("Parse error reading HTTP spec");
     return NULL;
   }
 
@@ -106,7 +107,7 @@ _hresponse_parse_header(const char *buffer)
   s1 = s2;
   if (str == NULL)
   {
-    log_error1("Parse error reading HTTP code");
+    log_error("Parse error reading HTTP code");
     return NULL;
   }
   res->errcode = atoi(str);
@@ -116,7 +117,7 @@ _hresponse_parse_header(const char *buffer)
   s1 = s2;
   if (str == NULL)
   {
-    log_error1("Parse error reading HTTP description");
+    log_error("Parse error reading HTTP description");
     return NULL;
   }
 /*	res->desc = (char *) malloc(strlen(str) + 1);*/
@@ -168,7 +169,7 @@ read_header:                   /* for errorcode: 100 (continue) */
   {
     if ((status = hsocket_recv(sock, &(buffer[i]), 1, 1, &count)) != H_OK)
     {
-      log_error1("Socket read error");
+      log_error("Socket read error");
       return status;
     }
 
@@ -187,7 +188,7 @@ read_header:                   /* for errorcode: 100 (continue) */
   res = _hresponse_parse_header(buffer);
   if (res == NULL)
   {
-    log_error1("Header parse error");
+    log_error("Header parse error");
     return herror_new("hresponse_new_from_socket",
                       GENERAL_HEADER_PARSE_ERROR,
                       "Can not parse response header");

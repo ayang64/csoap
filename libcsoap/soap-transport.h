@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-transport.h,v 1.2 2006/11/23 15:27:33 m0gg Exp $
+*  $Id: soap-transport.h,v 1.3 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2007 Heiko Ronsdorf
@@ -23,6 +23,10 @@
 ******************************************************************/
 #ifndef __csoap_transport_h
 #define __csoap_transport_h
+
+#ifdef __CSOAP_INTERNAL
+#pragma You should not include this file...
+#endif
 
 #ifdef __CSOAP_INTERNAL
 typedef herror_t (*msg_exchange)(void *data, struct SoapCtx *request, struct SoapCtx **response);

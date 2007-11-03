@@ -60,24 +60,24 @@ am__installdirs = "$(DESTDIR)$(libdir)" \
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libnanohttp_la_LIBADD =
-am__libnanohttp_la_SOURCES_DIST = nanohttp-common.c nanohttp-socket.c \
-	nanohttp-client.c nanohttp-server.c nanohttp-stream.c \
-	nanohttp-mime.c nanohttp-request.c nanohttp-response.c \
-	nanohttp-base64.c nanohttp-logging.c nanohttp-admin.c \
-	nanohttp-error.c nanohttp-url.c nanohttp-ssl.c
+am__libnanohttp_la_SOURCES_DIST = nanohttp-admin.c nanohttp-base64.c \
+	nanohttp-client.c nanohttp-common.c nanohttp-error.c \
+	nanohttp-logging.c nanohttp-mime.c nanohttp-request.c \
+	nanohttp-response.c nanohttp-server.c nanohttp-socket.c \
+	nanohttp-stream.c nanohttp-url.c nanohttp-ssl.c
 @BUILD_WITH_SSL_TRUE@am__objects_1 = libnanohttp_la-nanohttp-ssl.lo
-am_libnanohttp_la_OBJECTS = libnanohttp_la-nanohttp-common.lo \
-	libnanohttp_la-nanohttp-socket.lo \
+am_libnanohttp_la_OBJECTS = libnanohttp_la-nanohttp-admin.lo \
+	libnanohttp_la-nanohttp-base64.lo \
 	libnanohttp_la-nanohttp-client.lo \
-	libnanohttp_la-nanohttp-server.lo \
-	libnanohttp_la-nanohttp-stream.lo \
+	libnanohttp_la-nanohttp-common.lo \
+	libnanohttp_la-nanohttp-error.lo \
+	libnanohttp_la-nanohttp-logging.lo \
 	libnanohttp_la-nanohttp-mime.lo \
 	libnanohttp_la-nanohttp-request.lo \
 	libnanohttp_la-nanohttp-response.lo \
-	libnanohttp_la-nanohttp-base64.lo \
-	libnanohttp_la-nanohttp-logging.lo \
-	libnanohttp_la-nanohttp-admin.lo \
-	libnanohttp_la-nanohttp-error.lo \
+	libnanohttp_la-nanohttp-server.lo \
+	libnanohttp_la-nanohttp-socket.lo \
+	libnanohttp_la-nanohttp-stream.lo \
 	libnanohttp_la-nanohttp-url.lo $(am__objects_1)
 libnanohttp_la_OBJECTS = $(am_libnanohttp_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -93,11 +93,11 @@ LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libnanohttp_la_SOURCES)
 DIST_SOURCES = $(am__libnanohttp_la_SOURCES_DIST)
-am__libnanohttp_la_HEADERS_DIST = nanohttp-common.h nanohttp-socket.h \
-	nanohttp-client.h nanohttp-server.h nanohttp-stream.h \
-	nanohttp-mime.h nanohttp-request.h nanohttp-response.h \
-	nanohttp-logging.h nanohttp-error.h nanohttp-base64.h \
-	nanohttp-admin.h nanohttp-url.h nanohttp-ssl.h
+am__libnanohttp_la_HEADERS_DIST = nanohttp-admin.h nanohttp-base64.h \
+	nanohttp-client.h nanohttp-common.h nanohttp-error.h \
+	nanohttp-logging.h nanohttp-mime.h nanohttp-request.h \
+	nanohttp-response.h nanohttp-server.h nanohttp-socket.h \
+	nanohttp-stream.h nanohttp-url.h nanohttp-ssl.h
 libnanohttp_laHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libnanohttp_la_HEADERS)
 ETAGS = etags
@@ -225,20 +225,20 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 #
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 #
 lib_LTLIBRARIES = libnanohttp.la
 libnanohttp_ladir = $(includedir)/nanohttp-@nanohttp_release@/nanohttp
-libnanohttp_la_SOURCES = nanohttp-common.c nanohttp-socket.c \
-	nanohttp-client.c nanohttp-server.c nanohttp-stream.c \
-	nanohttp-mime.c nanohttp-request.c nanohttp-response.c \
-	nanohttp-base64.c nanohttp-logging.c nanohttp-admin.c \
-	nanohttp-error.c nanohttp-url.c $(am__append_1)
-libnanohttp_la_HEADERS = nanohttp-common.h nanohttp-socket.h \
-	nanohttp-client.h nanohttp-server.h nanohttp-stream.h \
-	nanohttp-mime.h nanohttp-request.h nanohttp-response.h \
-	nanohttp-logging.h nanohttp-error.h nanohttp-base64.h \
-	nanohttp-admin.h nanohttp-url.h $(am__append_2)
+libnanohttp_la_SOURCES = nanohttp-admin.c nanohttp-base64.c \
+	nanohttp-client.c nanohttp-common.c nanohttp-error.c \
+	nanohttp-logging.c nanohttp-mime.c nanohttp-request.c \
+	nanohttp-response.c nanohttp-server.c nanohttp-socket.c \
+	nanohttp-stream.c nanohttp-url.c $(am__append_1)
+libnanohttp_la_HEADERS = nanohttp-admin.h nanohttp-base64.h \
+	nanohttp-client.h nanohttp-common.h nanohttp-error.h \
+	nanohttp-logging.h nanohttp-mime.h nanohttp-request.h \
+	nanohttp-response.h nanohttp-server.h nanohttp-socket.h \
+	nanohttp-stream.h nanohttp-url.h $(am__append_2)
 libnanohttp_la_LDFLAGS = -version-info @nanohttp_version@ -release @nanohttp_release@
 libnanohttp_la_CFLAGS = -I${top_srcdir} -D__NHTTP_INTERNAL=1
 all: all-am
@@ -346,19 +346,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-libnanohttp_la-nanohttp-common.lo: nanohttp-common.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-common.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo" -c -o libnanohttp_la-nanohttp-common.lo `test -f 'nanohttp-common.c' || echo '$(srcdir)/'`nanohttp-common.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-common.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-common.c' object='libnanohttp_la-nanohttp-common.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-admin.lo: nanohttp-admin.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-admin.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo" -c -o libnanohttp_la-nanohttp-admin.lo `test -f 'nanohttp-admin.c' || echo '$(srcdir)/'`nanohttp-admin.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-admin.c' object='libnanohttp_la-nanohttp-admin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-common.lo `test -f 'nanohttp-common.c' || echo '$(srcdir)/'`nanohttp-common.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-admin.lo `test -f 'nanohttp-admin.c' || echo '$(srcdir)/'`nanohttp-admin.c
 
-libnanohttp_la-nanohttp-socket.lo: nanohttp-socket.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-socket.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo" -c -o libnanohttp_la-nanohttp-socket.lo `test -f 'nanohttp-socket.c' || echo '$(srcdir)/'`nanohttp-socket.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-socket.c' object='libnanohttp_la-nanohttp-socket.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-base64.lo: nanohttp-base64.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-base64.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo" -c -o libnanohttp_la-nanohttp-base64.lo `test -f 'nanohttp-base64.c' || echo '$(srcdir)/'`nanohttp-base64.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-base64.c' object='libnanohttp_la-nanohttp-base64.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-socket.lo `test -f 'nanohttp-socket.c' || echo '$(srcdir)/'`nanohttp-socket.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-base64.lo `test -f 'nanohttp-base64.c' || echo '$(srcdir)/'`nanohttp-base64.c
 
 libnanohttp_la-nanohttp-client.lo: nanohttp-client.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-client.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-client.Tpo" -c -o libnanohttp_la-nanohttp-client.lo `test -f 'nanohttp-client.c' || echo '$(srcdir)/'`nanohttp-client.c; \
@@ -367,19 +367,26 @@ libnanohttp_la-nanohttp-client.lo: nanohttp-client.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-client.lo `test -f 'nanohttp-client.c' || echo '$(srcdir)/'`nanohttp-client.c
 
-libnanohttp_la-nanohttp-server.lo: nanohttp-server.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-server.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo" -c -o libnanohttp_la-nanohttp-server.lo `test -f 'nanohttp-server.c' || echo '$(srcdir)/'`nanohttp-server.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-server.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-server.c' object='libnanohttp_la-nanohttp-server.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-common.lo: nanohttp-common.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-common.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo" -c -o libnanohttp_la-nanohttp-common.lo `test -f 'nanohttp-common.c' || echo '$(srcdir)/'`nanohttp-common.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-common.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-common.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-common.c' object='libnanohttp_la-nanohttp-common.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-server.lo `test -f 'nanohttp-server.c' || echo '$(srcdir)/'`nanohttp-server.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-common.lo `test -f 'nanohttp-common.c' || echo '$(srcdir)/'`nanohttp-common.c
 
-libnanohttp_la-nanohttp-stream.lo: nanohttp-stream.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-stream.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo" -c -o libnanohttp_la-nanohttp-stream.lo `test -f 'nanohttp-stream.c' || echo '$(srcdir)/'`nanohttp-stream.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-stream.c' object='libnanohttp_la-nanohttp-stream.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-error.lo: nanohttp-error.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-error.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo" -c -o libnanohttp_la-nanohttp-error.lo `test -f 'nanohttp-error.c' || echo '$(srcdir)/'`nanohttp-error.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-error.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-error.c' object='libnanohttp_la-nanohttp-error.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-stream.lo `test -f 'nanohttp-stream.c' || echo '$(srcdir)/'`nanohttp-stream.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-error.lo `test -f 'nanohttp-error.c' || echo '$(srcdir)/'`nanohttp-error.c
+
+libnanohttp_la-nanohttp-logging.lo: nanohttp-logging.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-logging.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo" -c -o libnanohttp_la-nanohttp-logging.lo `test -f 'nanohttp-logging.c' || echo '$(srcdir)/'`nanohttp-logging.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-logging.c' object='libnanohttp_la-nanohttp-logging.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-logging.lo `test -f 'nanohttp-logging.c' || echo '$(srcdir)/'`nanohttp-logging.c
 
 libnanohttp_la-nanohttp-mime.lo: nanohttp-mime.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-mime.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-mime.Tpo" -c -o libnanohttp_la-nanohttp-mime.lo `test -f 'nanohttp-mime.c' || echo '$(srcdir)/'`nanohttp-mime.c; \
@@ -402,33 +409,26 @@ libnanohttp_la-nanohttp-response.lo: nanohttp-response.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-response.lo `test -f 'nanohttp-response.c' || echo '$(srcdir)/'`nanohttp-response.c
 
-libnanohttp_la-nanohttp-base64.lo: nanohttp-base64.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-base64.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo" -c -o libnanohttp_la-nanohttp-base64.lo `test -f 'nanohttp-base64.c' || echo '$(srcdir)/'`nanohttp-base64.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-base64.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-base64.c' object='libnanohttp_la-nanohttp-base64.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-server.lo: nanohttp-server.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-server.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo" -c -o libnanohttp_la-nanohttp-server.lo `test -f 'nanohttp-server.c' || echo '$(srcdir)/'`nanohttp-server.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-server.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-server.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-server.c' object='libnanohttp_la-nanohttp-server.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-base64.lo `test -f 'nanohttp-base64.c' || echo '$(srcdir)/'`nanohttp-base64.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-server.lo `test -f 'nanohttp-server.c' || echo '$(srcdir)/'`nanohttp-server.c
 
-libnanohttp_la-nanohttp-logging.lo: nanohttp-logging.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-logging.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo" -c -o libnanohttp_la-nanohttp-logging.lo `test -f 'nanohttp-logging.c' || echo '$(srcdir)/'`nanohttp-logging.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-logging.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-logging.c' object='libnanohttp_la-nanohttp-logging.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-socket.lo: nanohttp-socket.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-socket.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo" -c -o libnanohttp_la-nanohttp-socket.lo `test -f 'nanohttp-socket.c' || echo '$(srcdir)/'`nanohttp-socket.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-socket.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-socket.c' object='libnanohttp_la-nanohttp-socket.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-logging.lo `test -f 'nanohttp-logging.c' || echo '$(srcdir)/'`nanohttp-logging.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-socket.lo `test -f 'nanohttp-socket.c' || echo '$(srcdir)/'`nanohttp-socket.c
 
-libnanohttp_la-nanohttp-admin.lo: nanohttp-admin.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-admin.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo" -c -o libnanohttp_la-nanohttp-admin.lo `test -f 'nanohttp-admin.c' || echo '$(srcdir)/'`nanohttp-admin.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-admin.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-admin.c' object='libnanohttp_la-nanohttp-admin.lo' libtool=yes @AMDEPBACKSLASH@
+libnanohttp_la-nanohttp-stream.lo: nanohttp-stream.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-stream.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo" -c -o libnanohttp_la-nanohttp-stream.lo `test -f 'nanohttp-stream.c' || echo '$(srcdir)/'`nanohttp-stream.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-stream.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-stream.c' object='libnanohttp_la-nanohttp-stream.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-admin.lo `test -f 'nanohttp-admin.c' || echo '$(srcdir)/'`nanohttp-admin.c
-
-libnanohttp_la-nanohttp-error.lo: nanohttp-error.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-error.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo" -c -o libnanohttp_la-nanohttp-error.lo `test -f 'nanohttp-error.c' || echo '$(srcdir)/'`nanohttp-error.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo" "$(DEPDIR)/libnanohttp_la-nanohttp-error.Plo"; else rm -f "$(DEPDIR)/libnanohttp_la-nanohttp-error.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='nanohttp-error.c' object='libnanohttp_la-nanohttp-error.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-error.lo `test -f 'nanohttp-error.c' || echo '$(srcdir)/'`nanohttp-error.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -c -o libnanohttp_la-nanohttp-stream.lo `test -f 'nanohttp-stream.c' || echo '$(srcdir)/'`nanohttp-stream.c
 
 libnanohttp_la-nanohttp-url.lo: nanohttp-url.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libnanohttp_la_CFLAGS) $(CFLAGS) -MT libnanohttp_la-nanohttp-url.lo -MD -MP -MF "$(DEPDIR)/libnanohttp_la-nanohttp-url.Tpo" -c -o libnanohttp_la-nanohttp-url.lo `test -f 'nanohttp-url.c' || echo '$(srcdir)/'`nanohttp-url.c; \

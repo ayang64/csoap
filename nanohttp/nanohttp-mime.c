@@ -1,9 +1,10 @@
+/** @file nanohttp-mime.c MIME handling */
 /******************************************************************
 *  _  _   _   _  _   __
 * | \/ | | | | \/ | | _/
 * |_''_| |_| |_''_| |_'/  PARSER
 *
-*  $Id: nanohttp-mime.c,v 1.19 2006/12/16 15:55:24 m0gg Exp $
+*  $Id: nanohttp-mime.c,v 1.20 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -526,10 +527,10 @@ mime_streamreader_function(void *userdata, unsigned char *dest, int *size)
 
   len = http_input_stream_read(in, dest, *size);
   /* 
-     log_info1("http_input_stream_read() returned 0"); */
+     log_info("http_input_stream_read() returned 0"); */
   if (len == -1)
   {
-    log_error4("[%d] %s():%s ", herror_code(in->err), herror_func(in->err),
+    log_error("[%d] %s():%s ", herror_code(in->err), herror_func(in->err),
                herror_message(in->err));
   }
 
@@ -551,7 +552,7 @@ _mime_parse_begin(void *data)
 /* Nothing to do
   mime_callback_data_t *cbdata = (mime_callback_data_t)data;
  */
-  log_verbose2("Begin parse (%p)", data);
+  log_verbose("Begin parse (%p)", data);
 
   return;
 }
@@ -563,7 +564,7 @@ _mime_parse_end(void *data)
 /* Nothing to do
   mime_callback_data_t *cbdata = (mime_callback_data_t)data;
  */
-  log_verbose2("End parse (%p)", data);
+  log_verbose("End parse (%p)", data);
 
   return;
 }
@@ -577,10 +578,10 @@ _mime_part_begin(void *data)
   mime_callback_data_t *cbdata;
  
   cbdata = (mime_callback_data_t *) data;
-  log_verbose2("Begin Part (%p)", data);
+  log_verbose("Begin Part (%p)", data);
   if (!(part = (struct part_t *) malloc(sizeof(struct part_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return;
   }
   part->next = NULL;
@@ -606,13 +607,13 @@ _mime_part_begin(void *data)
           cbdata, cbdata->part_id++);
 #endif
 
-/*  log_info2("Creating FILE ('%s') deleteOnExit=1", buffer);*/
+/*  log_info("Creating FILE ('%s') deleteOnExit=1", buffer);*/
   part->deleteOnExit = 1;
   cbdata->current_fd = fopen(buffer, "wb");
   if (cbdata->current_fd)
     strcpy(cbdata->current_part->filename, buffer);
   else
-    log_error2("Can not open file for write '%s'", buffer);
+    log_error("Can not open file for write '%s'", buffer);
 }
 
 
@@ -620,7 +621,7 @@ static void
 _mime_part_end(void *data)
 {
   mime_callback_data_t *cbdata = (mime_callback_data_t *) data;
-  log_verbose2("End Part (%p)", data);
+  log_verbose("End Part (%p)", data);
   if (cbdata->current_fd)
   {
     fclose(cbdata->current_fd);
@@ -694,17 +695,17 @@ _mime_received_bytes(void *data, const unsigned char *bytes, int size)
 
   if (!cbdata)
   {
-    log_error1
+    log_error
       ("MIME transport error Called <received bytes> without initializing\n");
     return;
   }
   if (!cbdata->current_part)
   {
-    log_error1
+    log_error
       ("MIME transport error Called <received bytes> without initializing\n");
     return;
   }
-/*  log_verbose4("Received %d bytes (%p), header_search = %d", 
+/*  log_verbose("Received %d bytes (%p), header_search = %d", 
     size, data, cbdata->header_search);
 */
   if (cbdata->header_search < 4)
@@ -824,7 +825,7 @@ mime_message_parse(struct http_input_stream_t * in, const char *root_id,
  
   if (!(cbdata = (mime_callback_data_t *) malloc(sizeof(mime_callback_data_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -839,7 +840,7 @@ mime_message_parse(struct http_input_stream_t * in, const char *root_id,
 
   if (!(message = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(cbdata);
     return NULL;
   }
@@ -863,7 +864,7 @@ mime_message_parse(struct http_input_stream_t * in, const char *root_id,
   }
   else
   {
-    log_error2("MIME parser error '%s'!",
+    log_error("MIME parser error '%s'!",
                status ==
                MIME_PARSER_READ_ERROR ? "read error" : "Incomplete message");
     return NULL;
@@ -882,7 +883,7 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
  
   if (!(cbdata = (mime_callback_data_t *) malloc(sizeof(mime_callback_data_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -897,7 +898,7 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
 
   if (!(message = (struct attachments_t *) malloc(sizeof(struct attachments_t))))
   {
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     free(cbdata);
     return NULL;
   }
@@ -924,7 +925,7 @@ mime_message_parse_from_file(FILE * in, const char *root_id,
   {
     /* TODO (#1#): Free objects */
 
-    log_error2("MIME parser error '%s'!",
+    log_error("MIME parser error '%s'!",
                status ==
                MIME_PARSER_READ_ERROR ? "general error" :
                "Incomplete message");
@@ -951,7 +952,7 @@ mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
   if (boundary == NULL)
   {
     /* TODO (#1#): Handle Error in http form */
-    log_error1("'boundary' not set for multipart/related");
+    log_error("'boundary' not set for multipart/related");
     return herror_new("mime_get_attachments", MIME_ERROR_NO_BOUNDARY_PARAM,
                       "'boundary' not set for multipart/related");
   }
@@ -959,7 +960,7 @@ mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
   if (root_id == NULL)
   {
     /* TODO (#1#): Handle Error in http form */
-    log_error1("'start' not set for multipart/related");
+    log_error("'start' not set for multipart/related");
     return herror_new("mime_get_attachments", MIME_ERROR_NO_START_PARAM,
                       "'start' not set for multipart/related");
   }
@@ -968,7 +969,7 @@ mime_get_attachments(content_type_t * ctype, struct http_input_stream_t * in,
   if (mimeMessage == NULL)
   {
     /* TODO (#1#): Handle Error in http form */
-    log_error1("MIME Parse Error");
+    log_error("MIME Parse Error");
     return herror_new("mime_get_attachments", MIME_ERROR_PARSE_ERROR,
                       "MIME Parse Error");
   }

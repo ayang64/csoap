@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-service.c,v 1.13 2006/12/31 17:24:22 m0gg Exp $
+*  $Id: soap-service.c,v 1.14 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -49,8 +49,8 @@
 #include <libxml/uri.h>
 
 #include <nanohttp/nanohttp-error.h>
-#include <nanohttp/nanohttp-logging.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -64,7 +64,7 @@ soap_service_node_new(SoapService * service, SoapServiceNode * next)
 
   if (!(node = (SoapServiceNode *) malloc(sizeof(SoapServiceNode)))) {
 
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
   node->service = service;
@@ -80,7 +80,7 @@ soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
 
   if (!(service = (SoapService *) malloc(sizeof(SoapService)))) {
 
-    log_error2("malloc failed (%s)", strerror(errno));
+    log_error("malloc failed (%s)", strerror(errno));
     return NULL;
   }
 
@@ -88,14 +88,14 @@ soap_service_new(const char *urn, const char *method, SoapServiceFunc f)
 
   if (urn == NULL) {
 
-    log_warn1("urn is NULL");
+    log_warn("urn is NULL");
     urn = "";
   }
   service->urn = strdup(urn);
 
   if (method == NULL) {
 
-    log_warn1("method is NULL");
+    log_warn("method is NULL");
     method = "";
   }
   service->method = strdup(method);

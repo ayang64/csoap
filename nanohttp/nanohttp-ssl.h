@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: nanohttp-ssl.h,v 1.30 2007/01/25 10:24:10 m0gg Exp $
+*  $Id: nanohttp-ssl.h,v 1.31 2007/11/03 22:40:15 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2001-2005  Rochester Institute of Technology
@@ -223,6 +223,14 @@
  *
  */
 
+/** @file nanohttp-ssl.h SSL wrapper
+ *
+ * @defgroup NANOHTTP_SSL SSL wrapper
+ * @ingroup NANOHTTP
+ *
+ */
+/**@{*/
+
 /**
  *
  * Commandline argument to enabled SSL in the nanoHTTP server.
@@ -230,12 +238,10 @@
  */
 #define NHTTPD_ARG_HTTPS	"-NHTTPS"
 
-/**
- *
- * @defgroup ssl_errors_group SSL Errors
- *
+/** @defgroup NANOHTTP_SSL_ERRORS SSL Errors
+ * @ingroup NANOHTTP_ERRORS
  */
-/*@{*/
+/**@{*/
 
 #define HSSL_ERROR			1700
 #define HSSL_ERROR_CA_LIST		(HSSL_ERROR + 10)
@@ -246,92 +252,75 @@
 #define HSSL_ERROR_SERVER		(HSSL_ERROR + 60)
 #define HSSL_ERROR_CONNECT		(HSSL_ERROR + 70)
 
-/*@}*/
+#define HSSL_ERROR_SSLCLOSE		(HSSL_ERROR + 80)
+#define HSSL_ERROR_SSLCTX		(HSSL_ERROR + 90)
+
+/**@}*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- *
- * Initialization of the SSL module
+/** This function initializes the SSL module.
  *
  * @return H_OK on success
  *
+ * @see hss_module_destroy()
  */
 extern herror_t hssl_module_init(int argc, char **argv);
 
-/**
+/** This functions destroys the SSL module.
  *
- * Shutdown of the SSL module.
- *
+ * @see hssl_module_init()
  */
 extern void hssl_module_destroy(void);
 
-/**
- *
- * Sets the SSL certificate to be used.
- *
+/** This function sets the SSL certificate to be used.
  */
 extern void hssl_set_certificate(const char *filename);
 
-/**
+/** This function sets the password for the SSL certificate.
  *
- * Sets the password for the SSL certificate.
- *
- * @see hssl_set_certificate
- *
+ * @see hssl_set_certificate()
  */
 extern void hssl_set_certpass(const char *password);
 
-/**
- *
- * Sets the filename for a certification authority list.
- *
+/** This function sets the filename for a certification authority
+ * list.
  */
 extern void hssl_set_ca_list(const char *filename);
 
-/**
- *
- * Enabled SSL in the nanoHTTP server. You have to call this function before
- * calling httpd_run.
- *
- * @see httpd_run
- *
+/** This function enables SSL in the nanoHTTP server. You have to
+ * call this function before calling httpd_run().
  */
 extern void hssl_enable(void);
 
-/**
+/** This function returns if SSL is enabled in the nanoHTTP server.
  *
- * Check if SSL is enabled in the nanoHTTP server.
- *
- * @return 1 if enabled, 0 if disabled.
- *
+ * @return 1 if enabled, 0 otherwise.
  */
 extern int hssl_enabled(void);
 
-/**
- *
- * SSL client socket initialization.
+/** This function initializes an SSL client socket.
  *
  * @return H_OK on success.
  *
+ * @see hsl_cleanup()
  */
 extern herror_t hssl_client_ssl(struct hsocket_t * sock);
 
-/**
- *
- * SSL server socket initialization.
+/** This function initializes an SSL server socket.
  *
  * @return H_OK on success.
  *
+ * @see hssl_cleanup()
  */
 extern herror_t hssl_server_ssl(struct hsocket_t * sock);
 
-/**
+/** This function cleans up an SSL socket.
  *
- * SSL socket cleanup.
- *
+ * @see hssl_client_ssl
+ * @see httl_server_ssl
  */
 extern void hssl_cleanup(struct hsocket_t * sock);
 
@@ -350,26 +339,22 @@ extern int verify_sn(X509 * cert, int who, int nid, char *str);
  */
 extern void hssl_set_user_verify(int func(X509 * cert));
 
-/**
+/** This function reads from an SSL socket.
  *
- * Read from a SSL socket.
- *
- * @see hsocket_read
- *
+ * @see hsocket_read()
  */
 extern herror_t hssl_read(struct hsocket_t * sock, char *buf, size_t len, size_t * received);
 
-/**
+/** This function writes to an SSL socket.
  *
- * Write to a SSL socket.
- *
- * @see hsocket_write
- *
+ * @see hsocket_write()
  */
 extern herror_t hssl_write(struct hsocket_t * sock, const char *buf, size_t len, size_t * sent);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif

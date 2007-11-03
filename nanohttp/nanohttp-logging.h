@@ -1,8 +1,8 @@
 /******************************************************************
- *  $Id: nanohttp-logging.h,v 1.5 2006/12/10 19:21:06 m0gg Exp $
+ *  $Id: nanohttp-logging.h,v 1.6 2007/11/03 22:40:11 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
- * Copyright (C) 2003-2006  Ferhat Ayaz
+ * Copyright (C) 2007 Heiko Ronsdorf
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -19,122 +19,130 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  * 
- * Email: hero@persua.de
  ******************************************************************/
 #ifndef __nanohttp_logging_h
 #define __nanohttp_logging_h
 
+/** @file nanohttp-logging.h Logging definitions and prototypes
+ *
+ * @defgroup NANOHTTP_LOGGING Logging interface
+ * @ingroup NANOHTTP
+ */
+/**@{*/
+
+/** @defgroup NANOHTTP_CMDLINE_LOGGING Commandline flags
+ * @ingroup NANOHTTP_CMDLINE
+ */
+/**@{*/
 #define NHTTP_ARG_LOGFILE	"-NHTTPlog"
 #define NHTTP_ARG_LOGLEVEL	"-NHTTPloglevel"
+/**@}*/
 
-/* logging stuff */
-typedef enum log_level
+/** Loglevel definition */
+typedef enum nanohttp_loglevel
 {
-  HLOG_VERBOSE,
-  HLOG_DEBUG,
-  HLOG_INFO,
-  HLOG_WARN,
-  HLOG_ERROR,
-  HLOG_FATAL,
-  HLOG_OFF
-} log_level_t;
+  NANOHTTP_LOG_OFF,     /**< Logging completely turned off (use at your
+			     own risk). */
+  NANOHTTP_LOG_VERBOSE, /**< Debugging messages that may overflow the
+			     log */
+  NANOHTTP_LOG_DEBUG,   /**< Message that contain information normally
+			     of use only when debugging the library */
+  NANOHTTP_LOG_INFO,    /**< Informaional messages */
+  NANOHTTP_LOG_WARN,    /**< Warning messages */
+  NANOHTTP_LOG_ERROR,   /**< A condition that should be corrected
+			     immediately, such as a broken network
+			     connection */
+  NANOHTTP_LOG_FATAL    /**< A panic condition */
+} nanohttp_loglevel_t;
 
+#define NANOHTTP_LOG_LEVEL_OFF_STRING     "OFF"
+#define NANOHTTP_LOG_LEVEL_VERBOSE_STRING "VERBOSE"
+#define NANOHTTP_LOG_LEVEL_DEBUG_STRING   "DEBUG"
+#define NANOHTTP_LOG_LEVEL_INFO_STRING    "INFO"
+#define NANOHTTP_LOG_LEVEL_WARN_STRING    "WARN"
+#define NANOHTTP_LOG_LEVEL_ERROR_STRING   "ERROR"
+#define NANOHTTP_LOG_LEVEL_FATAL_STRING   "FATAL"
+#define NANOHTTP_LOG_LEVEL_UNKNOWN_STRING "UNKNOWN"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- *
- * Set the loglevel.
+/** This function sets a new the loglevel and returns the previous
+ * one.
  *
  * @param level The new loglevel.
  *
  * @return The old loglevel.
- *
  */
-extern log_level_t hlog_set_level(log_level_t level);
+extern nanohttp_loglevel_t nanohttp_log_set_loglevel(nanohttp_loglevel_t level);
 
-/**
- *
- * Get the loglevel.
+/** This function returns the current loglevel.
  *
  * @return The current loglevel.
- *
  */
-extern log_level_t hlog_get_level(void);
+extern nanohttp_loglevel_t nanohttp_log_get_loglevel(void);
 
-/**
- *
- * Set the logfile.
+/** This function set the name of a logfile.
  *
  * @param filename The filename of the logfile.
- *
  */
-extern void hlog_set_file(const char *filename);
+extern void nanohttp_log_set_logfile(const char *filename);
 
-/**
+/** This function returns the filename of the current logfile.
  *
- * Get the filename of the logfile.
- *
- * @return Pointer to the filename or null otherwise.
- *
+ * @return Pointer to the filename or NULL otherwise.
  */
-extern char *hlog_get_file(void);
+extern const char *nanohttp_log_get_logfile(void);
+
+#define NANOHTTP_LOG_DISABLED   0x00 /**< Logging disabled */
+#define NANOHTTP_LOG_FOREGROUND	0x01 /**< Logging to stdout enabled */
+#define NANOHTTP_LOG_SYSLOG     0x02 /**< Syslog logging enabled */
+
+/** This function sets the type of logging
+ *
+ * @return The old logtype.
+ *
+ * @see - NANOHTTP_LOG_DISABLED
+ *      - NANOHTTP_LOG_FOREGROUND
+ *      - NANOHTTP_LOG_SYSLOG
+ */
+extern int nanohttp_log_set_logtype(int type);
 
 #ifdef WIN32
 #if defined(_MSC_VER) && _MSC_VER <= 1200
-char *VisualC_funcname(const char *file, int line);     /* not thread safe! */
+extern char *VisualC_funcname(const char *file, int line); /* not thread safe! */
 #define __FUNCTION__  VisualC_funcname(__FILE__, __LINE__)
 #endif
 #endif
-
-extern void hlog_verbose(const char *FUNC, const char *format, ...);
-extern void hlog_debug(const char *FUNC, const char *format, ...);
-extern void hlog_info(const char *FUNC, const char *format, ...);
-extern void hlog_warn(const char *FUNC, const char *format, ...);
-extern void hlog_error(const char *FUNC, const char *format, ...);
 
 #ifdef __cplusplus
 }
 #endif
 
-/**
- *
- * @todo This isn't the "right" way
- *
- * #define log_debug(fmt, ...)	fprintf(stderr, "EMERGENCY: %s: " fmt "\n", \
- *                                              __FUNCTION__, ## __VA_ARGS__)
- *
- */
-#define log_verbose1(a1) hlog_verbose(__FUNCTION__, a1)
-#define log_verbose2(a1,a2) hlog_verbose(__FUNCTION__, a1,a2)
-#define log_verbose3(a1,a2,a3) hlog_verbose(__FUNCTION__, a1,a2,a3)
-#define log_verbose4(a1,a2,a3,a4) hlog_verbose(__FUNCTION__, a1,a2,a3,a4)
-#define log_verbose5(a1,a2,a3,a4,a5) hlog_verbose(__FUNCTION__, a1,a2,a3,a4,a5)
+#define log_verbose(fmt, ...) _nanohttp_log_printf(NANOHTTP_LOG_VERBOSE, \
+                             NANOHTTP_LOG_LEVEL_VERBOSE_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
 
-#define log_debug1(a1) hlog_debug(__FUNCTION__, a1)
-#define log_debug2(a1,a2) hlog_debug(__FUNCTION__, a1,a2)
-#define log_debug3(a1,a2,a3) hlog_debug(__FUNCTION__, a1,a2,a3)
-#define log_debug4(a1,a2,a3,a4) hlog_debug(__FUNCTION__, a1,a2,a3,a4)
-#define log_debug5(a1,a2,a3,a4,a5) hlog_debug(__FUNCTION__, a1,a2,a3,a4,a5)
+#define log_debug(fmt, ...)   _nanohttp_log_printf(NANOHTTP_LOG_DEBUG, \
+                             NANOHTTP_LOG_LEVEL_DEBUG_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
 
-#define log_info1(a1) hlog_info(__FUNCTION__, a1)
-#define log_info2(a1,a2) hlog_info(__FUNCTION__, a1,a2)
-#define log_info3(a1,a2,a3) hlog_info(__FUNCTION__, a1,a2,a3)
-#define log_info4(a1,a2,a3,a4) hlog_info(__FUNCTION__, a1,a2,a3,a4)
-#define log_info5(a1,a2,a3,a4,a5) hlog_info(__FUNCTION__, a1,a2,a3,a4,a5)
+#define log_info(fmt, ...)    _nanohttp_log_printf(NANOHTTP_LOG_INFO, \
+                             NANOHTTP_LOG_LEVEL_INFO_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
 
-#define log_warn1(a1) hlog_warn(__FUNCTION__, a1)
-#define log_warn2(a1,a2) hlog_warn(__FUNCTION__, a1,a2)
-#define log_warn3(a1,a2,a3) hlog_warn(__FUNCTION__, a1,a2,a3)
-#define log_warn4(a1,a2,a3,a4) hlog_warn(__FUNCTION__, a1,a2,a3,a4)
-#define log_warn5(a1,a2,a3,a4,a5) hlog_warn(__FUNCTION__, a1,a2,a3,a4,a5)
+#define log_warn(fmt, ...)    _nanohttp_log_printf(NANOHTTP_LOG_WARN, \
+                             NANOHTTP_LOG_LEVEL_WARN_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
 
-#define log_error1(a1) hlog_error(__FUNCTION__, a1)
-#define log_error2(a1,a2) hlog_error(__FUNCTION__, a1,a2)
-#define log_error3(a1,a2,a3) hlog_error(__FUNCTION__, a1,a2,a3)
-#define log_error4(a1,a2,a3,a4) hlog_error(__FUNCTION__, a1,a2,a3,a4)
-#define log_error5(a1,a2,a3,a4,a5) hlog_error(__FUNCTION__, a1,a2,a3,a4,a5)
+#define log_error(fmt, ...)   _nanohttp_log_printf(NANOHTTP_LOG_ERROR, \
+                             NANOHTTP_LOG_LEVEL_ERROR_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
+
+#define log_fatal(fmt, ...)   _nanohttp_log_printf(NANOHTTP_LOG_FATAL, \
+                             NANOHTTP_LOG_LEVEL_FATAL_STRING " %s: " fmt "\n", \
+                             __FUNCTION__, ## __VA_ARGS__)
+/**@}*/
 
 #endif

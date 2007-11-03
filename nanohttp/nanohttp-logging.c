@@ -1,8 +1,9 @@
+/** @file nanohttp-logging.c Logging functions */
 /******************************************************************
-*  $Id: nanohttp-logging.c,v 1.2 2006/11/25 17:03:20 m0gg Exp $
+*  $Id: nanohttp-logging.c,v 1.3 2007/11/03 22:40:11 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
-* Copyright (C) 2003  Ferhat Ayaz
+* Copyright (C) 2007 Heiko Ronsdorf
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Library General Public
@@ -19,10 +20,13 @@
 * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * Boston, MA  02111-1307, USA.
 *
-* Email: ayaz@jprogrammer.net
 ******************************************************************/
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
 #endif
 
 #ifdef HAVE_STDIO_H
@@ -41,169 +45,130 @@
 #include <string.h>
 #endif
 
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
 #endif
 
 #include "nanohttp-logging.h"
 
-#ifdef WIN32
-#ifndef __MINGW32__
+static int _nanohttp_logtype = NANOHTTP_LOG_FOREGROUND;
+static nanohttp_loglevel_t _nanohttp_log_loglevel = NANOHTTP_LOG_DEBUG;
+static char *_nanohttp_log_logfile = NULL;
 
-/* not thread safe!*/
+#if defined WIN32 && defined __MINGW32__
 char *
 VisualC_funcname(const char *file, int line)
 {
   static char buffer[256];
-  int i = strlen(file) - 1;
-  while (i > 0 && file[i] != '\\')
-    i--;
+  int i;
+ 
+  for (i = strlen(file) - 1; i > 0 && file[i] != '\\'; i--)
+    /* nothing */ ;
   sprintf(buffer, "%s:%d", (file[i] != '\\') ? file : (file + i + 1), line);
   return buffer;
 }
-
-#endif
 #endif
 
-static log_level_t loglevel = HLOG_DEBUG;
-static char logfile[75] = { '\0' };
-static int log_background = 0;
-
-log_level_t
-hlog_set_level(log_level_t level)
+nanohttp_loglevel_t
+nanohttp_log_set_loglevel(nanohttp_loglevel_t loglevel)
 {
-  log_level_t old = loglevel;
-  loglevel = level;
+  nanohttp_loglevel_t old;
+ 
+  old  = _nanohttp_log_loglevel;
+  _nanohttp_log_loglevel = loglevel;
+
   return old;
 }
 
-log_level_t
-hlog_get_level(void)
+nanohttp_loglevel_t
+nanohttp_log_get_loglevel(void)
 {
-  return loglevel;
+  return _nanohttp_log_loglevel;
+}
+
+int
+nanohttp_log_set_logtype(int type)
+{
+  int old;
+
+  old = _nanohttp_logtype;
+  _nanohttp_logtype = type;
+
+  return old;
+}
+
+const char *
+nanohttp_log_get_logfile(void)
+{
+  return _nanohttp_log_logfile;
 }
 
 void
-hlog_set_file(const char *filename)
+nanohttp_log_set_logfile(const char *filename)
 {
+  if (_nanohttp_log_logfile)
+    free(_nanohttp_log_logfile);
+
   if (filename)
-    strncpy(logfile, filename, 75);
-  else
-    logfile[0] = '\0';
-
-  return;
+    _nanohttp_log_logfile = strdup(filename);
 }
 
 void
-hlog_set_background(int state)
+_nanohttp_log_printf(nanohttp_loglevel_t level, const char *format, ...)
 {
-  log_background = state;
+  const char *filename;
+  va_list ap;
 
-  return;
-}
-
-char *
-hlog_get_file(void)
-{
-  if (logfile[0] == '\0')
-    return NULL;
-  return logfile;
-}
-
-static void
-_log_write(log_level_t level, const char *prefix,
-          const char *func, const char *format, va_list ap)
-{
-  char buffer[1054];
-  char buffer2[1054];
-  FILE *f;
-
-  if (level < loglevel)
+  if (level < _nanohttp_log_loglevel)
     return;
 
-  if (!log_background || hlog_get_file())
-  {
-#ifdef WIN32
-    sprintf(buffer, "*%s*: [%s] %s\n", prefix, func, format);
-#else
-    sprintf(buffer, "*%s*:(%ld) [%s] %s\n",
-            prefix, pthread_self(), func, format);
-#endif
-    vsprintf(buffer2, buffer, ap);
-    if (!log_background)
-    {
-      printf(buffer2);
-      fflush(stdout);
-    }
+  va_start(ap, format);
 
-    if (hlog_get_file())
+  if (_nanohttp_logtype & NANOHTTP_LOG_FOREGROUND)
+    vfprintf(stdout, format, ap);
+
+#ifdef HAVE_SYSLOG_H
+  if (_nanohttp_logtype & NANOHTTP_LOG_SYSLOG)
+  {
+    int syslog_level;
+
+    switch (level)
     {
-      f = fopen(hlog_get_file(), "a");
-      if (!f)
-        f = fopen(hlog_get_file(), "w");
-      if (f)
-      {
-        fprintf(f, buffer2);
-        fflush(f);
-        fclose(f);
-      }
+      case NANOHTTP_LOGLEVEL_VERBOSE:
+      case NANOHTTP_LOGLEVEL_DEBUG:
+        syslog_level = LOG_DEBUG;
+	break;
+      case NANOHTTP_LOGLEVEL_INFO:
+	syslog_level = LOG_INFO;
+	break;
+      case NANOHTTP_LOGLEVEL_WARN:
+	syslog_level = LOG_WARNING;
+	break;
+      case NANOHTTP_LOGLEVEL_ERROR:
+	syslog_level = LOG_ERR;
+        break;
+      case NANOHTTP_LOGLEVEL_FATAL:
+	syslog_level = LOG_CRIT;
+	break;
+    }
+    vsyslog(syslog_level, format, ap);
+  }
+#endif
+
+  if ((filename = nanohttp_log_get_logfile()))
+  {
+    FILE *fp;
+
+    if (!(fp = fopen(filename, "a")))
+      fp = fopen(filename, "w");
+
+    if (fp)
+    {
+      vfprintf(fp, format, ap);
+      fflush(fp);
+      fclose(fp);
     }
   }
 
-  return;
-}
-
-void
-hlog_verbose(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  _log_write(HLOG_VERBOSE, "VERBOSE", FUNC, format, ap);
   va_end(ap);
 }
-
-void
-hlog_debug(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  _log_write(HLOG_DEBUG, "DEBUG", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-hlog_info(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  _log_write(HLOG_INFO, "INFO", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-hlog_warn(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  _log_write(HLOG_WARN, "WARN", FUNC, format, ap);
-  va_end(ap);
-}
-
-void
-hlog_error(const char *FUNC, const char *format, ...)
-{
-  va_list ap;
-
-  va_start(ap, format);
-  _log_write(HLOG_ERROR, "ERROR", FUNC, format, ap);
-  va_end(ap);
-}
-

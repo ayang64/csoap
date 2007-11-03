@@ -219,7 +219,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 #
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 #
 LDADD = ../../nanohttp/libnanohttp.la ../../libcsoap/libcsoap.la
 INCLUDES = -I${top_srcdir}

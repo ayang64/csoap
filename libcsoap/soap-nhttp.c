@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-nhttp.c,v 1.12 2007/01/01 18:58:05 m0gg Exp $
+*  $Id: soap-nhttp.c,v 1.13 2007/11/03 22:40:09 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -19,7 +19,7 @@
 * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * Boston, MA  02111-1307, USA.
 * 
-* Email: ayaz@jprogrammer.net
+* Email: hero@persua.de
 ******************************************************************/
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -39,11 +39,9 @@
 
 #include <libxml/tree.h>
 #include <libxml/uri.h>
-#include <libxml/xpath.h>
 
 #include <nanohttp/nanohttp-error.h>
 #include <nanohttp/nanohttp-common.h>
-#include <nanohttp/nanohttp-logging.h>
 #include <nanohttp/nanohttp-stream.h>
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
@@ -51,6 +49,7 @@
 #include <nanohttp/nanohttp-client.h>
 #include <nanohttp/nanohttp-server.h>
 
+#include "soap-logging.h"
 #include "soap-fault.h"
 #include "soap-env.h"
 #include "soap-ctx.h"
@@ -109,10 +108,14 @@ _soap_nhttp_xml_io_read(void *ctx, char *buffer, int len)
  
   in = (struct http_input_stream_t *)ctx;
   if (!http_input_stream_is_ready(in))
+  {
     return 0;
+  }
 
   if ((ret = http_input_stream_read(in, buffer, len)) == -1)
+  {
     return 0;
+  }
 
   return ret;
 }
@@ -211,19 +214,19 @@ soap_nhttp_server_init_args(int argc, char **argv)
  
   if ((err = httpd_init(argc, argv)) != H_OK)
   {
-    log_error2("httpd_init failed (%s)", herror_message(err));
+    log_error("httpd_init failed (%s)", herror_message(err));
     return err;
   }
 
   if ((err = soap_wsil_init_args(argc, argv)) != H_OK)
   {
-    log_error2("soap_wsil_init_args failed (%s)", herror_message(err));
+    log_error("soap_wsil_init_args failed (%s)", herror_message(err));
     return err;
   }
 
   if ((err = soap_admin_init_args(argc, argv)) != H_OK)
   {
-    log_error2("soap_admin_init_args failed (%s)", herror_message(err));
+    log_error("soap_admin_init_args failed (%s)", herror_message(err));
     return err;
   }
 
@@ -233,7 +236,7 @@ soap_nhttp_server_init_args(int argc, char **argv)
 static herror_t
 _soap_nhttp_client_build_result(hresponse_t * res, struct SoapEnv ** env)
 {
-  log_verbose2("Building result (%p)", res);
+  log_verbose("Building result (%p)", res);
 
   if (res == NULL)
     return herror_new("_soap_client_build_result",
@@ -275,7 +278,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   /* for copy attachments */
   char href[MAX_HREF_SIZE];
 
-  /* log_verbose1("nanohttp client"); */
+  /* log_verbose("nanohttp client"); */
 
   xmlDocDumpMemory(request->env->root->doc, &buffer, &size);
 
@@ -291,14 +294,14 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
     httpc_set_header(conn, SOAP_NHTTP_SOAP_ACTION, action);
   else
     httpc_set_header(conn, SOAP_NHTTP_SOAP_ACTION, "");
-  log_verbose2("action is \"%s\"", action);
+  log_verbose("action is \"%s\"", action);
   free(action);
 
   httpc_set_header(conn, HEADER_CONNECTION, "Close");
 
   if (!(url = soap_addressing_get_to_address_string(request->env)))
     return herror_new("soap_nhttp_client_invoke", 0, "Missing client URL");
-  log_verbose2("url is \"%s\"", url);
+  log_verbose("url is \"%s\"", url);
 
   if (!request->attachments)
   {
@@ -359,7 +362,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
     {
       if ((status = httpc_mime_send_file(conn, part->id, part->content_type, part->transfer_encoding, part->filename)) != H_OK)
       {
-        log_error2("httpc_mime_send_file failed (%s)", herror_message(status));
+        log_error("httpc_mime_send_file failed (%s)", herror_message(status));
 	httpc_close_free(conn);
 	xmlFree(buffer);
 	return status;
@@ -401,7 +404,7 @@ _soap_nhttp_client_invoke(void *unused, struct SoapCtx *request, struct SoapCtx 
   hresponse_free(res);
   httpc_close_free(conn);
 
-  /* log_verbose1("done"); */
+  /* log_verbose("done"); */
 
   return H_OK;
 }
@@ -413,7 +416,7 @@ soap_nhttp_client_init_args(int argc, char **argv)
 
   if ((status = httpc_init(argc, argv)) != H_OK)
   {
-    log_error2("httpc_init failed (%s)", herror_message(status));
+    log_error("httpc_init failed (%s)", herror_message(status));
     return status;
   }
 
@@ -430,7 +433,7 @@ soap_nhttp_register(const char *context)
 
   if ((status = httpd_register(context, soap_nhttp_process)) != H_OK)
   {
-    log_error2("httpd_register_secure failed (%s)", herror_message(status));
+    log_error("httpd_register_secure failed (%s)", herror_message(status));
     return status;
   }
 
