@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: soap-xmlsec.c,v 1.9 2007/11/03 22:40:10 m0gg Exp $
+*  $Id: soap-xmlsec.c,v 1.10 2007/11/04 06:57:32 m0gg Exp $
 *
 * CSOAP Project:  A SOAP client/server library in C
 * Copyright (C) 2003  Ferhat Ayaz
@@ -118,17 +118,14 @@ static void _soap_xmlsec_error_callback(const char *file, int line, const char *
   return;
 }
 
-/**
- *
- * Lookups key in the @store. The caller is responsible for destroying returned
- * key with #xmlSecKeyDestroy function.
+/** This function lookups key in the store. The caller is responsible
+ * for destroying returned key with #xmlSecKeyDestroy function.
  *
  * @param store the pointer to simple keys store.
  * @param name the desired key name.
  * @param keyInfoCtx the pointer to <dsig:KeyInfo/> node processing context.
  *
  * @return pointer to key or NULL if key not found or an error occurs.
- *
  */
 static xmlSecKeyPtr
 _soap_xmlsec_files_keys_store_find_key(xmlSecKeyStorePtr store, const xmlChar * name, xmlSecKeyInfoCtxPtr keyInfoCtx)

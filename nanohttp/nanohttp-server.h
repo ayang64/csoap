@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-server.h,v 1.39 2007/11/03 22:40:14 m0gg Exp $
+ *  $Id: nanohttp-server.h,v 1.40 2007/11/04 06:57:32 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -32,34 +32,6 @@
 #include <nanohttp/nanohttp-request.h>
 #include <nanohttp/nanohttp-response.h>
 #endif
-
-/**
- * @page nanohttp_page nanoHTTP
- *
- * @section nanohttp_sec nanoHTTP
- *
- * nanoHTTP is an embedded HTTP implementation. It comes with the following
- * features:
- * - written in ANSI C (compiles with gcc -ansi)
- * - client/server HTTP engine
- * - attachments via MIME (http://www.ietf.org/rfc/rfc2045.txt)
- * - HTTP Basic Authentication (http://www.ietf.org/rfc/rfc2617.txt)
- * - optional HTTPS support (SSL/TLS) using OpenSSL (http://www.openssl.org)
- *
- * @section links_sec Howto to use the nanoHTTP library
- *
- * - @subpage nanohttp_client_page
- * - @subpage nanohttp_server_page
- * - @subpage nanohttp_mime_page
- * - @subpage nanohttp_ssl_page
- *
- * @author	Ferhat Ayaz
- * @author	Michael Rans
- * @author	Matt Campbell
- * @author	Heiko Ronsdorf
- *
- * @version	1.2
- */
 
 /** @page nanohttp_server_page Howto write an HTTP server
  *
@@ -367,10 +339,6 @@ extern void httpd_add_headers(httpd_conn_t * conn, const hpair_t * values);
  *
  * @todo move to nanohttp-mime.c merge with httpc_mime_* functions
  *
- */
-
-/**
- *
  * MIME multipart/related POST 
  * @returns H_OK on success or error flag
  *
@@ -446,6 +414,7 @@ extern herror_t httpd_send_not_implemented(httpd_conn_t *conn, const char *msg);
 }
 #endif
 
+/**@}*/
 /**@}*/
 
 #endif

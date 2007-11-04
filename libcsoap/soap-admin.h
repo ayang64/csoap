@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-admin.h,v 1.6 2007/11/03 22:40:09 m0gg Exp $
+ *  $Id: soap-admin.h,v 1.7 2007/11/04 06:57:32 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -27,7 +27,7 @@
 
 /** @file soap-admin.h HTTP administrator interface
  *
- * @defgroup CSOAP_ADMIN
+ * @defgroup CSOAP_ADMIN HTTP administration interface
  * @ingroup CSOAP
  */
 /**@{*/

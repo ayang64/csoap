@@ -1,11 +1,8 @@
-$Id: TODO,v 1.19 2007/11/03 22:40:09 m0gg Exp $
-===============================================================================
+/** @page todo Todo List
 
-Things to do _before_ 1.2 release:
-==================================
+@section todo_12 Things to do _before_ 1.2 release
 
-nanohttp:
----------
+@subsection nanohttp
 - improve error handling!!!!
   - write tests (for each??) error case
   - trigger tests after build
@@ -18,8 +15,7 @@ nanohttp:
 - delete or fix broken examples (see Makefile.am)
 - Improve API documentation
 
-csoap:
-------
+@subsection csoap
 - MIME functions are broken (example only?)
   - optimize mime API
 - Check portability to Win32/Linux/MaxOS (only tested on FreeBSD 6.2)
@@ -27,33 +23,32 @@ csoap:
   - Add reference to http://www.w3.org/TR/SOAP-attachments
 - document xmlsec (like nanohttp_ssl_page)
 
-xsd2c:
-======
+@subsection xsd2c
 - Check portability
 
-wsdl2c:
-=======
+@subsection wsdl2c
 - Check portability
 
-Things to do _after_ 1.2 release:
-=================================
+@section todo_13 Things to do _after_ 1.2 release
 
-additional:
------------
+@subsection additional
 - publish FreeBSD port
 
-Additional things that could be done:
-=====================================
+@section todo Additional things that could be done
 
-nanohttp:
-=========
+@subsection build-system
+- configure flags to enable/disable transports
+
+@subsection transports
+- Add SMTP transport
+
+@subsubsection nanohttp
 - add DIME attachments (SOAP MTOM)
 - add BASE64 decoding for MIME attachments (?)
 - cleanup circular module dependencies
   - e.g. nanohttp-stream should hide hsocket, hssl
 
-csoap:
-======
+@subsubsection csoap
 - add examples from http://www.xmethods.org (Google, UDDI)
 - soap-nudp.c one thread per request (see soap_nudp_server_run)
 - http://www.ws-i.org/Profiles/BasicProfile-1.0.html conformance testing
@@ -62,15 +57,14 @@ csoap:
 - soap-nudp message re-transmission
   - WS-Reliability support (?)
 
-wsdl2c:
-=======
+@subsubsection wsdl2c
 - generate csoap client/server skeletons
 
-xsd2c:
-======
+@subsubsection xsd2c
 - Check if this is already done:
   - Add extension base functionality OK
   - Add deserialize functionality OK
   - Add simpleTypes (list, restriction?, ...)
   - List free must use ( <Obj>_Free(..->value) ) instead of ( free() )
  
+*/

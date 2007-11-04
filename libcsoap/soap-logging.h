@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: soap-logging.h,v 1.1 2007/11/03 22:40:09 m0gg Exp $
+ *  $Id: soap-logging.h,v 1.2 2007/11/04 06:57:32 m0gg Exp $
  * 
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2006  Ferhat Ayaz
@@ -27,7 +27,7 @@
 
 /** @file soap-logging.h Logging definitions and prototypes
  *
- * @defgrpoup CSOAP_LOGGING Logging interface
+ * @defgroup CSOAP_LOGGING Logging interface
  * @ingroup CSOAP
  */
 /**@{*/

@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-stream.h,v 1.16 2007/11/03 22:40:15 m0gg Exp $
+ *  $Id: nanohttp-stream.h,v 1.17 2007/11/04 06:57:32 m0gg Exp $
  *
  * CSOAP Project:  A http client/server library in C
  * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -45,7 +45,7 @@
  * be given while creating a stream.
  *
  * A stream will start sending/receiving data "after" sending/receiving header
- * information. (After <CF><CF>)"
+ * information (After CR LF CR LF)."
  */
 /**{@*/
 

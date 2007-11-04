@@ -1,0 +1,24 @@
+/** @page nanohttp_page nanoHTTP
+
+@section nanohttp_sec nanoHTTP
+
+nanoHTTP is an embedded HTTP implementation. It comes with the following
+features:
+- written in ANSI C (compiles with gcc -ansi)
+- client/server HTTP engine
+- MIME attachments (http://www.ietf.org/rfc/rfc2045.txt)
+- HTTP Basic Authentication (http://www.ietf.org/rfc/rfc2617.txt)
+- optional HTTPS support (SSL/TLS) using OpenSSL (http://www.openssl.org)
+
+@section links_sec Howto to use the nanoHTTP library
+
+- @subpage nanohttp_client_page
+- @subpage nanohttp_server_page
+- @subpage nanohttp_mime_page
+- @subpage nanohttp_ssl_page
+
+@author @verbinclude AUTHORS
+
+ @version	1.2
+
+*/

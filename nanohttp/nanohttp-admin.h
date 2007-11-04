@@ -1,5 +1,5 @@
 /******************************************************************
- *  $Id: nanohttp-admin.h,v 1.7 2007/11/03 22:40:10 m0gg Exp $
+ *  $Id: nanohttp-admin.h,v 1.8 2007/11/04 06:57:32 m0gg Exp $
  *
  * CSOAP Project:  A SOAP client/server library in C
  * Copyright (C) 2003  Ferhat Ayaz
@@ -31,7 +31,7 @@
  */
 /**@{*/
 
-/** @defgrup NANOHTTP_ADMIN_CMDLINE_FLAGS Command line flags
+/** @defgroup NANOHTTP_ADMIN_CMDLINE_FLAGS Command line flags
  */
 /**@{*/
 /** Commandline argument to enabled the nanoHTTP admin interface.

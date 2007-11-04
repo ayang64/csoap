@@ -1,0 +1,82 @@
+/** @mainpage Project overview
+
+@section project_intro_sec Introduction
+
+cSOAP is a client/server SOAP library implemented in pure C. It comes with
+embedded transport servers for UDP and HTTP (nanoHTTP). The transferred XML
+structures are handled by libxml2.
+
+@section project_features_sec Features
+
+- SOAP 1.1 compliant (@subpage csoap_page)
+- supports different transport services
+  - HTTP including SSL (@subpage nanohttp_page)
+  - client/server UDP transport service (multicast, SOAP-over-UDP)
+- attachments via MIME
+- message based security (XML encryption/signation)
+- automatic generation of a WS-Inspection document
+- Platform independent: Windows, Unix, Linux, MacOS, OpenVMS, AIX
+- Written in pure ANSI C (compiles with gcc -ansi).
+
+@section howto_sec HOWTOs and coding examples
+
+- @ref nanohttp_client_page
+- @ref nanohttp_server_page
+- @ref nanohttp_mime_page
+- @ref csoap_client_page
+- @ref csoap_server_page
+- @ref csoap_mime_page
+- @ref csoap_xmlsec_page
+
+@section help_sec How to help
+
+The development of cSOAP highly depends on your input! If you are trying
+cSOAP let us know what you think of it (do you miss certain features?). Even
+if you decide not to use it, please let us know why.
+
+@section projects_sec Projects that use cSOAP
+
+@subsection complearn_sec CompLearn
+
+CompLearn (http://complearn.org/) is a suite of simple-to-use utilities that
+you can use to apply compression techniques to the process of discovering and
+learning patterns.
+
+@section downloads_sec Downloads
+
+@subsection download_stable_sec Download stable release
+
+A stable release is a tested version of cSOAP. Download this package if you
+want to use it in your productive projects. 
+
+Download source code of libsoap-1.1.0.tar.gz:
+http://prdownloads.sourceforge.net/csoap/libsoap-1.1.0.tar.gz?download
+
+@subsection download_snapshot_sec Download latest snapshot (nightly build)
+
+Latest snapshots are build nightly on a detected CVS commit. This is sometimes
+not very stable but in some case are snapshots the better choice then the
+stable version. This can happen if a very important bug was fixed or a new
+feature was introduced. It is recommend to join the mailinglist.
+
+Download latest snapshot (nightly build):
+http://csoap.sourceforge.net/downloads/libsoap-snapshot.tar.gz
+
+@subsection download_cvs_sec Checkout from CVS
+
+Do you want the latest source codes? You want to contribute a patch? Have you
+found a bug? Or whatever. You should check out cSOAP from CVS to play the game
+with us cSOAP developers.
+
+Web CVS access: http://csoap.cvs.sourceforge.net/csoap/libsoap/
+
+@author @verbinclude AUTHORS
+
+@version 1.2
+
+@see http://csoap.sourceforge.net/
+@see http://www.libxml.org/
+@see http://www.openssl.org/
+@see http://www.aleksey.com/xmlsec/
+
+*/
