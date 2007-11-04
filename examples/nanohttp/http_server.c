@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_server.c,v 1.15 2007/11/03 22:40:09 m0gg Exp $
+*  $Id: http_server.c,v 1.16 2007/11/04 07:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003  Ferhat Ayaz
@@ -104,14 +104,59 @@ headers_service(httpd_conn_t *conn, struct hrequest_t *req)
         "</ul>"
       "</body>"
     "</html>");
-
-  return;
 }
 
 static void
 mime_service(httpd_conn_t *conn, struct hrequest_t *req)
 {
   httpd_send_not_implemented(conn, "mime_service");
+}
+
+static void
+post_service(httpd_conn_t *conn, struct hrequest_t *req)
+{
+  if (req->method == HTTP_REQUEST_POST)
+  {
+    unsigned char buffer[1024];
+    long len, total;
+
+    httpd_send_header(conn, 200, HTTP_STATUS_200_REASON_PHRASE);
+    http_output_stream_write_string(conn->out,
+      "<html>"
+        "<head>"
+	  "<title>POST service</title>"
+        "</head>"
+        "<body>"
+          "<h1>You posted</h1>"
+          "<pre>");
+
+    if (req->content_type && req->content_type->type)
+    {
+      len = sprintf(buffer, "<p>Content-Type: %s</p>", req->content_type->type);
+      http_output_stream_write(conn->out, buffer, len);
+    }
+
+    while (http_input_stream_is_ready(req->in))
+    {
+	    len = http_input_stream_read(req->in, buffer, 1024);
+	    http_output_stream_write(conn->out, buffer, len);
+	    total += len;
+    }
+
+    http_output_stream_write_string(conn->out,
+          "</pre>");
+
+    len = sprintf(buffer, "<p>Received %li bytes</p>", total);
+    http_output_stream_write(conn->out, buffer, len);
+
+    http_output_stream_write_string(conn->out,
+        "</body>"
+      "</html>");
+  }
+  else
+  {
+    httpd_send_not_implemented(conn, "post_service");
+  }
 }
 
 static void
@@ -130,13 +175,21 @@ root_service(httpd_conn_t *conn, struct hrequest_t *req)
           "<li><a href=\"/secure\">Secure service</a> (try: bob/builder)</li>"
           "<li><a href=\"/headers\">Request headers</a></li>"
 	  "<li><a href=\"/mime\">MIME service</a></li>"
+	  "<li>"
+            "<form action=\"/post\" method=\"post\" enctype=\"multipart/form-data\">"
+              "<fieldset>"
+                "<legend>Upload file</legend>"
+                "<input name=\"Text\" type=\"text\" value=\"test-field\"? "
+                "<input name=\"File\" type=\"file\" accept=\"text/*\"> "
+                "<input value=\"Submit\" type=\"submit\">"
+              "</fieldset>"
+            "</form>"
+          "</li>"
           "<li><a href=\"/not_existent\">The default service</a></li>"
           "<li><a href=\"/nhttp\">Admin page</a> (try -NHTTPDadmin on the command line)</li>"
         "</ul>"
       "</body>"
     "</html>");
-
-  return;
 }
 
 int
@@ -182,6 +235,14 @@ main(int argc, char **argv)
     herror_release(status);
     httpd_destroy();
     exit(1); 
+  }
+
+  if ((status = httpd_register("/post", post_service)) != H_OK)
+  {
+    fprintf(stderr, "Cannot register POST service (%s)\n", herror_message(status));
+    herror_release(status);
+    httpd_destroy();
+    exit(1);
   }
 
   if ((status = httpd_register_default("/error", default_service)) != H_OK)

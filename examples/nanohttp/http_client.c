@@ -1,5 +1,5 @@
 /******************************************************************
-*  $Id: http_client.c,v 1.10 2007/11/03 22:40:09 m0gg Exp $
+*  $Id: http_client.c,v 1.11 2007/11/04 07:37:38 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C (example)
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -78,9 +78,9 @@ static void show_response(hresponse_t *res)
 
 int main(int argc, char **argv)
 {
-  httpc_conn_t *conn; /* Client connection object */
-  hresponse_t *res; /* Response object **/
-  herror_t status;
+  httpc_conn_t *conn; /* Client connection */
+  hresponse_t *res;   /* HTTP response */
+  herror_t status;    /* Function return value */
   int i;
 
   /* check usage */
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  /* XXX: this is not safe... */
+  /* XXX: argv[i+1] is not safe (userame/password) */
   for (i=0; i<argc; i++)
   {
     if (!strcmp("-headers", argv[i]))
