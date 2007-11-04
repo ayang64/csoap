@@ -1,6 +1,6 @@
 /** @file nanohttp-stream.c Stream handling */
 /******************************************************************
-*  $Id: nanohttp-stream.c,v 1.20 2007/11/03 22:40:15 m0gg Exp $
+*  $Id: nanohttp-stream.c,v 1.21 2007/11/04 08:41:20 m0gg Exp $
 *
 * CSOAP Project:  A http client/server library in C
 * Copyright (C) 2003-2004  Ferhat Ayaz
@@ -52,12 +52,8 @@
 #include "nanohttp-socket.h"
 #include "nanohttp-stream.h"
 
-/*------------------------------------------------------------
-HTTP INPUT STREAM
-------------------------------------------------------------*/
-
 static int
-_http_stream_is_content_length(hpair_t * header)
+_http_stream_has_content_length(hpair_t * header)
 {
   return hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH) != NULL;
 }
@@ -66,6 +62,7 @@ static int
 _http_stream_is_chunked(hpair_t * header)
 {
   char *chunked;
+
   chunked = hpairnode_get_ignore_case(header, HEADER_TRANSFER_ENCODING);
   if (chunked != NULL)
   {
@@ -74,7 +71,6 @@ _http_stream_is_chunked(hpair_t * header)
       return 1;
     }
   }
-
   return 0;
 }
 
@@ -99,7 +95,7 @@ http_input_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Find connection type */
   hpairnode_dump_deep(header);
   /* Check if Content-type */
-  if (_http_stream_is_content_length(header))
+  if (_http_stream_has_content_length(header))
   {
     log_verbose("Stream transfer with 'Content-length'");
     content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
@@ -153,6 +149,7 @@ http_input_stream_new_from_file(const char *filename)
 
   result->type = HTTP_TRANSFER_FILE;
   result->fd = fd;
+  result->err = H_OK;
   result->deleteOnExit = 0;
   strcpy(result->filename, filename);
 
@@ -169,6 +166,9 @@ http_input_stream_free(struct http_input_stream_t * stream)
       log_info("Removing '%s'", stream->filename);
     /* remove(stream->filename); */
   }
+
+  if (stream->err)
+    herror_release(stream->err);
 
   free(stream);
 }
@@ -427,6 +427,8 @@ http_input_stream_is_ready(struct http_input_stream_t * stream)
     return 0;
 
   /* reset error flag */
+  if (stream->err)
+    herror_release(stream->err);
   stream->err = H_OK;
 
   switch (stream->type)
@@ -442,7 +444,6 @@ http_input_stream_is_ready(struct http_input_stream_t * stream)
   default:
     return 0;
   }
-
 }
 
 /**
@@ -453,13 +454,14 @@ int
 http_input_stream_read(struct http_input_stream_t * stream, unsigned char *dest, int size)
 {
   int len = 0;
+
   /* paranoia check */
   if (stream == NULL)
-  {
     return -1;
-  }
 
-  /* XXX: possible memleak! reset error flag */
+  /* reset error flag */
+  if (stream->err)
+    herror_release(stream->err);
   stream->err = H_OK;
 
   switch (stream->type)
@@ -482,20 +484,8 @@ http_input_stream_read(struct http_input_stream_t * stream, unsigned char *dest,
                              "%d is invalid stream type", stream->type);
     return -1;
   }
-
   return len;
 }
-
-
-/*
--------------------------------------------------------------------
-
-HTTP OUTPUT STREAM
-
--------------------------------------------------------------------
-*/
-
-
 
 /**
   Creates a new output stream. Transfer code will be found from header.
@@ -523,7 +513,7 @@ http_output_stream_new(struct hsocket_t *sock, hpair_t * header)
   /* Find connection type */
 
   /* Check if Content-type */
-  if (_http_stream_is_content_length(header))
+  if (_http_stream_has_content_length(header))
   {
     log_verbose("Stream transfer with 'Content-length'");
     content_length = hpairnode_get_ignore_case(header, HEADER_CONTENT_LENGTH);
